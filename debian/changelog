@@ -21,6 +21,7 @@ evolution-data-server (1.4.1.1-1) experimental; urgency=low
       + set maintainer to Debian Evolution Maintainers
         <pkg-evolution-maintainers@lists.alioth.debian.org>.
       + add Takuo, Marga and me to Uploaders.
+   * debian/patches/ia64_crash_fix.patch: update for new version.
 
  -- Jordi Mallach <jordi@debian.org>  Mon, 31 Oct 2005 12:49:27 +0100
 
