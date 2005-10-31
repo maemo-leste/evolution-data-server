@@ -18,8 +18,11 @@ DEB_CONFIGURE_EXTRA_FLAGS := --sysconfdir=/etc \
 	--enable-ipv6 \
 	--enable-nntp \
 	--enable-smime \
-	--with-openldap \
 	--with-krb5=/usr
+
+ifneq ($(DEB_BUILD_GNU_SYSTEM),gnu)
+DEB_CONFIGURE_EXTRA_FLAGS += --with-openldap
+endif
 
 clean::
 	dh_clean intltool-extract intltool-merge intltool-update \
@@ -93,3 +96,7 @@ update-control:
 
 common-binary-predeb-arch::
 	cat debian/*/DEBIAN/shlibs > debian/shlibs.local
+
+binary-install/evolution-data-server::
+	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
+	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
