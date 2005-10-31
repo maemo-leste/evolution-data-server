@@ -1,0 +1,37 @@
+diff -urN -x Makefile -x '*log' -x config.status evolution-data-server1.2-1.2.2/addressbook/backends/ldap/e-book-backend-ldap.c evolution-data-server1.2-1.2.2-davidm/addressbook/backends/ldap/e-book-backend-ldap.c
+--- evolution-data-server1.2-1.2.2/addressbook/backends/ldap/e-book-backend-ldap.c	2005-03-06 06:56:37.000000000 -0800
++++ evolution-data-server1.2-1.2.2-davidm/addressbook/backends/ldap/e-book-backend-ldap.c	2005-04-20 16:23:48.000000000 -0700
+@@ -594,7 +594,7 @@
+ 	struct timeval timeout;
+ 
+ 	if (!ldap)
+-		return;
++		return LDAP_UNAVAILABLE;
+ 
+ 	attrs[i++] = "supportedControl";
+ 	attrs[i++] = "supportedExtension";
+
+--- evolution-data-server/libedataserverui/e-name-selector-dialog.c~	2005-09-02 23:37:45.000000000 +0900
++++ evolution-data-server/libedataserverui/e-name-selector-dialog.c	2005-09-12 03:00:45.000000000 +0900
+@@ -27,10 +27,13 @@
+ #include <gdk/gdkkeysyms.h>
+ #include <gtk/gtkalignment.h>
+ #include <gtk/gtkbutton.h>
++#include <gtk/gtkcellrenderertext.h>
+ #include <gtk/gtkentry.h>
++#include <gtk/gtkhbox.h>
+ #include <gtk/gtklabel.h>
+ #include <gtk/gtkscrolledwindow.h>
+ #include <gtk/gtkstock.h>
++#include <gtk/gtktreeselection.h>
+ #include <glib/gi18n-lib.h>
+ #include <libedataserverui/e-source-option-menu.h>
+ #include <libedataserverui/e-destination-store.h>
+@@ -38,6 +41,7 @@
+ #include <libedataserverui/e-book-auth-util.h>
+ #include <libedataserver/e-sexp.h>
+ #include "e-name-selector-dialog.h"
++#include "libedataserver/e-sexp.h"
+ 
+ typedef struct {
+ 	gchar        *name;

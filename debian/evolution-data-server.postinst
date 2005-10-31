@@ -1,0 +1,18 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+    configure)
+    chmod u+s  /usr/lib/evolution/camel-lock-helper-1.2
+    ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 0
+    ;;
+esac
+
+#DEBHELPER#
