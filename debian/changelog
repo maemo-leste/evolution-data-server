@@ -30,6 +30,8 @@ evolution-data-server (1.4.1.1-1) experimental; urgency=high
     previous SONAMEs.
   * Merge changes from 1.2.3-8 to experimental.
   * Move libcamel from the libdevel section to libs. (Closes: #305611)
+  * Remove superfluous self-depends of libcamel@VER@-dev.
+    [debian/control, debian/control.in]
 
  -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 22:40:10 +0100
 

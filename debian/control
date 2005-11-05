@@ -191,7 +191,7 @@ Description: The Evolution MIME message handling library
 Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libcamel1.2-6, libedataserver1.2-dev, libkrb5-dev, libdb4.2-dev, libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev, libegroupwise1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libsoup2.2-dev, libtasn1-2-dev, libxml2-dev
+Depends: ${misc:Depends}, libcamel1.2-6, libedataserver1.2-dev, libkrb5-dev, libdb4.2-dev, libaudiofile-dev, libbonobo2-dev, libegroupwise1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libsoup2.2-dev, libtasn1-2-dev, libxml2-dev
 Description: Development files for libcamel
  This package contains header files and static library for libcamel1.2-6
  .
