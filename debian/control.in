@@ -177,7 +177,7 @@ Description: Development files for libegroupwise
  distributed suite from Novell, Inc.
 
 Package: libcamel@VER@
-Section: libdevel
+Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, libnss3 (>= 2:1.7.6)
 Description: The Evolution MIME message handling library

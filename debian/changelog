@@ -29,8 +29,9 @@ evolution-data-server (1.4.1.1-1) experimental; urgency=low
   * Add debian/libcamel1.2-6.install and remove old debian/lib*.install for
     previous SONAMEs.
   * Merge changes from 1.2.3-8 to experimental.
+  * Move libcamel from the libdevel section to libs.
 
- -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 22:15:28 +0100
+ -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 22:40:10 +0100
 
 evolution-data-server (1.4.1-1) experimental; urgency=low
 
