@@ -60,13 +60,9 @@ LIBEGROUPWISE_CURRENT  := $(shell grep '^LIBEGROUPWISE_CURRENT=' configure.in | 
 LIBEGROUPWISE_AGE  := $(shell grep '^LIBEGROUPWISE_AGE=' configure.in | sed -e 's/LIBEGROUPWISE_AGE=//g')
 LIBEGROUPWISE_VER  := $(shell expr $(LIBEGROUPWISE_CURRENT) - $(LIBEGROUPWISE_AGE))
 
-# LIBCAMEL_CURRENT  := $(shell grep '^LIBCAMEL_CURRENT=' configure.in | sed -e 's/LIBCAMEL_CURRENT=//g')
-# LIBCAMEL_AGE  := $(shell grep '^LIBCAMEL_AGE=' configure.in | sed -e 's/LIBCAMEL_AGE=//g')
-# LIBCAMEL_VER  := $(shell expr $(LIBCAMEL_CURRENT) - $(LIBCAMEL_AGE))
-## I wonder why it's static value.(according to camel/Makefile.am)
-LIBCAMEL_CURRENT  := 0
-LIBCAMEL_AGE      := 0
-LIBCAMEL_VER      := 0
+LIBCAMEL_CURRENT  := $(shell grep '^LIBCAMEL_CURRENT=' configure.in | sed -e 's/LIBCAMEL_CURRENT=//g')
+LIBCAMEL_AGE  := $(shell grep '^LIBCAMEL_AGE=' configure.in | sed -e 's/LIBCAMEL_AGE=//g')
+LIBCAMEL_VER  := $(shell expr $(LIBCAMEL_CURRENT) - $(LIBCAMEL_AGE))
 
 RELEASE_TAG := 1.2
 

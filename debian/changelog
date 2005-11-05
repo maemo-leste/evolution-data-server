@@ -24,8 +24,10 @@ evolution-data-server (1.4.1.1-1) experimental; urgency=low
     (Closes: #291469)
   * Add CDBS' utils.
   * Wrap description of libedataserverui1.2-dev.
+  * Uncomment the configure.in scanning hack for libcamel as the SONAME /
+    libtool version-info isn't static anymore.
 
- -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 21:50:44 +0100
+ -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 22:05:46 +0100
 
 evolution-data-server (1.4.1-1) experimental; urgency=low
 
