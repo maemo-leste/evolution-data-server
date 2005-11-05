@@ -1,5 +1,6 @@
---- evolution-data-server/libedataserverui/e-name-selector-dialog.c	2005-09-02 23:37:45.000000000 +0900
-+++ evolution-data-server/libedataserverui/e-name-selector-dialog.c	2005-09-12 03:00:45.000000000 +0900
+diff -urN evolution-data-server-1.4.1.1.orig/libedataserverui/e-name-selector-dialog.c evolution-data-server-1.4.1.1/libedataserverui/e-name-selector-dialog.c
+--- evolution-data-server-1.4.1.1.orig/libedataserverui/e-name-selector-dialog.c	2005-09-02 16:37:45.000000000 +0200
++++ evolution-data-server-1.4.1.1/libedataserverui/e-name-selector-dialog.c	2005-11-05 19:45:36.000000000 +0100
 @@ -27,10 +27,13 @@
  #include <gdk/gdkkeysyms.h>
  #include <gtk/gtkalignment.h>

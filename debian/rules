@@ -5,11 +5,11 @@ include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/class/gnome.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 
-DEB_SHLIBDEPS_INCLUDE := debian/tmp/usr/lib
+DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
-DEB_DH_MAKESHLIBS_ARGS_ALL := -V
+DEB_DH_MAKESHLIBS_ARGS_ALL += -V
 
-DEB_CONFIGURE_EXTRA_FLAGS := --sysconfdir=/etc \
+DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
 	--with-nspr-includes=/usr/include/mozilla/nspr \
 	--with-nss-includes=/usr/include/mozilla/nss \
@@ -23,6 +23,8 @@ DEB_CONFIGURE_EXTRA_FLAGS := --sysconfdir=/etc \
 ifneq ($(DEB_BUILD_GNU_SYSTEM),gnu)
 DEB_CONFIGURE_EXTRA_FLAGS += --with-openldap
 endif
+
+DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
 clean::
 	dh_clean intltool-extract intltool-merge intltool-update \

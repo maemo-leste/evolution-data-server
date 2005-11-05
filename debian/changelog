@@ -1,29 +1,27 @@
 evolution-data-server (1.4.1.1-1) experimental; urgency=low
 
+  [ Jordi Mallach ]
   * New upstream release.
-  * Merge all changes from 1.2.3-5 to experimental.
-  * Acknowledge NMU changes, thanks James Troup and Loïc Minier
-    (closes: #331569, #330013, #331570, #331571).
-  * Forwardport a security improvement from evolution 2.0.3-1.2 that got
-    lost later on:
-    - debian/rules: move here chmod/chgrp calls for camel-lock-helper
-      from evolution-data-server.postinst, and make it sgid mail, not
-      suid root.
-    - debian/evolution-data-server.postinst: removed.
-  * Patch from Michael Banck to not build with libldap2-dev on hurd-i386
-    (closes: #315163).
-    - debian/control.in (Build-Depends): Do not Build-Depend on
-      libldap2-dev on hurd-i386.
-    - debian/rules (DEB_CONFIGURE_EXTRA_FLAGS): Do not add --with-openldap
-      on GNU/Hurd.
-  * Move to team maintenance:
-    - debian/control.in:
-      + set maintainer to Debian Evolution Maintainers
-        <pkg-evolution-maintainers@lists.alioth.debian.org>.
-      + add Takuo, Marga and me to Uploaders.
-   * debian/patches/ia64_crash_fix.patch: update for new version.
+  * Merge all changes from 1.2.3-4.1, 1.2.3-4.2, 1.2.3-5 and 1.2.3-6 to
+    experimental.
+  * debian/patches/ia64_crash_fix.patch: update for new version.
 
- -- Jordi Mallach <jordi@debian.org>  Mon, 31 Oct 2005 12:49:27 +0100
+  [ Loic Minier ]
+  * Merge changes from 1.2.3-7 to experimental.
+  * Drop patches merged upstream:
+    - 10_pc-files-inversion.patch
+  * Update patches to apply cleanly:
+    - 05_libical-declare-const.patch
+    - 15_amd64-build.patch
+    - 20_decode-non-space-separated-mime-header.patch
+  * Port the patch to build against Debian's libdb4.2 to the new upstream
+    release, 35_use-debians-libdb42.patch, and update the reboostrapping
+    patch, 70_rebootstrap.patch.
+  * Update FSF address in copyright file.
+  * Clarify License versus Copyright and update authors list in copyright
+    file.
+
+ -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 20:26:22 +0100
 
 evolution-data-server (1.4.1-1) experimental; urgency=low
 
@@ -48,6 +46,84 @@ evolution-data-server (1.4.0-1) experimental; urgency=low
   * New upstream release
 
  -- Takuo KITAME <kitame@debian.org>  Mon, 12 Sep 2005 02:23:41 +0900
+
+evolution-data-server (1.2.3-7) unstable; urgency=high
+
+  * Update the patch to build against Debian's libdb4.2 instead of the bundled
+    libdb4.1 copy.
+    - Clean up.
+    - Split in two patches, one for configure.in and **/Makefile.am, the other
+      to update generated files: debian/patches/35_use-debians-libdb42.patch
+      and debian/patches/70_rebootstrap.patch (result of automake-1.7 &&
+      autoconf && rm -rf autom4te.cache)
+    - Also cover the addressbook/backends/file sub-directory.
+      (Closes: #336761, #336897, #337018, #337077)
+  * Add DEB_FIXPERMS_EXCLUDE to preserve the mail group and the setgid bit of
+    usr/lib/evolution/evolution-data-server*. (Closes: #336755)
+  * Re-create patches applying cleanly, preprend a number to patches missing
+    one.
+    - debian/patches/05_libical-declare-const.patch: cleaned up, renamed.
+    - debian/patches/10_pc-files-inversion.patch: cleaned up, renamed.
+    - debian/patches/15_amd64-build.patch: cleaned up, renamed.
+    - debian/patches/20_decode-non-space-separated-mime-header.patch: cleaned
+      up, renamed.
+    - debian/patches/25_ia64-crash.patch: cleaned up, renamed.
+    - debian/patches/30_dont-send-second-pop-capa.patch: cleaned up, renamed.
+  * Don't overwrite DEB_SHLIBDEPS_INCLUDE, DEB_CONFIGURE_EXTRA_FLAGS, nor
+    DEB_DH_MAKESHLIBS_ARGS_ALL.
+  * Add myself to Uploaders.
+
+ -- Loic Minier <lool@dooz.org>  Wed,  2 Nov 2005 17:12:50 +0100
+
+evolution-data-server (1.2.3-6) unstable; urgency=low
+
+  * debian/control.in, debian/control:
+    - duplicate all changes made in the
+      last three uploads to sync both files. debian/control isn't regenerated
+      at build time, so many changes were missing.
+    - bump Standards-Version to 3.6.2.0, no changes required.
+
+ -- Jordi Mallach <jordi@debian.org>  Mon, 31 Oct 2005 13:24:39 +0100
+
+evolution-data-server (1.2.3-5) unstable; urgency=low
+
+  * Acknowledge NMU changes, thanks James Troup and Loïc Minier
+    (closes: #331569, #330013, #331570, #331571).
+  * Forwardport a security improvement from evolution 2.0.3-1.2 that got
+    lost later on:
+    - debian/rules: move here chmod/chgrp calls for camel-lock-helper
+      from evolution-data-server.postinst, and make it sgid mail, not
+      suid root.
+    - debian/evolution-data-server.postinst: removed.
+  * Patch from Michael Banck to not build with libldap2-dev on hurd-i386
+    (closes: #315163).
+    - debian/control.in (Build-Depends): Do not Build-Depend on
+      libldap2-dev on hurd-i386.
+    - debian/rules (DEB_CONFIGURE_EXTRA_FLAGS): Do not add --with-openldap
+      on GNU/Hurd.
+  * Move to team maintenance:
+    - debian/control.in:
+      + set maintainer to Debian Evolution Maintainers
+        <pkg-evolution-maintainers@lists.alioth.debian.org>.
+      + add Takuo, Marga and me to Uploaders.
+
+ -- Jordi Mallach <jordi@debian.org>  Mon, 31 Oct 2005 10:06:04 +0100
+
+evolution-data-server (1.2.3-4.2) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Urgency high for RC bug fix.
+  * Add missing libdb4.2-dev dependency to libebook1.2-dev and
+    libcamel1.2-dev. (Closes: #331570, #331571)
+
+ -- Loic Minier <lool@dooz.org>  Sat,  8 Oct 2005 17:42:11 +0200
+
+evolution-data-server (1.2.3-4.1) unstable; urgency=low
+
+  * debian/control: fix libedataserver1.2-dev to Depend on libdb4.2-dev
+    rather than libdb4.1-dev.  Closes: #331569, #330013
+
+ -- James Troup <james@nocrew.org>  Sat,  8 Oct 2005 01:54:09 +0100
 
 evolution-data-server (1.2.3-2) unstable; urgency=low
 
