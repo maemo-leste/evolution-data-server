@@ -28,6 +28,7 @@ evolution-data-server (1.4.1.1-1) experimental; urgency=low
     libtool version-info isn't static anymore.
   * Add debian/libcamel1.2-6.install and remove old debian/lib*.install for
     previous SONAMEs.
+  * Merge changes from 1.2.3-8 to experimental.
 
  -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 22:15:28 +0100
 
@@ -54,6 +55,54 @@ evolution-data-server (1.4.0-1) experimental; urgency=low
   * New upstream release
 
  -- Takuo KITAME <kitame@debian.org>  Mon, 12 Sep 2005 02:23:41 +0900
+
+evolution-data-server (1.2.3-8) unstable; urgency=high
+
+  * Add depends to *-dev packages to match .la files referenced in the
+    dependency_libs of *.la files they ship:
+    - evolution-data-server-dev: libaudiofile-dev, libbonobo2-dev,
+    libdb4.2-dev, libebook1.2-dev, libecal1.2-dev, libedataserver1.2-dev,
+    libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev,
+    libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev,
+    liborbit2-dev, libpopt-dev, libsoup2.2-dev, libtasn1-2-dev, libxml2-dev
+    - libedataserver1.2-dev: libaudiofile-dev, libbonobo2-dev, libesd0-dev,
+    libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev,
+    libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev,
+    libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libedataserverui1.2-dev: libaudiofile-dev, libbonobo2-dev,
+    libcamel1.2-dev, libdb4.2-dev, libebook1.2-dev, libesd0-dev,
+    libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnomevfs2-dev,
+    libgnutls11-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev,
+    libtasn1-2-dev, libxml2-dev (Closes: #337422)
+    - libebook1.2-dev: libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev,
+    libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev,
+    libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev,
+    libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libedata-book1.2-dev: libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev,
+    libdb4.2-dev, libedataserver1.2-dev, libesd0-dev, libgconf2-dev,
+    libgcrypt11-dev, libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev,
+    libgnutls11-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev,
+    libtasn1-2-dev, libxml2-dev (Closes: #337421)
+    - libecal1.2-dev: libaudiofile-dev, libbonobo2-dev, libdb4.2-dev,
+    libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev,
+    libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev,
+    libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libedata-cal1.2-dev: libaudiofile-dev, libbonobo2-dev, libdb4.2-dev,
+    libedataserver1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev,
+    libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev,
+    libgpg-error-dev, liborbit2-dev, libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libegroupwise1.2-dev: libaudiofile-dev, libbonobo2-dev, libesd0-dev,
+    libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev,
+    libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev,
+    libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libcamel1.2-dev: libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev,
+    libegroupwise1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev,
+    libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev,
+    libgpg-error-dev, liborbit2-dev, libpopt-dev, libsoup2.2-dev,
+    libtasn1-2-dev, libxml2-dev
+  * Add ${misc:Depends} to all Depends.
+
+ -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 16:13:06 +0100
 
 evolution-data-server (1.2.3-7) unstable; urgency=high
 
