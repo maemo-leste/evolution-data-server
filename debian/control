@@ -2,7 +2,7 @@ Source: evolution-data-server
 Section: gnome
 Priority: optional
 Maintainer: Debian Evolution Maintainers <pkg-evolution-maintainers@lists.alioth.debian.org>
-Uploaders: Takuo KITAME <kitame@debian.org>, Jordi Mallach <jordi@debian.org>, Margarita Manterola <debian@marga.com.ar>
+Uploaders: Takuo KITAME <kitame@debian.org>, Jordi Mallach <jordi@debian.org>, Margarita Manterola <debian@marga.com.ar>, Loic Minier <lool@dooz.org>
 Build-Depends: flex, debhelper (>= 4.0.0), cdbs, intltool (>= 0.28-2), bison, libgnome2-dev (>= 2.10), libsoup2.2-dev (>= 2.2.6), libldap2-dev [!hurd-i386], gtk-doc-tools, libgnomeui-dev, libnss-dev (>= 2:1.7.7), libdb4.2-dev, libkrb5-dev
 Standards-Version: 3.6.2.0
 
@@ -29,7 +29,7 @@ Package: libedataserver1.2-4
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, libnspr4
-Description: Utily library for evolution data servers
+Description: Utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
@@ -49,7 +49,7 @@ Package: libedataserverui1.2-6
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
-Description: GUI utily library for evolution data servers
+Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
@@ -63,7 +63,8 @@ Description: GUI utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
- This package contains header files and static library for libedataserverui1.2-6.
+ This package contains header files and static library for
+ libedataserverui1.2-6.
 
 Package: libebook1.2-5
 Section: libs

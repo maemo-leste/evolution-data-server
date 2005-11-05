@@ -20,8 +20,12 @@ evolution-data-server (1.4.1.1-1) experimental; urgency=low
   * Update FSF address in copyright file.
   * Clarify License versus Copyright and update authors list in copyright
     file.
+  * Fix description of libedataserver and libedataserverui packages.
+    (Closes: #291469)
+  * Add CDBS' utils.
+  * Wrap description of libedataserverui1.2-dev.
 
- -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 20:26:22 +0100
+ -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 21:50:44 +0100
 
 evolution-data-server (1.4.1-1) experimental; urgency=low
 

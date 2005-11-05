@@ -29,7 +29,7 @@ Package: libedataserver@VER@
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, libnspr4
-Description: Utily library for evolution data servers
+Description: Utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
@@ -49,7 +49,7 @@ Package: libedataserverui@VER@
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
-Description: GUI utily library for evolution data servers
+Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
@@ -63,7 +63,8 @@ Description: GUI utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
- This package contains header files and static library for libedataserverui@VER@.
+ This package contains header files and static library for
+ libedataserverui@VER@.
 
 Package: libebook@VER@
 Section: libs
