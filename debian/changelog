@@ -1,4 +1,4 @@
-evolution-data-server (1.4.1.1-1) experimental; urgency=low
+evolution-data-server (1.4.1.1-1) experimental; urgency=high
 
   [ Jordi Mallach ]
   * New upstream release.
