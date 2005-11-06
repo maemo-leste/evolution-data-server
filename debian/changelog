@@ -24,16 +24,18 @@ evolution-data-server (1.4.1.1-1) experimental; urgency=high
     (Closes: #291469)
   * Add CDBS' utils.
   * Wrap description of libedataserverui1.2-dev.
-  * Uncomment the configure.in scanning hack for libcamel as the SONAME /
-    libtool version-info isn't static anymore. (Closes: #333142, #337464)
-  * Add debian/libcamel1.2-6.install and remove old debian/lib*.install for
-    previous SONAMEs.
+  * Follow libcamel's SONAME changes:
+    - Uncomment the configure.in scanning hack for libcamel as the SONAME /
+      libtool version-info is updated for -provider.
+      (Closes: #333142, #337464)
+    - Add debian/libcamel1.2-6.install and remove old debian/lib*.install for
+      previous SONAMEs.
+    - Add Conflicts / Replaces with libcamel1.2-0 on libcamel1.2-@VER@.
   * Merge changes from 1.2.3-8 to experimental.
   * Move libcamel from the libdevel section to libs. (Closes: #305611)
   * Remove superfluous self-depends of libcamel@VER@-dev.
-    [debian/control, debian/control.in]
 
- -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 22:40:10 +0100
+ -- Loic Minier <lool@dooz.org>  Sun,  6 Nov 2005 11:01:48 +0100
 
 evolution-data-server (1.4.1-1) experimental; urgency=low
 
