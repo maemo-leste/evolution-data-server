@@ -35,8 +35,10 @@ evolution-data-server (1.4.1.1-1) experimental; urgency=high
   * Move libcamel from the libdevel section to libs. (Closes: #305611)
   * Remove superfluous self-depends of libcamel@VER@-dev.
   * Sync shlibs.
+  * E-D-S plugins are in /usr/lib/evolution-data-server-1.2, not 1.4.
+    [debian/evolution-data-server.install]
 
- -- Loic Minier <lool@dooz.org>  Sun,  6 Nov 2005 11:45:13 +0100
+ -- Loic Minier <lool@dooz.org>  Mon,  7 Nov 2005 17:22:25 +0100
 
 evolution-data-server (1.4.1-1) experimental; urgency=low
 
