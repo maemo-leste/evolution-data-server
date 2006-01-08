@@ -21,7 +21,7 @@ Section: devel
 Architecture: any
 Conflicts: evolution-data-server1.2-dev
 Replaces: evolution-data-server1.2-dev
-Depends: ${misc:Depends}, libedata-book1.2-dev (= ${Source-Version}), libedata-cal1.2-dev (= ${Source-Version}), libegroupwise1.2-dev (= ${Source-Version}), libedataserverui1.2-dev (= ${Source-Version}), libcamel1.2-dev (= ${Source-Version}), libaudiofile-dev, libbonobo2-dev, libdb4.2-dev, libebook1.2-dev, libecal1.2-dev, libedataserver1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libsoup2.2-dev, libtasn1-2-dev, libxml2-dev
+Depends: ${misc:Depends}, libedata-book1.2-dev (= ${Source-Version}), libedata-cal1.2-dev (= ${Source-Version}), libegroupwise1.2-dev (= ${Source-Version}), libexchange-storage1.2-dev (= ${Source-Version}), libedataserverui1.2-dev (= ${Source-Version}), libcamel1.2-dev (= ${Source-Version}), libaudiofile-dev, libbonobo2-dev, libdb4.2-dev, libebook1.2-dev, libecal1.2-dev, libedataserver1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libsoup2.2-dev, libtasn1-2-dev, libxml2-dev
 Description: Development files for evolution-data-server (meta package)
  This package contains header files and static library of evolution-data-server.
 
@@ -175,6 +175,26 @@ Description: Development files for libegroupwise
  .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
+
+Package: libexchange-storage@VER@
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Backend library for evolution calendars
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package is backend library for evolution exchange.
+
+Package: libexchange-storage1.2-dev
+Section: libdevel
+Architecture: any
+Depends: ${misc:Depends}, libexchange-storage@VER@ (= ${Source-Version}), libecal1.2-dev (= ${Source-Version}),libkrb5-dev, libldap2-dev, libnspr-dev
+Description: Backend library for evolution calendars (development files)
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package contains header files and static library for libexchange-storage@VER@.
 
 Package: libcamel@VER@
 Section: libs

@@ -64,6 +64,10 @@ LIBCAMEL_CURRENT  := $(shell grep '^LIBCAMEL_CURRENT=' configure.in | sed -e 's/
 LIBCAMEL_AGE  := $(shell grep '^LIBCAMEL_AGE=' configure.in | sed -e 's/LIBCAMEL_AGE=//g')
 LIBCAMEL_VER  := $(shell expr $(LIBCAMEL_CURRENT) - $(LIBCAMEL_AGE))
 
+LIBEXCHANGE_STORAGE_CURRENT := $(shell grep '^LIBEXCHANGE_STORAGE_CURRENT=' configure.in | sed -e 's/LIBEXCHANGE_STORAGE_CURRENT=//g')
+LIBEXCHANGE_STORAGE_AGE := $(shell grep '^LIBEXCHANGE_STORAGE_AGE=' configure.in | sed -e 's/LIBEXCHANGE_STORAGE_AGE=//g')
+LIBEXCHANGE_STORAGE_VER := $(shell expr $(LIBEXCHANGE_STORAGE_CURRENT) - $(LIBEXCHANGE_STORAGE_AGE))
+
 RELEASE_TAG := 1.2
 
 update-control:
@@ -74,6 +78,7 @@ update-control:
 	@echo "         libecal version: $(LIBECAL_VER)"
 	@echo "    libedata-cal version: $(LIBEDATACAL_VER)"
 	@echo "   libegroupwise version: $(LIBEGROUPWISE_VER)"
+	@echo " libexchange-storage version: $(LIBEXCHANGE_STORAGE_VER)"
 	@echo "        libcamel version: $(LIBCAMEL_VER)"
 	sed -e 's/libedataserver@VER@/libedataserver$(RELEASE_TAG)-$(LIBEDATASERVER_VER)/g' \
 	 -e 's/libedataserverui@VER@/libedataserverui$(RELEASE_TAG)-$(LIBEDATASERVERUI_VER)/g' \
@@ -82,6 +87,7 @@ update-control:
 	 -e 's/libecal@VER@/libecal$(RELEASE_TAG)-$(LIBECAL_VER)/g' \
 	 -e 's/libedata-cal@VER@/libedata-cal$(RELEASE_TAG)-$(LIBEDATACAL_VER)/g' \
 	 -e 's/libegroupwise@VER@/libegroupwise$(RELEASE_TAG)-$(LIBEGROUPWISE_VER)/g' \
+	 -e 's/libexchange-storage@VER@/libexchange-storage$(RELEASE_TAG)-$(LIBEXCHANGE_STORAGE_VER)/g' \
 	 -e 's/libcamel@VER@/libcamel$(RELEASE_TAG)-$(LIBCAMEL_VER)/g' \
 	debian/control.in > debian/control
 	cp debian/libedataserver@VER@.install debian/libedataserver$(RELEASE_TAG)-$(LIBEDATASERVER_VER).install
@@ -91,6 +97,7 @@ update-control:
 	cp debian/libecal@VER@.install debian/libecal$(RELEASE_TAG)-$(LIBECAL_VER).install
 	cp debian/libedata-cal@VER@.install debian/libedata-cal$(RELEASE_TAG)-$(LIBEDATACAL_VER).install
 	cp debian/libegroupwise@VER@.install debian/libegroupwise$(RELEASE_TAG)-$(LIBEGROUPWISE_VER).install
+	cp debian/libexchange-storage@VER@.install debian/libexchange-storage$(RELEASE_TAG)-$(LIBEXCHANGE_STORAGE_VER).install
 	cp debian/libcamel@VER@.install debian/libcamel$(RELEASE_TAG)-$(LIBCAMEL_VER).install
 
 common-binary-predeb-arch::
