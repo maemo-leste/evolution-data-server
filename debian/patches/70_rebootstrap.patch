@@ -29485,3 +29485,273 @@ diff -Nuar evolution-data-server-1.4.2.1/src/Makefile.in evolution-data-server-1
  srcdir = @srcdir@
  top_srcdir = @top_srcdir@
  VPATH = @srcdir@
+diff -Nuar evolution-data-server-1.4.2.1.orig/intltool-merge.in evolution-data-server-1.4.2.1/intltool-merge.in
+--- evolution-data-server-1.4.2.1.orig/intltool-merge.in	2006-01-09 11:55:37.064820998 +0100
++++ evolution-data-server-1.4.2.1/intltool-merge.in	2006-01-09 11:55:50.110275550 +0100
+@@ -91,7 +91,7 @@
+ 
+ my %po_files_by_lang = ();
+ my %translations = ();
+-my $iconv = $ENV{"ICONV"} || $ENV{"INTLTOOL_ICONV"} || "@INTLTOOL_ICONV@";
++my $iconv = $ENV{"ICONV"} || $ENV{"INTLTOOL_ICONV"} || "/usr/bin/iconv";
+ my $devnull = ($^O eq 'MSWin32' ? 'NUL:' : '/dev/null');
+ 
+ # Use this instead of \w for XML files to handle more possible characters.
+@@ -257,7 +257,7 @@
+ sub get_local_charset
+ {
+     my ($encoding) = @_;
+-    my $alias_file = $ENV{"G_CHARSET_ALIAS"} || "@INTLTOOL_LIBDIR@/charset.alias";
++    my $alias_file = $ENV{"G_CHARSET_ALIAS"} || "/usr/lib/charset.alias";
+ 
+     # seek character encoding aliases in charset.alias (glib)
+ 
+diff -Nuar evolution-data-server-1.4.2.1.orig/intltool-update.in evolution-data-server-1.4.2.1/intltool-update.in
+--- evolution-data-server-1.4.2.1.orig/intltool-update.in	2006-01-09 11:55:33.985657686 +0100
++++ evolution-data-server-1.4.2.1/intltool-update.in	2006-01-09 11:55:50.152264137 +0100
+@@ -610,7 +610,7 @@
+ #
+ sub GeneratePOTemplate
+ {
+-    my $XGETTEXT = $ENV{"XGETTEXT"} || "@INTLTOOL_XGETTEXT@";
++    my $XGETTEXT = $ENV{"XGETTEXT"} || "/usr/bin/xgettext";
+     my $XGETTEXT_ARGS = $ENV{"XGETTEXT_ARGS"} || '';
+     chomp $XGETTEXT;
+ 
+@@ -781,7 +781,7 @@
+ {
+     -f "$MODULE.pot" or die "$PROGRAM: $MODULE.pot does not exist.\n";
+ 
+-    my $MSGMERGE = $ENV{"MSGMERGE"} || "@INTLTOOL_MSGMERGE@";
++    my $MSGMERGE = $ENV{"MSGMERGE"} || "/usr/bin/msgmerge";
+     my ($lang, $outfile) = @_;
+ 
+     print "Merging $SRCDIR/$lang.po with $MODULE.pot..." if $VERBOSE;
+@@ -824,7 +824,7 @@
+ sub Console_Write_TranslationStatus
+ {
+     my ($lang, $output_file) = @_;
+-    my $MSGFMT = $ENV{"MSGFMT"} || "@INTLTOOL_MSGFMT@";
++    my $MSGFMT = $ENV{"MSGFMT"} || "/usr/bin/msgfmt";
+ 
+     $output_file = "$SRCDIR/$lang.po" if ($output_file eq "");
+ 
+@@ -833,7 +833,7 @@
+ 
+ sub Console_Write_CoverageReport
+ {
+-    my $MSGFMT = $ENV{"MSGFMT"} || "@INTLTOOL_MSGFMT@";
++    my $MSGFMT = $ENV{"MSGFMT"} || "/usr/bin/msgfmt";
+ 
+     &GatherPOFiles;
+ 
+@@ -991,9 +991,9 @@
+ 	($name, $version) = ($1, $2);
+ 	$name    =~ s/[\[\]\s]//g;
+ 	$version =~ s/[\[\]\s]//g;
+-	$varhash{"PACKAGE_NAME"} = $name;
++	$varhash{"AC_PACKAGE_NAME"} = $name;
+ 	$varhash{"PACKAGE"} = $name;
+-	$varhash{"PACKAGE_VERSION"} = $version;
++	$varhash{"AC_PACKAGE_VERSION"} = $version;
+ 	$varhash{"VERSION"} = $version;
+     }
+     
+@@ -1002,18 +1002,19 @@
+ 	($name, $version) = ($1, $2);
+ 	$name    =~ s/[\[\]\s]//g;
+ 	$version =~ s/[\[\]\s]//g;
+-	$varhash{"PACKAGE_NAME"} = $name;
++	$varhash{"AC_PACKAGE_NAME"} = $name;
+ 	$varhash{"PACKAGE"} = $name;
+-	$varhash{"PACKAGE_VERSION"} = $version;
++	$varhash{"AC_PACKAGE_VERSION"} = $version;
+ 	$varhash{"VERSION"} = $version;
+     }
+ 
+     # \s makes this not work, why?
+     $name = $1 if $conf_source =~ /^GETTEXT_PACKAGE=\[?([^\n\]]+)/m;
+     
+-    # m4 macros AC_PACKAGE_NAME, AC_PACKAGE_VERSION etc. have same value
+-    # as corresponding $PACKAGE_NAME, $PACKAGE_VERSION etc. shell variables.
+-    $name =~ s/\bAC_PACKAGE_/\$PACKAGE_/g;
++    # prepend '$' to auto* internal variables, usually they are
++    # used in configure.in/ac without the '$'
++    $name =~ s/AC_/\$AC_/g;
++    $name =~ s/\$\$/\$/g;
+ 
+     $name = $domain if $domain;
+ 
+diff -Nuar evolution-data-server-1.4.2.1.orig/po/Makefile.in.in evolution-data-server-1.4.2.1/po/Makefile.in.in
+--- evolution-data-server-1.4.2.1.orig/po/Makefile.in.in	2006-01-09 11:55:25.898872978 +0100
++++ evolution-data-server-1.4.2.1/po/Makefile.in.in	2006-01-09 11:55:50.193252995 +0100
+@@ -39,14 +39,13 @@
+ gettextsrcdir = $(datadir)/glib-2.0/gettext/po
+ subdir = po
+ install_sh = @install_sh@
+-# Automake >= 1.8 provides @mkdir_p@.
+-# Until it can be supposed, use the safe fallback:
+-mkdir_p = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ 
+ INSTALL = @INSTALL@
+ INSTALL_DATA = @INSTALL_DATA@
+ 
+ CC = @CC@
++GENCAT = @GENCAT@
+ GMSGFMT = @GMSGFMT@
+ MSGFMT = @MSGFMT@
+ XGETTEXT = @XGETTEXT@
+@@ -74,6 +73,7 @@
+ 
+ CATALOGS = @CATALOGS@
+ CATOBJEXT = @CATOBJEXT@
++INSTOBJEXT = @INSTOBJEXT@
+ 
+ .SUFFIXES:
+ .SUFFIXES: .c .o .po .pox .gmo .mo .msg .cat
+@@ -94,7 +94,7 @@
+ 
+ .po.cat:
+ 	sed -f ../intl/po2msg.sed < $< > $*.msg \
+-	  && rm -f $@ && gencat $@ $*.msg
++	  && rm -f $@ && $(GENCAT) $@ $*.msg
+ 
+ 
+ all: all-@USE_NLS@
+@@ -110,7 +110,11 @@
+ install-data: install-data-@USE_NLS@
+ install-data-no: all
+ install-data-yes: all
+-	$(mkdir_p) $(DESTDIR)$(datadir)
++	if test -n "$(MKINSTALLDIRS)"; then \
++	  $(MKINSTALLDIRS) $(DESTDIR)$(datadir); \
++	else \
++	  $(SHELL) $(top_srcdir)/mkinstalldirs $(DESTDIR)$(datadir); \
++	fi
+ 	@catalogs='$(CATALOGS)'; \
+ 	for cat in $$catalogs; do \
+ 	  cat=`basename $$cat`; \
+@@ -120,31 +124,39 @@
+ 	  esac; \
+ 	  lang=`echo $$cat | sed 's/\$(CATOBJEXT)$$//'`; \
+ 	  dir=$(DESTDIR)$$destdir/$$lang/LC_MESSAGES; \
+-	  $(mkdir_p) $$dir; \
++	  if test -n "$(MKINSTALLDIRS)"; then \
++	    $(MKINSTALLDIRS) $$dir; \
++	  else \
++	    $(SHELL) $(top_srcdir)/mkinstalldirs $$dir; \
++	  fi; \
+ 	  if test -r $$cat; then \
+-	    $(INSTALL_DATA) $$cat $$dir/$(GETTEXT_PACKAGE).mo; \
+-	    echo "installing $$cat as $$dir/$(GETTEXT_PACKAGE).mo"; \
++	    $(INSTALL_DATA) $$cat $$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT); \
++	    echo "installing $$cat as $$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT)"; \
+ 	  else \
+-	    $(INSTALL_DATA) $(srcdir)/$$cat $$dir/$(GETTEXT_PACKAGE).mo; \
++	    $(INSTALL_DATA) $(srcdir)/$$cat $$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT); \
+ 	    echo "installing $(srcdir)/$$cat as" \
+-		 "$$dir/$(GETTEXT_PACKAGE).mo"; \
++		 "$$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT)"; \
+ 	  fi; \
+ 	  if test -r $$cat.m; then \
+-	    $(INSTALL_DATA) $$cat.m $$dir/$(GETTEXT_PACKAGE).mo.m; \
+-	    echo "installing $$cat.m as $$dir/$(GETTEXT_PACKAGE).mo.m"; \
++	    $(INSTALL_DATA) $$cat.m $$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT).m; \
++	    echo "installing $$cat.m as $$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT).m"; \
+ 	  else \
+ 	    if test -r $(srcdir)/$$cat.m ; then \
+ 	      $(INSTALL_DATA) $(srcdir)/$$cat.m \
+-		$$dir/$(GETTEXT_PACKAGE).mo.m; \
++		$$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT).m; \
+ 	      echo "installing $(srcdir)/$$cat as" \
+-		   "$$dir/$(GETTEXT_PACKAGE).mo.m"; \
++		   "$$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT).m"; \
+ 	    else \
+ 	      true; \
+ 	    fi; \
+ 	  fi; \
+ 	done
+ 	if test "$(PACKAGE)" = "glib"; then \
+-	  $(mkdir_p) $(DESTDIR)$(gettextsrcdir); \
++	  if test -n "$(MKINSTALLDIRS)"; then \
++	    $(MKINSTALLDIRS) $(DESTDIR)$(gettextsrcdir); \
++	  else \
++	    $(SHELL) $(top_srcdir)/mkinstalldirs $(DESTDIR)$(gettextsrcdir); \
++	  fi; \
+ 	  $(INSTALL_DATA) $(srcdir)/Makefile.in.in \
+ 			  $(DESTDIR)$(gettextsrcdir)/Makefile.in.in; \
+ 	else \
+@@ -159,10 +171,10 @@
+ 	for cat in $$catalogs; do \
+ 	  cat=`basename $$cat`; \
+ 	  lang=`echo $$cat | sed 's/\$(CATOBJEXT)$$//'`; \
+-	  rm -f $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE).mo; \
+-	  rm -f $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE).mo.m; \
+-	  rm -f $(DESTDIR)$(gnulocaledir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE).mo; \
+-	  rm -f $(DESTDIR)$(gnulocaledir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE).mo.m; \
++	  rm -f $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE)$(INSTOBJEXT); \
++	  rm -f $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE)$(INSTOBJEXT).m; \
++	  rm -f $(DESTDIR)$(gnulocaledir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE)$(INSTOBJEXT); \
++	  rm -f $(DESTDIR)$(gnulocaledir)/$$lang/LC_MESSAGES/$(GETTEXT_PACKAGE)$(INSTOBJEXT).m; \
+ 	done
+ 	if test "$(PACKAGE)" = "glib"; then \
+ 	  rm -f $(DESTDIR)$(gettextsrcdir)/Makefile.in.in; \
+@@ -180,8 +192,8 @@
+ clean: mostlyclean
+ 
+ distclean: clean
+-	rm -f Makefile Makefile.in POTFILES stamp-it
+-	rm -f *.mo *.msg *.cat *.cat.m *.gmo
++	rm -f Makefile Makefile.in POTFILES
++	rm -f *.mo *.msg *.cat *.cat.m $(GMOFILES)
+ 
+ maintainer-clean: distclean
+ 	@echo "This command is intended for maintainers to use;"
+@@ -193,12 +205,11 @@
+ 	dists="$(DISTFILES)"; \
+ 	extra_dists="$(EXTRA_DISTFILES)"; \
+ 	for file in $$extra_dists; do \
+-	  test -f $(srcdir)/$$file && dists="$$dists $(srcdir)/$$file"; \
++	  test -f $$file && dists="$$dists $$file"; \
+ 	done; \
+ 	for file in $$dists; do \
+-	  test -f $$file || file="$(srcdir)/$$file"; \
+-	  ln $$file $(distdir) 2> /dev/null \
+-	    || cp -p $$file $(distdir); \
++	  ln $(srcdir)/$$file $(distdir) 2> /dev/null \
++	    || cp -p $(srcdir)/$$file $(distdir); \
+ 	done
+ 
+ update-po: Makefile
+@@ -228,15 +239,23 @@
+ 	  fi; \
+ 	done
+ 
+-Makefile POTFILES: stamp-it
+-	@if test ! -f $@; then \
+-	  rm -f stamp-it; \
+-	  $(MAKE) stamp-it; \
+-	fi
++# POTFILES is created from POTFILES.in by stripping comments, empty lines
++# and Intltool tags (enclosed in square brackets), and appending a full
++# relative path to them
++POTFILES: POTFILES.in
++	( posrcprefix='$(top_srcdir)/'; \
++	  rm -f $@-t $@ \
++	    && (sed -e '/^#/d' 					\
++		    -e 's/^[[].*] *//' 				\
++		    -e '/^[ 	]*$$/d' 			\
++		    -e "s@^@	$$posrcprefix@" $(srcdir)/$@.in	\
++		| sed -e '$$!s/$$/ \\/') > $@-t \
++	    && chmod a-w $@-t \
++	    && mv $@-t $@ )
+ 
+-stamp-it: Makefile.in.in ../config.status POTFILES.in
++Makefile: Makefile.in.in ../config.status POTFILES
+ 	cd .. \
+-	  && CONFIG_FILES=$(subdir)/Makefile.in CONFIG_HEADERS= CONFIG_LINKS= \
++	  && CONFIG_FILES=$(subdir)/$@.in CONFIG_HEADERS= \
+ 	       $(SHELL) ./config.status
+ 
+ # Tell versions [3.59,3.63) of GNU make not to export all variables.

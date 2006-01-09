@@ -5,7 +5,8 @@ evolution-data-server (1.4.2.1-1) unstable; urgency=low
   * ACK Steve Langasek's NMU; thanks! (closes: #344829).
   * Upload to unstable.
   * Update patches:
-    - 70_rebootstrap.patch.
+    - 70_rebootstrap.patch: update, including a full intltoolisation, as
+      upstream's is broken.
 
  -- Jordi Mallach <jordi@debian.org>  Mon,  9 Jan 2006 03:28:07 +0100
 
