@@ -4,8 +4,10 @@ evolution-data-server (1.4.2.1-1) unstable; urgency=low
     - fixes an implicit pointer conversion (closes: #431323).
   * ACK Steve Langasek's NMU; thanks! (closes: #344829).
   * Upload to unstable.
+  * Update patches:
+    - 70_rebootstrap.patch.
 
- -- Jordi Mallach <jordi@debian.org>  Sun,  8 Jan 2006 20:49:28 +0100
+ -- Jordi Mallach <jordi@debian.org>  Mon,  9 Jan 2006 03:28:07 +0100
 
 evolution-data-server (1.4.1.1-1.1) experimental; urgency=low
 
