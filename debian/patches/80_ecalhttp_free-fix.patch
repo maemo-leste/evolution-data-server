@@ -1,0 +1,21 @@
+diff -ru evolution-data-server-1.4.2.1.org/calendar/backends/http/e-cal-backend-http.c evolution-data-server-1.4.2.1/calendar/backends/http/e-cal-backend-http.c
+--- evolution-data-server-1.4.2.1.org/calendar/backends/http/e-cal-backend-http.c	2005-11-29 03:03:42.000000000 +0000
++++ evolution-data-server-1.4.2.1/calendar/backends/http/e-cal-backend-http.c	2006-03-23 11:39:52.000000000 +0000
+@@ -626,7 +626,7 @@
+ {
+ 	ECalBackendHttp *cbhttp;
+ 	ECalBackendHttpPrivate *priv;
+-	ECalComponent *comp;
++	ECalComponent *comp = NULL;
+ 
+ 	cbhttp = E_CAL_BACKEND_HTTP (backend);
+ 	priv = cbhttp->priv;
+@@ -641,7 +641,7 @@
+ 		return GNOME_Evolution_Calendar_ObjectNotFound;
+ 
+ 	*object = e_cal_component_get_as_string (comp);
+-	g_free (comp);
++	g_object_unref (comp);
+ 
+ 	return GNOME_Evolution_Calendar_Success;
+ }

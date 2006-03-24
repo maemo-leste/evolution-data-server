@@ -1,3 +1,16 @@
+evolution-data-server (1.4.2.1-1SVN) unstable; urgency=medium
+
+  * Acknowledge NMU (closes #358590)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Fri, 24 Mar 2006 10:58:44 +0000
+
+evolution-data-server (1.4.2.1-1.1) unstable; urgency=low
+
+  * NMU to fix crasher in e-cal-backend-http
+    (pulled from upstream cvs) 
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu, 23 Mar 2006 11:43:52 +0000
+
 evolution-data-server (1.4.2.1-1) unstable; urgency=low
 
   * New uptream release.
