@@ -1,9 +1,10 @@
-evolution-data-server (1.4.2.1-1SVN) unstable; urgency=medium
+evolution-data-server (1.4.2.1-1.SVN) unstable; urgency=medium
 
   * Acknowledge NMU (closes: #358590)
   * Add back hurd-i386 build-dep for libldap2-dev (closes: #357261)
+  * Add libgtk2.0-dev in dep for libedataserverui-dev (closes: #358914)
 
- -- Heikki Henriksen <heikkih@gmail.com>  Fri, 24 Mar 2006 14:58:44 +0100
+ -- Heikki Henriksen <heikkih@gmail.com>  Sat, 25 Mar 2006 11:44:44 +0100
 
 evolution-data-server (1.4.2.1-1.1) unstable; urgency=low
 
