@@ -1,5 +1,5 @@
-diff -u -r1.330 -r1.330.2.2
---- evolution-data-server-1.4.1.1.orig/camel/providers/imap/camel-imap-store.c	2005/08/31 04:26:02	1.330
+diff -u -r1.330.2.1 -r1.330.2.2
+--- evolution-data-server-1.4.1.1.orig/camel/providers/imap/camel-imap-store.c	2005/10/10 06:39:51	1.330.2.1
 +++ evolution-data-server.1.4.1.1/camel/providers/imap/camel-imap-store.c	2006/01/10 08:10:48	1.330.2.2
 @@ -178,6 +178,7 @@
  camel_imap_store_finalize (CamelObject *object)
