@@ -8,13 +8,10 @@ evolution-data-server (1.4.2.1-1.SVN) unstable; urgency=medium
       crash with Draft-saving when offline
     - 51_uw-imapd-new-folder_imap-command.patch
       hang on new folder with uw-imapd
-    - 52_utf8_imap-command.patch, 53_utf8_imap-store-summary.patch
-      54_utf8_imap-command.patch, 55_utf8_imap-store.patch
-      imap cannot handle UTF8-folders (closes: #347721)
     - 81_reload-http_e-cal-backend-http.patch
       crash on http-cal-reload
       
- -- Heikki Henriksen <heikkih@gmail.com>  Sat, 25 Mar 2006 19:34:44 +0100
+ -- Heikki Henriksen <heikkih@gmail.com>  Sun, 26 Mar 2006 14:58:44 +0100
 
 evolution-data-server (1.4.2.1-1.1) unstable; urgency=low
 
