@@ -1,17 +1,16 @@
-evolution-data-server (1.4.2.1-1.SVN) unstable; urgency=medium
+evolution-data-server (1.4.2.1-2) unstable; urgency=medium
 
   * Acknowledge NMU (closes: #358590)
   * Add back hurd-i386 build-dep for libldap2-dev (closes: #357261)
   * Add libgtk2.0-dev in dep for libedataserverui-dev (closes: #358914)
-  * Add patches from upstream:
-    - 50_imapoffline_imap-store.patch
-      crash with Draft-saving when offline
-    - 51_uw-imapd-new-folder_imap-command.patch
-      hang on new folder with uw-imapd
-    - 81_reload-http_e-cal-backend-http.patch
-      crash on http-cal-reload
+  * debian/patches/50_imapoffline_imap-store.patch:
+    (added to fix crash with Draft-saving when offline)
+  * debian/patches/51_uw-imapd-new-folder_imap-command.patch:
+    (added to fix hang on new folder with uw-imapd)
+  * debian/patches/81_reload-http_e-cal-backend-http.patch:
+    (added to fix crash on http-cal-reload)
       
- -- Heikki Henriksen <heikkih@gmail.com>  Sun, 26 Mar 2006 14:58:44 +0100
+ -- Heikki Henriksen <heikkih@gmail.com>  Sun, 26 Mar 2006 17:28:44 +0100
 
 evolution-data-server (1.4.2.1-1.1) unstable; urgency=low
 
