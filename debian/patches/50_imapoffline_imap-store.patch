@@ -5,7 +5,7 @@ diff -u -r1.330.2.1 -r1.330.2.2
  camel_imap_store_finalize (CamelObject *object)
  {
  	CamelImapStore *imap_store = CAMEL_IMAP_STORE (object);
-+	CamelDiscoStore *disco = CAMEL_DISCO_STORE (service);
++	CamelDiscoStore *disco = CAMEL_DISCO_STORE (object);
  
  	/* This frees current_folder, folders, authtypes, streams, and namespace. */
  	camel_service_disconnect((CamelService *)imap_store, TRUE, NULL);
