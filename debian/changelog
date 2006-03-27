@@ -4,11 +4,17 @@ evolution-data-server (1.4.2.1-1.SVN2) unstable; urgency=medium
   * Add back hurd-i386 build-dep for libldap2-dev (closes: #357261)
   * Add libgtk2.0-dev in dep for libedataserverui-dev (closes: #358914)
   * debian/patches/50_imapoffline_imap-store.patch:
-    (added to fix crash with Draft-saving when offline)
+    fix crash with Draft-saving when offline
   * debian/patches/51_uw-imapd-new-folder_imap-command.patch:
-    (added to fix hang on new folder with uw-imapd)
+  * debian/patches/55_camel-imap-command-1.71.2.3.patch
+    fix hang on new folder with uw-imapd
+    fix access to utf8-folders in imap
+  * debian/patches/55_camel-imap-store-1.330.2.2.patch
+    fix access to utf8-folders in imap
+  * debian/patches/55_camel-imap-store-summary.1.16.2.1.patch
+    fix access to utf8-folders in imap
   * debian/patches/81_reload-http_e-cal-backend-http.patch:
-    (added to fix crash on http-cal-reload)
+    fix crash on http-cal-reload
       
  -- Heikki Henriksen <heikkih@gmail.com>  Sun, 26 Mar 2006 17:28:44 +0100
 
