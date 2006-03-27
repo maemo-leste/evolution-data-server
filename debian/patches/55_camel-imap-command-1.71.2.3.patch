@@ -1,10 +1,6 @@
-===================================================================
-RCS file: /cvs/gnome/evolution-data-server/camel/providers/imap/camel-imap-command.c,v
-retrieving revision 1.71
-retrieving revision 1.71.2.3
 diff -u -r1.71 -r1.71.2.3
---- camel-imap-command.c	2005/08/31 04:26:02	1.71
-+++ camel-imap-command.c	2006/01/17 00:27:51	1.71.2.3
+--- evolution-data-server-1.4.1.1.orig/camel/providers/imap/camel-imap-command.c	2005/08/31 04:26:02	1.71
++++ evolution-data-server.1.4.1.1/camel/providers/imap/camel-imap-command.c	2006/01/17 00:27:51	1.71.2.3
 @@ -133,13 +133,14 @@
   *	%s, %d, %%: as with printf
   *	%S: an IMAP "string" (quoted string or literal)
