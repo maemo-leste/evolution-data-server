@@ -1,4 +1,4 @@
-evolution-data-server (1.4.2.1-1.SVN2) unstable; urgency=medium
+evolution-data-server (1.4.2.1-2) unstable; urgency=medium
 
   * Acknowledge NMU (closes: #358590)
   * Add myself to Uploaders
