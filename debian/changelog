@@ -16,6 +16,10 @@ evolution-data-server (1.4.2.1-1.SVN2) unstable; urgency=medium
     fix access to utf8-folders in imap
   * debian/patches/81_reload-http_e-cal-backend-http.patch:
     fix crash on http-cal-reload
+  * debian/patches/60_e-name-selector-dialog.1.24.patch:
+    put focus on search in "Select from Addressbook"
+  * debian/patches/61_e-name-selector-dialog.1.26.patch:
+    crash on "Select from Addressbook" (closes: #359200, #354448)
       
  -- Heikki Henriksen <heikkih@gmail.com>  Sun, 26 Mar 2006 17:28:44 +0100
 

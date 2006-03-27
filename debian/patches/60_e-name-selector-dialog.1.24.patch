@@ -1,0 +1,11 @@
+diff -ru evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dialog.c evolution-data-server-1.4.2.1/libedataserverui/e-name-selector-dialog.c
+--- evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dialog.c	2005-11-29 04:03:48.000000000 +0100
++++ evolution-data-server-1.4.2.1/libedataserverui/e-name-selector-dialog.c	2006-03-27 11:38:53.000000000 +0200
+@@ -213,6 +213,7 @@
+ 	gtk_dialog_set_has_separator    (GTK_DIALOG (name_selector_dialog), FALSE);
+ 	gtk_container_set_border_width  (GTK_CONTAINER (name_selector_dialog), 4);
+ 	gtk_window_set_title            (GTK_WINDOW (name_selector_dialog), _("Select Contacts from Address Book"));
++	gtk_widget_grab_focus (widget);
+ }
+ 
+ /* Partial, repeatable destruction. Release references. */
