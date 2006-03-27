@@ -1,6 +1,7 @@
 evolution-data-server (1.4.2.1-1.SVN2) unstable; urgency=medium
 
   * Acknowledge NMU (closes: #358590)
+  * Add myself to Uploaders
   * Add back hurd-i386 build-dep for libldap2-dev (closes: #357261)
   * Add libgtk2.0-dev in dep for libedataserverui-dev (closes: #358914)
   * debian/patches/50_imapoffline_imap-store.patch:
