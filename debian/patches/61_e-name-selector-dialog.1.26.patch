@@ -1,7 +1,7 @@
 diff -ru evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dialog.c evolution-data-server-1.4.2.1/libedataserverui/e-name-selector-dialog.c
---- evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dialog.c	2006-03-27 11:26:59.000000000 +0200
-+++ evolution-data-server-1.4.2.1/libedataserverui/e-name-selector-dialog.c	2006-03-27 11:34:37.000000000 +0200
-@@ -703,10 +703,9 @@
+--- evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dialog.c	2006-03-27 11:57:07.000000000 +0200
++++ evolution-data-server-1.4.2.1/libedataserverui/e-name-selector-dialog.c	2006-03-27 11:57:25.000000000 +0200
+@@ -707,10 +707,9 @@
  	EContactStore     *contact_store;
  	EDestinationStore *destination_store;
  	EContact          *contact;
@@ -13,7 +13,7 @@ diff -ru evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dia
  
  	/* When a contact is activated, we transfer it to the first destination on our list */
  
-@@ -716,38 +715,28 @@
+@@ -720,38 +719,28 @@
  	if (name_selector_dialog->sections->len == 0) 
  		return;
  
@@ -68,7 +68,7 @@ diff -ru evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dia
  }
  
  static void
-@@ -758,8 +747,7 @@
+@@ -762,8 +751,7 @@
  	EDestinationStore *destination_store;
  	EDestination      *destination;
  	Section           *section;
@@ -78,7 +78,7 @@ diff -ru evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dia
  
  	/* When a destination is activated, we remove it from the section */
  
-@@ -776,25 +764,13 @@
+@@ -780,25 +768,13 @@
  		return;
  	}
  
@@ -110,3 +110,4 @@ diff -ru evolution-data-server-1.4.2.1.orig/libedataserverui/e-name-selector-dia
  }
  
  static gboolean 
+Only in evolution-data-server-1.4.2.1/libedataserverui: e-name-selector-dialog.c.orig
