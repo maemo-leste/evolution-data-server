@@ -1,3 +1,10 @@
+evolution-data-server (1.4.2.1-2.SVN0) unstable; urgency=low
+
+  * debian/patches/90_gtk_libedataserverui.patch:
+    Fix gtk2-dep of libedataserverui for real (closes: ##358914)
+
+ -- Heikki Henriksen <heikkih@stud2233.idi.ntnu.no>  Wed, 29 Mar 2006 12:56:05 +0000
+
 evolution-data-server (1.4.2.1-2) unstable; urgency=medium
 
   * Acknowledge NMU (closes: #358590)
