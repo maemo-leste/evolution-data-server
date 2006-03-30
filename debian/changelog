@@ -7,6 +7,7 @@ evolution-data-server (1.6.0-0.SVN1) experimental; urgency=low
   * debian/patches/35_external-libdb.patch:
     Build with debian's libdb4.3
   * Change build-dep from libgnutls11-dev to libgnutls-dev
+  * Add gtk-doc for lib*-dev (closes: #316063)
 
  -- Heikki Henriksen <heikkih@gmail.com>  Wed, 29 Mar 2006 15:52:31 +0100
 
