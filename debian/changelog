@@ -2,10 +2,12 @@ evolution-data-server (1.6.0-0.SVN1) experimental; urgency=low
 
   * New upstream release
   * Added -dbg-package for i386 and powerpc
-  * Build with xulrunner
-  * Build with libdb4.3
+  * debian/patches/20_xulrunner.patch:
+    Build with xulrunner
+  * debian/patches/35_external-libdb.patch:
+    Build with debian's libdb4.3
 
- -- Heikki Henriksen <heikkih@gmail.com>  Wed, 29 Mar 2006 15:40:31 +0000
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed, 29 Mar 2006 14:52:31 +0100
 
 evolution-data-server (1.4.2.1-2) unstable; urgency=medium
 
