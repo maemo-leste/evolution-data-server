@@ -28,7 +28,7 @@ Description: Development files for evolution-data-server (meta package)
 Package: evolution-data-server-dbg
 Priority: extra
 Architecture: i386 powerpc
-Depends: evolution (= ${Source-Version})
+Depends: evolution-data-server (= ${Source-Version})
 Description: evolution database backend server with debugging symbols
  This package contains unstripped binaries used for debugging.
 

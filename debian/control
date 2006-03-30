@@ -28,7 +28,7 @@ Description: Development files for evolution-data-server (meta package)
 Package: evolution-data-server-dbg
 Priority: extra
 Architecture: i386 powerpc
-Depends: evolution (= ${Source-Version})
+Depends: evolution-data-server (= ${Source-Version})
 Description: evolution database backend server with debugging symbols
  This package contains unstripped binaries used for debugging.
 
@@ -86,7 +86,7 @@ Description: Client library for evolution address books
 Package: libebook1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libebook1.2-5 (= ${Source-Version}), libedataserver1.2-dev (= ${Source-Version}), libgnome2-dev, libnss3-dev (>= 2:1.7.6), libdb4.3-dev | libdb-dev, libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnomevfs2-dev, libgnutls-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libtasn1-2-dev, libxml2-dev
+Depends: ${misc:Depends}, libebook1.2-5 (= ${Source-Version}), libedataserver1.2-dev (= ${Source-Version}), libgnome2-dev, libnss3-dev, libdb4.3-dev | libdb-dev, libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnomevfs2-dev, libgnutls-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libtasn1-2-dev, libxml2-dev
 Description: Client library for evolution address books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
