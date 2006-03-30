@@ -207,8 +207,8 @@ Package: libcamel@VER@
 Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, libnss3-0d 
-Conflicts: libcamel1.2-0
-Replaces: libcamel1.2-0
+Conflicts: libcamel1.2-0, libcamel1.2-6
+Replaces: libcamel1.2-0, libcamel1.2-6
 Description: The Evolution MIME message handling library
  Camel is a generic messaging library. It supports the standard
  messaging system for receiving and sending messages. It is the
