@@ -1,6 +1,7 @@
 evolution-data-server (1.6.0-0.SVN1) experimental; urgency=low
 
   * New upstream release
+  * Target experimental
   * Added -dbg-package for i386 and powerpc
   * debian/patches/20_xulrunner.patch:
     Build with xulrunner
