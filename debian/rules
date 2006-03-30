@@ -64,7 +64,7 @@ LIBEXCHANGE_STORAGE_CURRENT := $(shell grep '^LIBEXCHANGE_STORAGE_CURRENT=' conf
 LIBEXCHANGE_STORAGE_AGE := $(shell grep '^LIBEXCHANGE_STORAGE_AGE=' configure.in | sed -e 's/LIBEXCHANGE_STORAGE_AGE=//g')
 LIBEXCHANGE_STORAGE_VER := $(shell expr $(LIBEXCHANGE_STORAGE_CURRENT) - $(LIBEXCHANGE_STORAGE_AGE))
 
-#RELEASE_TAG := 1.2
+RELEASE_TAG := 1.2
 
 update-control:
 	@echo "  libedataserver version: $(LIBEDATASERVER_VER)"
@@ -95,8 +95,8 @@ update-control:
 	cp debian/libexchange-storage@VER@.install debian/libexchange-storage$(RELEASE_TAG)-$(LIBEXCHANGE_STORAGE_VER).install
 	cp debian/libcamel@VER@.install debian/libcamel$(RELEASE_TAG)-$(LIBCAMEL_VER).install
 
-#common-binary-predeb-arch::
-#	cat debian/*/DEBIAN/shlibs > debian/shlibs.local
+common-binary-predeb-arch::
+	cat debian/*/DEBIAN/shlibs > debian/shlibs.local
 
 binary-install/evolution-data-server::
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
