@@ -40,7 +40,7 @@ Description: Utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
- This package is utility library for evolution-data-server1.2.
+ This package is a utility library for evolution-data-server.
 
 Package: libedataserver1.2-dev
 Section: libdevel
@@ -60,7 +60,7 @@ Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
- This package is GUI utility library for evolution-data-server1.2.
+ This package is a GUI utility library for evolution-data-server.
 
 Package: libedataserverui1.2-dev
 Section: libdevel
@@ -81,7 +81,7 @@ Description: Client library for evolution address books
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package is client library for evolution address book.
+ This package is a client library for evolution address book.
 
 Package: libebook1.2-dev
 Section: libdevel
@@ -103,7 +103,7 @@ Description: Backend library for evolution address books
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package is backend library for evolution address book.
+ This package is a backend library for evolution address book.
 
 Package: libedata-book1.2-dev
 Section: libdevel
@@ -123,7 +123,7 @@ Description: Client library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package is client library for evolution calendar.
+ This package is a client library for evolution calendar.
 
 Package: libecal1.2-dev
 Section: libdevel
@@ -145,7 +145,7 @@ Description: Backend library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package is backend library for evolution calendar.
+ This package is a backend library for evolution calendar.
 
 Package: libedata-cal1.2-dev
 Section: libdevel
@@ -164,7 +164,7 @@ Depends: ${misc:Depends}, ${shlibs:Depends}
 Conflicts: libegroupwise1.2-0 (= 1.1.2-1)
 Replaces: libegroupwise1.2-0 (= 1.1.2-1)
 Description: Client library for accessing groupwise POA through SOAP interface
- This package is client library for accessing groupwise POA through SOAP
+ This package is a client library for accessing groupwise POA through SOAP
  interface of Evolution.
  .
  Evolution is the integrated mail, calendar, task and address book
@@ -191,7 +191,7 @@ Description: Backend library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package is backend library for evolution exchange.
+ This package is a backend library for evolution exchange.
 
 Package: libexchange-storage1.2-dev
 Section: libdevel
