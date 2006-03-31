@@ -2,7 +2,7 @@ evolution-data-server (1.6.0-0.experimental1) experimental; urgency=low
 
   * New upstream release
   * Target experimental
-  * Added -dbg-package for i386 and powerpc
+  * Added -dbg-package
   * debian/patches/20_xulrunner.patch:
     Build with xulrunner
   * debian/patches/35_external-libdb.patch:
