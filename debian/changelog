@@ -1,6 +1,27 @@
-evolution-data-server (1.4.2.1-1.SVN2) unstable; urgency=medium
+evolution-data-server (1.6.0-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon,  3 Apr 2006 20:02:29 +0200
+
+evolution-data-server (1.6.0-1) experimental; urgency=low
+
+  * New upstream release
+  * Target experimental
+  * Added -dbg-package
+  * debian/patches/20_xulrunner.patch:
+    Build with xulrunner
+  * debian/patches/35_external-libdb.patch:
+    Build with debian's libdb4.3
+  * Change build-dep from libgnutls11-dev to libgnutls-dev
+  * Add gtk-doc for lib*-dev (closes: #316063)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed, 29 Mar 2006 15:52:31 +0100
+
+evolution-data-server (1.4.2.1-2) unstable; urgency=medium
 
   * Acknowledge NMU (closes: #358590)
+  * Add myself to Uploaders
   * Add back hurd-i386 build-dep for libldap2-dev (closes: #357261)
   * Add libgtk2.0-dev in dep for libedataserverui-dev (closes: #358914)
   * debian/patches/50_imapoffline_imap-store.patch:
@@ -15,6 +36,10 @@ evolution-data-server (1.4.2.1-1.SVN2) unstable; urgency=medium
     fix access to utf8-folders in imap
   * debian/patches/81_reload-http_e-cal-backend-http.patch:
     fix crash on http-cal-reload
+  * debian/patches/60_e-name-selector-dialog.1.24.patch:
+    put focus on search in "Select from Addressbook"
+  * debian/patches/61_e-name-selector-dialog.1.26.patch:
+    crash on "Select from Addressbook" (closes: #359200, #354448)
       
  -- Heikki Henriksen <heikkih@gmail.com>  Sun, 26 Mar 2006 17:28:44 +0100
 

@@ -1,19 +1,78 @@
-diff -urN evolution-data-server-1.4.1.1.orig/Makefile.am evolution-data-server-1.4.1.1/Makefile.am
---- evolution-data-server-1.4.1.1.orig/Makefile.am	2005-04-11 14:21:26.000000000 +0200
-+++ evolution-data-server-1.4.1.1/Makefile.am	2005-11-05 19:50:36.000000000 +0100
+diff -ru evolution-data-server-1.6.0.orig/addressbook/backends/file/Makefile.am evolution-data-server-1.6.0/addressbook/backends/file/Makefile.am
+--- evolution-data-server-1.6.0.orig/addressbook/backends/file/Makefile.am	2005-06-22 12:34:21.000000000 +0000
++++ evolution-data-server-1.6.0/addressbook/backends/file/Makefile.am	2006-03-30 12:44:30.000000000 +0000
+@@ -4,7 +4,6 @@
+ 	-I$(top_builddir)				\
+ 	-I$(top_srcdir)/addressbook			\
+ 	-I$(top_builddir)/addressbook			\
+-	-I$(top_srcdir)/libdb/dist			\
+         $(EVOLUTION_ADDRESSBOOK_CFLAGS)
+ 
+ extension_LTLIBRARIES = libebookbackendfile.la
+@@ -18,7 +17,7 @@
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la		\
+ 	$(top_builddir)/addressbook/libedata-book/libedata-book-1.2.la	\
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la		\
+-	$(top_builddir)/libdb/dist/libdb-4.1.la				\
++	-ldb                                                            \
+ 	$(EVOLUTION_ADDRESSBOOK_LIBS)
+ 
+ libebookbackendfile_la_LDFLAGS =	\
+diff -ru evolution-data-server-1.6.0.orig/configure.in evolution-data-server-1.6.0/configure.in
+--- evolution-data-server-1.6.0.orig/configure.in	2006-03-13 07:07:57.000000000 +0000
++++ evolution-data-server-1.6.0/configure.in	2006-03-30 12:47:49.000000000 +0000
+@@ -1276,7 +1276,6 @@
+ export privincludedir
+ export privdatadir
+ AC_CONFIG_SUBDIRS(calendar/libical)
+-AC_CONFIG_SUBDIRS(libdb/dist)
+ 
+ AC_OUTPUT([
+ Makefile
+@@ -1334,7 +1333,6 @@
+ camel/tests/stream/Makefile
+ camel/camel.pc
+ camel/camel-provider.pc
+-libdb/Makefile
+ libedataserver/Makefile
+ libedataserver/libedataserver.pc
+ libedataserverui/Makefile
+diff -ru evolution-data-server-1.6.0.orig/libedataserver/Makefile.am evolution-data-server-1.6.0/libedataserver/Makefile.am
+--- evolution-data-server-1.6.0.orig/libedataserver/Makefile.am	2006-01-10 07:59:04.000000000 +0000
++++ evolution-data-server-1.6.0/libedataserver/Makefile.am	2006-03-30 12:48:46.000000000 +0000
+@@ -1,7 +1,6 @@
+ INCLUDES =								\
+ 	-I$(top_srcdir)							\
+ 	-DG_LOG_DOMAIN=\"e-data-server\"				\
+-	-I$(top_srcdir)/libdb/dist					\
+ 	-DE_DATA_SERVER_PREFIX=\"$(prefix)\"				\
+ 	-DEVOLUTION_LOCALEDIR=\""$(localedir)"\"			\
+ 	-DE_DATA_SERVER_EXTENSIONDIR=\"$(extensiondir)\"		\
+@@ -49,7 +48,7 @@
+ libedataserver_1_2_la_LIBADD = 				\
+ 	$(E_DATA_SERVER_LIBS)				\
+ 	$(ICONV_LIBS)					\
+-	$(top_builddir)/libdb/dist/libdb-4.1.la		\
++	-ldb
+ 	$(SOCKET_LIBS)
+ 
+ libedataserver_1_2_la_LDFLAGS = \
+diff -ru evolution-data-server-1.6.0.orig/Makefile.am evolution-data-server-1.6.0/Makefile.am
+--- evolution-data-server-1.6.0.orig/Makefile.am	2005-12-02 00:06:42.000000000 +0000
++++ evolution-data-server-1.6.0/Makefile.am	2006-03-30 12:42:40.000000000 +0000
 @@ -1,7 +1,7 @@
  AUTOMAKE_OPTIONS = 1.6
  DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
  
--SUBDIRS = libdb libedataserver servers camel addressbook calendar libedataserverui src docs art po
-+SUBDIRS = libedataserver servers camel addressbook calendar libedataserverui src docs art po
- DIST_SUBDIRS= libedataserver servers camel addressbook calendar libedataserverui src docs art po
+-SUBDIRS = libdb win32 libedataserver servers camel addressbook calendar libedataserverui src docs art po
++SUBDIRS = win32 libedataserver servers camel addressbook calendar libedataserverui src docs art po
+ DIST_SUBDIRS= win32 libedataserver servers camel addressbook calendar libedataserverui src docs art po
  
  changelogs =			\
-@@ -26,2125 +26,7 @@
- 	intltool-merge.in				\
+@@ -27,2125 +27,7 @@
  	intltool-update.in				\
  	intltool-extract.in				\
+ 	evolution-data-server-zip.in			\
 -	$(pkgconfig_DATA:-$(API_VERSION).pc=.pc.in) 	\
 -	$(LIBDB_FILES)
 +	$(pkgconfig_DATA:-$(API_VERSION).pc=.pc.in)
@@ -2137,71 +2196,3 @@ diff -urN evolution-data-server-1.4.1.1.orig/Makefile.am evolution-data-server-1
 -libdb/docs/utility/db_upgrade.html \
 -libdb/docs/utility/db_verify.html
  
-diff -urN evolution-data-server-1.4.1.1.orig/addressbook/backends/file/Makefile.am evolution-data-server-1.4.1.1/addressbook/backends/file/Makefile.am
---- evolution-data-server-1.4.1.1.orig/addressbook/backends/file/Makefile.am	2005-06-22 14:34:21.000000000 +0200
-+++ evolution-data-server-1.4.1.1/addressbook/backends/file/Makefile.am	2005-11-05 19:53:06.000000000 +0100
-@@ -4,7 +4,6 @@
- 	-I$(top_builddir)				\
- 	-I$(top_srcdir)/addressbook			\
- 	-I$(top_builddir)/addressbook			\
--	-I$(top_srcdir)/libdb/dist			\
-         $(EVOLUTION_ADDRESSBOOK_CFLAGS)
- 
- extension_LTLIBRARIES = libebookbackendfile.la
-@@ -18,7 +17,7 @@
- 	$(top_builddir)/addressbook/libebook/libebook-1.2.la		\
- 	$(top_builddir)/addressbook/libedata-book/libedata-book-1.2.la	\
- 	$(top_builddir)/libedataserver/libedataserver-1.2.la		\
--	$(top_builddir)/libdb/dist/libdb-4.1.la				\
-+	-ldb-4.2 \
- 	$(EVOLUTION_ADDRESSBOOK_LIBS)
- 
- libebookbackendfile_la_LDFLAGS =	\
-diff -urN evolution-data-server-1.4.1.1.orig/configure.in evolution-data-server-1.4.1.1/configure.in
---- evolution-data-server-1.4.1.1.orig/configure.in	2005-10-08 15:10:21.000000000 +0200
-+++ evolution-data-server-1.4.1.1/configure.in	2005-11-05 19:51:43.000000000 +0100
-@@ -1130,7 +1130,7 @@
- 
- E_DATA_SERVER_UI_DEPS="libxml-2.0 libbonobo-2.0 >= $LIBBONOBO_REQUIRED libgnome-2.0 gtk+-2.0 libgnomeui-2.0 libglade-2.0"
- 
--EVO_SET_COMPILE_FLAGS(E_DATA_SERVER_UI, $E_DATA_SERVER_UI_DEPS, $THREADS_CFLAGS, $THREADS_LIBS)
-+EVO_SET_COMPILE_FLAGS(E_DATA_SERVER_UI, $E_DATA_SERVER_UI_DEPS, $THREADS_CFLAGS, $THREADS_LIBS -ldb-4.2)
- AC_SUBST(E_DATA_SERVER_UI_CFLAGS)
- AC_SUBST(E_DATA_SERVER_UI_LIBS)
- 
-@@ -1254,7 +1254,6 @@
- export privincludedir
- export privdatadir
- AC_CONFIG_SUBDIRS(calendar/libical)
--AC_CONFIG_SUBDIRS(libdb/dist)
- 
- AC_OUTPUT([
- Makefile
-@@ -1309,7 +1308,6 @@
- camel/tests/stream/Makefile
- camel/camel.pc
- camel/camel-provider.pc
--libdb/Makefile
- libedataserver/Makefile
- libedataserver/libedataserver.pc
- libedataserverui/Makefile
-diff -urN evolution-data-server-1.4.1.1.orig/libedataserver/Makefile.am evolution-data-server-1.4.1.1/libedataserver/Makefile.am
---- evolution-data-server-1.4.1.1.orig/libedataserver/Makefile.am	2005-08-13 04:27:01.000000000 +0200
-+++ evolution-data-server-1.4.1.1/libedataserver/Makefile.am	2005-11-05 19:52:33.000000000 +0100
-@@ -1,7 +1,6 @@
- INCLUDES =								\
- 	-I$(top_srcdir)							\
- 	-DG_LOG_DOMAIN=\"e-data-server\"				\
--	-I$(top_srcdir)/libdb/dist					\
- 	-DE_DATA_SERVER_EXTENSIONDIR=\"$(extensiondir)\"		\
- 	-DE_DATA_SERVER_IMAGESDIR=\"$(imagesdir)\"			\
- 	$(E_DATA_SERVER_CFLAGS)
-@@ -44,7 +43,7 @@
- libedataserver_1_2_la_LIBADD = 				\
- 	$(E_DATA_SERVER_LIBS)				\
- 	$(ICONV_LIBS)					\
--	$(top_builddir)/libdb/dist/libdb-4.1.la		\
-+	-ldb-4.2 \
- 	$(SOCKET_LIBS)
- 
- libedataserver_1_2_la_LDFLAGS = \
