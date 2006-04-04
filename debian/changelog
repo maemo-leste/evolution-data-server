@@ -1,6 +1,7 @@
 evolution-data-server (1.6.0-2) unstable; urgency=medium
 
   * Upload to unstable
+  * debian/patches/10_de_translation.patch (closes: #313698)
 
  -- Heikki Henriksen <heikkih@gmail.com>  Mon,  3 Apr 2006 20:02:29 +0200
 
