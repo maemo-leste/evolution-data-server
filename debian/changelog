@@ -1,4 +1,4 @@
-evolution-data-server (1.6.0-2) unstable; urgency=medium
+evolution-data-server (1.6.0-2) UNRELEASED; urgency=medium
 
   * Upload to unstable
   * debian/patches/10_de_translation.patch (closes: #313698)
