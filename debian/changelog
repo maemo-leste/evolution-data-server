@@ -3,8 +3,9 @@ evolution-data-server (1.6.0-2) unstable; urgency=medium
   * Upload to unstable
   * debian/patches/10_de_translation.patch (closes: #313698)
   * debian/patches/11_it_translation.patch (closes: #295269)
+  * debian/control[.in]: bump debhelper build-dep to > 5.0.0
 
- -- Heikki Henriksen <heikkih@gmail.com>  Mon,  3 Apr 2006 20:02:29 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu,  6 Apr 2006 16:03:29 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
