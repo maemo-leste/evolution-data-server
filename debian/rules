@@ -23,11 +23,6 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
-clean::
-	dh_clean intltool-extract intltool-merge intltool-update \
-	.po/.intltool-merge-cache
-#	$(MAKE)	-f debian/rules reverse-config
-
 LIBEDATASERVER_CURRENT := $(shell grep '^LIBEDATASERVER_CURRENT=' configure.in | sed -e 's/LIBEDATASERVER_CURRENT=//g')
 LIBEDATASERVER_AGE := $(shell grep '^LIBEDATASERVER_AGE=' configure.in | sed -e 's/LIBEDATASERVER_AGE=//g')
 LIBEDATASERVER_VER := $(shell expr $(LIBEDATASERVER_CURRENT) - $(LIBEDATASERVER_AGE))
