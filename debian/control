@@ -2,7 +2,7 @@ Source: evolution-data-server
 Section: gnome
 Priority: optional
 Maintainer: Debian Evolution Maintainers <pkg-evolution-maintainers@lists.alioth.debian.org>
-Uploaders: Takuo KITAME <kitame@debian.org>, Jordi Mallach <jordi@debian.org>, Margarita Manterola <debian@marga.com.ar>, Loic Minier <lool@dooz.org>, Heikki Henriksen <heikkih@gmail.com>
+Uploaders: Takuo KITAME <kitame@debian.org>, Jordi Mallach <jordi@debian.org>, Margarita Manterola <debian@marga.com.ar>, Loic Minier <lool@dooz.org>, Heikki Henriksen <heikkih@gmail.com>, Oystein Gisnas <oystein@gisnas.net>
 Build-Depends: flex, debhelper (>= 5.0.0), cdbs (>= 0.4.37), intltool (>= 0.28-2), bison, libgnome2-dev (>= 2.10), libgtk2.0-dev, libsoup2.2-dev (>= 2.2.6), libldap2-dev, gtk-doc-tools, libgnomeui-dev, libnss3-dev, libdb4.3-dev | libdb-dev, libkrb5-dev
 Standards-Version: 3.6.2.0
 
