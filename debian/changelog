@@ -1,12 +1,13 @@
-evolution-data-server (1.6.0-2) UNRELEASED; urgency=medium
+evolution-data-server (1.6.1-1) UNRELEASED; urgency=medium
 
+  * New upstream release (1.6.1)
   * Upload to unstable
   * debian/patches/10_de_translation.patch (closes: #313698)
   * debian/patches/11_it_translation.patch (closes: #295269)
   * debian/control[.in]: bump debhelper build-dep to > 5.0.0
   * debian/rules: clean out clean::
 
- -- Heikki Henriksen <heikkih@gmail.com>  Mon, 10 Apr 2006 14:52:29 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue, 11 Apr 2006 22:55:49 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
