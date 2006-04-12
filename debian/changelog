@@ -6,8 +6,9 @@ evolution-data-server (1.6.1-1) UNRELEASED; urgency=medium
   * debian/patches/11_it_translation.patch (closes: #295269)
   * debian/control[.in]: bump debhelper build-dep to > 5.0.0
   * debian/rules: clean out clean::
+  * e-d-s is now restarted on upgrade (closes: #319054)
 
- -- Heikki Henriksen <heikkih@gmail.com>  Tue, 11 Apr 2006 22:55:49 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed, 12 Apr 2006 19:55:49 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
