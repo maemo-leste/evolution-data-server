@@ -1,2 +1,2 @@
 version=3
-ftp://ftp.gnome.org/pub/GNOME/sources/evolution-data-server/1.6/evolution-data-server-(.*)\.tar\.gz	debian	uupdate
+http://ftp.gnome.org/pub/GNOME/sources/evolution-data-server/([\d\.]+)/evolution-data-server-([\d\.]+)\.tar\.gz	debian	uupdate
