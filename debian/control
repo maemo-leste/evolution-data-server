@@ -207,7 +207,7 @@ Description: Backend library for evolution calendars (development files)
 Package: libcamel1.2-8
 Section: libs
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, libnss3-0d 
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: The Evolution MIME message handling library
  Camel is a generic messaging library. It supports the standard
  messaging system for receiving and sending messages. It is the
