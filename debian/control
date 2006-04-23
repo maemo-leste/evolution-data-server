@@ -201,7 +201,8 @@ Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package contains header files and static library for libexchange-storage1.2-1.
+ This package contains header files and static library for
+ libexchange-storage1.2-1.
 
 Package: libcamel1.2-8
 Section: libs
