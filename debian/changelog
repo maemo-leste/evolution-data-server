@@ -1,4 +1,4 @@
-evolution-data-server (1.6.1-1) unstable; urgency=low
+evolution-data-server (1.6.1-1) UNRELEASED; urgency=low
 
   [ Heikki Henriksen ]
   * Upload to unstable
@@ -9,15 +9,12 @@ evolution-data-server (1.6.1-1) unstable; urgency=low
   * debian/rules: clean out clean::
   * e-d-s is now restarted on upgrade (closes: #319054)
   * debian/watch: added
-  * debian/control[.in]: bump build-deps on libgtk2.0-dev and libgnomeui-dev
-    to avoid references to libXcursor.la/libXrender.la
+  * debian/control[.in]: remove old unnecessary conflicts/replaces
 
   [ Oystein Gisnas ]
   * Make libcamel versioned and remove conflict with previous versions
-  * debian/control[.in]: set versioned dep for libedataserverui1.2-dev
-    to require .la-clean libXcursor/libXrender gtk2.0.
 
- -- Oystein Gisnas <oystein@gisnas.net>  Mon, 24 Apr 2006 11:39:01 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 24 Apr 2006 23:40:51 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
