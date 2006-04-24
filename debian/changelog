@@ -1,0 +1,588 @@
+evolution-data-server (1.6.1-1) unstable; urgency=low
+
+  [ Heikki Henriksen ]
+  * Upload to unstable
+  * New upstream release (1.6.1)
+  * debian/patches/10_de_translation.patch (closes: #313698)
+  * debian/patches/11_it_translation.patch (closes: #295269)
+  * debian/control[.in]: bump debhelper build-dep to > 5.0.0
+  * debian/rules: clean out clean::
+  * e-d-s is now restarted on upgrade (closes: #319054)
+  * debian/watch: added
+  * debian/control[.in]: bump build-deps on libgtk2.0-dev and libgnomeui-dev
+    to avoid references to libXcursor.la/libXrender.la
+
+  [ Oystein Gisnas ]
+  * Make libcamel versioned and remove conflict with previous versions
+  * debian/control[.in]: set versioned dep for libedataserverui1.2-dev
+    to require .la-clean libXcursor/libXrender gtk2.0.
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Mon, 24 Apr 2006 11:39:01 +0200
+
+evolution-data-server (1.6.0-1) experimental; urgency=low
+
+  * New upstream release
+  * Target experimental
+  * Added -dbg-package
+  * debian/patches/20_xulrunner.patch:
+    Build with xulrunner
+  * debian/patches/35_external-libdb.patch:
+    Build with debian's libdb4.3
+  * Change build-dep from libgnutls11-dev to libgnutls-dev
+  * Add gtk-doc for lib*-dev (closes: #316063)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed, 29 Mar 2006 15:52:31 +0100
+
+evolution-data-server (1.4.2.1-2) unstable; urgency=medium
+
+  * Acknowledge NMU (closes: #358590)
+  * Add myself to Uploaders
+  * Add back hurd-i386 build-dep for libldap2-dev (closes: #357261)
+  * Add libgtk2.0-dev in dep for libedataserverui-dev (closes: #358914)
+  * debian/patches/50_imapoffline_imap-store.patch:
+    fix crash with Draft-saving when offline
+  * debian/patches/51_uw-imapd-new-folder_imap-command.patch:
+  * debian/patches/55_camel-imap-command-1.71.2.3.patch
+    fix hang on new folder with uw-imapd
+    fix access to utf8-folders in imap
+  * debian/patches/55_camel-imap-store-1.330.2.2.patch
+    fix access to utf8-folders in imap
+  * debian/patches/55_camel-imap-store-summary.1.16.2.1.patch
+    fix access to utf8-folders in imap
+  * debian/patches/81_reload-http_e-cal-backend-http.patch:
+    fix crash on http-cal-reload
+  * debian/patches/60_e-name-selector-dialog.1.24.patch:
+    put focus on search in "Select from Addressbook"
+  * debian/patches/61_e-name-selector-dialog.1.26.patch:
+    crash on "Select from Addressbook" (closes: #359200, #354448)
+      
+ -- Heikki Henriksen <heikkih@gmail.com>  Sun, 26 Mar 2006 17:28:44 +0100
+
+evolution-data-server (1.4.2.1-1.1) unstable; urgency=low
+
+  * NMU to fix crasher in e-cal-backend-http
+    (pulled from upstream cvs) 
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu, 23 Mar 2006 11:43:52 +0000
+
+evolution-data-server (1.4.2.1-1) unstable; urgency=low
+
+  * New uptream release.
+    - fixes an implicit pointer conversion (closes: #431323).
+  * ACK Steve Langasek's NMU; thanks! (closes: #344829).
+  * Upload to unstable.
+  * Update patches:
+    - 70_rebootstrap.patch: update, including a full intltoolisation, as
+      upstream's is broken.
+
+ -- Jordi Mallach <jordi@debian.org>  Mon,  9 Jan 2006 03:28:07 +0100
+
+evolution-data-server (1.4.1.1-1.1) experimental; urgency=low
+
+  * Non-maintainer upload.
+  * Added libexchange-storage and libexchange-storage-dev. The Exchange
+    server communication code has moved to evolution-data-server under
+    servers/exchange.  Patch from Sebastien Bacher and Lawrence Walton.
+    Closes: #344829.
+
+ -- Steve Langasek <vorlon@debian.org>  Fri,  6 Jan 2006 11:07:51 -0800
+
+evolution-data-server (1.4.1.1-1) experimental; urgency=high
+
+  [ Jordi Mallach ]
+  * New upstream release.
+  * Merge all changes from 1.2.3-4.1, 1.2.3-4.2, 1.2.3-5 and 1.2.3-6 to
+    experimental.
+  * debian/patches/ia64_crash_fix.patch: update for new version.
+
+  [ Loic Minier ]
+  * Merge changes from 1.2.3-7 to experimental.
+  * Drop patches merged upstream:
+    - 10_pc-files-inversion.patch
+  * Update patches to apply cleanly:
+    - 05_libical-declare-const.patch
+    - 15_amd64-build.patch
+    - 20_decode-non-space-separated-mime-header.patch
+  * Port the patch to build against Debian's libdb4.2 to the new upstream
+    release, 35_use-debians-libdb42.patch, and update the reboostrapping
+    patch, 70_rebootstrap.patch.
+  * Update FSF address in copyright file.
+  * Clarify License versus Copyright and update authors list in copyright
+    file.
+  * Fix description of libedataserver and libedataserverui packages.
+    (Closes: #291469)
+  * Add CDBS' utils.
+  * Wrap description of libedataserverui1.2-dev.
+  * Follow libcamel's SONAME changes:
+    - Uncomment the configure.in scanning hack for libcamel as the SONAME /
+      libtool version-info is updated for -provider.
+      (Closes: #333142, #337464)
+    - Add debian/libcamel1.2-6.install and remove old debian/lib*.install for
+      previous SONAMEs.
+    - Add Conflicts / Replaces with libcamel1.2-0 on libcamel1.2-@VER@.
+  * Merge changes from 1.2.3-8 to experimental.
+  * Move libcamel from the libdevel section to libs. (Closes: #305611)
+  * Remove superfluous self-depends of libcamel@VER@-dev.
+  * Sync shlibs.
+  * E-D-S plugins are in /usr/lib/evolution-data-server-1.2, not 1.4.
+    [debian/evolution-data-server.install]
+
+ -- Loic Minier <lool@dooz.org>  Mon,  7 Nov 2005 17:22:25 +0100
+
+evolution-data-server (1.4.1-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 10 Oct 2005 05:34:04 +0900
+
+evolution-data-server (1.4.0-3) experimental; urgency=low
+
+  * libedataserver1.2-dev: fix unmet dependency.
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 10 Oct 2005 05:08:29 +0900
+
+evolution-data-server (1.4.0-2) experimental; urgency=low
+
+  * Build against libdb4.2
+
+ -- Takuo KITAME <kitame@debian.org>  Wed, 21 Sep 2005 16:55:06 +0900
+
+evolution-data-server (1.4.0-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 12 Sep 2005 02:23:41 +0900
+
+evolution-data-server (1.2.3-8) unstable; urgency=high
+
+  * Add depends to *-dev packages to match .la files referenced in the
+    dependency_libs of *.la files they ship:
+    - evolution-data-server-dev: libaudiofile-dev, libbonobo2-dev,
+    libdb4.2-dev, libebook1.2-dev, libecal1.2-dev, libedataserver1.2-dev,
+    libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev,
+    libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev,
+    liborbit2-dev, libpopt-dev, libsoup2.2-dev, libtasn1-2-dev, libxml2-dev
+    - libedataserver1.2-dev: libaudiofile-dev, libbonobo2-dev, libesd0-dev,
+    libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev,
+    libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev,
+    libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libedataserverui1.2-dev: libaudiofile-dev, libbonobo2-dev,
+    libcamel1.2-dev, libdb4.2-dev, libebook1.2-dev, libesd0-dev,
+    libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnomevfs2-dev,
+    libgnutls11-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev,
+    libtasn1-2-dev, libxml2-dev (Closes: #337422)
+    - libebook1.2-dev: libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev,
+    libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev,
+    libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev,
+    libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libedata-book1.2-dev: libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev,
+    libdb4.2-dev, libedataserver1.2-dev, libesd0-dev, libgconf2-dev,
+    libgcrypt11-dev, libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev,
+    libgnutls11-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev,
+    libtasn1-2-dev, libxml2-dev (Closes: #337421)
+    - libecal1.2-dev: libaudiofile-dev, libbonobo2-dev, libdb4.2-dev,
+    libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev,
+    libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev,
+    libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libedata-cal1.2-dev: libaudiofile-dev, libbonobo2-dev, libdb4.2-dev,
+    libedataserver1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev,
+    libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev,
+    libgpg-error-dev, liborbit2-dev, libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libegroupwise1.2-dev: libaudiofile-dev, libbonobo2-dev, libesd0-dev,
+    libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev,
+    libgnomevfs2-dev, libgnutls11-dev, libgpg-error-dev, liborbit2-dev,
+    libpopt-dev, libtasn1-2-dev, libxml2-dev
+    - libcamel1.2-dev: libaudiofile-dev, libbonobo2-dev, libcamel1.2-dev,
+    libegroupwise1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev,
+    libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls11-dev,
+    libgpg-error-dev, liborbit2-dev, libpopt-dev, libsoup2.2-dev,
+    libtasn1-2-dev, libxml2-dev
+  * Add ${misc:Depends} to all Depends.
+
+ -- Loic Minier <lool@dooz.org>  Sat,  5 Nov 2005 16:13:06 +0100
+
+evolution-data-server (1.2.3-7) unstable; urgency=high
+
+  * Update the patch to build against Debian's libdb4.2 instead of the bundled
+    libdb4.1 copy.
+    - Clean up.
+    - Split in two patches, one for configure.in and **/Makefile.am, the other
+      to update generated files: debian/patches/35_use-debians-libdb42.patch
+      and debian/patches/70_rebootstrap.patch (result of automake-1.7 &&
+      autoconf && rm -rf autom4te.cache)
+    - Also cover the addressbook/backends/file sub-directory.
+      (Closes: #336761, #336897, #337018, #337077)
+  * Add DEB_FIXPERMS_EXCLUDE to preserve the mail group and the setgid bit of
+    usr/lib/evolution/evolution-data-server*. (Closes: #336755)
+  * Re-create patches applying cleanly, preprend a number to patches missing
+    one.
+    - debian/patches/05_libical-declare-const.patch: cleaned up, renamed.
+    - debian/patches/10_pc-files-inversion.patch: cleaned up, renamed.
+    - debian/patches/15_amd64-build.patch: cleaned up, renamed.
+    - debian/patches/20_decode-non-space-separated-mime-header.patch: cleaned
+      up, renamed.
+    - debian/patches/25_ia64-crash.patch: cleaned up, renamed.
+    - debian/patches/30_dont-send-second-pop-capa.patch: cleaned up, renamed.
+  * Don't overwrite DEB_SHLIBDEPS_INCLUDE, DEB_CONFIGURE_EXTRA_FLAGS, nor
+    DEB_DH_MAKESHLIBS_ARGS_ALL.
+  * Add myself to Uploaders.
+
+ -- Loic Minier <lool@dooz.org>  Wed,  2 Nov 2005 17:12:50 +0100
+
+evolution-data-server (1.2.3-6) unstable; urgency=low
+
+  * debian/control.in, debian/control:
+    - duplicate all changes made in the
+      last three uploads to sync both files. debian/control isn't regenerated
+      at build time, so many changes were missing.
+    - bump Standards-Version to 3.6.2.0, no changes required.
+
+ -- Jordi Mallach <jordi@debian.org>  Mon, 31 Oct 2005 13:24:39 +0100
+
+evolution-data-server (1.2.3-5) unstable; urgency=low
+
+  * Acknowledge NMU changes, thanks James Troup and Loïc Minier
+    (closes: #331569, #330013, #331570, #331571).
+  * Forwardport a security improvement from evolution 2.0.3-1.2 that got
+    lost later on:
+    - debian/rules: move here chmod/chgrp calls for camel-lock-helper
+      from evolution-data-server.postinst, and make it sgid mail, not
+      suid root.
+    - debian/evolution-data-server.postinst: removed.
+  * Patch from Michael Banck to not build with libldap2-dev on hurd-i386
+    (closes: #315163).
+    - debian/control.in (Build-Depends): Do not Build-Depend on
+      libldap2-dev on hurd-i386.
+    - debian/rules (DEB_CONFIGURE_EXTRA_FLAGS): Do not add --with-openldap
+      on GNU/Hurd.
+  * Move to team maintenance:
+    - debian/control.in:
+      + set maintainer to Debian Evolution Maintainers
+        <pkg-evolution-maintainers@lists.alioth.debian.org>.
+      + add Takuo, Marga and me to Uploaders.
+
+ -- Jordi Mallach <jordi@debian.org>  Mon, 31 Oct 2005 10:06:04 +0100
+
+evolution-data-server (1.2.3-4.2) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Urgency high for RC bug fix.
+  * Add missing libdb4.2-dev dependency to libebook1.2-dev and
+    libcamel1.2-dev. (Closes: #331570, #331571)
+
+ -- Loic Minier <lool@dooz.org>  Sat,  8 Oct 2005 17:42:11 +0200
+
+evolution-data-server (1.2.3-4.1) unstable; urgency=low
+
+  * debian/control: fix libedataserver1.2-dev to Depend on libdb4.2-dev
+    rather than libdb4.1-dev.  Closes: #331569, #330013
+
+ -- James Troup <james@nocrew.org>  Sat,  8 Oct 2005 01:54:09 +0100
+
+evolution-data-server (1.2.3-2) unstable; urgency=low
+
+  * libcamel-dev: depends on libkrb5-dev (closes: #318981, #319787)
+
+ -- Takuo KITAME <kitame@debian.org>  Mon,  1 Aug 2005 12:38:53 +0900
+
+evolution-data-server (1.2.3-1) unstable; urgency=low
+
+  * New upstream release
+  * enable GSSAPI. (closes: Bug#317175)
+  * close bugs which fixed in 1.2.2-6 (closes: #305597, #308927)
+
+ -- Takuo KITAME <kitame@debian.org>  Wed, 13 Jul 2005 14:29:57 +0900
+
+evolution-data-server (1.2.2-6) unstable; urgency=low
+
+  * Maintainer upload (closes: #305597)
+  * Change package name untagged. (except libraries) (closes: #308927)
+  * build with -sa
+  * e-d-s: conflicts and replaces with e-d-s1.2
+  * e-d-s-dev: conflicts and replaces with e-d-s1.2-dev
+
+ -- Takuo KITAME <kitame@debian.org>  Thu, 23 Jun 2005 12:48:03 +0900
+
+evolution-data-server1.2 (1.2.2-5.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Rename ia64_crash_fix to ia64_crash_fix.patch, so that the build system
+    will pick it up.  (closes: #305597)
+
+ -- dann frazier <dannf@debian.org>  Tue, 24 May 2005 15:38:49 -0600
+
+evolution-data-server1.2 (1.2.2-5) unstable; urgency=low
+
+  * libedataserver1.2: depends on libnspr4 (closes: #309449)
+  * libedataserver1.2-dev: depends on libnspr-dev (closes: #309189)
+
+ -- Takuo KITAME <kitame@debian.org>  Wed, 18 May 2005 15:59:32 +0900
+
+evolution-data-server1.2 (1.2.2-4) unstable; urgency=low
+
+  * fix dependency of *-dev packages. (closes: Bug#307931)
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 10 May 2005 12:49:34 +0900
+
+evolution-data-server1.2 (1.2.2-3) unstable; urgency=low
+
+  * fix crash on ia64 when clicking on "reply" in evolution mailer (closes: #305597)
+  * applied patch to use system libdb (closes: #305518)
+
+ -- Takuo KITAME <kitame@debian.org>  Thu,  5 May 2005 19:49:11 +0900
+
+evolution-data-server1.2 (1.2.2-2) unstable; urgency=low
+
+  * applied amd64 build fix patch. (closes: #304584)
+  * trying force decode not-space-separated mime header.
+    Feel free to submit bug caused by this patch.
+
+ -- Takuo KITAME <kitame@debian.org>  Thu, 14 Apr 2005 18:22:29 +0900
+
+evolution-data-server1.2 (1.2.2-1) unstable; urgency=high
+
+  * New upstream release
+  * Build-Depends on libnss-dev, It will fix SSL issue.
+    closes: #304361, #304243, #304279, #304243, #304083, #299603
+  * debian/rules: added some configure options from evolution/debian/rules.
+  * libebook1.2-dev depend on libnss-dev (closes: #304085)
+  * libebook1.2 depend on libcamel1.2 (closes: #304075)
+  * fix description (closes: #303761)
+
+ -- Takuo KITAME <kitame@debian.org>  Wed, 13 Apr 2005 17:57:28 +0900
+
+evolution-data-server1.2 (1.2.1-1) unstable; urgency=low
+
+  * New upstream release
+  * upload to unstable/main.
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 29 Mar 2005 11:34:48 +0900
+
+evolution-data-server1.2 (1.1.6-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 22 Mar 2005 14:20:55 +0900
+
+evolution-data-server1.2 (1.1.5-2) experimental; urgency=low
+
+  * remove unnecessary dependency.
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 28 Feb 2005 16:48:26 +0900
+
+evolution-data-server1.2 (1.1.5-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 21 Feb 2005 18:45:56 +0900
+
+evolution-data-server1.2 (1.1.4-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Fri,  4 Feb 2005 14:26:26 +0900
+
+evolution-data-server1.2 (1.1.3-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Thu, 13 Jan 2005 13:34:40 +0900
+
+evolution-data-server1.2 (1.1.2-4) experimental; urgency=low
+
+  *  chmod u+s /usr/lib/evolution/camel-lock-helper-1.2
+
+ -- Takuo KITAME <kitame@debian.org>  Thu,  6 Jan 2005 18:48:04 +0900
+
+evolution-data-server1.2 (1.1.2-3) experimental; urgency=low
+
+  * Conflicts and Replaces libedata-cal1.2-0, libedata-book1.2-0 and libegroupwise1.2-0 (= 1.1.2-1)
+  * includes libcamel*.la into libcamel1.2-dev
+
+ -- Takuo KITAME <kitame@debian.org>  Thu,  6 Jan 2005 16:22:10 +0900
+
+evolution-data-server1.2 (1.1.2-2) experimental; urgency=low
+
+  * separate libcamel package.
+  * evolution-data-server1.2-dev depends on earch libdevel packages.
+
+ -- Takuo KITAME <kitame@debian.org>  Thu,  6 Jan 2005 15:23:40 +0900
+
+evolution-data-server1.2 (1.1.2-1) experimental; urgency=low
+
+  * New upstream release
+  * build-depends on libgnomeui-dev (closes: #281339)
+
+ -- Takuo KITAME <kitame@debian.org>  Thu,  6 Jan 2005 14:37:02 +0900
+
+evolution-data-server1.2 (1.1.1-1) experimental; urgency=low
+
+  * New upstream release
+  * Build depends on libgnome2-dev (closes: #281339)
+
+ -- Takuo KITAME <kitame@debian.org>  Fri, 17 Dec 2004 15:42:46 +0900
+
+evolution-data-server1.2 (1.1.0-1) experimental; urgency=low
+
+  * New upstream release
+  * tagged package name 1.2.
+
+ -- Takuo KITAME <kitame@debian.org>  Fri,  5 Nov 2004 11:46:58 +0900
+
+evolution-data-server (1.0.2-2) unstable; urgency=low
+
+  * upload to unstable/main
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 19 Oct 2004 11:51:47 +0900
+
+evolution-data-server (1.0.2-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Wed, 13 Oct 2004 12:00:09 +0900
+
+evolution-data-server (1.0.1-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Wed, 29 Sep 2004 15:31:14 +0900
+
+evolution-data-server (1.0.0-1) experimental; urgency=low
+
+  * New upstream release, RC package for uploading into main.
+  * change package structure.
+    lib* is into own package.
+    e-d-s-dev is meta package of lib*-dev packages.
+  (closes: #270678)
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 14 Sep 2004 17:09:57 +0900
+
+evolution-data-server (0.0.99-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 31 Aug 2004 13:55:25 +0900
+
+evolution-data-server (0.0.98-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 16 Aug 2004 12:42:30 +0900
+
+evolution-data-server (0.0.97-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Thu,  5 Aug 2004 18:58:54 +0900
+
+evolution-data-server (0.0.96-1) experimental; urgency=low
+
+  * New upstream release
+  * remove useless files in doc (closes: #257405)
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 20 Jul 2004 16:18:03 +0900
+
+evolution-data-server (0.0.95-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Thu,  8 Jul 2004 18:41:50 +0900
+
+evolution-data-server (0.0.94.1-2) experimental; urgency=low
+
+  * --with-uniquename=eds (closes: #255727)
+
+ -- Takuo KITAME <kitame@debian.org>  Wed, 30 Jun 2004 00:15:58 +0900
+
+evolution-data-server (0.0.94.1-1) experimental; urgency=low
+
+  * New upstream release
+  * use cdbs instead of cdb
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 28 Jun 2004 10:59:44 +0900
+
+evolution-data-server (0.0.94-1) experimental; urgency=low
+
+  * New upstream release
+  * Conflicts: evolution1.5 (<< 1.5.9)
+
+ -- Takuo KITAME <kitame@debian.org>  Mon,  7 Jun 2004 11:50:34 +0900
+
+evolution-data-server (0.0.93-2) experimental; urgency=low
+
+  * Conflict with evolution1.5 (<< 1.5.8)
+
+ -- Takuo KITAME <kitame@debian.org>  Wed, 26 May 2004 15:36:23 +0900
+
+evolution-data-server (0.0.93-1) experimental; urgency=low
+
+  * New upstream release
+  * build against libgnutls10
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 24 May 2004 19:47:53 +0900
+
+evolution-data-server (0.0.92-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 20 Apr 2004 17:02:50 +0900
+
+evolution-data-server (0.0.91-2) experimental; urgency=low
+
+  * Applied patch to fix build problem on ppc (closes: #242044)
+  * Build-Depends on gtk-doc-tools (closes: #241227)
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 12 Apr 2004 09:57:50 +0900
+
+evolution-data-server (0.0.91-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Wed,  7 Apr 2004 12:35:34 +0900
+
+evolution-data-server (0.0.90-1) experimental; urgency=low
+
+  * New upstream release
+  * NOTE:
+    libsoup2.2-3 and libgtkhtml3.1-6 package had been uploaded already.
+    But it marked as NEW package and waiting for ACCEPTED.
+    So please wait for installing into archive by ftp-maintainer.
+
+ -- Takuo KITAME <kitame@debian.org>  Tue,  9 Mar 2004 12:59:34 +0900
+
+evolution-data-server (0.0.7-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Thu, 19 Feb 2004 14:47:19 +0900
+
+evolution-data-server (0.0.6-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Tue,  3 Feb 2004 14:23:19 +0900
+
+evolution-data-server (0.0.5-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Tue, 20 Jan 2004 16:43:50 +0900
+
+evolution-data-server (0.0.4-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Takuo KITAME <kitame@debian.org>  Fri,  9 Jan 2004 14:16:21 +0900
+
+evolution-data-server (0.0.3-2) experimental; urgency=low
+
+  * fix unavailable libdb.a
+
+ -- Takuo KITAME <kitame@debian.org>  Thu, 18 Dec 2003 11:17:42 +0900
+
+evolution-data-server (0.0.3-1) experimental; urgency=low
+
+  * Initial Release.
+
+ -- Takuo KITAME <kitame@debian.org>  Mon, 15 Dec 2003 10:36:50 +0900
+

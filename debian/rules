@@ -1,0 +1,98 @@
+#!/usr/bin/make -f
+
+include /usr/share/cdbs/1/rules/buildvars.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/class/gnome.mk
+include /usr/share/cdbs/1/rules/utils.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+
+DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
+
+DEB_DH_MAKESHLIBS_ARGS_ALL += -V
+
+DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
+	--libexecdir=\$${prefix}/lib/evolution \
+	--with-nspr-includes=/usr/include/nspr \
+	--with-nss-includes=/usr/include/nss \
+	--enable-ipv6 \
+	--enable-nntp \
+	--enable-smime \
+	--with-openldap \
+	--with-krb5=/usr
+
+DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
+
+LIBEDATASERVER_CURRENT := $(shell grep '^LIBEDATASERVER_CURRENT=' configure.in | sed -e 's/LIBEDATASERVER_CURRENT=//g')
+LIBEDATASERVER_AGE := $(shell grep '^LIBEDATASERVER_AGE=' configure.in | sed -e 's/LIBEDATASERVER_AGE=//g')
+LIBEDATASERVER_VER := $(shell expr $(LIBEDATASERVER_CURRENT) - $(LIBEDATASERVER_AGE))
+
+LIBEDATASERVERUI_CURRENT := $(shell grep '^LIBEDATASERVERUI_CURRENT=' configure.in | sed -e 's/LIBEDATASERVERUI_CURRENT=//g')
+LIBEDATASERVERUI_AGE := $(shell grep '^LIBEDATASERVERUI_AGE=' configure.in | sed -e 's/LIBEDATASERVERUI_AGE=//g')
+LIBEDATASERVERUI_VER := $(shell expr $(LIBEDATASERVERUI_CURRENT) - $(LIBEDATASERVERUI_AGE))
+
+LIBEBOOK_CURRENT := $(shell grep '^LIBEBOOK_CURRENT=' configure.in | sed -e 's/LIBEBOOK_CURRENT=//g')
+LIBEBOOK_AGE := $(shell grep '^LIBEBOOK_AGE=' configure.in | sed -e 's/LIBEBOOK_AGE=//g')
+LIBEBOOK_VER := $(shell expr $(LIBEBOOK_CURRENT) - $(LIBEBOOK_AGE))
+
+LIBEDATABOOK_CURRENT := $(shell grep '^LIBEDATABOOK_CURRENT=' configure.in | sed -e 's/LIBEDATABOOK_CURRENT=//g')
+LIBEDATABOOK_AGE := $(shell grep '^LIBEDATABOOK_AGE=' configure.in | sed -e 's/LIBEDATABOOK_AGE=//g')
+LIBEDATABOOK_VER := $(shell expr $(LIBEDATABOOK_CURRENT) - $(LIBEDATABOOK_AGE))
+
+LIBECAL_CURRENT  := $(shell grep '^LIBECAL_CURRENT=' configure.in | sed -e 's/LIBECAL_CURRENT=//g')
+LIBECAL_AGE  := $(shell grep '^LIBECAL_AGE=' configure.in | sed -e 's/LIBECAL_AGE=//g')
+LIBECAL_VER := $(shell expr $(LIBECAL_CURRENT) - $(LIBECAL_AGE))
+
+LIBEDATACAL_CURRENT  := $(shell grep '^LIBEDATACAL_CURRENT=' configure.in | sed -e 's/LIBEDATACAL_CURRENT=//g')
+LIBEDATACAL_AGE  := $(shell grep '^LIBEDATACAL_AGE=' configure.in | sed -e 's/LIBEDATACAL_AGE=//g')
+LIBEDATACAL_VER  := $(shell expr $(LIBEDATACAL_CURRENT) - $(LIBEDATACAL_AGE))
+
+LIBEGROUPWISE_CURRENT  := $(shell grep '^LIBEGROUPWISE_CURRENT=' configure.in | sed -e 's/LIBEGROUPWISE_CURRENT=//g')
+LIBEGROUPWISE_AGE  := $(shell grep '^LIBEGROUPWISE_AGE=' configure.in | sed -e 's/LIBEGROUPWISE_AGE=//g')
+LIBEGROUPWISE_VER  := $(shell expr $(LIBEGROUPWISE_CURRENT) - $(LIBEGROUPWISE_AGE))
+
+LIBCAMEL_CURRENT  := $(shell grep '^LIBCAMEL_CURRENT=' configure.in | sed -e 's/LIBCAMEL_CURRENT=//g')
+LIBCAMEL_AGE  := $(shell grep '^LIBCAMEL_AGE=' configure.in | sed -e 's/LIBCAMEL_AGE=//g')
+LIBCAMEL_VER  := $(shell expr $(LIBCAMEL_CURRENT) - $(LIBCAMEL_AGE))
+
+LIBEXCHANGE_STORAGE_CURRENT := $(shell grep '^LIBEXCHANGE_STORAGE_CURRENT=' configure.in | sed -e 's/LIBEXCHANGE_STORAGE_CURRENT=//g')
+LIBEXCHANGE_STORAGE_AGE := $(shell grep '^LIBEXCHANGE_STORAGE_AGE=' configure.in | sed -e 's/LIBEXCHANGE_STORAGE_AGE=//g')
+LIBEXCHANGE_STORAGE_VER := $(shell expr $(LIBEXCHANGE_STORAGE_CURRENT) - $(LIBEXCHANGE_STORAGE_AGE))
+
+RELEASE_TAG := 1.2
+
+update-control:
+	@echo "  libedataserver version: $(LIBEDATASERVER_VER)"
+	@echo "libedataserverui version: $(LIBEDATASERVERUI_VER)"
+	@echo "        libebook version: $(LIBEBOOK_VER)"
+	@echo "   libedata-book version: $(LIBEDATABOOK_VER)"
+	@echo "         libecal version: $(LIBECAL_VER)"
+	@echo "    libedata-cal version: $(LIBEDATACAL_VER)"
+	@echo "   libegroupwise version: $(LIBEGROUPWISE_VER)"
+	@echo " libexchange-storage version: $(LIBEXCHANGE_STORAGE_VER)"
+	@echo "        libcamel version: $(LIBCAMEL_VER)"
+	sed -e 's/libedataserver@VER@/libedataserver$(RELEASE_TAG)-$(LIBEDATASERVER_VER)/g' \
+	 -e 's/libedataserverui@VER@/libedataserverui$(RELEASE_TAG)-$(LIBEDATASERVERUI_VER)/g' \
+	 -e 's/libebook@VER@/libebook$(RELEASE_TAG)-$(LIBEBOOK_VER)/g' \
+	 -e 's/libedata-book@VER@/libedata-book$(RELEASE_TAG)-$(LIBEDATABOOK_VER)/g' \
+	 -e 's/libecal@VER@/libecal$(RELEASE_TAG)-$(LIBECAL_VER)/g' \
+	 -e 's/libedata-cal@VER@/libedata-cal$(RELEASE_TAG)-$(LIBEDATACAL_VER)/g' \
+	 -e 's/libegroupwise@VER@/libegroupwise$(RELEASE_TAG)-$(LIBEGROUPWISE_VER)/g' \
+	 -e 's/libexchange-storage@VER@/libexchange-storage$(RELEASE_TAG)-$(LIBEXCHANGE_STORAGE_VER)/g' \
+	 -e 's/libcamel@VER@/libcamel$(RELEASE_TAG)-$(LIBCAMEL_VER)/g' \
+	debian/control.in > debian/control
+	cp debian/libedataserverui@VER@.install debian/libedataserverui$(RELEASE_TAG)-$(LIBEDATASERVERUI_VER).install
+	cp debian/libebook@VER@.install debian/libebook$(RELEASE_TAG)-$(LIBEBOOK_VER).install
+	cp debian/libedata-book@VER@.install debian/libedata-book$(RELEASE_TAG)-$(LIBEDATABOOK_VER).install
+	cp debian/libecal@VER@.install debian/libecal$(RELEASE_TAG)-$(LIBECAL_VER).install
+	cp debian/libedata-cal@VER@.install debian/libedata-cal$(RELEASE_TAG)-$(LIBEDATACAL_VER).install
+	cp debian/libegroupwise@VER@.install debian/libegroupwise$(RELEASE_TAG)-$(LIBEGROUPWISE_VER).install
+	cp debian/libexchange-storage@VER@.install debian/libexchange-storage$(RELEASE_TAG)-$(LIBEXCHANGE_STORAGE_VER).install
+	cp debian/libcamel@VER@.install debian/libcamel$(RELEASE_TAG)-$(LIBCAMEL_VER).install
+
+common-binary-predeb-arch::
+	cat debian/*/DEBIAN/shlibs > debian/shlibs.local
+
+binary-install/evolution-data-server::
+	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
+	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
