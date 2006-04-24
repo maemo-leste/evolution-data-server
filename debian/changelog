@@ -14,8 +14,10 @@ evolution-data-server (1.6.1-1) unstable; urgency=low
 
   [ Oystein Gisnas ]
   * Make libcamel versioned and remove conflict with previous versions
+  * debian/control[.in]: set versioned dep for libedataserverui1.2-dev
+    to require .la-clean libXcursor/libXrender gtk2.0.
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sun, 23 Apr 2006 12:55:55 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Mon, 24 Apr 2006 11:39:01 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
