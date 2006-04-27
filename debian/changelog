@@ -13,6 +13,7 @@ evolution-data-server (1.6.1-1) UNRELEASED; urgency=low
 
   [ Oystein Gisnas ]
   * Make libcamel versioned and remove conflict with previous versions
+  * Move libcamel providers to e-d-s package
 
  -- Heikki Henriksen <heikkih@gmail.com>  Mon, 24 Apr 2006 23:40:51 +0200
 
