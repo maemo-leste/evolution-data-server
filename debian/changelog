@@ -1,4 +1,4 @@
-evolution-data-server (1.6.1-1) UNRELEASED; urgency=low
+evolution-data-server (1.6.1-1) unstable; urgency=low
 
   [ Heikki Henriksen ]
   * Upload to unstable
@@ -11,13 +11,13 @@ evolution-data-server (1.6.1-1) UNRELEASED; urgency=low
   * debian/watch: added
   * debian/control[.in]: remove old unnecessary conflicts/replaces
   * debian/patches/55_no-fallback-for-tls.patch:
-    don't fallback to plain password (upstream bug 321797)
+    don't fallback to plain password for tls/ssl (upstream bug 321797)
 
   [ Oystein Gisnas ]
   * Make libcamel versioned and remove conflict with previous versions
   * Move libcamel providers to e-d-s package
 
- -- Heikki Henriksen <heikkih@gmail.com>  Fri, 28 Apr 2006 15:58:12 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Fri, 28 Apr 2006 17:12:22 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
