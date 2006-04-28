@@ -10,12 +10,14 @@ evolution-data-server (1.6.1-1) UNRELEASED; urgency=low
   * e-d-s is now restarted on upgrade (closes: #319054)
   * debian/watch: added
   * debian/control[.in]: remove old unnecessary conflicts/replaces
+  * debian/patches/55_no-fallback-for-tls.patch:
+    don't fallback to plain password (upstream bug 321797)
 
   [ Oystein Gisnas ]
   * Make libcamel versioned and remove conflict with previous versions
   * Move libcamel providers to e-d-s package
 
- -- Heikki Henriksen <heikkih@gmail.com>  Mon, 24 Apr 2006 23:40:51 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Fri, 28 Apr 2006 15:58:12 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
