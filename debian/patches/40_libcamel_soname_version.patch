@@ -1,0 +1,22 @@
+--- camel/Makefile.in.orig	2006-04-10 19:03:31.000000000 +0200
++++ camel/Makefile.in	2006-04-22 18:03:41.000000000 +0200
+@@ -778,7 +778,7 @@
+ 	camel-utf8.h				\
+ 	camel.h
+ 
+-libcamel_1_2_la_LDFLAGS = -version-info 0:0:0 $(NO_UNDEFINED)
++libcamel_1_2_la_LDFLAGS = -version-info $(LIBCAMEL_CURRENT):$(LIBCAMEL_REVISION):$(LIBCAMEL_AGE) $(NO_UNDEFINED)
+ libcamel_1_2_la_LIBADD = \
+ 	$(top_builddir)/libedataserver/libedataserver-${API_VERSION}.la \
+ 	$(CAMEL_LIBS)							\
+--- camel/Makefile.am.orig	2006-04-22 18:04:48.000000000 +0200
++++ camel/Makefile.am	2006-04-22 18:05:18.000000000 +0200
+@@ -279,7 +279,7 @@
+ 	camel-utf8.h				\
+ 	camel.h
+ 
+-libcamel_1_2_la_LDFLAGS = -version-info 0:0:0 $(NO_UNDEFINED)
++libcamel_1_2_la_LDFLAGS = -version-info $(LIBCAMEL_CURRENT):$(LIBCAMEL_REVISION):$(LIBCAMEL_AGE) $(NO_UNDEFINED)
+ 
+ libcamel_1_2_la_LIBADD =				\
+ 	$(top_builddir)/libedataserver/libedataserver-${API_VERSION}.la \

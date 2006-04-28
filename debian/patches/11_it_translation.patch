@@ -1,0 +1,23 @@
+diff -ru evolution-data-server-1.6.0.orig/po/it.po evolution-data-server-1.6.0/po/it.po
+--- evolution-data-server-1.6.0.orig/po/it.po	2006-03-13 06:12:17.000000000 +0100
++++ evolution-data-server-1.6.0/po/it.po	2006-04-04 15:43:45.000000000 +0200
+@@ -2577,7 +2577,7 @@
+ 
+ #: ../camel/camel-tcp-stream-openssl.c:620
+ msgid "Subject/Issuer mismatch"
+-msgstr "Oggetto/Emittente sconnessi"
++msgstr "Proprietario/Emittente sconnessi"
+ 
+ #: ../camel/camel-tcp-stream-openssl.c:622
+ msgid "AKID/SKID mismatch"
+@@ -2603,8 +2603,8 @@
+ "Fingerprint:       %s\n"
+ "Signature:         %s"
+ msgstr ""
+-"Mittente:             %s\n"
+-"Oggetto:              %s\n"
++"Emittente:             %s\n"
++"Proprietario:              %s\n"
+ "Impronta digitale:    %s\n"
+ "Firma:                %s"
+ 

@@ -1,6 +1,8 @@
 debian/tmp/usr/lib/evolution
 debian/tmp/usr/lib/bonobo
-debian/tmp/usr/share/evolution-data-server-1.4
+debian/tmp/usr/share/evolution-data-server-1.6
 debian/tmp/usr/share/locale
 debian/tmp/usr/share/pixmaps
 debian/tmp/usr/lib/evolution-data-server-1.2/extensions/*.so
+debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers-*/*.urls
+debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers-*/*.so

@@ -1,0 +1,12 @@
+diff -ru evolution-data-server-1.6.0.orig/po/de.po evolution-data-server-1.6.0/po/de.po
+--- evolution-data-server-1.6.0.orig/po/de.po	2006-03-06 09:17:30.000000000 +0100
++++ evolution-data-server-1.6.0/po/de.po	2006-04-04 15:33:29.000000000 +0200
+@@ -4520,7 +4520,7 @@
+ 
+ #: ../camel/providers/smtp/camel-smtp-transport.c:204
+ msgid "A password transition is needed"
+-msgstr "Ein Passwordübergang ist notwendig"
++msgstr "Ein Passwortübergang ist notwendig"
+ 
+ #: ../camel/providers/smtp/camel-smtp-transport.c:206
+ msgid "Authentication mechanism is too weak"

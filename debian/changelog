@@ -1,9 +1,37 @@
-evolution-data-server (1.4.2.1-2.SVN0) unstable; urgency=low
+evolution-data-server (1.6.1-1) UNRELEASED; urgency=low
 
-  * debian/patches/90_gtk_libedataserverui.patch:
-    Fix gtk2-dep of libedataserverui for real (closes: ##358914)
+  [ Heikki Henriksen ]
+  * Upload to unstable
+  * New upstream release (1.6.1)
+  * debian/patches/10_de_translation.patch (closes: #313698)
+  * debian/patches/11_it_translation.patch (closes: #295269)
+  * debian/control[.in]: bump debhelper build-dep to > 5.0.0
+  * debian/rules: clean out clean::
+  * e-d-s is now restarted on upgrade (closes: #319054)
+  * debian/watch: added
+  * debian/control[.in]: remove old unnecessary conflicts/replaces
+  * debian/patches/55_no-fallback-for-tls.patch:
+    don't fallback to plain password (upstream bug 321797)
 
- -- Heikki Henriksen <heikkih@stud2233.idi.ntnu.no>  Wed, 29 Mar 2006 12:56:05 +0000
+  [ Oystein Gisnas ]
+  * Make libcamel versioned and remove conflict with previous versions
+  * Move libcamel providers to e-d-s package
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Fri, 28 Apr 2006 15:58:12 +0200
+
+evolution-data-server (1.6.0-1) experimental; urgency=low
+
+  * New upstream release
+  * Target experimental
+  * Added -dbg-package
+  * debian/patches/20_xulrunner.patch:
+    Build with xulrunner
+  * debian/patches/35_external-libdb.patch:
+    Build with debian's libdb4.3
+  * Change build-dep from libgnutls11-dev to libgnutls-dev
+  * Add gtk-doc for lib*-dev (closes: #316063)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed, 29 Mar 2006 15:52:31 +0100
 
 evolution-data-server (1.4.2.1-2) unstable; urgency=medium
 
