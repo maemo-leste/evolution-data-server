@@ -12,12 +12,15 @@ evolution-data-server (1.6.1-1) unstable; urgency=low
   * debian/control[.in]: remove old unnecessary conflicts/replaces
   * debian/patches/55_no-fallback-for-tls.patch:
     don't fallback to plain password for tls/ssl (upstream bug 321797)
+  * debian/patches/60_gpg-smartcard.patch:
+    Handle GPG keys stored on a smartcard device. Thanks to Tilman Koschnick
+    (closes: #365327)
 
   [ Oystein Gisnas ]
   * Make libcamel versioned and remove conflict with previous versions
   * Move libcamel providers to e-d-s package
 
- -- Heikki Henriksen <heikkih@gmail.com>  Fri, 28 Apr 2006 17:12:22 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Sat, 29 Apr 2006 12:27:33 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
