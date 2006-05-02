@@ -4,8 +4,9 @@ evolution-data-server (1.6.1-2) UNRELEASED; urgency=low
     update to fix disable build of internal libdb, so we can build on
     mips/mipsel
   * debian/control.in: removed
+  * debian/rules, debian/lib*@VER*: remove update-control
 
- -- Heikki Henriksen <heikkih@gmail.com>  Tue,  2 May 2006 13:22:33 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue,  2 May 2006 13:34:19 +0200
 
 evolution-data-server (1.6.1-1) unstable; urgency=low
 
