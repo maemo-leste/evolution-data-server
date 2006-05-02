@@ -1,3 +1,19 @@
+evolution-data-server (1.7.1-1) UNRELEASED; urgency=low
+
+  * New unstable upstream release (1.7.1)
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue,  2 May 2006 20:13:57 +0200
+
+evolution-data-server (1.6.1-2) UNRELEASED; urgency=low
+
+  * debian/patches/35_external-libdb.patch:
+    update to fix disable build of internal libdb, so we can build on
+    mips/mipsel
+  * debian/control.in: removed
+  * debian/rules, debian/lib*@VER*: remove update-control
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue,  2 May 2006 13:34:19 +0200
+
 evolution-data-server (1.6.1-1) unstable; urgency=low
 
   [ Heikki Henriksen ]
@@ -9,15 +25,27 @@ evolution-data-server (1.6.1-1) unstable; urgency=low
   * debian/rules: clean out clean::
   * e-d-s is now restarted on upgrade (closes: #319054)
   * debian/watch: added
-  * debian/control[.in]: bump build-deps on libgtk2.0-dev and libgnomeui-dev
-    to avoid references to libXcursor.la/libXrender.la
+  * debian/control[.in]: remove old unnecessary conflicts/replaces
+  * debian/patches/55_no-fallback-for-tls.patch:
+    don't fallback to plain password for tls/ssl (upstream bug 321797)
+  * debian/patches/60_gpg-smartcard.patch:
+    Handle GPG keys stored on a smartcard device. Thanks to Tilman Koschnick
+    (closes: #365327)
 
   [ Oystein Gisnas ]
   * Make libcamel versioned and remove conflict with previous versions
-  * debian/control[.in]: set versioned dep for libedataserverui1.2-dev
-    to require .la-clean libXcursor/libXrender gtk2.0.
+  * Move libcamel providers to e-d-s package
+  * debian/contol{,.in}: Change Recommends: evolution to Suggests:
+  * debian/copyright:
+    Mention current package maintainer
+    More detailed path of download location
+    Include authors from all files, not just AUTHORS
+    Include Copyright owner
+    Change copyright statement from GPL-2 to LGPL-2 (ref. COPYING)
+    Mention all other copyright holders and specific licenses
 
- -- Oystein Gisnas <oystein@gisnas.net>  Mon, 24 Apr 2006 11:39:01 +0200
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon,  1 May 2006 11:02:00 +0200
 
 evolution-data-server (1.6.0-1) experimental; urgency=low
 
