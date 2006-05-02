@@ -1,8 +1,8 @@
 debian/tmp/usr/lib/pkgconfig/libecal-1.2.pc
 debian/tmp/usr/lib/libecal-1.2.so
 debian/tmp/usr/lib/libecal-1.2.la
-debian/tmp/usr/include/evolution-data-server-1.6/libecal
-debian/tmp/usr/include/evolution-data-server-1.6/libical
+debian/tmp/usr/include/evolution-data-server-1.8/libecal
+debian/tmp/usr/include/evolution-data-server-1.8/libical
 debian/tmp/usr/share/idl/evolution-data-server-1.2/Evolution-DataServer-Calendar.idl
 debian/tmp/usr/share/gtk-doc/html/libecal
 debian/tmp/usr/share/gtk-doc/html/libecal/libecal-ECalViewListener.html
