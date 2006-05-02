@@ -1,3 +1,0 @@
-debian/tmp/usr/lib/libcamel-*.so.*
-debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers/*/*.urls
-debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers/*/*.so
