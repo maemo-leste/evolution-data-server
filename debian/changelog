@@ -6,8 +6,9 @@ evolution-data-server (1.6.1-2) UNRELEASED; urgency=low
   * debian/control.in: removed
   * debian/rules, debian/lib*@VER*: remove update-control
   * debian/control: add suggests on evolution-data-server-dbg
+  * debian/copyright: fix slight typo
 
- -- Heikki Henriksen <heikkih@gmail.com>  Wed,  3 May 2006 13:46:34 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed,  3 May 2006 14:18:12 +0200
 
 evolution-data-server (1.6.1-1) unstable; urgency=low
 
