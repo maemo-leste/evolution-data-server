@@ -12,8 +12,9 @@ evolution-data-server (1.6.1-3) UNRELEASED; urgency=low
   - 92_from_cvs_fix_attachment_icon_to_messages_list.patch
   - 93_from_cvs_fix_prefered_encoding.patch
   - 94_from_cvs_fix_compare_im_performances_and_leak.patch
+  * debian/control: update build-dep & -dev deps to libdb4.4-dev
 
- -- Heikki Henriksen <heikkih@gmail.com>  Tue, 23 May 2006 21:43:59 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue, 23 May 2006 23:04:30 +0200
 
 evolution-data-server (1.6.1-2) unstable; urgency=low
 
