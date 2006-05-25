@@ -1,4 +1,4 @@
-evolution-data-server (1.6.1-3) UNRELEASED; urgency=low
+evolution-data-server (1.6.1-3) unstable; urgency=low
 
   [ Oystein Gisnas ]
   * debian/rules: Set CFLAG += -fPIC to comply to Debian Policy 3.7.1
