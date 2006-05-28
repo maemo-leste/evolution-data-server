@@ -11,6 +11,8 @@ DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
 DEB_DH_MAKESHLIBS_ARGS_ALL += -V
 
+CFLAGS += -fPIC
+
 DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
 	--with-nspr-includes=/usr/include/nspr \
