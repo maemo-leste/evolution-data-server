@@ -1,8 +1,9 @@
 evolution-data-server (1.7.2-1) UNRELEASED; urgency=low
 
   * New unstable upstream release (1.7.2)
+  * debian/patches/55_no-fallback-for-tls.patch: Applied upstream
 
- -- Oystein Gisnas <oystein@gisnas.net>  Fri, 26 May 2006 17:49:52 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 28 May 2006 10:21:32 +0200
 
 evolution-data-server (1.7.1-1) UNRELEASED; urgency=low
 
