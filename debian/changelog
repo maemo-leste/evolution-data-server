@@ -14,15 +14,35 @@ evolution-data-server (1.7.1-1) UNRELEASED; urgency=low
 
  -- Oystein Gisnas <oystein@gisnas.net>  Tue,  2 May 2006 20:48:19 +0200
 
-evolution-data-server (1.6.1-2) UNRELEASED; urgency=low
+evolution-data-server (1.6.1-3) unstable; urgency=low
+
+  [ Oystein Gisnas ]
+  * debian/rules: Set CFLAG += -fPIC to comply to Debian Policy 3.7.1
+  * debian/control: Claim compliance with Debian Policy 3.7.2
+  * Dropped installation of .la-files to /usr/lib in -dev packages
+
+  [ Heikki Henriksen ]
+  * pull patches from ubuntu:
+  - 90_from_cvs_dont_override_namespace_when_not_required.patch
+  - 91_from_cvs_valid_utf8_vcard.patch
+  - 92_from_cvs_fix_attachment_icon_to_messages_list.patch
+  - 93_from_cvs_fix_prefered_encoding.patch
+  - 94_from_cvs_fix_compare_im_performances_and_leak.patch
+  * debian/control: update build-dep & -dev deps to libdb4.4-dev
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue, 23 May 2006 23:04:30 +0200
+
+evolution-data-server (1.6.1-2) unstable; urgency=low
 
   * debian/patches/35_external-libdb.patch:
     update to fix disable build of internal libdb, so we can build on
     mips/mipsel
   * debian/control.in: removed
   * debian/rules, debian/lib*@VER*: remove update-control
+  * debian/control: add suggests on evolution-data-server-dbg
+  * debian/copyright: fix slight typo
 
- -- Heikki Henriksen <heikkih@gmail.com>  Tue,  2 May 2006 13:34:19 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed,  3 May 2006 14:42:12 +0200
 
 evolution-data-server (1.6.1-1) unstable; urgency=low
 
