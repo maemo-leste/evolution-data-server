@@ -21,7 +21,9 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--enable-nntp \
 	--enable-smime \
 	--with-openldap \
-	--with-krb5=/usr
+	--with-krb5=/usr \
+	--with-libdb \
+	--enable-gnome-keyring
 
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
