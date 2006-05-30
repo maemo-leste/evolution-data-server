@@ -1,6 +1,11 @@
 evolution-data-server (1.6.2-1) UNRELEASED; urgency=low
 
   * New upstream release
+  * Remove patches applied upstream:
+    - debian/patches/55_no-fallback-for-tls.patch
+    - debian/patches/90_from_cvs_dont_override_namespace_when_not_required.patch
+    - debian/patches/93_from_cvs_fix_prefered_encoding.patch
+    - debian/patches/94_from_cvs_fix_compare_im_performances_and_leak.patch
 
  -- Heikki Henriksen <heikkih@gmail.com>  Tue, 30 May 2006 09:36:49 +0200
 
