@@ -1,6 +1,6 @@
-diff -ru evolution-data-server-1.6.1.orig/addressbook/backends/file/Makefile.am evolution-data-server-1.6.1/addressbook/backends/file/Makefile.am
---- evolution-data-server-1.6.1.orig/addressbook/backends/file/Makefile.am	2005-06-22 12:34:21.000000000 +0000
-+++ evolution-data-server-1.6.1/addressbook/backends/file/Makefile.am	2006-05-03 11:35:34.000000000 +0000
+diff -ruN evolution-data-server-1.6.2.orig/addressbook/backends/file/Makefile.am evolution-data-server-1.6.2/addressbook/backends/file/Makefile.am
+--- evolution-data-server-1.6.2.orig/addressbook/backends/file/Makefile.am	2005-07-08 10:18:20.000000000 +0200
++++ evolution-data-server-1.6.2/addressbook/backends/file/Makefile.am	2006-05-30 18:42:44.000000000 +0200
 @@ -4,7 +4,6 @@
  	-I$(top_builddir)				\
  	-I$(top_srcdir)/addressbook			\
@@ -18,20 +18,20 @@ diff -ru evolution-data-server-1.6.1.orig/addressbook/backends/file/Makefile.am 
  	$(EVOLUTION_ADDRESSBOOK_LIBS)
  
  libebookbackendfile_la_LDFLAGS =	\
-diff -ru evolution-data-server-1.6.1.orig/addressbook/backends/file/Makefile.in evolution-data-server-1.6.1/addressbook/backends/file/Makefile.in
---- evolution-data-server-1.6.1.orig/addressbook/backends/file/Makefile.in	2006-04-10 17:03:24.000000000 +0000
-+++ evolution-data-server-1.6.1/addressbook/backends/file/Makefile.in	2006-05-03 11:36:28.000000000 +0000
-@@ -61,8 +61,7 @@
+diff -ruN evolution-data-server-1.6.2.orig/addressbook/backends/file/Makefile.in evolution-data-server-1.6.2/addressbook/backends/file/Makefile.in
+--- evolution-data-server-1.6.2.orig/addressbook/backends/file/Makefile.in	2006-05-29 15:25:15.000000000 +0200
++++ evolution-data-server-1.6.2/addressbook/backends/file/Makefile.in	2006-05-30 18:44:24.000000000 +0200
+@@ -59,8 +59,7 @@
  libebookbackendfile_la_DEPENDENCIES =  \
  	$(top_builddir)/addressbook/libebook/libebook-1.2.la \
  	$(top_builddir)/addressbook/libedata-book/libedata-book-1.2.la \
 -	$(top_builddir)/libedataserver/libedataserver-1.2.la \
 -	$(top_builddir)/libdb/dist/libdb-4.1.la $(am__DEPENDENCIES_1)
-+	$(top_builddir)/libedataserver/libedataserver-1.2.la 
++	$(top_builddir)/libedataserver/libedataserver-1.2.la
  am_libebookbackendfile_la_OBJECTS = e-book-backend-file.lo \
  	e-book-backend-file-factory.lo
  libebookbackendfile_la_OBJECTS = $(am_libebookbackendfile_la_OBJECTS)
-@@ -374,7 +373,6 @@
+@@ -371,7 +370,6 @@
  	-I$(top_builddir)				\
  	-I$(top_srcdir)/addressbook			\
  	-I$(top_builddir)/addressbook			\
@@ -39,7 +39,7 @@ diff -ru evolution-data-server-1.6.1.orig/addressbook/backends/file/Makefile.in 
          $(EVOLUTION_ADDRESSBOOK_CFLAGS)
  
  extension_LTLIBRARIES = libebookbackendfile.la
-@@ -387,7 +385,7 @@
+@@ -384,7 +382,7 @@
  	$(top_builddir)/addressbook/libebook/libebook-1.2.la		\
  	$(top_builddir)/addressbook/libedata-book/libedata-book-1.2.la	\
  	$(top_builddir)/libedataserver/libedataserver-1.2.la		\
@@ -48,10 +48,10 @@ diff -ru evolution-data-server-1.6.1.orig/addressbook/backends/file/Makefile.in 
  	$(EVOLUTION_ADDRESSBOOK_LIBS)
  
  libebookbackendfile_la_LDFLAGS = \
-diff -ru evolution-data-server-1.6.1.orig/configure.in evolution-data-server-1.6.1/configure.in
---- evolution-data-server-1.6.1.orig/configure.in	2006-04-10 16:58:13.000000000 +0000
-+++ evolution-data-server-1.6.1/configure.in	2006-05-03 11:36:48.000000000 +0000
-@@ -1276,7 +1276,6 @@
+diff -ruN evolution-data-server-1.6.2.orig/configure.in evolution-data-server-1.6.2/configure.in
+--- evolution-data-server-1.6.2.orig/configure.in	2006-05-30 18:41:44.000000000 +0200
++++ evolution-data-server-1.6.2/configure.in	2006-05-30 18:45:50.000000000 +0200
+@@ -1316,7 +1316,6 @@
  export privincludedir
  export privdatadir
  AC_CONFIG_SUBDIRS(calendar/libical)
@@ -59,7 +59,7 @@ diff -ru evolution-data-server-1.6.1.orig/configure.in evolution-data-server-1.6
  
  AC_OUTPUT([
  Makefile
-@@ -1334,7 +1333,6 @@
+@@ -1374,7 +1373,6 @@
  camel/tests/stream/Makefile
  camel/camel.pc
  camel/camel-provider.pc
@@ -67,9 +67,23 @@ diff -ru evolution-data-server-1.6.1.orig/configure.in evolution-data-server-1.6
  libedataserver/Makefile
  libedataserver/libedataserver.pc
  libedataserverui/Makefile
-diff -ru evolution-data-server-1.6.1.orig/libedataserver/Makefile.am evolution-data-server-1.6.1/libedataserver/Makefile.am
---- evolution-data-server-1.6.1.orig/libedataserver/Makefile.am	2006-01-10 07:59:04.000000000 +0000
-+++ evolution-data-server-1.6.1/libedataserver/Makefile.am	2006-05-03 11:37:25.000000000 +0000
+@@ -1400,13 +1398,6 @@
+ po/Makefile.in
+ ])
+ 
+-case $host in
+-*-mingw*)
+-	# Override the old libtool in libdb/dist with the one from here
+-	cp libtool libdb/dist
+-	;;
+-esac
+-
+ echo "
+ 	evolution-data-server has been configured as follows:
+ 	Mail Directory:   $system_mail_dir, $system_mail_perm
+diff -ruN evolution-data-server-1.6.2.orig/libedataserver/Makefile.am evolution-data-server-1.6.2/libedataserver/Makefile.am
+--- evolution-data-server-1.6.2.orig/libedataserver/Makefile.am	2006-05-03 15:59:29.000000000 +0200
++++ evolution-data-server-1.6.2/libedataserver/Makefile.am	2006-05-30 18:46:38.000000000 +0200
 @@ -1,7 +1,6 @@
  INCLUDES =								\
  	-I$(top_srcdir)							\
@@ -87,10 +101,10 @@ diff -ru evolution-data-server-1.6.1.orig/libedataserver/Makefile.am evolution-d
  	$(SOCKET_LIBS)
  
  libedataserver_1_2_la_LDFLAGS = \
-diff -ru evolution-data-server-1.6.1.orig/libedataserver/Makefile.in evolution-data-server-1.6.1/libedataserver/Makefile.in
---- evolution-data-server-1.6.1.orig/libedataserver/Makefile.in	2006-04-10 17:03:39.000000000 +0000
-+++ evolution-data-server-1.6.1/libedataserver/Makefile.in	2006-05-03 11:37:55.000000000 +0000
-@@ -65,7 +65,6 @@
+diff -ruN evolution-data-server-1.6.2.orig/libedataserver/Makefile.in evolution-data-server-1.6.2/libedataserver/Makefile.in
+--- evolution-data-server-1.6.2.orig/libedataserver/Makefile.in	2006-05-29 15:25:30.000000000 +0200
++++ evolution-data-server-1.6.2/libedataserver/Makefile.in	2006-05-30 18:48:19.000000000 +0200
+@@ -63,7 +63,6 @@
  LTLIBRARIES = $(lib_LTLIBRARIES)
  am__DEPENDENCIES_1 =
  libedataserver_1_2_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -98,7 +112,7 @@ diff -ru evolution-data-server-1.6.1.orig/libedataserver/Makefile.in evolution-d
  	$(am__DEPENDENCIES_1)
  am__objects_1 = e-data-server-marshal.lo
  am_libedataserver_1_2_la_OBJECTS = $(am__objects_1) e-account-list.lo \
-@@ -392,7 +391,6 @@
+@@ -389,7 +388,6 @@
  INCLUDES = \
  	-I$(top_srcdir)							\
  	-DG_LOG_DOMAIN=\"e-data-server\"				\
@@ -106,7 +120,7 @@ diff -ru evolution-data-server-1.6.1.orig/libedataserver/Makefile.in evolution-d
  	-DE_DATA_SERVER_PREFIX=\"$(prefix)\"				\
  	-DEVOLUTION_LOCALEDIR=\""$(localedir)"\"			\
  	-DE_DATA_SERVER_EXTENSIONDIR=\"$(extensiondir)\"		\
-@@ -437,7 +435,7 @@
+@@ -434,7 +432,7 @@
  libedataserver_1_2_la_LIBADD = \
  	$(E_DATA_SERVER_LIBS)				\
  	$(ICONV_LIBS)					\
@@ -115,9 +129,9 @@ diff -ru evolution-data-server-1.6.1.orig/libedataserver/Makefile.in evolution-d
  	$(SOCKET_LIBS)
  
  libedataserver_1_2_la_LDFLAGS = \
-diff -ru evolution-data-server-1.6.1.orig/Makefile.am evolution-data-server-1.6.1/Makefile.am
---- evolution-data-server-1.6.1.orig/Makefile.am	2005-12-02 00:06:42.000000000 +0000
-+++ evolution-data-server-1.6.1/Makefile.am	2006-05-03 11:38:36.000000000 +0000
+diff -ruN evolution-data-server-1.6.2.orig/Makefile.am evolution-data-server-1.6.2/Makefile.am
+--- evolution-data-server-1.6.2.orig/Makefile.am	2006-05-03 15:59:23.000000000 +0200
++++ evolution-data-server-1.6.2/Makefile.am	2006-05-30 18:49:49.000000000 +0200
 @@ -1,7 +1,7 @@
  AUTOMAKE_OPTIONS = 1.6
  DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
@@ -133,7 +147,7 @@ diff -ru evolution-data-server-1.6.1.orig/Makefile.am evolution-data-server-1.6.
  	evolution-data-server-zip.in			\
 -	$(pkgconfig_DATA:-$(API_VERSION).pc=.pc.in) 	\
 -	$(LIBDB_FILES)
-+	$(pkgconfig_DATA:-$(API_VERSION).pc=.pc.in)
++	$(pkgconfig_DATA:-$(API_VERSION).pc=.pc.in) 
  
  DISTCLEANFILES = intltool-extract intltool-merge intltool-update iconv-detect.h $(pkgconfig_DATA)
 -distclean-local:
@@ -2254,10 +2268,10 @@ diff -ru evolution-data-server-1.6.1.orig/Makefile.am evolution-data-server-1.6.
 -libdb/docs/utility/db_upgrade.html \
 -libdb/docs/utility/db_verify.html
  
-diff -ru evolution-data-server-1.6.1.orig/Makefile.in evolution-data-server-1.6.1/Makefile.in
---- evolution-data-server-1.6.1.orig/Makefile.in	2006-04-10 17:03:42.000000000 +0000
-+++ evolution-data-server-1.6.1/Makefile.in	2006-05-03 11:42:51.000000000 +0000
-@@ -372,7 +372,7 @@
+diff -ruN evolution-data-server-1.6.2.orig/Makefile.in evolution-data-server-1.6.2/Makefile.in
+--- evolution-data-server-1.6.2.orig/Makefile.in	2006-05-29 15:25:33.000000000 +0200
++++ evolution-data-server-1.6.2/Makefile.in	2006-05-30 18:53:06.000000000 +0200
+@@ -371,7 +371,7 @@
  weatherdatadir = @weatherdatadir@
  AUTOMAKE_OPTIONS = 1.6
  DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
@@ -2266,13 +2280,13 @@ diff -ru evolution-data-server-1.6.1.orig/Makefile.in evolution-data-server-1.6.
  DIST_SUBDIRS = win32 libedataserver servers camel addressbook calendar libedataserverui src docs art po
  changelogs = \
  	ChangeLog
-@@ -393,2124 +393,9 @@
+@@ -392,2124 +392,9 @@
  	intltool-update.in				\
  	intltool-extract.in				\
  	evolution-data-server-zip.in			\
 -	$(pkgconfig_DATA:-$(API_VERSION).pc=.pc.in) 	\
 -	$(LIBDB_FILES)
-+	$(pkgconfig_DATA:-$(API_VERSION).pc=.pc.in)
++	$(pkgconfig_DATA:-$(API_VERSION).pc=.pc.in) 
  
  DISTCLEANFILES = intltool-extract intltool-merge intltool-update iconv-detect.h $(pkgconfig_DATA)
 -LIBDB_FILES = \
@@ -4392,7 +4406,7 @@ diff -ru evolution-data-server-1.6.1.orig/Makefile.in evolution-data-server-1.6.
  
  all: config.h
  	$(MAKE) $(AM_MAKEFLAGS) all-recursive
-@@ -2733,7 +618,7 @@
+@@ -2732,7 +617,7 @@
  distdir: $(DISTFILES)
  	$(am__remove_distdir)
  	mkdir $(distdir)
@@ -4401,7 +4415,7 @@ diff -ru evolution-data-server-1.6.1.orig/Makefile.in evolution-data-server-1.6.
  	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
  	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
  	list='$(DISTFILES)'; for file in $$list; do \
-@@ -2977,8 +862,6 @@
+@@ -2976,8 +861,6 @@
  
  %-$(API_VERSION).pc: %.pc
  	 cp $< $@

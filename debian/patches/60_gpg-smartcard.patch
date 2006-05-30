@@ -1,6 +1,6 @@
-diff -ru evolution-data-server-1.6.1.orig/camel/camel-gpg-context.c evolution-data-server-1.6.1/camel/camel-gpg-context.c
---- evolution-data-server-1.6.1.orig/camel/camel-gpg-context.c	2006-02-02 09:37:46.000000000 +0100
-+++ evolution-data-server-1.6.1/camel/camel-gpg-context.c	2006-04-29 12:25:15.000000000 +0200
+diff -ru evolution-data-server-1.6.2.orig/camel/camel-gpg-context.c evolution-data-server-1.6.2/camel/camel-gpg-context.c
+--- evolution-data-server-1.6.2.orig/camel/camel-gpg-context.c	2006-05-03 15:59:26.000000000 +0200
++++ evolution-data-server-1.6.2/camel/camel-gpg-context.c	2006-05-30 19:09:51.000000000 +0200
 @@ -794,6 +794,20 @@
  		
  		g_free (gpg->need_id);
@@ -63,4 +63,3 @@ diff -ru evolution-data-server-1.6.1.orig/camel/camel-gpg-context.c evolution-da
  	} else if (!strncmp (status, "GOOD_PASSPHRASE", 15)) {
  		gpg->bad_passwds = 0;
  	} else if (!strncmp (status, "BAD_PASSPHRASE", 14)) {
-Only in evolution-data-server-1.6.1/camel: camel-gpg-context.c.orig

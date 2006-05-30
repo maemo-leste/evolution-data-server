@@ -113,7 +113,7 @@ Description: Backend library for evolution address books (development files)
  .
  This package contains header files and static library for libedata-book1.2-2.
 
-Package: libecal1.2-3
+Package: libecal1.2-6
 Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
@@ -126,14 +126,14 @@ Description: Client library for evolution calendars
 Package: libecal1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libecal1.2-3 (= ${Source-Version}), libedataserver1.2-dev, libgnome2-dev, libaudiofile-dev, libbonobo2-dev, libdb4.4-dev | libdb-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnomevfs2-dev, libgnutls-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libtasn1-2-dev, libxml2-dev
+Depends: ${misc:Depends}, libecal1.2-6 (= ${Source-Version}), libedataserver1.2-dev, libgnome2-dev, libaudiofile-dev, libbonobo2-dev, libdb4.4-dev | libdb-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnomevfs2-dev, libgnutls-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libtasn1-2-dev, libxml2-dev
 Description: Client library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package contains header files and static library for libecal1.2-3.
+ This package contains header files and static library for libecal1.2-6.
 
-Package: libedata-cal1.2-1
+Package: libedata-cal1.2-5
 Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
@@ -146,12 +146,12 @@ Description: Backend library for evolution calendars
 Package: libedata-cal1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libedata-cal1.2-1 (= ${Source-Version}), libecal1.2-dev, libaudiofile-dev, libbonobo2-dev, libdb4.4-dev | libdb-dev, libedataserver1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libtasn1-2-dev, libxml2-dev
+Depends: ${misc:Depends}, libedata-cal1.2-5 (= ${Source-Version}), libecal1.2-dev, libaudiofile-dev, libbonobo2-dev, libdb4.4-dev | libdb-dev, libedataserver1.2-dev, libesd0-dev, libgconf2-dev, libgcrypt11-dev, libglib2.0-dev, libgnome2-dev, libgnomevfs2-dev, libgnutls-dev, libgpg-error-dev, liborbit2-dev, libpopt-dev, libtasn1-2-dev, libxml2-dev
 Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package contains header files and static library for libedata-cal1.2-1.
+ This package contains header files and static library for libedata-cal1.2-5.
 
 Package: libegroupwise1.2-9
 Section: libs

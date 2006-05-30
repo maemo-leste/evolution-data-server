@@ -1,7 +1,7 @@
-diff -Nur evolution-data-server-1.6.1/configure evolution-data-server-1.6.1.new/configure
---- evolution-data-server-1.6.1/configure	2006-04-10 19:03:22.000000000 +0200
-+++ evolution-data-server-1.6.1.new/configure	2006-04-23 13:22:15.000000000 +0200
-@@ -31597,7 +31597,7 @@
+diff -ru evolution-data-server-1.6.2.orig/configure evolution-data-server-1.6.2/configure
+--- evolution-data-server-1.6.2.orig/configure	2006-05-29 15:25:13.000000000 +0200
++++ evolution-data-server-1.6.2/configure	2006-05-30 19:06:13.000000000 +0200
+@@ -30714,7 +30714,7 @@
  weatherdatadir="$privdatadir/weather"
  
  
@@ -10,10 +10,10 @@ diff -Nur evolution-data-server-1.6.1/configure evolution-data-server-1.6.1.new/
  
  
  
-diff -Nur evolution-data-server-1.6.1/configure.in evolution-data-server-1.6.1.new/configure.in
---- evolution-data-server-1.6.1/configure.in	2006-04-23 13:19:15.000000000 +0200
-+++ evolution-data-server-1.6.1.new/configure.in	2006-04-23 13:19:31.000000000 +0200
-@@ -1241,7 +1241,8 @@
+diff -ru evolution-data-server-1.6.2.orig/configure.in evolution-data-server-1.6.2/configure.in
+--- evolution-data-server-1.6.2.orig/configure.in	2006-05-30 18:59:48.000000000 +0200
++++ evolution-data-server-1.6.2/configure.in	2006-05-30 19:07:05.000000000 +0200
+@@ -1281,7 +1281,8 @@
  AC_SUBST(weatherdatadir)
  
  dnl separate camel from e-d-s?  or should it be under the same spot?  same for now.
