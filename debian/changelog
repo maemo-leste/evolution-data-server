@@ -1,4 +1,4 @@
-evolution-data-server (1.6.2-1) UNRELEASED; urgency=low
+evolution-data-server (1.6.2-1) unstable; urgency=low
 
   [ Heikki Henriksen ]
   * New upstream release
@@ -29,7 +29,7 @@ evolution-data-server (1.6.2-1) UNRELEASED; urgency=low
   * debian/evolution-data-server-dev.install: Remove the rest of .la
     files
 
- -- Heikki Henriksen <heikkih@gmail.com>  Thu,  8 Jun 2006 15:01:38 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu,  8 Jun 2006 16:44:43 +0200
 
 evolution-data-server (1.6.1-3) unstable; urgency=low
 
