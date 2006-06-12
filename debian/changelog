@@ -1,12 +1,16 @@
 evolution-data-server (1.6.2-2) unstable; urgency=low
 
+  [ Heikki Henriksen ]
   * Make package binNMU-safe:
     - build-depend on dpkg-dev >= 1.13.19. [debian/control]
     - Use ${binary:Version} [debian/control]
-  * Lower build-dep on cdbs to what's needed, and not work around the 
+  * Lower build-dep on cdbs to what's needed, and not work around the
     broken version [debian/control]
 
- -- Heikki Henriksen <heikkih@gmail.com>  Mon, 12 Jun 2006 09:46:35 +0200
+  [ Oystein Gisnas ]
+  * debian/control: Added ${misc:Depends}
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue, 13 Jun 2006 00:50:34 +0200
 
 evolution-data-server (1.6.2-1) unstable; urgency=low
 

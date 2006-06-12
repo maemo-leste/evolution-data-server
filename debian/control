@@ -17,6 +17,7 @@ Description: evolution database backend server
 
 Package: evolution-data-server-common
 Architecture: all
+Depends: ${misc:Depends}
 Replaces: evolution-data-server (<< 1.6.2-1)
 Conflicts: evolution-data-server (<< 1.6.2-1)
 Description: architecture independent files for Evolution Data Server
@@ -214,7 +215,7 @@ Description: Development files for libegroupwise
 Package: libexchange-storage1.2-1
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Backend library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
