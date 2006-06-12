@@ -1,11 +1,23 @@
+evolution-data-server (1.6.2-2) unstable; urgency=low
+
+  * Make package binNMU-safe:
+    - build-depend on dpkg-dev >= 1.13.19. [debian/control]
+    - Use ${binary:Version} [debian/control]
+  * Lower build-dep on cdbs to what's needed, and not work around the 
+    broken version [debian/control]
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 12 Jun 2006 09:46:35 +0200
+
 evolution-data-server (1.6.2-1) unstable; urgency=low
 
   [ Heikki Henriksen ]
   * New upstream release
-  * Soname-bump for libecal & libedatacal [debian/control]
-  * Make package binNMU-safe:
-    - build-depend on dpkg-dev > 1.13.19. [debian/control]
-    - Use ${binary:Version} [debian/control]
+  * Soname-bump for libecal & libedatacal 
+    [debian/control]
+  * Bump build-dep on cdbs (>= 0.4.40) to fix DEB_SHLIBDEPS_INCLUDE
+    [debian/control]
+  * Change dep on Source-Version from = to >= to have it binNMU-able
+    [debian/control]
   * Move architechture independent files to package
     evolution-data-server-common
   * Add replaces evolution-data-server1.2 [debian/control] (closes: #371863)
@@ -26,7 +38,6 @@ evolution-data-server (1.6.2-1) unstable; urgency=low
   [ Oystein Gisnas ]
   * debian/evolution-data-server-dev.install: Remove the rest of .la
     files
-
 
  -- Heikki Henriksen <heikkih@gmail.com>  Sun, 11 Jun 2006 20:26:50 +0200
 
