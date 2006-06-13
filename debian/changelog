@@ -1,3 +1,10 @@
+evolution-data-server (1.6.2-3) UNRELEASED; urgency=low
+
+  [ Oystein Gisnas ]
+  * debian/control: Added ${misc:Depends}
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue, 13 Jun 2006 11:36:00 +0200
+
 evolution-data-server (1.6.2-2) unstable; urgency=low
 
   [ Heikki Henriksen ]
@@ -7,10 +14,7 @@ evolution-data-server (1.6.2-2) unstable; urgency=low
   * Lower build-dep on cdbs to what's needed, and not work around the
     broken version [debian/control]
 
-  [ Oystein Gisnas ]
-  * debian/control: Added ${misc:Depends}
-
- -- Oystein Gisnas <oystein@gisnas.net>  Tue, 13 Jun 2006 00:50:34 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 12 Jun 2006 11:36:00 +0200
 
 evolution-data-server (1.6.2-1) unstable; urgency=low
 
