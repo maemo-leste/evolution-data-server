@@ -202,7 +202,8 @@ Description: Client library for accessing groupwise POA through SOAP interface
 Package: libegroupwise1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libegroupwise1.2-9 (= ${binary:Version}), libglib2.0-dev, libsoup2.2-devDescription: Development files for libegroupwise
+Depends: ${misc:Depends}, libegroupwise1.2-9 (= ${binary:Version}), libglib2.0-dev, libsoup2.2-dev
+Description: Development files for libegroupwise
  This package contains header files and static library for libegroupwise1.2-9.
  .
  libegroupwise is client library for accessing groupwise POA through SOAP
