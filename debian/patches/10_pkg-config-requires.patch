@@ -1,0 +1,126 @@
+diff -ruN evolution-data-server-1.6.2.orig/addressbook/libebook/libebook.pc.in evolution-data-server-1.6.2/addressbook/libebook/libebook.pc.in
+--- evolution-data-server-1.6.2.orig/addressbook/libebook/libebook.pc.in	2006-06-16 11:54:23.000000000 +0200
++++ evolution-data-server-1.6.2/addressbook/libebook/libebook.pc.in	2006-06-16 16:24:49.000000000 +0200
+@@ -11,6 +11,6 @@
+ Name: libebook
+ Description: Client library for evolution address books
+ Version: @VERSION@
+-Requires: libbonobo-2.0 >= @LIBBONOBO_REQUIRED@ libgnome-2.0 libedataserver-1.2
+-Libs: -L${libdir} -lebook-1.2
++Requires: libxml-2.0, glib-2.0, ORBit-2.0 >= @ORBIT_REQUIRED@, libbonobo-2.0 >= @LIBBONOBO_REQUIRED@, libedataserver-@API_VERSION@
++Libs: -L${libdir} -lebook-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/addressbook/libedata-book/libedata-book.pc.in evolution-data-server-1.6.2/addressbook/libedata-book/libedata-book.pc.in
+--- evolution-data-server-1.6.2.orig/addressbook/libedata-book/libedata-book.pc.in	2006-06-16 11:54:23.000000000 +0200
++++ evolution-data-server-1.6.2/addressbook/libedata-book/libedata-book.pc.in	2006-06-16 16:28:55.000000000 +0200
+@@ -11,6 +11,6 @@
+ Name: libedatabook
+ Description: Backend library for evolution address books
+ Version: @VERSION@
+-Requires: libbonobo-2.0 >= @LIBBONOBO_REQUIRED@ libgnome-2.0 libedataserver-1.2 libebook-1.2
+-Libs: -L${libdir} -ledata-book-1.2
++Requires: glib-2.0, ORBit-2.0 >= @ORBIT_REQUIRED@, libbonobo-2.0 >= @LIBBONOBO_REQUIRED@, libedataserver-@API_VERSION@, libebook-@API_VERSION@
++Libs: -L${libdir} -ledata-book-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/calendar/libecal/libecal.pc.in evolution-data-server-1.6.2/calendar/libecal/libecal.pc.in
+--- evolution-data-server-1.6.2.orig/calendar/libecal/libecal.pc.in	2006-06-16 11:54:21.000000000 +0200
++++ evolution-data-server-1.6.2/calendar/libecal/libecal.pc.in	2006-06-16 16:29:54.000000000 +0200
+@@ -11,6 +11,6 @@
+ Name: libecal
+ Description: Client library for evolution calendars
+ Version: @VERSION@
+-Requires: libgnome-2.0 libbonobo-2.0 >= @LIBBONOBO_REQUIRED@ libedataserver-1.2
+-Libs: -L${libdir} -lecal-1.2
++Requires: glib-2.0, ORBit-2.0 >= @ORBIT_REQUIRED@, libbonobo-2.0 >= @LIBBONOBO_REQUIRED@, libedataserver-@API_VERSION@
++Libs: -L${libdir} -lecal-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/calendar/libedata-cal/libedata-cal.pc.in evolution-data-server-1.6.2/calendar/libedata-cal/libedata-cal.pc.in
+--- evolution-data-server-1.6.2.orig/calendar/libedata-cal/libedata-cal.pc.in	2006-06-16 11:54:21.000000000 +0200
++++ evolution-data-server-1.6.2/calendar/libedata-cal/libedata-cal.pc.in	2006-06-16 16:32:03.000000000 +0200
+@@ -11,6 +11,6 @@
+ Name: libedata-cal
+ Description: Backend library for evolution calendars
+ Version: @VERSION@
+-Requires: libgnome-2.0 libbonobo-2.0 >= @LIBBONOBO_REQUIRED@ gnome-vfs-2.0 libedataserver-1.2 libecal-1.2
+-Libs: -L${libdir} -ledata-cal-1.2 -lecal-1.2
++Requires: glib-2.0, ORBit-2.0 >= @ORBIT_REQUIRED@, libbonobo-2.0 >= @LIBBONOBO_REQUIRED@, libedataserver-@API_VERSION@, libecal-@API_VERSION@
++Libs: -L${libdir} -ledata-cal-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/camel/camel.pc.in evolution-data-server-1.6.2/camel/camel.pc.in
+--- evolution-data-server-1.6.2.orig/camel/camel.pc.in	2006-06-16 11:54:21.000000000 +0200
++++ evolution-data-server-1.6.2/camel/camel.pc.in	2006-06-16 16:18:09.000000000 +0200
+@@ -9,5 +9,6 @@
+ Name: camel
+ Description: the Evolution MIME message handling library
+ Version: @VERSION@
+-Libs: -L${libdir} -lcamel-1.2 -ledataserver-1.2
++Requires: glib-2.0, libedataserver-@API_VERSION@
++Libs: -L${libdir} -lcamel-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/camel/camel-provider.pc.in evolution-data-server-1.6.2/camel/camel-provider.pc.in
+--- evolution-data-server-1.6.2.orig/camel/camel-provider.pc.in	2006-06-16 11:54:21.000000000 +0200
++++ evolution-data-server-1.6.2/camel/camel-provider.pc.in	2006-06-16 18:52:41.000000000 +0200
+@@ -10,5 +10,6 @@
+ Name: camel-provider
+ Description: The Evolution mail access library
+ Version: @VERSION@
+-Libs: -L${libdir} -lcamel-1.2 -lcamel-provider-1.2 -ledataserver-1.2
++Requires: camel-@API_VERSION@
++Libs: -L${libdir} -lcamel-provider-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/evolution-data-server.pc.in evolution-data-server-1.6.2/evolution-data-server.pc.in
+--- evolution-data-server-1.6.2.orig/evolution-data-server.pc.in	2006-06-16 11:54:24.000000000 +0200
++++ evolution-data-server-1.6.2/evolution-data-server.pc.in	2006-06-16 14:00:40.000000000 +0200
+@@ -15,4 +15,4 @@
+ Name: evolution-data-server
+ Description: The evolution data server for the calendar and addressbook
+ Version: @VERSION@
+-Requires: libgnome-2.0 libbonobo-2.0 >= @LIBBONOBO_REQUIRED@
++Requires: libbonobo-2.0 >= @LIBBONOBO_REQUIRED@
+diff -ruN evolution-data-server-1.6.2.orig/libedataserver/libedataserver.pc.in evolution-data-server-1.6.2/libedataserver/libedataserver.pc.in
+--- evolution-data-server-1.6.2.orig/libedataserver/libedataserver.pc.in	2006-06-16 11:54:23.000000000 +0200
++++ evolution-data-server-1.6.2/libedataserver/libedataserver.pc.in	2006-06-16 16:20:39.000000000 +0200
+@@ -8,6 +8,6 @@
+ Name: libedataserver
+ Description: Utility library for Evolution Data Server
+ Version: @VERSION@
+-Requires: libxml-2.0 glib-2.0 gconf-2.0 libbonobo-2.0 >= @LIBBONOBO_REQUIRED@ ORBit-2.0 >= @ORBIT_REQUIRED@
++Requires: libxml-2.0, glib-2.0, gconf-2.0, libbonobo-2.0 >= @LIBBONOBO_REQUIRED@
+ Libs: -L${libdir} -ledataserver-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/libedataserverui/libedataserverui.pc.in evolution-data-server-1.6.2/libedataserverui/libedataserverui.pc.in
+--- evolution-data-server-1.6.2.orig/libedataserverui/libedataserverui.pc.in	2006-06-16 11:54:23.000000000 +0200
++++ evolution-data-server-1.6.2/libedataserverui/libedataserverui.pc.in	2006-06-16 16:27:58.000000000 +0200
+@@ -8,6 +8,6 @@
+ Name: libedataserverui
+ Description: GUI utility library for Evolution Data Server
+ Version: @VERSION@
+-Requires: gtk+-2.0 libglade-2.0 libgnome-2.0 libedataserver-@API_VERSION@ libebook-@API_VERSION@
+-Libs: -L${libdir} -ledataserverui-1.2
++Requires: glib-2.0, gtk+-2.0, libglade-2.0, libedataserver-@API_VERSION@, libebook-@API_VERSION@
++Libs: -L${libdir} -ledataserverui-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/servers/exchange/storage/libexchange-storage.pc.in evolution-data-server-1.6.2/servers/exchange/storage/libexchange-storage.pc.in
+--- evolution-data-server-1.6.2.orig/servers/exchange/storage/libexchange-storage.pc.in	2006-06-16 11:54:24.000000000 +0200
++++ evolution-data-server-1.6.2/servers/exchange/storage/libexchange-storage.pc.in	2006-06-16 16:39:37.000000000 +0200
+@@ -11,6 +11,6 @@
+ Name: libexchange
+ Description: Client library for accessing Exchange server through webdav.
+ Version: @VERSION@
+-Requires: @LIBSOUP@ >= @LIBSOUP_REQUIRED@ 
+-Libs: -L${libdir} -lexchange-storage-1.2
++Requires: libxml-2.0, glib-2.0, gtk+-2.0, @LIBSOUP@ >= @LIBSOUP_REQUIRED@, libedataserver-@API_VERSION@
++Libs: -L${libdir} -lexchange-storage-@API_VERSION@
+ Cflags: -I${privincludedir}/exchange
+diff -ruN evolution-data-server-1.6.2.orig/servers/groupwise/libegroupwise.pc.in evolution-data-server-1.6.2/servers/groupwise/libegroupwise.pc.in
+--- evolution-data-server-1.6.2.orig/servers/groupwise/libegroupwise.pc.in	2006-06-16 11:54:24.000000000 +0200
++++ evolution-data-server-1.6.2/servers/groupwise/libegroupwise.pc.in	2006-06-16 16:34:17.000000000 +0200
+@@ -11,6 +11,6 @@
+ Name: libegroupwise
+ Description: Client library for accessing groupwise POA through SOAP interface
+ Version: @VERSION@
+-Requires: @LIBSOUP@ >= @LIBSOUP_REQUIRED@ 
+-Libs: -L${libdir} -legroupwise-1.2
++Requires: glib-2.0, @LIBSOUP@ >= @LIBSOUP_REQUIRED@ 
++Libs: -L${libdir} -legroupwise-@API_VERSION@
+ Cflags: -I${privincludedir}/groupwise
