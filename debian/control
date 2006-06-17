@@ -30,7 +30,7 @@ Description: architecture independent files for Evolution Data Server
 Package: evolution-data-server-dev
 Section: devel
 Architecture: any
-Depends: ${misc:Depends}, evolution-data-server (= ${binary:Version}), libbonobo2-dev, libcamel1.2-dev, libebook1.2-dev, libecal1.2-dev, libedata-book1.2-dev, libedata-cal1.2-dev, libedataserver1.2-dev, libedataserverui1.2-dev, libegroupwise1.2-dev, libexchange-storage1.2-dev
+Depends: ${misc:Depends}, libbonobo2-dev, libcamel1.2-dev, libebook1.2-dev, libecal1.2-dev, libedata-book1.2-dev, libedata-cal1.2-dev, libedataserver1.2-dev, libedataserverui1.2-dev, libegroupwise1.2-dev, libexchange-storage1.2-dev
 Description: Development files for evolution-data-server (meta package)
  This package contains header files and static library of evolution-data-server.
 
