@@ -1,0 +1,22 @@
+diff -ruN evolution-data-server-1.6.2.orig/camel/camel.pc.in evolution-data-server-1.6.2/camel/camel.pc.in
+--- evolution-data-server-1.6.2.orig/camel/camel.pc.in	2006-06-16 11:54:21.000000000 +0200
++++ evolution-data-server-1.6.2/camel/camel.pc.in	2006-06-16 16:18:09.000000000 +0200
+@@ -9,5 +9,6 @@
+ Name: camel
+ Description: the Evolution MIME message handling library
+ Version: @VERSION@
+-Libs: -L${libdir} -lcamel-1.2 -ledataserver-1.2
++Requires: glib-2.0, libedataserver-@API_VERSION@
++Libs: -L${libdir} -lcamel-@API_VERSION@
+ Cflags: -I${privincludedir}
+diff -ruN evolution-data-server-1.6.2.orig/camel/camel-provider.pc.in evolution-data-server-1.6.2/camel/camel-provider.pc.in
+--- evolution-data-server-1.6.2.orig/camel/camel-provider.pc.in	2006-06-16 11:54:21.000000000 +0200
++++ evolution-data-server-1.6.2/camel/camel-provider.pc.in	2006-06-16 18:52:41.000000000 +0200
+@@ -10,5 +10,6 @@
+ Name: camel-provider
+ Description: The Evolution mail access library
+ Version: @VERSION@
+-Libs: -L${libdir} -lcamel-1.2 -lcamel-provider-1.2 -ledataserver-1.2
++Requires: camel-@API_VERSION@
++Libs: -L${libdir} -lcamel-provider-@API_VERSION@
+ Cflags: -I${privincludedir}

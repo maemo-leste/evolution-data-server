@@ -1,15 +1,14 @@
 evolution-data-server (1.6.2-3) UNRELEASED; urgency=low
 
   [ Oystein Gisnas ]
-  * debian/control: Added ${misc:Depends}
+  * debian/control: Add ${misc:Depends}
+  * debian/control: Clean up dependencies
+  * debian/patches/10_pkg-config-requires.patch: Fix camel pkgconfig
 
   [ Heikki Henriksen ]
   * Added libglade2-dev to dep for libedataserverui-dev [debian/control]
 
-  [ Oystein Gisnas ]
-  * Clean up dependencies
-
- -- Oystein Gisnas <oystein@gisnas.net>  Fri, 16 Jun 2006 19:03:14 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 18 Jun 2006 10:02:16 +0200
 
 evolution-data-server (1.6.2-2) unstable; urgency=low
 
