@@ -1,4 +1,4 @@
-evolution-data-server (1.6.2-3) UNRELEASED; urgency=low
+evolution-data-server (1.6.2-3) unstable; urgency=low
 
   [ Oystein Gisnas ]
   * debian/control: Add ${misc:Depends}
@@ -8,7 +8,7 @@ evolution-data-server (1.6.2-3) UNRELEASED; urgency=low
   [ Heikki Henriksen ]
   * Added libglade2-dev to dep for libedataserverui-dev [debian/control]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sun, 18 Jun 2006 10:02:16 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 18 Jun 2006 15:57:23 +0200
 
 evolution-data-server (1.6.2-2) unstable; urgency=low
 
