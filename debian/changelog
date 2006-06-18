@@ -1,3 +1,10 @@
+evolution-data-server (1.6.2-4) UNRELEASED; urgency=low
+
+  * Depend on = source:Version of -common package for binNMU
+    compatibility
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 18 Jun 2006 21:25:30 +0200
+
 evolution-data-server (1.6.2-3) unstable; urgency=low
 
   [ Oystein Gisnas ]

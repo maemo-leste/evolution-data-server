@@ -8,7 +8,7 @@ Standards-Version: 3.7.2
 
 Package: evolution-data-server
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, evolution-data-server-common (= ${binary:Version})
+Depends: ${misc:Depends}, ${shlibs:Depends}, evolution-data-server-common (= ${source:Version})
 Suggests: evolution (>= 2.6.1), evolution-data-server-dbg (= ${binary:Version})
 Replaces: evolution-data-server1.2
 Description: evolution database backend server
