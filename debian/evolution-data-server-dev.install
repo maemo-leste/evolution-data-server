@@ -1,3 +1,1 @@
 debian/tmp/usr/lib/pkgconfig/evolution-data-server-1.2.pc
-debian/tmp/usr/lib/evolution-data-server-1.2/extensions/*.la
-debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers-*/*.la
