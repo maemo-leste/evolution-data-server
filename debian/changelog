@@ -1,6 +1,6 @@
-evolution-data-server (1.7.2-1) UNRELEASED; urgency=low
+evolution-data-server (1.7.3-1) UNRELEASED; urgency=low
 
-  * New unstable upstream release (1.7.2)
+  * New unstable upstream release (1.7.3)
   * debian/patches/55_no-fallback-for-tls.patch: Applied upstream
   * debian/patches/60_gpg-smartcard.patch: Applied upstream
   * debian/patches/9?_from_cvs_*.patch: Applied upstream
