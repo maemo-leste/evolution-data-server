@@ -1,0 +1,152 @@
+diff -urN evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.am evolution-data-server-1.7.3/addressbook/libedata-book/Makefile.am
+--- evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.am	2006-06-09 05:31:02.000000000 +0200
++++ evolution-data-server-1.7.3/addressbook/libedata-book/Makefile.am	2006-06-20 09:11:45.093336216 +0200
+@@ -4,7 +4,7 @@
+ 	-I$(top_builddir)				\
+ 	-I$(top_srcdir)/addressbook			\
+ 	-I$(top_builddir)/addressbook			\
+-	-I$(top_srcdir)/libdb/dist			\
++	$(DB_CFLAGS)					\
+         $(EVOLUTION_ADDRESSBOOK_CFLAGS)
+ 
+ # The corba stubs and skels
+@@ -51,7 +51,7 @@
+ 	$(EVOLUTION_ADDRESSBOOK_LIBS)				\
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la	\
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la	\
+-	$(top_builddir)/libdb/dist/libdb-4.1.la
++	$(DB_LIBS)
+ 
+ libedata_book_1_2_la_LDFLAGS = \
+ 	-version-info $(LIBEDATABOOK_CURRENT):$(LIBEDATABOOK_REVISION):$(LIBEDATABOOK_AGE) $(NO_UNDEFINED)
+diff -urN evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.in evolution-data-server-1.7.3/addressbook/libedata-book/Makefile.in
+--- evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.in	2006-06-12 17:05:16.000000000 +0200
++++ evolution-data-server-1.7.3/addressbook/libedata-book/Makefile.in	2006-06-20 09:14:52.984772376 +0200
+@@ -65,7 +65,7 @@
+ libedata_book_1_2_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la \
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la \
+-	$(top_builddir)/libdb/dist/libdb-4.1.la
++	$(am__DEPENDENCIES_1)
+ am__objects_1 = e-data-book-marshal.lo
+ am__objects_2 = Evolution-DataServer-Addressbook-common.lo \
+ 	Evolution-DataServer-Addressbook-skels.lo \
+@@ -396,7 +396,7 @@
+ 	-I$(top_builddir)				\
+ 	-I$(top_srcdir)/addressbook			\
+ 	-I$(top_builddir)/addressbook			\
+-	-I$(top_srcdir)/libdb/dist			\
++	$(DB_CFLAGS)					\
+         $(EVOLUTION_ADDRESSBOOK_CFLAGS)
+ 
+ 
+@@ -437,7 +437,7 @@
+ 	$(EVOLUTION_ADDRESSBOOK_LIBS)				\
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la	\
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la	\
+-	$(top_builddir)/libdb/dist/libdb-4.1.la
++	$(DB_LIBS)
+ 
+ libedata_book_1_2_la_LDFLAGS = \
+ 	-version-info $(LIBEDATABOOK_CURRENT):$(LIBEDATABOOK_REVISION):$(LIBEDATABOOK_AGE) $(NO_UNDEFINED)
+diff -urN evolution-data-server-1.7.3.orig/addressbook/backends/groupwise/Makefile.am evolution-data-server-1.7.3/addressbook/backends/groupwise/Makefile.am
+--- evolution-data-server-1.7.3.orig/addressbook/backends/groupwise/Makefile.am	2006-06-09 05:31:02.000000000 +0200
++++ evolution-data-server-1.7.3/addressbook/backends/groupwise/Makefile.am	2006-06-20 09:54:37.034341752 +0200
+@@ -5,7 +5,7 @@
+ 	-I$(top_srcdir)/addressbook			\
+ 	-I$(top_builddir)/addressbook			\
+ 	-I$(top_srcdir)/servers/groupwise               \
+-	-I$(top_srcdir)/libdb/dist			\
++	$(DB_CFLAGS)					\
+ 	$(EVOLUTION_ADDRESSBOOK_CFLAGS)                 \
+ 	$(SOUP_CFLAGS)	
+ extension_LTLIBRARIES = libebookbackendgroupwise.la
+@@ -20,7 +20,7 @@
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la		\
+ 	$(top_builddir)/addressbook/libedata-book/libedata-book-1.2.la	\
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la		\
+-	$(top_builddir)/libdb/dist/libdb-4.1.la				\
++	$(DB_LIBS)							\
+ 	$(EVOLUTION_ADDRESSBOOK_LIBS)					\
+ 	$(SOUP_LIBS)
+ 
+diff -urN evolution-data-server-1.7.3.orig/addressbook/backends/groupwise/Makefile.in evolution-data-server-1.7.3/addressbook/backends/groupwise/Makefile.in
+--- evolution-data-server-1.7.3.orig/addressbook/backends/groupwise/Makefile.in	2006-06-12 17:05:13.000000000 +0200
++++ evolution-data-server-1.7.3/addressbook/backends/groupwise/Makefile.in	2006-06-20 09:56:45.729777072 +0200
+@@ -65,7 +65,6 @@
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la \
+ 	$(top_builddir)/addressbook/libedata-book/libedata-book-1.2.la \
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la \
+-	$(top_builddir)/libdb/dist/libdb-4.1.la $(am__DEPENDENCIES_1) \
+ 	$(am__DEPENDENCIES_1)
+ am_libebookbackendgroupwise_la_OBJECTS = e-book-backend-groupwise.lo \
+ 	e-book-backend-groupwise-factory.lo
+@@ -396,7 +395,7 @@
+ 	-I$(top_srcdir)/addressbook			\
+ 	-I$(top_builddir)/addressbook			\
+ 	-I$(top_srcdir)/servers/groupwise               \
+-	-I$(top_srcdir)/libdb/dist			\
++	$(DB_CFLAGS)					\
+ 	$(EVOLUTION_ADDRESSBOOK_CFLAGS)                 \
+ 	$(SOUP_CFLAGS)	
+ 
+@@ -411,7 +410,7 @@
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la		\
+ 	$(top_builddir)/addressbook/libedata-book/libedata-book-1.2.la	\
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la		\
+-	$(top_builddir)/libdb/dist/libdb-4.1.la				\
++	$(DB_LIBS)							\
+ 	$(EVOLUTION_ADDRESSBOOK_LIBS)					\
+ 	$(SOUP_LIBS)
+ 
+diff -urN evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.am evolution-data-server-1.7.3/addressbook/libedata-book/Makefile.am
+--- evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.am	2006-06-09 05:31:02.000000000 +0200
++++ evolution-data-server-1.7.3/addressbook/libedata-book/Makefile.am	2006-06-20 09:53:23.891461160 +0200
+@@ -4,7 +4,7 @@
+ 	-I$(top_builddir)				\
+ 	-I$(top_srcdir)/addressbook			\
+ 	-I$(top_builddir)/addressbook			\
+-	-I$(top_srcdir)/libdb/dist			\
++	$(DB_CFLAGS)					\
+         $(EVOLUTION_ADDRESSBOOK_CFLAGS)
+ 
+ # The corba stubs and skels
+@@ -51,7 +51,7 @@
+ 	$(EVOLUTION_ADDRESSBOOK_LIBS)				\
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la	\
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la	\
+-	$(top_builddir)/libdb/dist/libdb-4.1.la
++	$(DB_LIBS)
+ 
+ libedata_book_1_2_la_LDFLAGS = \
+ 	-version-info $(LIBEDATABOOK_CURRENT):$(LIBEDATABOOK_REVISION):$(LIBEDATABOOK_AGE) $(NO_UNDEFINED)
+diff -urN evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.in evolution-data-server-1.7.3/addressbook/libedata-book/Makefile.in
+--- evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.in	2006-06-12 17:05:16.000000000 +0200
++++ evolution-data-server-1.7.3/addressbook/libedata-book/Makefile.in	2006-06-20 09:53:23.894460704 +0200
+@@ -65,7 +65,7 @@
+ libedata_book_1_2_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la \
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la \
+-	$(top_builddir)/libdb/dist/libdb-4.1.la
++	$(am__DEPENDENCIES_1)
+ am__objects_1 = e-data-book-marshal.lo
+ am__objects_2 = Evolution-DataServer-Addressbook-common.lo \
+ 	Evolution-DataServer-Addressbook-skels.lo \
+@@ -396,7 +396,7 @@
+ 	-I$(top_builddir)				\
+ 	-I$(top_srcdir)/addressbook			\
+ 	-I$(top_builddir)/addressbook			\
+-	-I$(top_srcdir)/libdb/dist			\
++	$(DB_CFLAGS)					\
+         $(EVOLUTION_ADDRESSBOOK_CFLAGS)
+ 
+ 
+@@ -437,7 +437,7 @@
+ 	$(EVOLUTION_ADDRESSBOOK_LIBS)				\
+ 	$(top_builddir)/addressbook/libebook/libebook-1.2.la	\
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la	\
+-	$(top_builddir)/libdb/dist/libdb-4.1.la
++	$(DB_LIBS)
+ 
+ libedata_book_1_2_la_LDFLAGS = \
+ 	-version-info $(LIBEDATABOOK_CURRENT):$(LIBEDATABOOK_REVISION):$(LIBEDATABOOK_AGE) $(NO_UNDEFINED)
