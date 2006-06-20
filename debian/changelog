@@ -10,8 +10,10 @@ evolution-data-server (1.7.3-1) UNRELEASED; urgency=low
   * debian/patches/35_external-libdb.patch - fixed upstream
   * Depend on = source:Version of -common package for binNMU
     compatibility
-	
- -- Oystein Gisnas <oystein@gisnas.net>  Sun, 28 May 2006 13:27:55 +0200
+  * debian/patches/10_optional-libdb-addressbook.patch: Fix forgotten
+    addressbook/libedata-book during optionalising of libdb
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue, 20 Jun 2006 09:18:56 +0200
 
 evolution-data-server (1.6.2-3) unstable; urgency=low
 
