@@ -27,7 +27,7 @@ diff -urN evolution-data-server-1.7.3.orig/addressbook/libedata-book/Makefile.in
  	$(top_builddir)/addressbook/libebook/libebook-1.2.la \
  	$(top_builddir)/libedataserver/libedataserver-1.2.la \
 -	$(top_builddir)/libdb/dist/libdb-4.1.la
-+	$(DB_LIBS)
++	$(am__DEPENDENCIES_1)
  am__objects_1 = e-data-book-marshal.lo
  am__objects_2 = Evolution-DataServer-Addressbook-common.lo \
  	Evolution-DataServer-Addressbook-skels.lo \
