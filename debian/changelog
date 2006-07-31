@@ -8,7 +8,11 @@ evolution-data-server (1.7.90.1-1) UNRELEASED; urgency=low
   * debian/rules: Enable gnome-keyring integration
   * debian/patches/20_xulrunner.patch: remove - fixed upstream
   * debian/patches/35_external-libdb.patch - fixed upstream
-  * Update SONAMEs of libraries
+  * libebook1.2-5 -> libebook1.2-9 SONAME change
+  * libecal1.2-5 -> libecal1.2-3 SONAME change !!!
+  * libedataserverui1.2-6 -> libedataserverui1.2-8 SONAME change
+  * libegroupwise1.2-9 -> libegroupwise1.2-12 SONAME change
+  * libexchange1.2-1 -> libexchange1.2-2 SONAME change
   * Remove libdb-dev build dep - no longer compiles with libdb3-dev.
     [debian/control]
 
