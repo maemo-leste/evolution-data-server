@@ -3,7 +3,7 @@ Section: gnome
 Priority: optional
 Maintainer: Debian Evolution Maintainers <pkg-evolution-maintainers@lists.alioth.debian.org>
 Uploaders: Takuo KITAME <kitame@debian.org>, Jordi Mallach <jordi@debian.org>, Margarita Manterola <debian@marga.com.ar>, Loic Minier <lool@dooz.org>, Heikki Henriksen <heikkih@gmail.com>, Oystein Gisnas <oystein@gisnas.net>
-Build-Depends: debhelper (>= 5.0.0), cdbs (>= 0.4.37), flex, intltool (>= 0.28-2), bison, gtk-doc-tools, dpkg-dev (>= 1.13.19), libsoup2.2-dev (>= 2.2.2), libgnomeui-dev, libldap2-dev, libnss3-dev, libdb4.4-dev | libdb-dev, libkrb5-dev
+Build-Depends: debhelper (>= 5.0.0), cdbs (>= 0.4.37), flex, intltool (>= 0.28-2), libtool, pkg-config, bison, gtk-doc-tools, dpkg-dev (>= 1.13.19), libglib2.0-dev, libbonobo2-dev, liborbit2-dev, libxml2-dev, libgtk2.0-dev, libgconf2-dev, libgnomevfs2-dev, libgnome2-dev, libsoup2.2-dev (>= 2.2.2), libgnomeui-dev, libldap2-dev, libnss3-dev, libdb4.4-dev | libdb-dev, libkrb5-dev
 Standards-Version: 3.7.2
 
 Package: evolution-data-server
@@ -188,7 +188,7 @@ Description: Backend library for evolution calendars (development files)
  .
  This package contains header files and static library for libedata-cal1.2-5.
 
-Package: libegroupwise1.2-9
+Package: libegroupwise1.2-10
 Section: libs
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
@@ -202,9 +202,9 @@ Description: Client library for accessing groupwise POA through SOAP interface
 Package: libegroupwise1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libegroupwise1.2-9 (= ${binary:Version}), libsoup2.2-dev
+Depends: ${misc:Depends}, libegroupwise1.2-10 (= ${binary:Version}), libsoup2.2-dev
 Description: Development files for libegroupwise
- This package contains header files and static library for libegroupwise1.2-9.
+ This package contains header files and static library for libegroupwise1.2-10.
  .
  libegroupwise is client library for accessing groupwise POA through SOAP
  interface of Evolution.
