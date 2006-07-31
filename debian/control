@@ -225,7 +225,7 @@ Description: Backend library for evolution calendars
 Package: libexchange-storage1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libexchange-storage1.2-1 (= ${binary:Version}), libsoup2.2-dev
+Depends: ${misc:Depends}, libexchange-storage1.2-2 (= ${binary:Version}), libsoup2.2-dev
 Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
