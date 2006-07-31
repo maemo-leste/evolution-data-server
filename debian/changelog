@@ -9,6 +9,8 @@ evolution-data-server (1.7.90.1-1) UNRELEASED; urgency=low
   * debian/patches/20_xulrunner.patch: remove - fixed upstream
   * debian/patches/35_external-libdb.patch - fixed upstream
   * Update SONAMEs of libraries
+  * Remove libdb-dev build dep - no longer compiles with libdb3-dev.
+    [debian/control]
 
  -- Oystein Gisnas <oystein@gisnas.net>  Tue, 20 Jun 2006 09:18:56 +0200
 
