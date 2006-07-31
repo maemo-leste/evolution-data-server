@@ -1,6 +1,6 @@
-evolution-data-server (1.7.3-1) UNRELEASED; urgency=low
+evolution-data-server (1.7.90.1-1) UNRELEASED; urgency=low
 
-  * New unstable upstream release (1.7.3)
+  * New unstable upstream release (1.7.90.1)
   * debian/patches/55_no-fallback-for-tls.patch: Applied upstream
   * debian/patches/60_gpg-smartcard.patch: Applied upstream
   * debian/patches/9?_from_cvs_*.patch: Applied upstream
@@ -8,12 +8,16 @@ evolution-data-server (1.7.3-1) UNRELEASED; urgency=low
   * debian/rules: Enable gnome-keyring integration
   * debian/patches/20_xulrunner.patch: remove - fixed upstream
   * debian/patches/35_external-libdb.patch - fixed upstream
-  * Depend on = source:Version of -common package for binNMU
-    compatibility
-  * debian/patches/10_optional-libdb-addressbook.patch: Fix forgotten
-    addressbook/libedata-book during optionalising of libdb
+  * Update SONAMEs of libraries
 
  -- Oystein Gisnas <oystein@gisnas.net>  Tue, 20 Jun 2006 09:18:56 +0200
+
+evolution-data-server (1.6.2-4) UNRELEASED; urgency=low
+
+  * Depend on = source:Version of -common package for binNMU
+    compatibility
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 18 Jun 2006 21:25:30 +0200
 
 evolution-data-server (1.6.2-3) unstable; urgency=low
 
