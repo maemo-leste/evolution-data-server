@@ -1,4 +1,4 @@
-evolution-data-server (1.6.3-1) UNRELEASED; urgency=low
+evolution-data-server (1.6.3-1) unstable; urgency=low
 
   * New upstream release
   * Depend on (= source:Version) of -common package for binNMU
@@ -13,7 +13,7 @@ evolution-data-server (1.6.3-1) UNRELEASED; urgency=low
     .pc file. This means that deps on e-d-s-dev has to be replaced
     by explicit deps to each library. [debian/control]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Tue,  1 Aug 2006 21:37:21 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue,  8 Aug 2006 10:56:51 +0200
 
 evolution-data-server (1.6.2-3) unstable; urgency=low
 
