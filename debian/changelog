@@ -1,6 +1,6 @@
-evolution-data-server (1.7.90.1-1) UNRELEASED; urgency=low
+evolution-data-server (1.8.0-1) UNRELEASED; urgency=low
 
-  * New unstable upstream release (1.7.90.1)
+  [ Oystein Gisnas ]
   * debian/patches/55_no-fallback-for-tls.patch: Applied upstream
   * debian/patches/60_gpg-smartcard.patch: Applied upstream
   * debian/patches/9?_from_cvs_*.patch: Applied upstream
@@ -16,7 +16,12 @@ evolution-data-server (1.7.90.1-1) UNRELEASED; urgency=low
   * Remove libdb-dev build dep - no longer compiles with libdb3-dev.
     [debian/control]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Tue, 20 Jun 2006 09:18:56 +0200
+  [ Heikki Henriksen ]
+  * New upstream release (1.8.0)
+  * Updated watch-file to follow 1.8-series
+  * 
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue,  5 Sep 2006 08:49:49 +0200
 
 evolution-data-server (1.6.2-4) UNRELEASED; urgency=low
 
