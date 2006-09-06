@@ -1,6 +1,6 @@
-diff -ruN evolution-data-server-1.6.2.orig/camel/camel.pc.in evolution-data-server-1.6.2/camel/camel.pc.in
---- evolution-data-server-1.6.2.orig/camel/camel.pc.in	2006-06-16 11:54:21.000000000 +0200
-+++ evolution-data-server-1.6.2/camel/camel.pc.in	2006-06-16 16:18:09.000000000 +0200
+diff -ruN evolution-data-server-1.8.0.orig/camel/camel.pc.in evolution-data-server-1.8.0/camel/camel.pc.in
+--- evolution-data-server-1.8.0.orig/camel/camel.pc.in	2004-12-02 09:03:30.000000000 +0100
++++ evolution-data-server-1.8.0/camel/camel.pc.in	2006-09-06 22:52:10.000000000 +0200
 @@ -9,5 +9,6 @@
  Name: camel
  Description: the Evolution MIME message handling library
@@ -9,9 +9,9 @@ diff -ruN evolution-data-server-1.6.2.orig/camel/camel.pc.in evolution-data-serv
 +Requires: glib-2.0, libedataserver-@API_VERSION@
 +Libs: -L${libdir} -lcamel-@API_VERSION@
  Cflags: -I${privincludedir}
-diff -ruN evolution-data-server-1.6.2.orig/camel/camel-provider.pc.in evolution-data-server-1.6.2/camel/camel-provider.pc.in
---- evolution-data-server-1.6.2.orig/camel/camel-provider.pc.in	2006-06-16 11:54:21.000000000 +0200
-+++ evolution-data-server-1.6.2/camel/camel-provider.pc.in	2006-06-16 18:52:41.000000000 +0200
+diff -ruN evolution-data-server-1.8.0.orig/camel/camel-provider.pc.in evolution-data-server-1.8.0/camel/camel-provider.pc.in
+--- evolution-data-server-1.8.0.orig/camel/camel-provider.pc.in	2004-12-02 09:03:30.000000000 +0100
++++ evolution-data-server-1.8.0/camel/camel-provider.pc.in	2006-09-06 22:53:32.000000000 +0200
 @@ -10,5 +10,6 @@
  Name: camel-provider
  Description: The Evolution mail access library
