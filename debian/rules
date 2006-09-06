@@ -18,6 +18,7 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-nspr-includes=/usr/include/nspr \
 	--with-nss-includes=/usr/include/nss \
 	--enable-ipv6 \
+	--enable-nss \
 	--enable-nntp \
 	--enable-smime \
 	--with-openldap \
