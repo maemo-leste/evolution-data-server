@@ -9,7 +9,6 @@ evolution-data-server (1.8.0-1) UNRELEASED; urgency=low
   * debian/patches/20_xulrunner.patch: remove - fixed upstream
   * debian/patches/35_external-libdb.patch - fixed upstream
   * libebook1.2-5 -> libebook1.2-9 SONAME change
-  * libecal1.2-5 -> libecal1.2-3 SONAME change !!!
   * libedataserverui1.2-6 -> libedataserverui1.2-8 SONAME change
   * libegroupwise1.2-9 -> libegroupwise1.2-12 SONAME change
   * libexchange1.2-1 -> libexchange1.2-2 SONAME change
@@ -19,16 +18,34 @@ evolution-data-server (1.8.0-1) UNRELEASED; urgency=low
   [ Heikki Henriksen ]
   * New upstream release (1.8.0)
   * Updated watch-file to follow 1.8-series
-  * 
+  * Removed patch applied upstream [debian/patches/10_de_translation.patch]
+  * Add build-depend on libgnome-keyring-dev [debian/control]
+  * libecal1.2-5 -> libecal1.2-7 SONAME change
+  * libedatacal1.2-5 -> libedatacal1.2-6 SONAME change
+  * Update soname-changes in descriptions [debian/control]
+  * Update patch for camel pkg-config [debian/patches/10_camel-pkg-config-requires.patch]
+  * Update small translation patch [debian/patches/11_it_translation.patch]
+  * Update camel-version patch [debian/patches/40_libcamel_soname_version.patch]
+  * Update camel-providers patch [debian/patches/45_libcamel_providers_version.patch]
 
- -- Heikki Henriksen <heikkih@gmail.com>  Tue,  5 Sep 2006 08:49:49 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed,  6 Sep 2006 22:47:03 +0200
 
-evolution-data-server (1.6.2-4) UNRELEASED; urgency=low
+evolution-data-server (1.6.3-1) unstable; urgency=low
 
-  * Depend on = source:Version of -common package for binNMU
-    compatibility
+  * New upstream release
+  * Depend on (= source:Version) of -common package for binNMU
+    compatibility. [debian/control]
+  * Explicitly build-depend on everything used in configure.in.
+    [debian/control]
+  * Bump libegroupwise SONAME to libegroupwise1.2-10.
+    [debian/control, debian/libegroupwise1.2-10.install]
+  * Drop patch applied upstream:
+    - 92_from_cvs_fix_attachment_icon_to_messages_list.patch
+  * Let evolution-data-server-dev depend only on what's in its
+    .pc file. This means that deps on e-d-s-dev has to be replaced
+    by explicit deps to each library. [debian/control]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sun, 18 Jun 2006 21:25:30 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue,  8 Aug 2006 10:56:51 +0200
 
 evolution-data-server (1.6.2-3) unstable; urgency=low
 
