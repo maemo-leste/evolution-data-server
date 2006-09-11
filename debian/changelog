@@ -1,4 +1,4 @@
-evolution-data-server (1.8.0-1) UNRELEASED; urgency=low
+evolution-data-server (1.8.0-1) experimental; urgency=low
 
   [ Oystein Gisnas ]
   * debian/patches/55_no-fallback-for-tls.patch: Applied upstream
@@ -28,7 +28,7 @@ evolution-data-server (1.8.0-1) UNRELEASED; urgency=low
   * Update camel-version patch [debian/patches/40_libcamel_soname_version.patch]
   * Update camel-providers patch [debian/patches/45_libcamel_providers_version.patch]
 
- -- Heikki Henriksen <heikkih@gmail.com>  Wed,  6 Sep 2006 22:47:03 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 11 Sep 2006 11:33:59 +0200
 
 evolution-data-server (1.6.3-1) unstable; urgency=low
 
