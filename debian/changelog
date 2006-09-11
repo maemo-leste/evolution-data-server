@@ -27,8 +27,9 @@ evolution-data-server (1.8.0-1) experimental; urgency=low
   * Update small translation patch [debian/patches/11_it_translation.patch]
   * Update camel-version patch [debian/patches/40_libcamel_soname_version.patch]
   * Update camel-providers patch [debian/patches/45_libcamel_providers_version.patch]
+  * Add build-dep on libglade2-dev for eds-ui [debian/control]
 
- -- Heikki Henriksen <heikkih@gmail.com>  Mon, 11 Sep 2006 11:33:59 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 11 Sep 2006 22:35:46 +0200
 
 evolution-data-server (1.6.3-1) unstable; urgency=low
 
