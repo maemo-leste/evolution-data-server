@@ -1,3 +1,10 @@
+evolution-data-server (1.8.0-2) UNRELEASED; urgency=low
+
+  * Add build-dep on libglade2-dev for eds-ui [debian/control]
+  * Enable gtk-doc [debian/rules]
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu, 21 Sep 2006 14:15:44 +0200
+
 evolution-data-server (1.8.0-1) experimental; urgency=low
 
   [ Oystein Gisnas ]
@@ -27,7 +34,6 @@ evolution-data-server (1.8.0-1) experimental; urgency=low
   * Update small translation patch [debian/patches/11_it_translation.patch]
   * Update camel-version patch [debian/patches/40_libcamel_soname_version.patch]
   * Update camel-providers patch [debian/patches/45_libcamel_providers_version.patch]
-  * Add build-dep on libglade2-dev for eds-ui [debian/control]
 
  -- Heikki Henriksen <heikkih@gmail.com>  Mon, 11 Sep 2006 22:35:46 +0200
 
