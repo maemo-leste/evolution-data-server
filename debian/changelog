@@ -1,4 +1,4 @@
-evolution-data-server (1.8.0-2) UNRELEASED; urgency=low
+evolution-data-server (1.8.0-2) unstable; urgency=low
 
   * Add build-dep on libglade2-dev for eds-ui [debian/control]
   * Enable gtk-doc [debian/rules]
