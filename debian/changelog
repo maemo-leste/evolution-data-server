@@ -1,3 +1,10 @@
+evolution-data-server (1.8.0-3) UNRELEASED; urgency=low
+
+  * Correct camel-providers dir calculation.
+    [debian/patches/45_libcamel_providers_version.patch]
+
+ -- oysteigi <oystein@gisnas.net>  Sun, 24 Sep 2006 22:20:29 +0200
+
 evolution-data-server (1.8.0-2) experimental; urgency=low
 
   * Add build-dep on libglade2-dev for eds-ui [debian/control]
