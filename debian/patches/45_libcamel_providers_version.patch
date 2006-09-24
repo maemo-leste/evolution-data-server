@@ -6,7 +6,7 @@ diff -ruN evolution-data-server-1.8.0.orig/configure evolution-data-server-1.8.0
  
  
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
-+camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-$LIBCAMEL_CURRENT
++camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
  
  
  
@@ -19,7 +19,7 @@ diff -ruN evolution-data-server-1.8.0.orig/configure.in evolution-data-server-1.
  dnl separate camel from e-d-s?  or should it be under the same spot?  same for now.
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
 +dnl add version to dir to avoid filename conflict between versions
-+camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-$LIBCAMEL_CURRENT
++camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
  AC_SUBST(camel_providerdir)
  
  dnl ************************
