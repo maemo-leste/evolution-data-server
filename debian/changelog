@@ -1,9 +1,10 @@
-evolution-data-server (1.8.0-3) UNRELEASED; urgency=low
+evolution-data-server (1.8.0-3) experimental; urgency=low
 
+  [ oysteigi ]
   * Correct camel-providers dir calculation.
     [debian/patches/45_libcamel_providers_version.patch]
 
- -- oysteigi <oystein@gisnas.net>  Sun, 24 Sep 2006 22:20:29 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue, 26 Sep 2006 09:55:24 +0200
 
 evolution-data-server (1.8.0-2) experimental; urgency=low
 
