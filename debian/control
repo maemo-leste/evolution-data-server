@@ -76,7 +76,7 @@ Description: The Evolution MIME message handling library
 Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libcamel1.2-8 (= ${binary:Version}), libglib2.0-dev, libedataserver1.2-dev
+Depends: ${misc:Depends}, libcamel1.2-8 (= ${binary:Version}), libglib2.0-dev, libedataserver1.2-dev (>= 1.8.0)
 Description: Development files for libcamel
  This package contains header files and static library for libcamel1.2-8
  .
@@ -100,7 +100,7 @@ Description: Client library for evolution address books
 Package: libebook1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libebook1.2-9 (= ${binary:Version}), libbonobo2-dev (>= 2.4.2), libgnome2-dev, libedataserver1.2-dev
+Depends: ${misc:Depends}, libebook1.2-9 (= ${binary:Version}), libbonobo2-dev (>= 2.4.2), libgnome2-dev, libedataserver1.2-dev (>= 1.8.0)
 Description: Client library for evolution address books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -120,7 +120,7 @@ Description: GUI utility library for evolution data servers
 Package: libedataserverui1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libedataserverui1.2-8 (= ${binary:Version}), libgtk2.0-dev, libglade2-dev, libgnome2-dev, libedataserver1.2-dev, libebook1.2-dev
+Depends: ${misc:Depends}, libedataserverui1.2-8 (= ${binary:Version}), libgtk2.0-dev, libglade2-dev, libgnome2-dev, libedataserver1.2-dev (>= 1.8.0), libebook1.2-dev (>= 1.8.0)
 Description: GUI utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -141,7 +141,7 @@ Description: Backend library for evolution address books
 Package: libedata-book1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libedata-book1.2-2 (= ${binary:Version}), libbonobo2-dev (>= 2.4.2), libgnome2-dev, libedataserver1.2-dev, libebook1.2-dev
+Depends: ${misc:Depends}, libedata-book1.2-2 (= ${binary:Version}), libbonobo2-dev (>= 2.4.2), libgnome2-dev, libedataserver1.2-dev (>= 1.8.0), libebook1.2-dev (>= 1.8.0)
 Description: Backend library for evolution address books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -161,7 +161,7 @@ Description: Client library for evolution calendars
 Package: libecal1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libecal1.2-7 (= ${binary:Version}), libgnome2-dev, libbonobo2-dev (>= 2.4.2), libedataserver1.2-dev
+Depends: ${misc:Depends}, libecal1.2-7 (= ${binary:Version}), libgnome2-dev, libbonobo2-dev (>= 2.4.2), libedataserver1.2-dev (>= 1.8.0)
 Description: Client library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -181,7 +181,7 @@ Description: Backend library for evolution calendars
 Package: libedata-cal1.2-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libedata-cal1.2-6 (= ${binary:Version}), libgnome2-dev, libbonobo2-dev (>= 2.4.2), libgnomevfs2-dev, libedataserver1.2-dev, libecal1.2-dev
+Depends: ${misc:Depends}, libedata-cal1.2-6 (= ${binary:Version}), libgnome2-dev, libbonobo2-dev (>= 2.4.2), libgnomevfs2-dev, libedataserver1.2-dev (>= 1.8.0), libecal1.2-dev (>= 1.8.0)
 Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
