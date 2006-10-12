@@ -1,3 +1,10 @@
+evolution-data-server (1.8.1-2) UNRELEASED; urgency=low
+
+  * Revert obtrusive exchange performance patch. (closes: #391022)
+    [debian/patches/20_revert-exchange-offline-supported-patch.patch]
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Wed, 11 Oct 2006 23:59:18 +0200
+
 evolution-data-server (1.8.1-1) experimental; urgency=low
 
   * New upstream release
