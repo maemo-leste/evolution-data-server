@@ -1,10 +1,10 @@
-evolution-data-server (1.8.1-2) UNRELEASED; urgency=low
+evolution-data-server (1.8.1-2) experimental; urgency=low
 
   * Revert obtrusive exchange performance patch. (closes: #391022)
     [debian/patches/20_revert-exchange-offline-supported-patch.patch]
   * For now, do not use gnome-keyring. [debian/rules] (closes: #392061)
 
- -- Oystein Gisnas <oystein.gisnas.net>  Thu, 12 Oct 2006 21:38:04 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 22 Oct 2006 09:51:16 +0200
 
 evolution-data-server (1.8.1-1) experimental; urgency=low
 
