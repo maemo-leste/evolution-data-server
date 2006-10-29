@@ -1,3 +1,11 @@
+evolution-data-server (1.6.3-2) UNRELEASED; urgency=low
+
+  * Add recursive lock to avoid race condition in file backend. Thanks
+    to Patrick Ohly. (closes: #395416)
+    [debian/patches/50_file-backend-recursive-locking.patch]
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 29 Oct 2006 13:28:44 +0100
+
 evolution-data-server (1.6.3-1) unstable; urgency=low
 
   * New upstream release
@@ -13,7 +21,7 @@ evolution-data-server (1.6.3-1) unstable; urgency=low
     .pc file. This means that deps on e-d-s-dev has to be replaced
     by explicit deps to each library. [debian/control]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Tue,  8 Aug 2006 10:56:51 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 29 Oct 2006 13:28:34 +0100
 
 evolution-data-server (1.6.2-3) unstable; urgency=low
 
