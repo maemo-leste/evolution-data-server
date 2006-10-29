@@ -1,3 +1,11 @@
+evolution-data-server (1.8.1-3) UNRELEASED; urgency=low
+
+  * Add recursive lock to avoid race condition in file backend. Thanks
+    to Patrick Ohly. (closes: #395416)
+    [debian/patches/50_file-backend-recursive-locking.patch]
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 29 Oct 2006 13:39:16 +0100
+
 evolution-data-server (1.8.1-2) experimental; urgency=low
 
   * Revert obtrusive exchange performance patch. (closes: #391022)
