@@ -3,8 +3,10 @@ evolution-data-server (1.6.3-2) UNRELEASED; urgency=low
   * Add recursive lock to avoid race condition in file backend. Thanks
     to Patrick Ohly. (closes: #395416)
     [debian/patches/50_file-backend-recursive-locking.patch]
+  * Fix uncontrolled creation of pipes. Thanks to Keith Packard.
+    (closes: #391521) [70_revert-prpipe-union.patch]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sun, 29 Oct 2006 13:28:44 +0100
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue, 31 Oct 2006 19:28:35 +0100
 
 evolution-data-server (1.6.3-1) unstable; urgency=low
 

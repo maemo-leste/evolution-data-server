@@ -1,0 +1,39 @@
+diff -Nur evolution-data-server-1.6.3/libedataserver/e-msgport.c evolution-data-server-1.6.3.new/libedataserver/e-msgport.c
+--- evolution-data-server-1.6.3/libedataserver/e-msgport.c	2006-07-31 17:36:33.000000000 +0200
++++ evolution-data-server-1.6.3.new/libedataserver/e-msgport.c	2006-10-31 19:26:44.000000000 +0100
+@@ -537,9 +537,11 @@
+ 	e_dlist_init(&mp->queue);
+ 	mp->lock = g_mutex_new();
+ 	mp->cond = g_cond_new();
+-	e_pipe (mp->pipe.pipe);
++	mp->pipe.fd.read = -1;
++	mp->pipe.fd.write = -1;
+ #ifdef HAVE_NSS
+-	e_prpipe (mp->prpipe.pipe);
++	mp->prpipe.fd.read = NULL;
++	mp->prpipe.fd.write = NULL;
+ #endif
+ 	mp->condwait = 0;
+ 
+@@ -566,12 +568,21 @@
+ /* get a fd that can be used to wait on the port asynchronously */
+ int e_msgport_fd(EMsgPort *mp)
+ {
++	g_mutex_lock(mp->lock);
++	if (mp->pipe.fd.read == -1)
++		e_pipe(mp->pipe.pipe);
++	g_mutex_unlock(mp->lock);
+ 	return mp->pipe.fd.read;
+ }
+ 
+ #ifdef HAVE_NSS
+ PRFileDesc *e_msgport_prfd(EMsgPort *mp)
+ {
++	g_mutex_lock(mp->lock);
++	if (mp->prpipe.fd.read == NULL)
++		e_prpipe (mp->prpipe.pipe);
++	g_mutex_unlock(mp->lock);
++
+ 	return mp->prpipe.fd.read;
+ }
+ #endif
