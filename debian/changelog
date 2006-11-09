@@ -1,3 +1,10 @@
+evolution-data-server (1.8.1-4) UNRELEASED; urgency=low
+
+  * Document mailbox summary corruption and removal of
+    IMAP4rev1 provider. [debian/README.Debian]
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Thu,  9 Nov 2006 18:42:25 +0100
+
 evolution-data-server (1.8.1-3) experimental; urgency=low
 
   * Add recursive lock to avoid race condition in file backend. Thanks
