@@ -1,3 +1,9 @@
+evolution-data-server (1.6.3-3) UNRELEASED; urgency=low
+
+  * Document mailbox summary corruption. [debian/README.Debian]
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Thu,  9 Nov 2006 18:40:48 +0100
+
 evolution-data-server (1.6.3-2) unstable; urgency=low
 
   * Add recursive lock to avoid race condition in file backend. Thanks

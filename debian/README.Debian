@@ -1,0 +1,9 @@
+Evolution for Debian
+====================
+
+Mailbox corruption
+------------------
+
+Mailbox summary corruption is an issue that is known to appear in exceptional cases as reported in http://bugs.debian.org/295270 and http://bugs.debian.org/347703. A typical symptom is the error message: "Error while Refreshing folder: Summary and folder mismatch, even after a sync." No data is lost, but one or more summary files are corrupted.
+
+Before fixing the problem, backup your ~/.evolution folder just in case. Delete ~/.evolution/mail/local/MAILBOX.ev-summary where MAILBOX is your mailboxes. For example, the inbox summary file is Inbox.ev-summary. To rebuild the summaries, restart evolution and evolution-data-server.
