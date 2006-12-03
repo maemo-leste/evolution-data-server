@@ -1,0 +1,29 @@
+diff -Nur evolution-data-server-1.6.3/camel/camel-vee-folder.c evolution-data-server-1.6.3.new/camel/camel-vee-folder.c
+--- evolution-data-server-1.6.3/camel/camel-vee-folder.c	2006-05-03 15:59:26.000000000 +0200
++++ evolution-data-server-1.6.3.new/camel/camel-vee-folder.c	2006-12-03 22:39:45.000000000 +0100
+@@ -231,6 +231,7 @@
+  * Removed the source folder, @sub, from the virtual folder, @vf.
+  **/
+ void
++
+ camel_vee_folder_remove_folder(CamelVeeFolder *vf, CamelFolder *sub)
+ {
+ 	struct _CamelVeeFolderPrivate *p = _PRIVATE(vf);
+@@ -295,6 +296,9 @@
+ 
+ 	((CamelVeeFolderClass *)((CamelObject *)vf)->klass)->remove_folder(vf, sub);
+ 
++	if (CAMEL_IS_VEE_FOLDER(sub))
++		return;
++			
+ 	camel_object_unref((CamelObject *)sub);
+ }
+ 
+@@ -1719,7 +1723,6 @@
+ 	} else {
+ 		while (p->folders) {
+ 			CamelFolder *f = p->folders->data;
+-
+ 			camel_vee_folder_remove_folder(vf, f);
+ 		}
+ 	}
