@@ -1,10 +1,10 @@
-evolution-data-server (1.6.3-3) UNRELEASED; urgency=low
+evolution-data-server (1.6.3-3) unstable; urgency=low
 
   * Document mailbox summary corruption. [debian/README.Debian]
-  * Backport fix to camel crashing on exit (closes: #374213) 
+  * Backport fix to camel crashing on exit (closes: #374213)
     [75_camel-crash-on-exit.patch]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sun,  3 Dec 2006 22:41:31 +0100
+ -- Oystein Gisnas <oystein@gisnas.net>  Mon,  4 Dec 2006 23:04:24 +0100
 
 evolution-data-server (1.6.3-2) unstable; urgency=low
 
