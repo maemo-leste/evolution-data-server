@@ -3,8 +3,9 @@ evolution-data-server (1.6.3-3) unstable; urgency=low
   * Document mailbox summary corruption. [debian/README.Debian]
   * Backport fix to camel crashing on exit (closes: #374213)
     [75_camel-crash-on-exit.patch]
+  * Fix for CalDAV delete. (closes: #401814) [55_caldav-delete.patch]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Mon,  4 Dec 2006 23:04:24 +0100
+ -- Oystein Gisnas <oystein@gisnas.net>  Wed,  6 Dec 2006 05:40:06 +0100
 
 evolution-data-server (1.6.3-2) unstable; urgency=low
 
