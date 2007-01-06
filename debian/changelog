@@ -1,5 +1,6 @@
-evolution-data-server (1.8.1-4) UNRELEASED; urgency=low
+evolution-data-server (1.8.2-1) UNRELEASED; urgency=low
 
+  * New upstream release
   * Document mailbox summary corruption and removal of
     IMAP4rev1 provider. [debian/README.Debian]
 
