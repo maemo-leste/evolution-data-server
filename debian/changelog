@@ -1,11 +1,11 @@
-evolution-data-server (1.8.2-1) UNRELEASED; urgency=low
+evolution-data-server (1.8.2-1) experimental; urgency=low
 
   * New upstream release
     - Remove 20_revert-exchange-offline-supported-patch.patch
   * Document mailbox summary corruption and removal of
     IMAP4rev1 provider. [debian/README.Debian]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sat,  6 Jan 2007 02:08:04 +0100
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun,  7 Jan 2007 22:52:30 +0100
 
 evolution-data-server (1.8.1-3) experimental; urgency=low
 
