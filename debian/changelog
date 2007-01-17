@@ -1,3 +1,11 @@
+evolution-data-server (1.6.3-4) UNRELEASED; urgency=low
+
+  * New patch, 80_from-1.8_ldap-ops, prevents crashes when querying LDAP
+    servers; backported from the 1.8 branch; thanks Josselin Mouette;
+    closes: #406444.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 17 Jan 2007 14:50:52 +0100
+
 evolution-data-server (1.6.3-3) unstable; urgency=low
 
   * Document mailbox summary corruption. [debian/README.Debian]
