@@ -2,8 +2,10 @@ evolution-data-server (1.8.2-2) UNRELEASED; urgency=low
 
   * 20_too-many-open-files.patch: Backport of patch from 2.9.1 and patch
     from bugzilla (closes: #401010)
+  * 30_vcf-import-linebreak.patch: Fix broken newlines in .vcf import
+    (closes: #395417)
 
- -- Oystein Gisnas <oystein@gisnas.net>  Thu, 11 Jan 2007 21:47:13 +0100
+ -- Oystein Gisnas <oystein@gisnas.net>  Thu, 25 Jan 2007 07:55:11 +0100
 
 evolution-data-server (1.8.2-1) experimental; urgency=low
 
