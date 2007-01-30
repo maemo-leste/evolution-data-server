@@ -1,4 +1,4 @@
-evolution-data-server (1.6.3-4) UNRELEASED; urgency=low
+evolution-data-server (1.6.3-4) unstable; urgency=low
 
   * New patch, 80_from-1.8_ldap-ops, prevents crashes when querying LDAP
     servers; backported from the 1.8 branch; thanks Josselin Mouette;
