@@ -1,11 +1,17 @@
-evolution-data-server (1.8.2-2) UNRELEASED; urgency=low
+evolution-data-server (1.8.2-2) experimental; urgency=high
 
+  [ Oystein Gisnas ]
   * 20_too-many-open-files.patch: Backport of patch from 2.9.1 and patch
     from bugzilla (closes: #401010)
   * 30_vcf-import-linebreak.patch: Fix broken newlines in .vcf import
     (closes: #395417)
 
- -- Oystein Gisnas <oystein@gisnas.net>  Thu, 25 Jan 2007 07:55:11 +0100
+  [ Loic Minier ]
+  * New patch, 65_tz-updates, misc timezone updates, adapted from a patch
+    found in the Ubuntu stable package in version 1.8.1-0ubuntu5, itself taken
+    from Fedora; closes: #415585.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 03 Apr 2007 18:58:10 +0200
 
 evolution-data-server (1.8.2-1) experimental; urgency=low
 
