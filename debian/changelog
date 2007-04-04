@@ -1,4 +1,4 @@
-evolution-data-server (1.8.2-3) unstable; urgency=low
+evolution-data-server (1.8.2-3) experimental; urgency=low
 
   * 20_too-many-open-files.patch: Revert patch which consistently caused
     crash. (closes: #417656)
