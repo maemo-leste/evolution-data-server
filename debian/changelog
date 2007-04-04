@@ -1,3 +1,10 @@
+evolution-data-server (1.8.2-3) unstable; urgency=low
+
+  * 20_too-many-open-files.patch: Revert patch which consistently caused
+    crash. (closes: #417656)
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Wed, 04 Apr 2007 14:17:13 +0200
+
 evolution-data-server (1.8.2-2) experimental; urgency=high
 
   [ Oystein Gisnas ]
