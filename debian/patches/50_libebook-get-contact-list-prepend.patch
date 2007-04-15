@@ -1,0 +1,21 @@
+diff -Nur evolution-data-server-1.10.0/addressbook/backends/file/e-book-backend-file.c evolution-data-server-1.10.0.new/addressbook/backends/file/e-book-backend-file.c
+--- evolution-data-server-1.10.0/addressbook/backends/file/e-book-backend-file.c	2007-01-03 11:09:30.000000000 +0100
++++ evolution-data-server-1.10.0.new/addressbook/backends/file/e-book-backend-file.c	2007-04-04 23:48:48.000000000 +0200
+@@ -412,7 +412,7 @@
+ 
+ 			db_error = db->get (db, NULL, &id_dbt, &vcard_dbt, 0);
+ 			if (db_error == 0) {
+-				contact_list = g_list_append (contact_list, vcard_dbt.data);
++				contact_list = g_list_prepend (contact_list, vcard_dbt.data);
+ 			} else {
+ 				g_warning (G_STRLOC ": db->get failed with %d", db_error);
+ 				status = GNOME_Evolution_Addressbook_OtherError ;
+@@ -451,7 +451,7 @@
+ 			    || strcmp (id_dbt.data, E_BOOK_BACKEND_FILE_VERSION_NAME)) {
+ 
+ 				if ((!search_needed) || (card_sexp != NULL && e_book_backend_sexp_match_vcard  (card_sexp, vcard_dbt.data))) {
+-					contact_list = g_list_append (contact_list, vcard_dbt.data);
++					contact_list = g_list_prepend (contact_list, vcard_dbt.data);
+ 				}
+ 			}
+ 
