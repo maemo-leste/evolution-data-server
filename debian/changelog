@@ -6,9 +6,6 @@ evolution-data-server (1.10.1-1) experimental; urgency=low
     - libedataserver1.2-7 -> libedataser1.2-9 SONAME change
     - Add libedataserver1.2-dev Depends: libnspr4-dev
     - libcamel1.2-8 -> libcamel1.2-10 SONAME change
-    - Add libcamel1.2-10 Depends: libnss3 | libnss3-0d
-    - Add libebook1.2-9 Depends: libnspr4 | libnspr4-0d
-    - Add libedataserverui1.2-8 Depends: libnspr4 | libnspr4-0d
     - libegroupwise1.2-12 -> libegroupwise1.2-13 SONAME change
     - libexchange-storage1.2-2 -> libexchange-storage1.2-3 SONAME change
     - Drop 40_libcamel_soname_version.patch, applied upstream
