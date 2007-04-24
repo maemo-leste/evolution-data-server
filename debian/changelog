@@ -1,29 +1,133 @@
-evolution-data-server (1.6.3-4) unstable; urgency=low
+evolution-data-server (1.10.1-1) experimental; urgency=low
 
-  * New patch, 80_from-1.8_ldap-ops, prevents crashes when querying LDAP
-    servers; backported from the 1.8 branch; thanks Josselin Mouette;
-    closes: #406444.
+  [ Oystein Gisnas ]
+  * New upstream release. (closes: #414716)
+    - Bump intltool build-dep to >= 0.35.5
+    - Bump libglib2.0-dev build-dep to >= 2.10.0
+    - libedataserver1.2-7 -> libedataser1.2-9 SONAME change
+    - Add libedataserver1.2-dev Depends: libnspr4-dev
+    - libcamel1.2-8 -> libcamel1.2-10 SONAME change
+    - libegroupwise1.2-12 -> libegroupwise1.2-13 SONAME change
+    - libexchange-storage1.2-2 -> libexchange-storage1.2-3 SONAME change
+    - Drop 40_libcamel_soname_version.patch, applied upstream
+    - Drop 50_file-backend-recursive-locking.patch, applied upstream
+    - Drop debian/patches/65_tz-updates.patch, applied upstream
+  * Update watch file to track all stable versions
+  * 50_libebook-get-contact-list-prepend.patch: replace g_list_append
+    with _prepend, which is O(1)
+  * Add lintian overrides
 
- -- Loic Minier <lool@dooz.org>  Wed, 17 Jan 2007 14:50:52 +0100
+  [ Loic Minier ]
+  * Drop shlibs.local generation hack which seems obsolete.
 
-evolution-data-server (1.6.3-3) unstable; urgency=low
+ -- Loic Minier <lool@dooz.org>  Tue, 24 Apr 2007 16:07:59 +0200
 
-  * Document mailbox summary corruption. [debian/README.Debian]
-  * Backport fix to camel crashing on exit (closes: #374213)
-    [75_camel-crash-on-exit.patch]
-  * Fix for CalDAV delete. (closes: #401814) [55_caldav-delete.patch]
+evolution-data-server (1.8.3-1) experimental; urgency=low
 
- -- Oystein Gisnas <oystein@gisnas.net>  Wed,  6 Dec 2006 05:40:06 +0100
+  * Drop Takuo Kitame from Uploaders.
+  * New upstream stable release; no API change.
 
-evolution-data-server (1.6.3-2) unstable; urgency=low
+ -- Loic Minier <lool@dooz.org>  Thu, 05 Apr 2007 14:41:36 +0200
+
+evolution-data-server (1.8.2-3) experimental; urgency=low
+
+  * 20_too-many-open-files.patch: Revert patch which consistently caused
+    crash. (closes: #417656)
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Wed, 04 Apr 2007 14:17:13 +0200
+
+evolution-data-server (1.8.2-2) experimental; urgency=high
+
+  [ Oystein Gisnas ]
+  * 20_too-many-open-files.patch: Backport of patch from 2.9.1 and patch
+    from bugzilla (closes: #401010)
+  * 30_vcf-import-linebreak.patch: Fix broken newlines in .vcf import
+    (closes: #395417)
+
+  [ Loic Minier ]
+  * New patch, 65_tz-updates, misc timezone updates, adapted from a patch
+    found in the Ubuntu stable package in version 1.8.1-0ubuntu5, itself taken
+    from Fedora; closes: #415585.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 03 Apr 2007 18:58:10 +0200
+
+evolution-data-server (1.8.2-1) experimental; urgency=low
+
+  * New upstream release
+    - Remove 20_revert-exchange-offline-supported-patch.patch
+  * Document mailbox summary corruption and removal of
+    IMAP4rev1 provider. [debian/README.Debian]
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Thu, 11 Jan 2007 21:47:04 +0100
+
+evolution-data-server (1.8.1-3) experimental; urgency=low
 
   * Add recursive lock to avoid race condition in file backend. Thanks
     to Patrick Ohly. (closes: #395416)
     [debian/patches/50_file-backend-recursive-locking.patch]
-  * Fix uncontrolled creation of pipes. Thanks to Keith Packard.
-    (closes: #391521) [70_revert-prpipe-union.patch]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Tue, 31 Oct 2006 22:15:00 +0100
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue, 31 Oct 2006 22:15:53 +0100
+
+evolution-data-server (1.8.1-2) experimental; urgency=low
+
+  * Revert obtrusive exchange performance patch. (closes: #391022)
+    [debian/patches/20_revert-exchange-offline-supported-patch.patch]
+  * For now, do not use gnome-keyring. [debian/rules] (closes: #392061)
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 22 Oct 2006 09:51:16 +0200
+
+evolution-data-server (1.8.1-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue,  3 Oct 2006 15:19:32 +0200
+
+evolution-data-server (1.8.0-3) experimental; urgency=low
+
+  [ oysteigi ]
+  * Correct camel-providers dir calculation.
+    [debian/patches/45_libcamel_providers_version.patch]
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue, 26 Sep 2006 09:55:24 +0200
+
+evolution-data-server (1.8.0-2) experimental; urgency=low
+
+  * Add build-dep on libglade2-dev for eds-ui [debian/control]
+  * Enable gtk-doc [debian/rules]
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu, 21 Sep 2006 14:15:44 +0200
+
+evolution-data-server (1.8.0-1) experimental; urgency=low
+
+  [ Oystein Gisnas ]
+  * debian/patches/55_no-fallback-for-tls.patch: Applied upstream
+  * debian/patches/60_gpg-smartcard.patch: Applied upstream
+  * debian/patches/9?_from_cvs_*.patch: Applied upstream
+  * debian/rules: Explicitly enable dynamic libdb
+  * debian/rules: Enable gnome-keyring integration
+  * debian/patches/20_xulrunner.patch: remove - fixed upstream
+  * debian/patches/35_external-libdb.patch - fixed upstream
+  * libebook1.2-5 -> libebook1.2-9 SONAME change
+  * libedataserverui1.2-6 -> libedataserverui1.2-8 SONAME change
+  * libegroupwise1.2-9 -> libegroupwise1.2-12 SONAME change
+  * libexchange1.2-1 -> libexchange1.2-2 SONAME change
+  * Remove libdb-dev build dep - no longer compiles with libdb3-dev.
+    [debian/control]
+
+  [ Heikki Henriksen ]
+  * New upstream release (1.8.0)
+  * Updated watch-file to follow 1.8-series
+  * Removed patch applied upstream [debian/patches/10_de_translation.patch]
+  * Add build-depend on libgnome-keyring-dev [debian/control]
+  * libecal1.2-5 -> libecal1.2-7 SONAME change
+  * libedatacal1.2-5 -> libedatacal1.2-6 SONAME change
+  * Update soname-changes in descriptions [debian/control]
+  * Update patch for camel pkg-config [debian/patches/10_camel-pkg-config-requires.patch]
+  * Update small translation patch [debian/patches/11_it_translation.patch]
+  * Update camel-version patch [debian/patches/40_libcamel_soname_version.patch]
+  * Update camel-providers patch [debian/patches/45_libcamel_providers_version.patch]
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 11 Sep 2006 22:35:46 +0200
 
 evolution-data-server (1.6.3-1) unstable; urgency=low
 
@@ -40,7 +144,7 @@ evolution-data-server (1.6.3-1) unstable; urgency=low
     .pc file. This means that deps on e-d-s-dev has to be replaced
     by explicit deps to each library. [debian/control]
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sun, 29 Oct 2006 13:28:34 +0100
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue,  8 Aug 2006 10:56:51 +0200
 
 evolution-data-server (1.6.2-3) unstable; urgency=low
 

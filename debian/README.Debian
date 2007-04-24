@@ -1,6 +1,11 @@
 Evolution for Debian
 ====================
 
+IMAP
+----
+
+In versions prior to 2.8, two different IMAP providers (backend modules) were installed. "IMAP" was considered more stable and "IMAP4rev1" had a few experimental features. Starting with version 2.8, IMAP4rev1 has been removed. All accounts with IMAP4rev1 set as server type for incoming email must be switched to IMAP.
+
 Mailbox corruption
 ------------------
 
