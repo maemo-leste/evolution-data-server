@@ -1,3 +1,9 @@
+evolution-data-server (1.10.1-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 24 Apr 2007 16:30:48 +0200
+
 evolution-data-server (1.10.1-1) experimental; urgency=low
 
   [ Oystein Gisnas ]
