@@ -1,5 +1,6 @@
 evolution-data-server (1.10.1-1) experimental; urgency=low
 
+  [ Oystein Gisnas ]
   * New upstream release. (closes: #414716)
     - Bump intltool build-dep to >= 0.35.5
     - Bump libglib2.0-dev build-dep to >= 2.10.0
@@ -16,7 +17,10 @@ evolution-data-server (1.10.1-1) experimental; urgency=low
     with _prepend, which is O(1)
   * Add lintian overrides
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sun, 15 Apr 2007 21:38:45 +0200
+  [ Loic Minier ]
+  * Drop shlibs.local generation hack which seems obsolete.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 24 Apr 2007 16:07:59 +0200
 
 evolution-data-server (1.8.3-1) experimental; urgency=low
 
