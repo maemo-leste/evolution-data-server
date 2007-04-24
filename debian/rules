@@ -29,9 +29,6 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
-common-binary-predeb-arch::
-	cat debian/*/DEBIAN/shlibs > debian/shlibs.local
-
 binary-install/evolution-data-server::
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
