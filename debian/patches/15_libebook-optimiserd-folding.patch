@@ -1,0 +1,43 @@
+--- addressbook/libebook/e-vcard.c.orig	2007-05-01 22:30:24.000000000 +0200
++++ addressbook/libebook/e-vcard.c	2007-05-02 00:13:59.990337883 +0200
+@@ -808,7 +808,8 @@
+ 		GList *p;
+ 		EVCardAttribute *attr = l->data;
+ 		GString *attr_str;
+-		int l;
++		int c;
++		gchar *s;
+ 
+ 		if (!g_ascii_strcasecmp (attr->name, "VERSION"))
+ 			continue;
+@@ -884,20 +885,18 @@
+ 		 * When generating a content line, lines longer than 75
+ 		 * characters SHOULD be folded
+ 		 */
+-		l = 0;
+-		do {
+-			
+-			if ((g_utf8_strlen (attr_str->str, -1) -l) > 75) {
+-				char *p;
++		s = attr_str->str;
++		while (TRUE)
++		{
++			c = 75;
++			while (c-- > 0 && *(s = g_utf8_next_char (s)))
++				;
+ 
+-				l += 75;
+-				p = g_utf8_offset_to_pointer (attr_str->str, l);
+-			
+-				g_string_insert_len (attr_str, (p - attr_str->str), CRLF " ", sizeof (CRLF " ") - 1);
+-			}
+-			else
++			if (!*s)
+ 				break;
+-		} while (l < g_utf8_strlen (attr_str->str, -1));
++			g_string_insert_len (attr_str, s - attr_str->str, CRLF " ", 3);
++			s += 2;
++		}
+ 
+ 		g_string_append (attr_str, CRLF);
+ 

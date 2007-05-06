@@ -1,0 +1,63 @@
+diff -Nur evolution-data-server-1.10.1/libedataserver/e-categories.c evolution-data-server-1.10.1.new/libedataserver/e-categories.c
+--- evolution-data-server-1.10.1/libedataserver/e-categories.c	2007-04-09 14:42:55.000000000 +0200
++++ evolution-data-server-1.10.1.new/libedataserver/e-categories.c	2007-05-07 00:52:02.000000000 +0200
+@@ -30,6 +30,8 @@
+ 
+ #include "libedataserver-private.h"
+ 
++#define d(x)
++
+ typedef struct {
+ 	char *category;
+ 	char *icon_file;
+@@ -156,7 +158,7 @@
+ 
+ 	filename = build_categories_filename ();
+ 
+-	g_debug ("Saving categories to \"%s\"", filename);
++	d ("Saving categories to \"%s\"", filename);
+ 
+ 	/* build the file contents */
+ 	buffer = g_string_new ("<categories>\n");
+@@ -251,7 +253,7 @@
+ 	if (!g_file_test (filename, G_FILE_TEST_EXISTS))
+ 		goto exit;
+ 
+-	g_debug ("Loading categories from \"%s\"", filename);
++	d ("Loading categories from \"%s\"", filename);
+ 
+ 	if (!g_file_get_contents (filename, &contents, &length, &error)) {
+ 		g_warning ("Unable to load categories: %s", error->message);
+@@ -307,7 +309,7 @@
+ 	if (string == NULL || *string == '\0')
+ 		goto exit;
+ 
+-	g_debug ("Loading categories from GConf key \"%s\"", key);
++	d ("Loading categories from GConf key \"%s\"", key);
+ 
+ 	n_added = parse_categories (string, strlen (string));
+ 	if (n_added == 0)
+@@ -379,20 +381,20 @@
+ 
+ 	n_added = load_categories ();
+ 	if (n_added > 0) {
+-		g_debug ("Loaded %d categories", n_added);
++		d ("Loaded %d categories", n_added);
+ 		save_is_pending = FALSE;
+ 		return;
+ 	}
+ 
+ 	n_added = migrate_old_categories ();
+ 	if (n_added > 0) {
+-		g_debug ("Loaded %d categories", n_added);
++		d ("Loaded %d categories", n_added);
+ 		save_categories ();
+ 		return;
+ 	}
+ 
+ 	load_default_categories ();
+-	g_debug ("Loaded default categories");
++	d ("Loaded default categories");
+ 	save_categories ();
+ }
+ 
