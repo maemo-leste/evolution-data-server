@@ -1,0 +1,11 @@
+--- trunk/src/server.c	2007/04/20 04:47:09	7711
++++ trunk/src/server.c	2007/05/08 09:33:03	7732
+@@ -369,7 +369,7 @@
+ 		else if (!did_cals)
+ 			failed = "CALS";
+ 
+-		g_error (G_STRLOC ": could not initialize Server service \"%s\"; terminating", failed);
++		g_warning (G_STRLOC ": could not initialize Server service \"%s\"; terminating", failed);
+ 
+ 		if (e_data_book_factory) {
+ 			bonobo_object_unref (BONOBO_OBJECT (e_data_book_factory));
