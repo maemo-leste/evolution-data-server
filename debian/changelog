@@ -1,5 +1,6 @@
 evolution-data-server (1.10.2-1) unstable; urgency=low
 
+  [ Oystein Gisnas ]
   * New upstream release.
   * 15_libebook-optimised-folding.patch: Speed up vCard line folding by
     orders of magnitude (bugzilla #433782)
@@ -10,7 +11,10 @@ evolution-data-server (1.10.2-1) unstable; urgency=low
     two servers are started at the same time. (closes: #422426)
   * Remove unused ${misc:Depends}
 
- -- Oystein Gisnas <oystein@gisnas.net>  Mon, 28 May 2007 22:10:25 +0200
+  [ Loic Minier ]
+  * Wrap deps and build-deps.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 29 May 2007 11:51:49 +0200
 
 evolution-data-server (1.10.1-2) unstable; urgency=low
 
