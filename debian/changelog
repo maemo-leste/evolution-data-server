@@ -13,8 +13,9 @@ evolution-data-server (1.10.2-1) unstable; urgency=low
 
   [ Loic Minier ]
   * Wrap deps and build-deps.
+  * Add ${misc:Depends}.
 
- -- Loic Minier <lool@dooz.org>  Tue, 29 May 2007 11:51:49 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 29 May 2007 11:57:07 +0200
 
 evolution-data-server (1.10.1-2) unstable; urgency=low
 
