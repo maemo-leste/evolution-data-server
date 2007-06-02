@@ -1,3 +1,38 @@
+evolution-data-server (1.11.2) UNRELEASED; urgency=low
+
+  * New upstream release. (unstable)
+    - Drop 15_libebook-optimised-folding.patch, applied upstream
+    - Drop 20_e-book-is-self.patch, applied upstream
+    - Drop 35_warn-on-server-service-init-failure.patch, applied upstream
+    - Drop 50_libebook-get-contact-list-prepend.patch, applied upstream
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sat, 02 Jun 2007 22:31:13 +0200
+
+evolution-data-server (1.10.2-1) unstable; urgency=low
+
+  [ Oystein Gisnas ]
+  * New upstream release.
+  * 15_libebook-optimised-folding.patch: Speed up vCard line folding by
+    orders of magnitude (bugzilla #433782)
+  * 20_e-book-is-self.patch: Return TRUE when self contact is returned
+    (bugzilla #378502)
+  * 25_mute-debug-messages.patch: Mute debug noise
+  * 35_warn-on-server-service-init-failure.patch: Do not core dump when
+    two servers are started at the same time. (closes: #422426)
+  * Remove unused ${misc:Depends}
+
+  [ Loic Minier ]
+  * Wrap deps and build-deps.
+  * Add ${misc:Depends}.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 29 May 2007 11:57:07 +0200
+
+evolution-data-server (1.10.1-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 24 Apr 2007 16:30:48 +0200
+
 evolution-data-server (1.10.1-1) experimental; urgency=low
 
   [ Oystein Gisnas ]
