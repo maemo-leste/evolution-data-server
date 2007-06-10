@@ -1,4 +1,4 @@
-evolution-data-server (1.11.2-1) UNRELEASED; urgency=low
+evolution-data-server (1.11.3-1) UNRELEASED; urgency=low
 
   * New upstream release. (unstable)
     - Drop 15_libebook-optimised-folding.patch, applied upstream
