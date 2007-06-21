@@ -1,12 +1,19 @@
-evolution-data-server (1.11.3-1) UNRELEASED; urgency=low
+evolution-data-server (1.11.4-1) UNRELEASED; urgency=low
 
+  [ Oystein Gisnas ]
   * New upstream release. (unstable)
     - Drop 15_libebook-optimised-folding.patch, applied upstream
     - Drop 20_e-book-is-self.patch, applied upstream
     - Drop 35_warn-on-server-service-init-failure.patch, applied upstream
     - Drop 50_libebook-get-contact-list-prepend.patch, applied upstream
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sat, 02 Jun 2007 22:43:51 +0200
+  [ Loic Minier ]
+  * New upstream development release; no API change.
+    - SECURITY: Fixes potential negative array index usage in IMAP code
+      (remote); FEDORA-2007-0464; GNOME #447414; closes: #429876.
+    - Fixes build failure on second build; closes: #424199.
+
+ -- Loic Minier <lool@dooz.org>  Thu, 21 Jun 2007 10:21:17 +0200
 
 evolution-data-server (1.10.2-1) unstable; urgency=low
 
