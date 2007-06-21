@@ -1,0 +1,29 @@
+SECURITY; GNOME #447414; FEDORA-2007-0464; Debian #429876; fixes potential
+negative array index usage in IMAP code (remote).
+
+2007-06-14  Philip Van Hoof  <pvanhoof@gnome.org>
+
+       * camel-imap-folder.c: Security bugfix. The sequence can be a negative
+       value while it is being used as the index of an array (#447414)
+
+diff -Nur evolution-data-server-1.10.2/camel/providers/imap/camel-imap-folder.c evolution-data-server-1.10.2.new/camel/providers/imap/camel-imap-folder.c
+--- evolution-data-server-1.10.2/camel/providers/imap/camel-imap-folder.c	2007-04-09 14:42:39.000000000 +0200
++++ evolution-data-server-1.10.2.new/camel/providers/imap/camel-imap-folder.c	2007-06-21 10:33:01.000000000 +0200
+@@ -655,7 +655,7 @@
+ 		uid = g_datalist_get_data (&data, "UID");
+ 		flags = GPOINTER_TO_UINT (g_datalist_get_data (&data, "FLAGS"));
+ 		
+-		if (!uid || !seq || seq > summary_len) {
++		if (!uid || !seq || seq > summary_len || seq < 0) {
+ 			g_datalist_clear (&data);
+ 			continue;
+ 		}
+@@ -2789,7 +2789,7 @@
+ 		
+ 		if (*response != '*' || *(response + 1) != ' ')
+ 			return NULL;
+-		seq = strtol (response + 2, &response, 10);
++		seq = strtoul (response + 2, &response, 10);
+ 		if (seq == 0)
+ 			return NULL;
+ 		if (g_ascii_strncasecmp (response, " FETCH (", 8) != 0)
