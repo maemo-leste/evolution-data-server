@@ -1,3 +1,9 @@
+evolution-data-server (1.10.3-1) unstable; urgency=low
+
+  * New upstream stable release; no API change; bug fixes.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 25 Jul 2007 16:42:14 +0200
+
 evolution-data-server (1.10.2-2) unstable; urgency=high
 
   [ Oystein Gisnas ]
