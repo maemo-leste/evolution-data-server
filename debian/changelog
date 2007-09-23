@@ -1,3 +1,18 @@
+evolution-data-server (1.12.0-1) unstable; urgency=low
+
+  * New upstream release
+  * Adjusted Build-Deps
+  * Adjusted .install paths to reflect the new upstream.
+  * Dropped patch:
+    15_libebook-optimised-folding.patch - Applied upstream.
+    20_e-book-is-self.patch - Applied upstream.
+    30_vcf-import-linebreak.patch - Applied upstream.
+    35_warn-on-server-service-init-failure.patch - Applied upstream.
+    50_libebook-get-contact-list-prepend.patch - Applied upstream.
+    65_imap-negative-array-index.patch - Applied upstream.
+
+ -- Riccardo Setti <giskard@debian.org>  Sun, 23 Sep 2007 12:07:20 +0200
+
 evolution-data-server (1.10.3-1) unstable; urgency=low
 
   * New upstream stable release; no API change; bug fixes.
