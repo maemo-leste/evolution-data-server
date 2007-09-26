@@ -162,7 +162,8 @@ Package: libedataserverui1.2-8
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
-         ${misc:Depends}
+         ${misc:Depends},
+         evolution-data-server-common (>= 1.12.0)
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.

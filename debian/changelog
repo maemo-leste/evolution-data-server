@@ -1,3 +1,10 @@
+evolution-data-server (1.12.0-2) unstable; urgency=low
+
+  * libedataserverui1.2-8 needs files from /usr/share/evolution-data-se
+  rver-1.12/glade/ so add a versioned depend on e-d-s-common (closes: #444163)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed, 26 Sep 2007 16:52:24 +0200
+
 evolution-data-server (1.12.0-1) unstable; urgency=low
 
   * New upstream release
