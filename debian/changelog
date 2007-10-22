@@ -1,4 +1,4 @@
-evolution-data-server (1.12.1-0) unstable; urgency=low
+evolution-data-server (1.12.1-1) unstable; urgency=low
 
   [ Heikki Henriksen ]
   * libedataserverui1.2-8 needs files from /usr/share/evolution-data-se
@@ -6,8 +6,10 @@ evolution-data-server (1.12.1-0) unstable; urgency=low
 
   [ Oystein Gisnas ]
   * New upstream release
+  * 30_iconv-gb2312-gb18030.patch: Use gb18030 which is a superset of gb2312
+    to decode gb2312. Thanks to Darren Hoo. (closes: #447233)
 
- -- Oystein Gisnas <oystein@gisnas.net>  Sun, 21 Oct 2007 19:30:19 +0200
+ -- Oystein Gisnas <oystein@gisnas.net>  Mon, 22 Oct 2007 10:45:32 +0200
 
 evolution-data-server (1.12.0-1) unstable; urgency=low
 
