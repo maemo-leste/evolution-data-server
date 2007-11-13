@@ -1,8 +1,13 @@
 evolution-data-server (2.21.2-0) experimental; urgency=low
 
   * New upstream release
+  * Add libraries and development-files for:
+    - libgdata
+    - libgdata-google
+  * Update to base-version==2.22 in *.install
+  * No api-bumps needed so far in the older libraries
 
- -- Heikki Henriksen <heikkih@gmail.com>  Tue, 13 Nov 2007 20:11:40 +0100
+ -- Heikki Henriksen <heikkih@gmail.com>  Tue, 13 Nov 2007 21:01:27 +0100
 
 evolution-data-server (1.12.1-1) unstable; urgency=low
 
