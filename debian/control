@@ -163,7 +163,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= 1.12.0)
+         evolution-data-server-common (>= 2.21.0)
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -315,3 +315,49 @@ Description: Backend library for evolution calendars (development files)
  .
  This package contains header files and static library for
  libexchange-storage1.2-3.
+
+Package: libgdata1.2-1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Backend library for google data
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package is a backend library for google data.
+
+Package: libgdata1.2-dev
+Section: libdevel
+Architecture: any
+Depends: libgdata1.2-1 (= ${binary:Version}),
+         ${misc:Depends}
+Description: Backend library for google calendar data (development files)
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package contains header files and static library for
+ libgdata1.2-1
+
+Package: libgdata-google1.2-1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Backend library for google calendar data
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package is a backend library for google data.
+
+Package: libgdata-google1.2-dev
+Section: libdevel
+Architecture: any
+Depends: libgdata-google1.2-1 (= ${binary:Version}),
+         ${misc:Depends}
+Description: Backend library for google calendar data (development files)
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package contains header files and static library for
+ libgdata-google1.2-1
