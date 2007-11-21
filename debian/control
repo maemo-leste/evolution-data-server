@@ -7,7 +7,12 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Loic Minier <lool@dooz.org>,
            Heikki Henriksen <heikkih@gmail.com>,
            Oystein Gisnas <oystein@gisnas.net>,
-	   Riccardo Setti <giskard@debian.org>
+           Riccardo Setti <giskard@debian.org>
+Standards-Version: 3.7.2
+Dm-Upload-Allowed: yes
+Homepage: http://www.gnome.org/projects/evolution/
+Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-evolution/unstable/evolution-data-server
 Build-Depends: debhelper (>= 5.0.0),
                cdbs (>= 0.4.37),
                dpkg-dev (>= 1.13.19),
@@ -32,7 +37,6 @@ Build-Depends: debhelper (>= 5.0.0),
                libgnomevfs2-dev,
                libsoup2.2-dev (>= 2.2.91),
                gtk-doc-tools
-Standards-Version: 3.7.2
 
 Package: evolution-data-server
 Architecture: any

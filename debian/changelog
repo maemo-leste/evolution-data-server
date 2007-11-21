@@ -1,3 +1,9 @@
+evolution-data-server (1.12.1-2) unstable; urgency=low
+
+  * Add Dm-Upload-Allowed, Homepage, Vcs-Browser and Vcs-Svn fields in control
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Wed, 21 Nov 2007 13:56:56 +0100
+
 evolution-data-server (1.12.1-1) unstable; urgency=low
 
   [ Heikki Henriksen ]
