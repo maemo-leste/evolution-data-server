@@ -3,8 +3,9 @@ evolution-data-server (1.12.2-1) unstable; urgency=low
   * New upstream release (bugfixes and translations)
   * Pkgconfig build-dep is bumped to 0.16
   * Add Dm-Upload-Allowed, Homepage, Vcs-Browser and Vcs-Svn fields in control
+  * Add build-depend on libgnome-keyring-dev to build with keyring-support 
 
- -- Heikki Henriksen <heikkih@gmail.com>  Mon, 26 Nov 2007 16:10:32 +0100
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 26 Nov 2007 21:22:39 +0100
 
 evolution-data-server (1.12.1-1) unstable; urgency=low
 

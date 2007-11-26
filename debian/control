@@ -36,6 +36,7 @@ Build-Depends: debhelper (>= 5.0.0),
                libgnome2-dev,
                libgnomevfs2-dev,
                libsoup2.2-dev (>= 2.2.91),
+               libgnome-keyring-dev,
                gtk-doc-tools
 
 Package: evolution-data-server
