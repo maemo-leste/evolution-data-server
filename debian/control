@@ -9,7 +9,7 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Oystein Gisnas <oystein@gisnas.net>,
            Riccardo Setti <giskard@debian.org>
 Standards-Version: 3.7.2
-Dm-Upload-Allowed: yes
+XS-Dm-Upload-Allowed: yes
 Homepage: http://www.gnome.org/projects/evolution/
 Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-evolution/unstable/evolution-data-server
