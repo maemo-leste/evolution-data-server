@@ -1,2 +1,2 @@
 debian/tmp/usr/lib/libcamel-*.so.*
-lintian/libcamel1.2-10 usr/share/lintian/overrides/
+debian/lintian/libcamel1.2-10 usr/share/lintian/overrides/
