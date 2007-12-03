@@ -1,1 +1,2 @@
 debian/tmp/usr/lib/libebook-1.2.so.*
+lintian/libebook1.2-9 usr/share/lintian/overrides/

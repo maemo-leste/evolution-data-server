@@ -1,1 +1,2 @@
 debian/tmp/usr/lib/libecal-1.2.so.*
+lintian/libecal1.2-7 usr/share/lintian/overrides/
