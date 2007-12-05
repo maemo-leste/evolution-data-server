@@ -24,8 +24,7 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-openldap \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
-	--enable-gtk-doc \
-	--enable-gnome-keyring=no
+	--enable-gtk-doc
 
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
