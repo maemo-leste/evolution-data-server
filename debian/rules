@@ -15,8 +15,6 @@ CFLAGS += -fPIC
 
 DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
-	--with-nspr-includes=/usr/include/nspr \
-	--with-nss-includes=/usr/include/nss \
 	--enable-ipv6 \
 	--enable-nss \
 	--enable-nntp \

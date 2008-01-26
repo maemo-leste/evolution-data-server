@@ -1,3 +1,11 @@
+evolution-data-server (1.12.2-1.1) UNRELEASED; urgency=low
+
+  * Non-maintainer upload.
+  * Remove configure flags --with-nspr-includes and --with-nss-includes
+    (closes: #462642)
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 26 Jan 2008 14:25:48 +0100
+
 evolution-data-server (1.12.2-1) unstable; urgency=low
 
   * New upstream release (bugfixes and translations)
