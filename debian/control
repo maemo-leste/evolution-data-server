@@ -7,8 +7,9 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Loic Minier <lool@dooz.org>,
            Heikki Henriksen <heikkih@gmail.com>,
            Oystein Gisnas <oystein@gisnas.net>,
-           Riccardo Setti <giskard@debian.org>
-Standards-Version: 3.7.2
+           Riccardo Setti <giskard@debian.org>,
+           Yves-Alexis Perez <corsac@debian.org>
+Standards-Version: 3.7.3
 XS-Dm-Upload-Allowed: yes
 Homepage: http://www.gnome.org/projects/evolution/
 Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server
@@ -95,6 +96,7 @@ Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
 Depends: libedataserver1.2-9 (= ${binary:Version}),
+         ${shlibs:Depends},
          ${misc:Depends},
          libxml2-dev,
          libglib2.0-dev,
@@ -126,6 +128,7 @@ Section: libdevel
 Architecture: any
 Depends: libcamel1.2-10 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libglib2.0-dev,
          libedataserver1.2-dev (>= 1.8.0)
 Description: Development files for libcamel
@@ -154,6 +157,7 @@ Section: libdevel
 Architecture: any
 Depends: libebook1.2-9 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libbonobo2-dev (>= 2.4.2),
          libgnome2-dev,
          libedataserver1.2-dev (>= 1.8.0)
@@ -180,6 +184,7 @@ Section: libdevel
 Architecture: any
 Depends: libedataserverui1.2-8 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libgtk2.0-dev,
          libglade2-dev,
          libgnome2-dev,
@@ -208,6 +213,7 @@ Section: libdevel
 Architecture: any
 Depends: libedata-book1.2-2 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libbonobo2-dev (>= 2.4.2),
          libgnome2-dev,
          libedataserver1.2-dev (>= 1.8.0),
@@ -234,6 +240,7 @@ Section: libdevel
 Architecture: any
 Depends: libecal1.2-7 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libgnome2-dev,
          libbonobo2-dev (>= 2.4.2),
          libedataserver1.2-dev (>= 1.8.0)
@@ -259,6 +266,7 @@ Section: libdevel
 Architecture: any
 Depends: libedata-cal1.2-6 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libgnome2-dev,
          libbonobo2-dev (>= 2.4.2),
          libgnomevfs2-dev,
@@ -287,6 +295,7 @@ Section: libdevel
 Architecture: any
 Depends: libegroupwise1.2-13 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libsoup2.2-dev
 Description: Development files for libegroupwise
  This package contains header files and static library for libegroupwise1.2-13.
@@ -313,6 +322,7 @@ Section: libdevel
 Architecture: any
 Depends: libexchange-storage1.2-3 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libsoup2.2-dev
 Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
