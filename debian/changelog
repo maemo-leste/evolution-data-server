@@ -1,5 +1,6 @@
-evolution-data-server (2.22.0-1) unstable; urgency=low
+evolution-data-server (2.22.0-1) experimental; urgency=low
 
+  * Upload to experimental to smoothen NEW-handling
   * New upstream release
   * Upgrade build-deps:
     - libsoup2.4-dev from libsoup2.2-dev
@@ -8,7 +9,7 @@ evolution-data-server (2.22.0-1) unstable; urgency=low
     - libgnomevfs2-dev (>= 2.4.0)
     - libbonobo2-dev (>= 2.20.3
   * Bump so-name for libcamel to 11
-  * Add libraries and development-files for:
+  * Add libraries, development-files and lintian for:
     - libgdata
     - libgdata-google
   * Update base-version to 2.22 in *.install
