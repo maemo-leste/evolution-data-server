@@ -25,8 +25,8 @@ Build-Depends: debhelper (>= 5.0.0),
                libdb4.4-dev,
                libkrb5-dev,
                libldap2-dev,
-               libglib2.0-dev (>= 2.10.0),
-               libbonobo2-dev (>= 2.4.2),
+               libglib2.0-dev (>= 2.15.3),
+               libbonobo2-dev (>= 2.20.3),
                liborbit2-dev (>= 1:2.9.8),
                libglade2-dev,
                libgnomeui-dev,
@@ -35,8 +35,8 @@ Build-Depends: debhelper (>= 5.0.0),
                libnss3-dev,
                libgtk2.0-dev (>= 2.10.0),
                libgnome2-dev,
-               libgnomevfs2-dev,
-               libsoup2.2-dev (>= 2.2.91),
+               libgnomevfs2-dev (>= 2.4.0),
+               libsoup2.4-dev,
                libgnome-keyring-dev,
                gtk-doc-tools
 
@@ -110,7 +110,7 @@ Description: Utility library for evolution data servers (development files)
  .
  This package contains header files and static library for libedataserver1.2-9.
 
-Package: libcamel1.2-10
+Package: libcamel1.2-11
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -126,13 +126,13 @@ Description: The Evolution MIME message handling library
 Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libcamel1.2-10 (= ${binary:Version}),
+Depends: libcamel1.2-11 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libglib2.0-dev,
          libedataserver1.2-dev (>= 1.8.0)
 Description: Development files for libcamel
- This package contains header files and static library for libcamel1.2-10
+ This package contains header files and static library for libcamel1.2-11
  .
  Camel is a generic messaging library. It supports the standard
  messaging system for receiving and sending messages. It is the
@@ -172,7 +172,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= 1.12.0)
+         evolution-data-server-common (>= 2.22.0)
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -330,3 +330,50 @@ Description: Backend library for evolution calendars (development files)
  .
  This package contains header files and static library for
  libexchange-storage1.2-3.
+
+  
+Package: libgdata1.2-1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Backend library for google data
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package is a backend library for google data.
+
+Package: libgdata1.2-dev
+Section: libdevel
+Architecture: any
+Depends: libgdata1.2-1 (= ${binary:Version}),
+         ${misc:Depends}
+Description: Backend library for google calendar data (development files)
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package contains header files and static library for
+ libgdata1.2-1
+
+Package: libgdata-google1.2-1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Backend library for google calendar data
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package is a backend library for google data.
+
+Package: libgdata-google1.2-dev
+Section: libdevel
+Architecture: any
+Depends: libgdata-google1.2-1 (= ${binary:Version}),
+         ${misc:Depends}
+Description: Backend library for google calendar data (development files)
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+ .
+ This package contains header files and static library for
+ libgdata-google
