@@ -12,6 +12,7 @@ evolution-data-server (2.22.0-1) unstable; urgency=low
     - libgdata
     - libgdata-google
   * Update base-version to 2.22 in *.install
+  * Remove patch 10_camel-pkg-config-requires.patch - included upstream
 
  -- Heikki Henriksen <heikkih@gmail.com>  Tue, 11 Mar 2008 20:11:36 +0100
 
