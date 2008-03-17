@@ -23,8 +23,9 @@ evolution-data-server (2.22.0-1) experimental; urgency=low
 
   [ Oystein Gisnas ]
   * Depend on libdb-dev instead of libdb4.4-dev
+  * Sync deps of -dev packages with pkg-config files
 
- -- Oystein Gisnas <oystein@gisnas.net>  Mon, 17 Mar 2008 19:06:23 +0100
+ -- Oystein Gisnas <oysteigi@bluebear-sid.lan>  Tue, 18 Mar 2008 00:13:58 +0100
 
 evolution-data-server (1.12.3-1) unstable; urgency=low
 
