@@ -1,5 +1,6 @@
 evolution-data-server (2.22.0-1) experimental; urgency=low
 
+  [ Heikki Henriksen ]
   * Upload to experimental to smoothen NEW-handling
   * New upstream release
   * Upgrade build-deps:
@@ -20,7 +21,10 @@ evolution-data-server (2.22.0-1) experimental; urgency=low
     - 25_mute-debug-messages.patch
     - 45_libcamel_providers_version.patch
 
- -- Heikki Henriksen <heikkih@gmail.com>  Tue, 11 Mar 2008 20:11:36 +0100
+  [ Øystein Gisnås ]
+  * Depend on libdb-dev instead of libdb4.4-dev
+
+ -- Øystein Gisnås <oystein@gisnas.net>  Mon, 17 Mar 2008 19:06:23 +0100
 
 evolution-data-server (1.12.3-1) unstable; urgency=low
 
