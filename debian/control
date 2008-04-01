@@ -10,13 +10,13 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Riccardo Setti <giskard@debian.org>,
            Yves-Alexis Perez <corsac@debian.org>
 Standards-Version: 3.7.3
-XS-Dm-Upload-Allowed: yes
+Dm-Upload-Allowed: yes
 Homepage: http://www.gnome.org/projects/evolution/
 Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-evolution/unstable/evolution-data-server
 Build-Depends: debhelper (>= 5.0.0),
                cdbs (>= 0.4.37),
-               dpkg-dev (>= 1.13.19),
+               dpkg-dev (>= 1.14.16),
                pkg-config (>= 0.16),
                flex,
                bison,
