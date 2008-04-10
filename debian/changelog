@@ -4,9 +4,10 @@ evolution-data-server (2.22.1-1) UNRELEASED; urgency=low
   * New upstream bugfix release
 
   [ Heikki Henriksen]
-  * Improve short and long descriptions for gdata-packages (closes: #474535)
+  * Improve short and long descriptions for gdata-packages according to
+    *.pc.in and actual usage (closes: #474535)
 
- -- Heikki Henriksen <heikkih@gmail.com>  Thu, 10 Apr 2008 19:45:14 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu, 10 Apr 2008 20:31:39 +0200
 
 evolution-data-server (2.22.0-2) unstable; urgency=low
 
