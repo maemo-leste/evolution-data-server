@@ -337,7 +337,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Description: Backend library for google data
+Description: Backend library to access google data
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
@@ -361,7 +361,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Description: Backend library for google calendar data
+Description: Backend library to access google data
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
@@ -373,7 +373,7 @@ Architecture: any
 Depends: libgdata-google1.2-1 (= ${binary:Version}),
          ${misc:Depends},
          libsoup2.4-dev
-Description: Backend library for google calendar data (development files)
+Description: Backend library for google data (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .

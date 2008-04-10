@@ -1,10 +1,12 @@
 evolution-data-server (2.22.1-1) UNRELEASED; urgency=low
 
+  [ Pedro Fragoso ]
   * New upstream bugfix release
-  * debian/control:
-    - Fix typo on libgdata1.2-dev description (Closes: #474535)
 
- -- Pedro Fragoso <emberez@gmail.com>  Mon, 07 Apr 2008 16:39:35 +0100
+  [ Heikki Henriksen]
+  * Improve short and long descriptions for gdata-packages (closes: #474535)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu, 10 Apr 2008 19:45:14 +0200
 
 evolution-data-server (2.22.0-2) unstable; urgency=low
 
