@@ -70,7 +70,7 @@ Architecture: any
 Depends: ${misc:Depends},
          libgnome2-dev,
          libbonobo2-dev (>= 2.20.3)
-Description: Development files for evolution-data-server (meta package)
+Description: Development files for evolution-data-server (metapackage)
  This package contains header files and static library of evolution-data-server.
 
 Package: evolution-data-server-dbg

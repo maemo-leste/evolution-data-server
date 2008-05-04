@@ -1,3 +1,9 @@
+evolution-data-server (2.22.1.1-2) UNRELEASED; urgency=low
+
+  * Fix spelling mistake in package description
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 04 May 2008 18:15:00 +0200
+
 evolution-data-server (2.22.1.1-1) unstable; urgency=low
 
   * New upstream bugfix release
