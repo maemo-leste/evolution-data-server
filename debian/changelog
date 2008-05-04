@@ -1,3 +1,9 @@
+evolution-data-server (2.22.1.1-1) UNRELEASED; urgency=low
+
+  * New upstream bugfix release
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 04 May 2008 17:11:01 +0200
+
 evolution-data-server (2.22.1-1) unstable; urgency=low
 
   [ Pedro Fragoso ]
