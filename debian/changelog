@@ -7,8 +7,11 @@ evolution-data-server (2.22.1.1-2) UNRELEASED; urgency=low
   * debian/patches/55_fix_gpg_breaks_keyring.patch:
     - Add patch from upstream to stop gpg breaking the keyring
       (closes: #481940)
+  * debian/patches/65_evolution-color.patch
+    - Add patch to fix 16bits color function. Thanks to Sjoerd Simmons.
+      (closes: #477807)
 
- -- Heikki Henriksen <heikkih@gmail.com>  Mon, 19 May 2008 21:01:46 +0200
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 19 May 2008 21:14:30 +0200
 
 evolution-data-server (2.22.1.1-1) unstable; urgency=low
 
