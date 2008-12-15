@@ -1,3 +1,27 @@
+evolution-data-server (2.24.2-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * debian/control:
+    - add build-dep on libsqlite3-dev.
+    - update dep on evolution-data-server-common 2.24.
+    - add build-dep on chrpath.
+    - add libsqlite3-dev to libcamel1.2-dev dependencies.
+  * debian/*.install:
+    - update paths for 2.24.
+  * Add libraries, development-files and lintian for libebackend.
+  * Bump soname for libedataserver1.2 (9 → 11)
+    - debian/control: update package name
+    - debian/libedataserver1.2-9.install renamed to libcamel1.2-11.install
+    - debian/lintian: libedataserver1.2-9 renamed to libcamel1.2-11
+  * Bump soname for libcamel1.2 (11 → 14)
+    - debian/control: update package name
+    - debian/libcamel1.2-11.install renamed to libcamel1.2-14.install
+    - debian/lintian: libcamel1.2-11 renamed to libcamel1.2-14 
+  * debian/rules:
+    - remove rpaths.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 15 Dec 2008 22:31:54 +0100
+
 evolution-data-server (2.22.3-1) unstable; urgency=low
 
   [ Pedro Fragoso ]
