@@ -1,7 +1,7 @@
-diff -ruN evolution-data-server-1.8.0.orig/configure evolution-data-server-1.8.0/configure
---- evolution-data-server-1.8.0.orig/configure	2006-09-04 06:53:00.000000000 +0200
-+++ evolution-data-server-1.8.0/configure	2006-09-06 23:10:36.000000000 +0200
-@@ -32370,7 +32370,7 @@
+diff -ruN evolution-data-server-2.22.0.orig/configure evolution-data-server-2.22.0/configure
+--- evolution-data-server-2.22.0.orig/configure	2008-03-09 18:55:24.000000000 +0100
++++ evolution-data-server-2.22.0/configure	2008-03-11 21:12:06.000000000 +0100
+@@ -31861,7 +31861,7 @@
  weatherdatadir="$privdatadir/weather"
  
  
@@ -10,15 +10,15 @@ diff -ruN evolution-data-server-1.8.0.orig/configure evolution-data-server-1.8.0
  
  
  
-diff -ruN evolution-data-server-1.8.0.orig/configure.in evolution-data-server-1.8.0/configure.in
---- evolution-data-server-1.8.0.orig/configure.in	2006-09-02 13:32:05.000000000 +0200
-+++ evolution-data-server-1.8.0/configure.in	2006-09-06 23:10:07.000000000 +0200
-@@ -1368,7 +1368,8 @@
+diff -ruN evolution-data-server-2.22.0.orig/configure.in evolution-data-server-2.22.0/configure.in
+--- evolution-data-server-2.22.0.orig/configure.in	2008-03-09 18:18:32.000000000 +0100
++++ evolution-data-server-2.22.0/configure.in	2008-03-11 21:13:10.000000000 +0100
+@@ -1519,7 +1519,8 @@
  AC_SUBST(weatherdatadir)
  
  dnl separate camel from e-d-s?  or should it be under the same spot?  same for now.
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
-+dnl add version to dir to avoid filename conflict between versions
++dnl add version to dir to avoid filename conflict between versions  
 +camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
  AC_SUBST(camel_providerdir)
  
