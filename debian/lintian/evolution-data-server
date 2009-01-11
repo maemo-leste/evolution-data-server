@@ -1,2 +1,4 @@
 # camel-lock-helper-1.2 must have access to the mail lock files
 evolution-data-server: setgid-binary usr/lib/evolution/camel-lock-helper-1.2 2755 root/mail
+# we don't run autoreconf in (unused) embbeded libdb copy
+evolution-data-server: ancient-libtool libdb/dist/ltmain.sh 1.4.2
