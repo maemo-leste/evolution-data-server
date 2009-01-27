@@ -1,4 +1,4 @@
-evolution-data-server (2.24.2-1) UNRELEASED; urgency=low
+evolution-data-server (2.24.3-1) UNRELEASED; urgency=low
 
   * New upstream release.
   * debian/control:
@@ -25,11 +25,11 @@ evolution-data-server (2.24.2-1) UNRELEASED; urgency=low
   * debian/patches:
     - 66_autoreconf-ignore-folders added, don't add libdb/dists and
       calendar/libical to AC_CONFIG_SUBDIRS so autoreconf doesn't fail.
-  * debian/lintian:
+  * debian/source.lintian-overrides:
     - evolution-data-server: add an ignore for ancient libtool in unused
       embbered libdb copy.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sun, 11 Jan 2009 17:23:20 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 27 Jan 2009 21:26:10 +0100
 
 evolution-data-server (2.22.3-1) unstable; urgency=low
 
