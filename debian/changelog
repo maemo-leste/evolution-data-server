@@ -1,4 +1,4 @@
-evolution-data-server (2.24.5-1) UNRELEASED; urgency=low
+evolution-data-server (2.24.5-1) experimental; urgency=low
 
   * New upstream release.
   * debian/control:
@@ -29,7 +29,7 @@ evolution-data-server (2.24.5-1) UNRELEASED; urgency=low
     - evolution-data-server: add an ignore for ancient libtool in unused
       embbered libdb copy.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Tue, 27 Jan 2009 21:26:10 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 28 Feb 2009 20:07:09 +0100
 
 evolution-data-server (2.22.3-1) unstable; urgency=low
 
