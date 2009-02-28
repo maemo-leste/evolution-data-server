@@ -27,7 +27,7 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 
 configure:
 	dh_testdir
-	autoreconf -vfi
+	#autoreconf -vfi
 
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
