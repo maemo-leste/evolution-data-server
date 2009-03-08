@@ -25,6 +25,10 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--enable-gtk-doc \
 	--enable-gnome-keyring=yes
 
+configure:
+	dh_testdir
+	#autoreconf -vfi
+
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
 binary-install/evolution-data-server::
@@ -33,39 +37,3 @@ binary-install/evolution-data-server::
 	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server-1.2/*/*.so \
 	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2 \
 	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/evolution-data-server-2.24
-
-binary-install/libedataserverui1.2-8::
-	chrpath -d -k $(CURDIR)/debian/libedataserverui1.2-8/usr/lib/libedataserverui-1.2.so.8.1.0
-
-binary-install/libgdata1.2-1::
-	chrpath -d -k $(CURDIR)/debian/libgdata1.2-1/usr/lib/libgdata-1.2.so.1.0.0
-
-binary-install/libgdata-google1.2-1::
-	chrpath -d -k $(CURDIR)/debian/libgdata-google1.2-1/usr/lib/libgdata-google-1.2.so.1.0.0
-
-binary-install/libexchange-storage1.2-3::
-	chrpath -d -k $(CURDIR)/debian/libexchange-storage1.2-3/usr/lib/libexchange-storage-1.2.so.3.0.0
-
-binary-install/libebook1.2-9::
-	chrpath -d -k $(CURDIR)/debian/libebook1.2-9/usr/lib/libebook-1.2.so.9.3.0
-
-binary-install/libedataserver1.2-11::
-	chrpath -d -k $(CURDIR)/debian/libedataserver1.2-11/usr/lib/libedataserver-1.2.so.11.0.0
-
-binary-install/libedata-book1.2-2::
-	chrpath -d -k $(CURDIR)/debian/libedata-book1.2-2/usr/lib/libedata-book-1.2.so.2.4.1
-
-binary-install/libcamel1.2-14::
-	chrpath -d -k $(CURDIR)/debian/libcamel1.2-14/usr/lib/libcamel-*1.2.so.14.0.0
-
-binary-install/libedata-cal1.2-6::
-	chrpath -d -k $(CURDIR)/debian/libedata-cal1.2-6/usr/lib/libedata-cal-1.2.so.6.0.2
-
-binary-install/libecal1.2-7::
-	chrpath -d -k $(CURDIR)/debian/libecal1.2-7/usr/lib/libecal-1.2.so.7.2.1
-
-binary-install/libebackend1.2-0::
-	chrpath -d -k $(CURDIR)/debian/libebackend1.2-0/usr/lib/libebackend-1.2.so.0.0.0
-
-binary-install/libegroupwise1.2-13::
-	chrpath -d -k $(CURDIR)/debian/libegroupwise1.2-13//usr/lib/libegroupwise-1.2.so.13.0.1

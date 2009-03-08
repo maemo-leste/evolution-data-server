@@ -1,4 +1,11 @@
-evolution-data-server (2.24.2-1) UNRELEASED; urgency=low
+evolution-data-server (2.24.5-2) UNRELEASED; urgency=low
+
+  * debian/patches:
+    - debian/patches/67_detect-change-signed-messages added.    closes: #508479
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sun, 01 Mar 2009 14:58:11 +0100
+
+evolution-data-server (2.24.5-1) experimental; urgency=low
 
   * New upstream release.
   * debian/control:
@@ -6,6 +13,9 @@ evolution-data-server (2.24.2-1) UNRELEASED; urgency=low
     - update dep on evolution-data-server-common 2.24.
     - add build-dep on chrpath.
     - add libsqlite3-dev to libcamel1.2-dev dependencies.
+    - add libsoup2.4-dev to libedataserver1.2-dev and libedataserverui1.2-dev.
+    - drop libgnomevfs2-dev (build)-deps.
+    - version (build) deps on keyring and sqlite3.
   * debian/*.install:
     - update paths for 2.24.
   * Add libraries, development-files and lintian for libebackend.
@@ -19,8 +29,14 @@ evolution-data-server (2.24.2-1) UNRELEASED; urgency=low
     - debian/lintian: libcamel1.2-11 renamed to libcamel1.2-14 
   * debian/rules:
     - remove rpaths.
+  * debian/patches:
+    - 66_autoreconf-ignore-folders added, don't add libdb/dists and
+      calendar/libical to AC_CONFIG_SUBDIRS so autoreconf doesn't fail.
+  * debian/source.lintian-overrides:
+    - evolution-data-server: add an ignore for ancient libtool in unused
+      embbered libdb copy.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 15 Dec 2008 22:31:54 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 28 Feb 2009 20:07:09 +0100
 
 evolution-data-server (2.22.3-1) unstable; urgency=low
 
