@@ -1,5 +1,6 @@
-evolution-data-server (2.24.5-2) UNRELEASED; urgency=low
+evolution-data-server (2.24.5-2) unstable; urgency=low
 
+  * Upload to unstable.
   * debian/patches:
     - debian/patches/67_detect-change-signed-messages added.    closes: #508479
 
