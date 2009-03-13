@@ -278,7 +278,9 @@ Depends: libedata-cal1.2-6 (= ${binary:Version}),
          libgnome2-dev,
          libbonobo2-dev (>= 2.20.3),
          libedataserver1.2-dev,
-         libecal1.2-dev
+         libecal1.2-dev,
+         libebackend1.2-dev,
+         libglib2.0-dev
 Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
