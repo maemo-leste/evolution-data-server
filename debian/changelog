@@ -6,8 +6,9 @@ evolution-data-server (2.24.5-2) unstable; urgency=low
   * debian/control:
     - libedata-cal1.2-dev: add dep on libebackend1.2-dev and libglib2.0-dev
       so correct dependencies are pulled.                       closes: #519636
+    - update standards version to 3.8.1. 
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sat, 14 Mar 2009 00:01:41 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 14 Mar 2009 00:02:56 +0100
 
 evolution-data-server (2.24.5-1) experimental; urgency=low
 
