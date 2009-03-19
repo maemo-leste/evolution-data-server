@@ -7,20 +7,27 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Loic Minier <lool@dooz.org>,
            Heikki Henriksen <heikkih@gmail.com>,
            Oystein Gisnas <oystein@gisnas.net>,
-	   Riccardo Setti <giskard@debian.org>
+           Riccardo Setti <giskard@debian.org>,
+           Yves-Alexis Perez <corsac@debian.org>,
+           Pedro Fragoso <ember@ubuntu.com>
+Standards-Version: 3.8.1
+Dm-Upload-Allowed: yes
+Homepage: http://www.gnome.org/projects/evolution/
+Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-evolution/unstable/evolution-data-server
 Build-Depends: debhelper (>= 5.0.0),
                cdbs (>= 0.4.37),
-               dpkg-dev (>= 1.13.19),
-               pkg-config,
+               dpkg-dev (>= 1.14.16),
+               pkg-config (>= 0.16),
                flex,
                bison,
                libtool,
                intltool (>= 0.35.5),
-               libdb4.4-dev,
+               libdb-dev,
                libkrb5-dev,
                libldap2-dev,
-               libglib2.0-dev (>= 2.10.0),
-               libbonobo2-dev (>= 2.4.2),
+               libglib2.0-dev (>= 2.16.1),
+               libbonobo2-dev (>= 2.20.3),
                liborbit2-dev (>= 1:2.9.8),
                libglade2-dev,
                libgnomeui-dev,
@@ -29,18 +36,22 @@ Build-Depends: debhelper (>= 5.0.0),
                libnss3-dev,
                libgtk2.0-dev (>= 2.10.0),
                libgnome2-dev,
-               libgnomevfs2-dev,
-               libsoup2.2-dev (>= 2.2.91),
-               gtk-doc-tools
-Standards-Version: 3.7.2
+               libsoup2.4-dev,
+               libgnome-keyring-dev (>= 2.20.1),
+               gtk-doc-tools,
+               libsqlite3-dev (>= 3.5),
+               chrpath,
+               libgweather-dev (>= 2.24.3),
+               libical-dev,
+               libicu-dev
 
 Package: evolution-data-server
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (= ${source:Version}),
-         evolution-data-server-dbg (= ${binary:Version})
-Suggests: evolution (>= 2.21.0)
+         evolution-data-server-common (= ${source:Version})
+Suggests: evolution (>= 2.6.1),
+          evolution-data-server-dbg (= ${binary:Version})
 Replaces: evolution-data-server1.2
 Description: evolution database backend server
  The data server, called "Evolution Data Server" is responsible for managing
@@ -49,8 +60,6 @@ Description: evolution database backend server
 Package: evolution-data-server-common
 Architecture: all
 Depends: ${misc:Depends}
-Replaces: evolution-data-server (<< 1.6.2-1)
-Conflicts: evolution-data-server (<< 1.6.2-1)
 Description: architecture independent files for Evolution Data Server
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -63,8 +72,8 @@ Section: devel
 Architecture: any
 Depends: ${misc:Depends},
          libgnome2-dev,
-         libbonobo2-dev (>= 2.4.2)
-Description: Development files for evolution-data-server (meta package)
+         libbonobo2-dev (>= 2.20.3)
+Description: Development files for evolution-data-server (metapackage)
  This package contains header files and static library of evolution-data-server.
 
 Package: evolution-data-server-dbg
@@ -75,7 +84,7 @@ Depends: evolution-data-server (= ${binary:Version}),
 Description: evolution database backend server with debugging symbols
  This package contains unstripped binaries used for debugging.
 
-Package: libedataserver1.2-9
+Package: libedataserver1.2-11
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -89,21 +98,23 @@ Description: Utility library for evolution data servers
 Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libedataserver1.2-9 (= ${binary:Version}),
+Depends: libedataserver1.2-11 (= ${binary:Version}),
+         ${shlibs:Depends},
          ${misc:Depends},
          libxml2-dev,
-         libglib2.0-dev,
+         libglib2.0-dev (>= 2.16.1),
          libgconf2-dev,
-         libbonobo2-dev (>= 2.4.2),
+         libbonobo2-dev (>= 2.20.3),
          liborbit2-dev (>= 1:2.9.8),
-	 libnspr4-dev
+         libsoup2.4-dev,
+         libnspr4-dev
 Description: Utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
- This package contains header files and static library for libedataserver1.2-9.
+ This package contains header files and static library for libedataserver1.2-11.
 
-Package: libcamel1.2-10
+Package: libcamel1.2-14
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -119,12 +130,14 @@ Description: The Evolution MIME message handling library
 Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libcamel1.2-10 (= ${binary:Version}),
+Depends: libcamel1.2-14 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libglib2.0-dev,
-         libedataserver1.2-dev (>= 1.8.0)
+         libedataserver1.2-dev,
+         libsqlite3-dev (>= 3.5)
 Description: Development files for libcamel
- This package contains header files and static library for libcamel1.2-10
+ This package contains header files and static library for libcamel1.2-11
  .
  Camel is a generic messaging library. It supports the standard
  messaging system for receiving and sending messages. It is the
@@ -139,31 +152,34 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Client library for evolution address books
+ This package is a client library for evolution addressbooks.
+ .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
- .
- This package is a client library for evolution address book.
 
 Package: libebook1.2-dev
 Section: libdevel
 Architecture: any
 Depends: libebook1.2-9 (= ${binary:Version}),
          ${misc:Depends},
-         libbonobo2-dev (>= 2.4.2),
+         ${shlibs:Depends},
+         libbonobo2-dev (>= 2.20.3),
          libgnome2-dev,
-         libedataserver1.2-dev (>= 1.8.0)
+         libedataserver1.2-dev
 Description: Client library for evolution address books (development files)
+ This package contains header files and static library for libebook1.2-9.
+ .
+ libebook is a client library for evolution addressbooks.
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package contains header files and static library for libebook1.2-9.
 
 Package: libedataserverui1.2-8
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= 2.21.0)
+         evolution-data-server-common (>= 2.26.0)
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -175,11 +191,13 @@ Section: libdevel
 Architecture: any
 Depends: libedataserverui1.2-8 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libgtk2.0-dev,
          libglade2-dev,
          libgnome2-dev,
-         libedataserver1.2-dev (>= 1.8.0),
-         libebook1.2-dev (>= 1.8.0)
+         libedataserver1.2-dev,
+         libebook1.2-dev,
+         libsoup2.4-dev
 Description: GUI utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -203,10 +221,12 @@ Section: libdevel
 Architecture: any
 Depends: libedata-book1.2-2 (= ${binary:Version}),
          ${misc:Depends},
-         libbonobo2-dev (>= 2.4.2),
+         ${shlibs:Depends},
+         libbonobo2-dev (>= 2.20.3),
          libgnome2-dev,
-         libedataserver1.2-dev (>= 1.8.0),
-         libebook1.2-dev (>= 1.8.0)
+         libedataserver1.2-dev,
+         libebackend1.2-dev,
+         libebook1.2-dev
 Description: Backend library for evolution address books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -229,9 +249,10 @@ Section: libdevel
 Architecture: any
 Depends: libecal1.2-7 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libgnome2-dev,
-         libbonobo2-dev (>= 2.4.2),
-         libedataserver1.2-dev (>= 1.8.0)
+         libbonobo2-dev (>= 2.20.3),
+         libedataserver1.2-dev
 Description: Client library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -254,11 +275,13 @@ Section: libdevel
 Architecture: any
 Depends: libedata-cal1.2-6 (= ${binary:Version}),
          ${misc:Depends},
+         ${shlibs:Depends},
          libgnome2-dev,
-         libbonobo2-dev (>= 2.4.2),
-         libgnomevfs2-dev,
-         libedataserver1.2-dev (>= 1.8.0),
-         libecal1.2-dev (>= 1.8.0)
+         libbonobo2-dev (>= 2.20.3),
+         libedataserver1.2-dev,
+         libecal1.2-dev,
+         libebackend1.2-dev,
+         libglib2.0-dev
 Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -282,7 +305,8 @@ Section: libdevel
 Architecture: any
 Depends: libegroupwise1.2-13 (= ${binary:Version}),
          ${misc:Depends},
-         libsoup2.2-dev
+         ${shlibs:Depends},
+         libsoup2.4-dev
 Description: Development files for libegroupwise
  This package contains header files and static library for libegroupwise1.2-13.
  .
@@ -297,67 +321,110 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Description: Backend library for evolution calendars
+Description: Client library for accessing Exchange server through webdav
+ This package is a client library to access Exchange servers 
+ through webdav.
+ .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
- .
- This package is a backend library for evolution exchange.
 
 Package: libexchange-storage1.2-dev
 Section: libdevel
 Architecture: any
 Depends: libexchange-storage1.2-3 (= ${binary:Version}),
          ${misc:Depends},
-         libsoup2.2-dev
+         ${shlibs:Depends},
+         libsoup2.4-dev
 Description: Backend library for evolution calendars (development files)
+ This package contains header files and a static library for
+ libexchange-storage1.2-3.
+ .
+ libexchange-storage is a client library to access Exchange servers
+ through webdav.
+ .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
- .
- This package contains header files and static library for
- libexchange-storage1.2-3.
-
+  
 Package: libgdata1.2-1
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Description: Backend library for google data
+Description: Client library for accessing Google POA through SOAP interface
+ This package is a client library to access the Google Data APIs through a 
+ SOAP interface.
+ .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
- .
- This package is a backend library for google data.
 
 Package: libgdata1.2-dev
 Section: libdevel
 Architecture: any
 Depends: libgdata1.2-1 (= ${binary:Version}),
-         ${misc:Depends}
-Description: Backend library for google calendar data (development files)
+         ${misc:Depends},
+         libsoup2.4-dev
+Description: Client library for accessing Google POA (development files)
+ This package contains header files and static library for
+ libgdata1.2-1.
+ .
+ libgdata is a client library to access the Google Data APIs through a
+ SOAP interface.
+ .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
- .
- This package contains header files and static library for
- libgdata1.2-1
 
 Package: libgdata-google1.2-1
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Description: Backend library for google calendar data
+Description: Client library for accessing Google POA through SOAP interface
+ This package is a client library to access Google services through a SOAP
+ interface.
+ .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
- .
- This package is a backend library for google data.
 
 Package: libgdata-google1.2-dev
 Section: libdevel
 Architecture: any
 Depends: libgdata-google1.2-1 (= ${binary:Version}),
-         ${misc:Depends}
-Description: Backend library for google calendar data (development files)
+         ${misc:Depends},
+         libsoup2.4-dev
+Description: Client library for accessing Google POA (development files)
+ This package contains header files and static library for
+ libgdata-google1.2-1.
+ .
+ libgdata-google is a client library to access Google services through a SOAP
+ interface.
+ .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
+
+Package: libebackend1.2-0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Utility library for evolution data servers
+ This package is a utility library for evolution-data-servers providing
+ backend functions to access data.
  .
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+
+Package: libebackend1.2-dev
+Section: libdevel
+Architecture: any
+Depends: libebackend1.2-0 (= ${binary:Version}),
+         ${misc:Depends},
+Description: Utility library for evolution data servers (development files)
  This package contains header files and static library for
- libgdata-google1.2-1
+ libebackend1.2-1.
+ .
+ libebackend is a utility library for evolution-data-server providing
+ backend function to access data.
+ .
+ Evolution is the integrated mail, calendar, task and address book
+ distributed suite from Novell, Inc.
+

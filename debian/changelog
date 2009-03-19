@@ -1,14 +1,176 @@
-evolution-data-server (2.21.2-0) experimental; urgency=low
+evolution-data-server (2.26.0-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * debian/control:
+    - update standards version to 3.8.1.
+    - update eds-common dep for evolution-data-server 2.26.
+    - add build-dep on libicu-dev, libgweather-dev and libical-dev.
+    - drop deprecated Replace/Conflict.
+  * debian/*.install:
+    - update path for 2.26.
+  * debian/patches:
+    - 11_it_translation slightly updated.
+    - debian/patches/66_autoreconf-ignore-folders dropped, eds doesn't ship
+      libical sources anymore. 
+    - debian/patches/67_detect-change-signed-messages dropped, included
+      upstream. 
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 19 Mar 2009 08:09:42 +0100
+
+evolution-data-server (2.24.5-2) unstable; urgency=low
+
+  * Upload to unstable.
+  * debian/patches:
+    - debian/patches/67_detect-change-signed-messages added.    closes: #508479
+  * debian/control:
+    - libedata-cal1.2-dev: add dep on libebackend1.2-dev and libglib2.0-dev
+      so correct dependencies are pulled.                       closes: #519636
+    - update standards version to 3.8.1. 
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 14 Mar 2009 00:02:56 +0100
+
+evolution-data-server (2.24.5-1) experimental; urgency=low
+
+  * New upstream release.
+  * debian/control:
+    - add build-dep on libsqlite3-dev.
+    - update dep on evolution-data-server-common 2.24.
+    - add build-dep on chrpath.
+    - add libsqlite3-dev to libcamel1.2-dev dependencies.
+    - add libsoup2.4-dev to libedataserver1.2-dev and libedataserverui1.2-dev.
+    - drop libgnomevfs2-dev (build)-deps.
+    - version (build) deps on keyring and sqlite3.
+  * debian/*.install:
+    - update paths for 2.24.
+  * Add libraries, development-files and lintian for libebackend.
+  * Bump soname for libedataserver1.2 (9 → 11)
+    - debian/control: update package name
+    - debian/libedataserver1.2-9.install renamed to libcamel1.2-11.install
+    - debian/lintian: libedataserver1.2-9 renamed to libcamel1.2-11
+  * Bump soname for libcamel1.2 (11 → 14)
+    - debian/control: update package name
+    - debian/libcamel1.2-11.install renamed to libcamel1.2-14.install
+    - debian/lintian: libcamel1.2-11 renamed to libcamel1.2-14 
+  * debian/rules:
+    - remove rpaths.
+  * debian/patches:
+    - 66_autoreconf-ignore-folders added, don't add libdb/dists and
+      calendar/libical to AC_CONFIG_SUBDIRS so autoreconf doesn't fail.
+  * debian/source.lintian-overrides:
+    - evolution-data-server: add an ignore for ancient libtool in unused
+      embbered libdb copy.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 28 Feb 2009 20:07:09 +0100
+
+evolution-data-server (2.22.3-1) unstable; urgency=low
+
+  [ Pedro Fragoso ]
+  * New upstream bugfix release
+  * debian/control:
+    - Add myself to Uploaders
+    - Bump Standards-Version to 3.8.0 (no changes)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Sun, 06 Jul 2008 13:13:25 +0200
+
+evolution-data-server (2.22.2-1) unstable; urgency=low
 
   * New upstream release
-  * Add libraries and development-files for:
+    - bugfixes and translations
+  * Remove patch 55_fix_gpg_breaks_keyring.patch
+    - applied upstream
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 26 May 2008 21:51:08 +0200
+
+evolution-data-server (2.22.1.1-2) unstable; urgency=low
+
+  [ Oystein Gisnas ]
+  * Fix spelling mistake in package description
+
+  [ Heikki Henriksen ]
+  * debian/patches/55_fix_gpg_breaks_keyring.patch:
+    - Add patch from upstream to stop gpg breaking the keyring
+      (closes: #481940)
+  * debian/patches/65_evolution-color.patch
+    - Add patch to fix 16bits color function. Thanks to Sjoerd Simmons.
+      (closes: #477807)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 19 May 2008 21:19:38 +0200
+
+evolution-data-server (2.22.1.1-1) unstable; urgency=low
+
+  * New upstream bugfix release
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Sun, 04 May 2008 17:42:59 +0200
+
+evolution-data-server (2.22.1-1) unstable; urgency=low
+
+  [ Pedro Fragoso ]
+  * New upstream bugfix release
+
+  [ Heikki Henriksen]
+  * Improve short and long descriptions for libraris according to
+    lib*.pc.in as well as actual usage (closes: #474535)
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Thu, 10 Apr 2008 21:27:39 +0200
+
+evolution-data-server (2.22.0-2) unstable; urgency=low
+
+  * Upload to unstable
+  * Update DM-Upload-Allowed according to change in dpkg 1.14.16 and bump
+    build-dep on dpkg-dev
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Sat, 05 Apr 2008 13:53:09 +0200
+
+evolution-data-server (2.22.0-1) experimental; urgency=low
+
+  [ Heikki Henriksen ]
+  * Upload to experimental to smoothen NEW-handling
+  * New upstream release
+  * Upgrade build-deps:
+    - libsoup2.4-dev from libsoup2.2-dev
+  * Bump the following build-deps:
+    - libglib2.0-dev (>= 2.15.3)
+    - libgnomevfs2-dev (>= 2.4.0)
+    - libbonobo2-dev (>= 2.20.3
+  * Bump so-name for libcamel to 11
+  * Add libraries, development-files and lintian for:
     - libgdata
     - libgdata-google
-  * Update to base-version==2.22 in *.install
-  * No api-bumps needed so far in the older libraries
-  * Add depend on -dbg for the experimental branch
+  * Update base-version to 2.22 in *.install
+  * Remove patches:
+    - 10_camel-pkg-config-requires.patch - included upstream
+    - 30_iconv-gb2312-gb18030.patch - iconv-cjk-handling is changed
+  * Update patches:
+    - 25_mute-debug-messages.patch
+    - 45_libcamel_providers_version.patch
 
- -- Heikki Henriksen <heikkih@gmail.com>  Wed, 14 Nov 2007 23:27:41 +0100
+  [ Oystein Gisnas ]
+  * Depend on libdb-dev instead of libdb4.4-dev
+  * Sync deps of -dev packages with pkg-config files
+
+ -- Oystein Gisnas <oystein@gisnas.net>  Tue, 18 Mar 2008 00:35:38 +0100
+
+evolution-data-server (1.12.3-1) unstable; urgency=low
+
+  * New upstream release (bugfixes and translations).
+  * debian/rules: remove configure flags --with-nspr-includes and
+    --with-nss-includes. (closes: #462642)
+  * debian/control:
+    - add myself to uploaders.
+    - add ${shlibs:Depends} to -dev packages dependencies.
+    - update standards versions to 3.7.3 (no changes needed)
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sun, 27 Jan 2008 14:50:16 +0100
+
+evolution-data-server (1.12.2-1) unstable; urgency=low
+
+  * New upstream release (bugfixes and translations)
+  * Pkgconfig build-dep is bumped to 0.16
+  * Add Dm-Upload-Allowed, Homepage, Vcs-Browser and Vcs-Svn fields in control
+  * Add build-depend on libgnome-keyring-dev to build with keyring-support
+  * Add lintian overrides for all package-name-doesnt-match-sonames
+
+ -- Heikki Henriksen <heikkih@gmail.com>  Mon, 03 Dec 2007 21:39:45 +0100
 
 evolution-data-server (1.12.1-1) unstable; urgency=low
 
