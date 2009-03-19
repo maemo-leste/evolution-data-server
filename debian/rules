@@ -15,8 +15,6 @@ CFLAGS += -fPIC
 
 DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
-	--with-nspr-includes=/usr/include/nspr \
-	--with-nss-includes=/usr/include/nss \
 	--enable-ipv6 \
 	--enable-nss \
 	--enable-nntp \
@@ -25,10 +23,18 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
 	--enable-gtk-doc \
-	--enable-gnome-keyring=no
+	--enable-gnome-keyring=yes \
+  --without-weather
+
+configure:
+	dh_testdir
+	#autoreconf -vfi
 
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
 binary-install/evolution-data-server::
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
+	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server-1.2/*/*.so \
+	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2 \
+	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/evolution-data-server-2.26

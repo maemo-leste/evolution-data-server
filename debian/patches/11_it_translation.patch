@@ -1,22 +1,21 @@
-diff -ruN evolution-data-server-1.8.0.orig/po/it.po evolution-data-server-1.8.0/po/it.po
---- evolution-data-server-1.8.0.orig/po/it.po	2006-04-20 10:53:20.000000000 +0200
-+++ evolution-data-server-1.8.0/po/it.po	2006-09-06 22:59:13.000000000 +0200
-@@ -2425,7 +2425,7 @@
+diff --git a/po/it.po b/po/it.po
+index 38700bb..06b6ec4 100644
+--- a/po/it.po
++++ b/po/it.po
+@@ -2510,7 +2510,7 @@ msgstr "Certificato respinto"
  
- #: ../camel/camel-tcp-stream-openssl.c:620
+ #: ../camel/camel-tcp-stream-openssl.c:624
  msgid "Subject/Issuer mismatch"
 -msgstr "Oggetto/Emittente sconnessi"
 +msgstr "Proprietario/Emittente sconnessi"
  
- #: ../camel/camel-tcp-stream-openssl.c:622
+ #: ../camel/camel-tcp-stream-openssl.c:626
  msgid "AKID/SKID mismatch"
-@@ -2451,8 +2451,8 @@
- "Fingerprint:       %s\n"
+@@ -2537,7 +2537,7 @@ msgid ""
  "Signature:         %s"
  msgstr ""
--"Mittente:             %s\n"
+ "Emittente:            %s\n"
 -"Oggetto:              %s\n"
-+"Emittente:             %s\n"
 +"Proprietario:              %s\n"
  "Impronta digitale:    %s\n"
  "Firma:                %s"
