@@ -1,9 +1,33 @@
-evolution-data-server (2.24.5-2) UNRELEASED; urgency=low
+evolution-data-server (2.26.0-1) UNRELEASED; urgency=low
 
+  * New upstream release.
+  * debian/control:
+    - update standards version to 3.8.1.
+    - update eds-common dep for evolution-data-server 2.26.
+    - add build-dep on libicu-dev, libgweather-dev and libical-dev.
+    - drop deprecated Replace/Conflict.
+  * debian/*.install:
+    - update path for 2.26.
+  * debian/patches:
+    - 11_it_translation slightly updated.
+    - debian/patches/66_autoreconf-ignore-folders dropped, eds doesn't ship
+      libical sources anymore. 
+    - debian/patches/67_detect-change-signed-messages dropped, included
+      upstream. 
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 19 Mar 2009 08:09:42 +0100
+
+evolution-data-server (2.24.5-2) unstable; urgency=low
+
+  * Upload to unstable.
   * debian/patches:
     - debian/patches/67_detect-change-signed-messages added.    closes: #508479
+  * debian/control:
+    - libedata-cal1.2-dev: add dep on libebackend1.2-dev and libglib2.0-dev
+      so correct dependencies are pulled.                       closes: #519636
+    - update standards version to 3.8.1. 
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sun, 01 Mar 2009 14:58:11 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 14 Mar 2009 00:02:56 +0100
 
 evolution-data-server (2.24.5-1) experimental; urgency=low
 

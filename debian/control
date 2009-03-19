@@ -10,7 +10,7 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Riccardo Setti <giskard@debian.org>,
            Yves-Alexis Perez <corsac@debian.org>,
            Pedro Fragoso <ember@ubuntu.com>
-Standards-Version: 3.8.0
+Standards-Version: 3.8.1
 Dm-Upload-Allowed: yes
 Homepage: http://www.gnome.org/projects/evolution/
 Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server
@@ -40,7 +40,10 @@ Build-Depends: debhelper (>= 5.0.0),
                libgnome-keyring-dev (>= 2.20.1),
                gtk-doc-tools,
                libsqlite3-dev (>= 3.5),
-               chrpath
+               chrpath,
+               libgweather-dev (>= 2.24.3),
+               libical-dev,
+               libicu-dev
 
 Package: evolution-data-server
 Architecture: any
@@ -57,8 +60,6 @@ Description: evolution database backend server
 Package: evolution-data-server-common
 Architecture: all
 Depends: ${misc:Depends}
-Replaces: evolution-data-server (<< 1.6.2-1)
-Conflicts: evolution-data-server (<< 1.6.2-1)
 Description: architecture independent files for Evolution Data Server
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -178,7 +179,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= 2.24.0)
+         evolution-data-server-common (>= 2.26.0)
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -278,7 +279,9 @@ Depends: libedata-cal1.2-6 (= ${binary:Version}),
          libgnome2-dev,
          libbonobo2-dev (>= 2.20.3),
          libedataserver1.2-dev,
-         libecal1.2-dev
+         libecal1.2-dev,
+         libebackend1.2-dev,
+         libglib2.0-dev
 Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
