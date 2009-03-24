@@ -9,7 +9,8 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Oystein Gisnas <oystein@gisnas.net>,
            Riccardo Setti <giskard@debian.org>,
            Yves-Alexis Perez <corsac@debian.org>,
-           Pedro Fragoso <ember@ubuntu.com>
+           Pedro Fragoso <ember@ubuntu.com>,
+           Josselin Mouette <joss@debian.org>
 Standards-Version: 3.8.1
 Dm-Upload-Allowed: yes
 Homepage: http://www.gnome.org/projects/evolution/
