@@ -6,6 +6,8 @@ evolution-data-server (2.24.5-4) unstable; urgency=low
   * Add a Conflict with evolution (<< 2.24). This will force the preinst 
     upgrade check in the evolution package to be done before e-d-s 
     itself is unpacked.
+  * Build-depend on sqlite3 3.6 because of the infamous ABI change in 
+    the VFS API. Closes: #519428.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 01 Apr 2009 12:19:03 +0200
 

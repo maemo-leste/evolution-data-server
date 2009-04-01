@@ -40,7 +40,7 @@ Build-Depends: debhelper (>= 5.0.0),
                libsoup2.4-dev,
                libgnome-keyring-dev (>= 2.20.1),
                gtk-doc-tools,
-               libsqlite3-dev (>= 3.5),
+               libsqlite3-dev (>= 3.6),
                chrpath
 
 Package: evolution-data-server
