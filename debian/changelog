@@ -3,6 +3,9 @@ evolution-data-server (2.24.5-4) unstable; urgency=low
   * Fix -dbg package section to match the override.
   * 68_deadlock_thread-leak.patch: new patch, stolen upstream. Fixes 
     thread leak leading to a deadlock. Closes: #520132, #520771.
+  * Add a Conflict with evolution (<< 2.24). This will force the preinst 
+    upgrade check in the evolution package to be done before e-d-s 
+    itself is unpacked.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 01 Apr 2009 12:19:03 +0200
 
