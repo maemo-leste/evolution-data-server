@@ -1,4 +1,4 @@
-evolution-data-server (2.26.1-1) UNRELEASED; urgency=low
+evolution-data-server (2.26.1.1-1) UNRELEASED; urgency=low
 
   * New upstream release.
   * debian/control:
@@ -11,10 +11,10 @@ evolution-data-server (2.26.1-1) UNRELEASED; urgency=low
     - 11_it_translation slightly updated.
     - debian/patches/66_autoreconf-ignore-folders dropped, eds doesn't ship
       libical sources anymore. 
-    - debian/patches/67_detect-change-signed-messages dropped, included
-      upstream. 
+    - 67_detect-change-signed-messages dropped, included upstream. 
+    - 68_deadlock_thread-leak as well.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Wed, 15 Apr 2009 08:01:50 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 25 Apr 2009 13:35:49 +0200
 
 evolution-data-server (2.24.5-4) unstable; urgency=low
 
