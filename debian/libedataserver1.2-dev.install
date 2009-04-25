@@ -1,5 +1,5 @@
 debian/tmp/usr/lib/pkgconfig/libedataserver-1.2.pc
 debian/tmp/usr/lib/libedataserver-1.2.so
-debian/tmp/usr/include/evolution-data-server-2.24/libedataserver
+debian/tmp/usr/include/evolution-data-server-2.26/libedataserver
 debian/tmp/usr/share/idl/evolution-data-server-1.2/Evolution-DataServer.idl
 debian/tmp/usr/share/gtk-doc/html/libedataserver

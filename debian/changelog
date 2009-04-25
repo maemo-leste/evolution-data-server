@@ -1,3 +1,21 @@
+evolution-data-server (2.26.1-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * debian/control:
+    - update eds-common dep for evolution-data-server 2.26.
+    - add build-dep on libicu-dev, libgweather-dev and libical-dev.
+    - drop deprecated Replace/Conflict.
+  * debian/*.install:
+    - update path for 2.26.
+  * debian/patches:
+    - 11_it_translation slightly updated.
+    - debian/patches/66_autoreconf-ignore-folders dropped, eds doesn't ship
+      libical sources anymore. 
+    - debian/patches/67_detect-change-signed-messages dropped, included
+      upstream. 
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Wed, 15 Apr 2009 08:01:50 +0200
+
 evolution-data-server (2.24.5-4) unstable; urgency=low
 
   * Fix -dbg package section to match the override.

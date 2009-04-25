@@ -41,7 +41,10 @@ Build-Depends: debhelper (>= 5.0.0),
                libgnome-keyring-dev (>= 2.20.1),
                gtk-doc-tools,
                libsqlite3-dev (>= 3.6),
-               chrpath
+               chrpath,
+               libgweather-dev (>= 2.24.3),
+               libical-dev,
+               libicu-dev
 
 Package: evolution-data-server
 Architecture: any
@@ -59,8 +62,6 @@ Description: evolution database backend server
 Package: evolution-data-server-common
 Architecture: all
 Depends: ${misc:Depends}
-Replaces: evolution-data-server (<< 1.6.2-1)
-Conflicts: evolution-data-server (<< 1.6.2-1)
 Description: architecture independent files for Evolution Data Server
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -181,7 +182,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= 2.24.0)
+         evolution-data-server-common (>= 2.26.0)
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.

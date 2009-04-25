@@ -23,7 +23,8 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
 	--enable-gtk-doc \
-	--enable-gnome-keyring=yes
+	--enable-gnome-keyring=yes \
+  --without-weather
 
 configure:
 	dh_testdir
@@ -36,4 +37,4 @@ binary-install/evolution-data-server::
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server-1.2/*/*.so \
 	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2 \
-	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/evolution-data-server-2.24
+	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/evolution-data-server-2.26
