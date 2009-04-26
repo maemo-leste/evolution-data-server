@@ -23,8 +23,7 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
 	--enable-gtk-doc \
-	--enable-gnome-keyring=yes \
-  --without-weather
+	--enable-gnome-keyring=yes
 
 configure:
 	dh_testdir

@@ -42,7 +42,7 @@ Build-Depends: debhelper (>= 5.0.0),
                gtk-doc-tools,
                libsqlite3-dev (>= 3.6),
                chrpath,
-               libgweather-dev (>= 2.24.3),
+               libgweather-dev (>= 2.24.5),
                libical-dev,
                libicu-dev
 
