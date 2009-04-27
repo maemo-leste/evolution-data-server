@@ -255,6 +255,7 @@ Depends: libecal1.2-7 (= ${binary:Version}),
          ${shlibs:Depends},
          libgnome2-dev,
          libbonobo2-dev (>= 2.20.3),
+         libical-dev (>= 0.43),
          libedataserver1.2-dev
 Description: Client library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book

@@ -1,3 +1,9 @@
+evolution-data-server (2.26.1.1-2) UNRELEASED; urgency=low
+
+  * Add missing dependency on libical-dev to libecal1.2-dev.
+
+ -- Josselin Mouette <joss@debian.org>  Mon, 27 Apr 2009 14:14:53 +0200
+
 evolution-data-server (2.26.1.1-1) unstable; urgency=low
 
   * New upstream release.
