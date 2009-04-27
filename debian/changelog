@@ -1,8 +1,15 @@
 evolution-data-server (2.26.1.1-2) UNRELEASED; urgency=low
 
+  [ Josselin Mouette ]
   * Add missing dependency on libical-dev to libecal1.2-dev.
 
- -- Josselin Mouette <joss@debian.org>  Mon, 27 Apr 2009 14:14:53 +0200
+  [ Yves-Alexis Perez ]
+  * debian/libcamel1.2-14.shlibs added, ensure we use the correct libcamel
+    to avoid ABI breakages.
+  * debian/control:
+    - add a Breaks: for evolution 2.24.                         closes: #525742
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 27 Apr 2009 19:51:21 +0200
 
 evolution-data-server (2.26.1.1-1) unstable; urgency=low
 
