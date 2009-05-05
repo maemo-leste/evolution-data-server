@@ -8,8 +8,10 @@ evolution-data-server (2.26.1.1-2) UNRELEASED; urgency=low
     to avoid ABI breakages.
   * debian/control:
     - add a Breaks: for evolution 2.24.                         closes: #525742
+  * debian/patches:
+    - 67_fix-vfolders added, fix endless loop when closing.     closes: #526217
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 27 Apr 2009 19:51:21 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 05 May 2009 18:39:34 +0200
 
 evolution-data-server (2.26.1.1-1) unstable; urgency=low
 
