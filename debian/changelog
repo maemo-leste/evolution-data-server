@@ -1,3 +1,11 @@
+evolution-data-server (2.26.2-1) UNRELEASED; urgency=low
+
+  * New upstream bugfix release.
+  * debian/patches:
+    - 67_fix-vfolders dropped, included upstream.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 22 May 2009 08:00:13 +0200
+
 evolution-data-server (2.26.1.1-2) unstable; urgency=low
 
   [ Josselin Mouette ]
