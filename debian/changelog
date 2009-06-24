@@ -1,8 +1,32 @@
-evolution-data-server (2.26.1-1) UNRELEASED; urgency=low
+evolution-data-server (2.26.2-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * debian/patches:
+    - 67_fix-vfolders dropped, included upstream.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 26 May 2009 07:46:27 +0200
+
+evolution-data-server (2.26.1.1-2) unstable; urgency=low
+
+  [ Josselin Mouette ]
+  * Add missing dependency on libical-dev to libecal1.2-dev.
+
+  [ Yves-Alexis Perez ]
+  * debian/libcamel1.2-14.shlibs added, ensure we use the correct libcamel
+    to avoid ABI breakages.
+  * debian/control:
+    - add a Breaks: for evolution 2.24.                         closes: #525742
+  * debian/patches:
+    - 67_fix-vfolders added, fix endless loop when closing.     closes: #526217
+  * debian/source.lintian-overrides
+    - update tag name for config.{guess,sub} in libdb/
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Wed, 06 May 2009 23:21:52 +0200
+
+evolution-data-server (2.26.1.1-1) unstable; urgency=low
 
   * New upstream release.
   * debian/control:
-    - update standards version to 3.8.1.
     - update eds-common dep for evolution-data-server 2.26.
     - add build-dep on libicu-dev, libgweather-dev and libical-dev.
     - drop deprecated Replace/Conflict.
@@ -12,22 +36,44 @@ evolution-data-server (2.26.1-1) UNRELEASED; urgency=low
     - 11_it_translation slightly updated.
     - debian/patches/66_autoreconf-ignore-folders dropped, eds doesn't ship
       libical sources anymore. 
-    - debian/patches/67_detect-change-signed-messages dropped, included
-      upstream. 
+    - 67_detect-change-signed-messages dropped, included upstream. 
+    - 68_deadlock_thread-leak as well.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Wed, 15 Apr 2009 08:01:50 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Sun, 26 Apr 2009 09:20:49 +0200
+
+evolution-data-server (2.24.5-4) unstable; urgency=low
+
+  * Fix -dbg package section to match the override.
+  * 68_deadlock_thread-leak.patch: new patch, stolen upstream. Fixes 
+    thread leak leading to a deadlock. Closes: #520132, #520771.
+  * Add a Conflict with evolution (<< 2.24). This will force the preinst 
+    upgrade check in the evolution package to be done before e-d-s 
+    itself is unpacked.
+  * Build-depend on sqlite3 3.6 because of the infamous ABI change in 
+    the VFS API. Closes: #519428.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 01 Apr 2009 12:19:03 +0200
+
+evolution-data-server (2.24.5-3) unstable; urgency=low
+
+  [ Yves-Alexis Perez ]
+  * debian/control:
+    - libedata-cal1.2-dev: add dep on libebackend1.2-dev and libglib2.0-dev
+      so correct dependencies are pulled.                       closes: #519636
+    - update standards version to 3.8.1. 
+
+  [ Josselin Mouette ]
+  * Add myself to uploaders; upload to unstable.
+
+ -- Josselin Mouette <joss@debian.org>  Tue, 24 Mar 2009 10:58:32 +0100
 
 evolution-data-server (2.24.5-2) unstable; urgency=low
 
   * Upload to unstable.
   * debian/patches:
     - debian/patches/67_detect-change-signed-messages added.    closes: #508479
-  * debian/control:
-    - libedata-cal1.2-dev: add dep on libebackend1.2-dev and libglib2.0-dev
-      so correct dependencies are pulled.                       closes: #519636
-    - update standards version to 3.8.1. 
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sat, 14 Mar 2009 00:02:56 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sun, 01 Mar 2009 14:58:11 +0100
 
 evolution-data-server (2.24.5-1) experimental; urgency=low
 
