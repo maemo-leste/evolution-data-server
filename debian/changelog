@@ -1,3 +1,21 @@
+evolution-data-server (2.27.3-1) UNRELEASED; urgency=low
+
+  * New upstream development release.
+  * debian/watch updated to match development version numbering scheme.
+  * debian/*install:
+    - update folders name to 2.28.
+  * debian/libcamel1.2-14.shlibs:
+    - update depends for 2.27 branch.
+  * debian/patches:
+    - 45_libcamel_providers_version updated to patch configure.ac.
+  * debian/rules:
+    - update chrpath call to use 2.28 folder name.
+  * debian/control:
+    - update standards version to 3.8.2.
+    - update dependencies for 2.27 branch. 
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Wed, 24 Jun 2009 16:29:16 +0200
+
 evolution-data-server (2.26.2-1) unstable; urgency=low
 
   * New upstream bugfix release.
