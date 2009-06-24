@@ -36,4 +36,4 @@ binary-install/evolution-data-server::
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server-1.2/*/*.so \
 	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2 \
-	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/evolution-data-server-2.26
+	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/evolution-data-server-2.28

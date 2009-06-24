@@ -10,9 +10,9 @@ diff -ruN evolution-data-server-2.22.0.orig/configure evolution-data-server-2.22
  
  
  
-diff -ruN evolution-data-server-2.22.0.orig/configure.in evolution-data-server-2.22.0/configure.in
---- evolution-data-server-2.22.0.orig/configure.in	2008-03-09 18:18:32.000000000 +0100
-+++ evolution-data-server-2.22.0/configure.in	2008-03-11 21:13:10.000000000 +0100
+diff -ruN evolution-data-server-2.22.0.orig/configure.ac evolution-data-server-2.22.0/configure.
+--- evolution-data-server-2.22.0.orig/configure.ac	2008-03-09 18:18:32.000000000 +0100
++++ evolution-data-server-2.22.0/configure.ac	2008-03-11 21:13:10.000000000 +0100
 @@ -1519,7 +1519,8 @@
  AC_SUBST(weatherdatadir)
  

@@ -11,7 +11,7 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Yves-Alexis Perez <corsac@debian.org>,
            Pedro Fragoso <ember@ubuntu.com>,
            Josselin Mouette <joss@debian.org>
-Standards-Version: 3.8.1
+Standards-Version: 3.8.2
 Dm-Upload-Allowed: yes
 Homepage: http://www.gnome.org/projects/evolution/
 Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server
@@ -183,7 +183,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= 2.26.0)
+         evolution-data-server-common (>= 2.27.0)
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
