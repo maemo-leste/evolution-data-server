@@ -1,4 +1,4 @@
-evolution-data-server (2.27.3-1) UNRELEASED; urgency=low
+evolution-data-server (2.27.3-1) experimental; urgency=low
 
   * New upstream development release.
   * debian/watch updated to match development version numbering scheme.
@@ -14,7 +14,7 @@ evolution-data-server (2.27.3-1) UNRELEASED; urgency=low
     - update standards version to 3.8.2.
     - update dependencies for 2.27 branch. 
 
- -- Yves-Alexis Perez <corsac@debian.org>  Wed, 24 Jun 2009 16:29:16 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 26 Jun 2009 23:56:35 +0200
 
 evolution-data-server (2.26.2-1) unstable; urgency=low
 
