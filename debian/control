@@ -11,7 +11,7 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Yves-Alexis Perez <corsac@debian.org>,
            Pedro Fragoso <ember@ubuntu.com>,
            Josselin Mouette <joss@debian.org>
-Standards-Version: 3.8.2
+Standards-Version: 3.8.3
 Dm-Upload-Allowed: yes
 Homepage: http://www.gnome.org/projects/evolution/
 Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server

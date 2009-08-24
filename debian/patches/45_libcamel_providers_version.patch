@@ -1,25 +1,26 @@
-diff -ruN evolution-data-server-2.22.0.orig/configure evolution-data-server-2.22.0/configure
---- evolution-data-server-2.22.0.orig/configure	2008-03-09 18:55:24.000000000 +0100
-+++ evolution-data-server-2.22.0/configure	2008-03-11 21:12:06.000000000 +0100
-@@ -31861,7 +31861,7 @@
- weatherdatadir="$privdatadir/weather"
+diff --git a/evolution-data-server-2.27.91/configure b/evolution-data-server-2.27.91/configure
+index c2668d6..299e2ff 100755
+--- a/evolution-data-server-2.27.91/configure
++++ b/evolution-data-server-2.27.91/configure
+@@ -24791,7 +24791,7 @@ if test $use_gweather = yes; then
  
+ fi
  
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
-+camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
++camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCANEL_CURRENT} - ${LIBCAMEL_AGE}`
  
  
+ INTERFACE_VERSION="$BASE_VERSION"
+diff --git a/evolution-data-server-2.27.91/configure.ac b/evolution-data-server-2.27.91/configure.ac
+index c89caff..a9f324d 100644
+--- a/evolution-data-server-2.27.91/configure.ac
++++ b/evolution-data-server-2.27.91/configure.ac
+@@ -1586,7 +1586,7 @@ if test $use_gweather = yes; then
+ fi
  
-diff -ruN evolution-data-server-2.22.0.orig/configure.ac evolution-data-server-2.22.0/configure.
---- evolution-data-server-2.22.0.orig/configure.ac	2008-03-09 18:18:32.000000000 +0100
-+++ evolution-data-server-2.22.0/configure.ac	2008-03-11 21:13:10.000000000 +0100
-@@ -1519,7 +1519,8 @@
- AC_SUBST(weatherdatadir)
- 
- dnl separate camel from e-d-s?  or should it be under the same spot?  same for now.
+ dnl separate camel from e-d-s? or should it be under the same spot? same for now.
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
-+dnl add version to dir to avoid filename conflict between versions  
-+camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
++camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCANEL_CURRENT} - ${LIBCAMEL_AGE}`
  AC_SUBST(camel_providerdir)
  
- dnl ************************
+ dnl IDL/Component Versioning
