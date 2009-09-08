@@ -1,4 +1,4 @@
-evolution-data-server (2.27.92-1) UNRELEASED; urgency=low
+evolution-data-server (2.27.92-1) experimental; urgency=low
 
   * New upstream release candidate.
   * debian/patches:
@@ -6,7 +6,7 @@ evolution-data-server (2.27.92-1) UNRELEASED; urgency=low
     - 11_it_translation dropped as well, no real need to tune it everytime
       upstream source changes. 
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 07 Sep 2009 19:47:11 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 08 Sep 2009 12:14:05 +0200
 
 evolution-data-server (2.27.91-2) experimental; urgency=low
 
