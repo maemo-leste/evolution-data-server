@@ -1,10 +1,80 @@
-evolution-data-server (2.26.3-1) unstable; urgency=low
+evolution-data-server (2.28.0-2) unstable; urgency=low
 
-  * New upstream bugfix release.
+  * Upload to unstable.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 24 Sep 2009 11:13:02 +0200
+
+evolution-data-server (2.28.0-1) experimental; urgency=low
+
+  * New upstream stable release.
+  * debian/watch updated to track stable releases.
+  * debian/libcamel1.2-14.shlibs updated to add dependencies on stable
+    releases.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 22 Sep 2009 08:31:53 +0200
+
+evolution-data-server (2.27.92-1) experimental; urgency=low
+
+  * New upstream release candidate.
+  * debian/patches:
+    - 66_re-enable-gpg-agent dropped, included upstream.
+    - 11_it_translation dropped as well, no real need to tune it everytime
+      upstream source changes. 
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 08 Sep 2009 12:14:05 +0200
+
+evolution-data-server (2.27.91-2) experimental; urgency=low
+
+  * debian/patches:
+    - 66_re-enable-gpg-agent, enable back gpg-agent.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Wed, 26 Aug 2009 20:15:22 +0200
+
+evolution-data-server (2.27.91-1) experimental; urgency=low
+
+  * New upstream beta release.
+  * debian/patches:
+    45_libcamel_providers_version refreshed.
+  * debian/control:
+    - update standards version to 3.8.3.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 25 Aug 2009 08:30:54 +0200
+
+evolution-data-server (2.27.90-1) experimental; urgency=low
+
+  * New upstream releaase candidate.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 11 Aug 2009 21:05:54 +0200
+
+evolution-data-server (2.27.5-1) experimental; urgency=low
+
+  * New upstream development release.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 03 Aug 2009 22:36:19 +0200
+
+evolution-data-server (2.27.4-1) experimental; urgency=low
+
+  * New upstream development release.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 13 Jul 2009 21:39:36 +0200
+
+evolution-data-server (2.27.3-1) experimental; urgency=low
+
+  * New upstream development release.
+  * debian/watch updated to match development version numbering scheme.
+  * debian/*install:
+    - update folders name to 2.28.
+  * debian/libcamel1.2-14.shlibs:
+    - update depends for 2.27 branch.
+  * debian/patches:
+    - 45_libcamel_providers_version updated to patch configure.ac.
+  * debian/rules:
+    - update chrpath call to use 2.28 folder name.
   * debian/control:
     - update standards version to 3.8.2.
+    - update dependencies for 2.27 branch. 
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sun, 12 Jul 2009 18:02:09 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 26 Jun 2009 23:56:35 +0200
 
 evolution-data-server (2.26.2-1) unstable; urgency=low
 
