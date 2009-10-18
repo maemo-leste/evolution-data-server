@@ -25,10 +25,6 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--enable-gtk-doc \
 	--enable-gnome-keyring=yes
 
-configure:
-	dh_testdir
-	#autoreconf -vfi
-
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
 binary-install/evolution-data-server::
