@@ -1,3 +1,37 @@
+evolution-data-server (2.29.1-1) UNRELEASED; urgency=low
+
+  * New upstream development release.
+  * debian/watch:
+    - updated to track development releases.
+  * debian/*.install:
+    - update eds folder to 2.30 ;
+    - drop bonobo install folders ;
+    - drop bonobo interface files (.idl).
+  * debian/evolution-data-server-common.install:
+    - ship dbus services in eds-common.
+  * debian/control:
+    - drop liborbit, libbonobo and libglade build-deps.
+    - add dbus-glib build-dep ;
+    - drop libexchange packages, exchange supports doesn't exist anymore.
+  * debian/patches:
+    - correct typo in 45_libcamel_providers_version.patch.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 07 Nov 2009 13:29:04 +0100
+
+evolution-data-server (2.28.1-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * debian/rules:
+    - drop useless configure target.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sun, 18 Oct 2009 18:26:07 +0200
+
+evolution-data-server (2.28.0-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 24 Sep 2009 11:13:02 +0200
+
 evolution-data-server (2.28.0-1) experimental; urgency=low
 
   * New upstream stable release.
