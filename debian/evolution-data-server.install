@@ -1,5 +1,4 @@
 debian/tmp/usr/lib/evolution
-debian/tmp/usr/lib/bonobo
 debian/tmp/usr/lib/evolution-data-server-1.2/extensions/*.so
 debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers-*/*.urls
 debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers-*/*.so
