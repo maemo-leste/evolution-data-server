@@ -13,10 +13,11 @@ evolution-data-server (2.29.1-1) UNRELEASED; urgency=low
     - drop liborbit, libbonobo and libglade build-deps.
     - add dbus-glib build-dep ;
     - drop libexchange packages, exchange supports doesn't exist anymore.
+    - cleanup deps for -dev packages.
   * debian/patches:
     - correct typo in 45_libcamel_providers_version.patch.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sat, 07 Nov 2009 13:29:04 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sun, 08 Nov 2009 12:45:34 +0100
 
 evolution-data-server (2.28.1-1) unstable; urgency=low
 
