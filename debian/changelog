@@ -1,3 +1,9 @@
+evolution-data-server (2.29.3-1) UNRELEASED; urgency=low
+
+  * New upstream development release.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 30 Nov 2009 23:40:43 +0100
+
 evolution-data-server (2.29.2-1) experimental; urgency=low
 
   [2.29.1]
