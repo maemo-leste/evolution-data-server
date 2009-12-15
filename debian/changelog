@@ -1,3 +1,9 @@
+evolution-data-server (2.28.2-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 14 Dec 2009 20:50:52 +0100
+
 evolution-data-server (2.28.1-1) unstable; urgency=low
 
   * New upstream bugfix release.
