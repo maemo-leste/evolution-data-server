@@ -1,0 +1,104 @@
+diff --git a/docs/reference/addressbook/libebook/Makefile.in b/docs/reference/addressbook/libebook/Makefile.in
+index 5b52f29..6ef9930 100644
+--- a/docs/reference/addressbook/libebook/Makefile.in
++++ b/docs/reference/addressbook/libebook/Makefile.in
+@@ -664,7 +664,7 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+ 	cd $(srcdir)/html && gtkdoc-mkhtml $(mkhtml_options) $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
+ 	test "x$(HTML_IMAGES)" = "x" || ( cd $(srcdir) && cp $(HTML_IMAGES) html )
+ 	@echo 'gtk-doc: Fixing cross-references'
+-	cd $(srcdir) && gtkdoc-fixxref --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
++	cd $(srcdir) && gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	touch html-build.stamp
+ 
+ ##############
+diff --git a/docs/reference/addressbook/libedata-book/Makefile.in b/docs/reference/addressbook/libedata-book/Makefile.in
+index a8d8654..aafb7af 100644
+--- a/docs/reference/addressbook/libedata-book/Makefile.in
++++ b/docs/reference/addressbook/libedata-book/Makefile.in
+@@ -664,7 +664,7 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+ 	cd $(srcdir)/html && gtkdoc-mkhtml $(mkhtml_options) $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
+ 	test "x$(HTML_IMAGES)" = "x" || ( cd $(srcdir) && cp $(HTML_IMAGES) html )
+ 	@echo 'gtk-doc: Fixing cross-references'
+-	cd $(srcdir) && gtkdoc-fixxref --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
++	cd $(srcdir) && gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	touch html-build.stamp
+ 
+ ##############
+diff --git a/docs/reference/calendar/libecal/Makefile.in b/docs/reference/calendar/libecal/Makefile.in
+index 6a12830..3ffa16a 100644
+--- a/docs/reference/calendar/libecal/Makefile.in
++++ b/docs/reference/calendar/libecal/Makefile.in
+@@ -665,7 +665,7 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+ 	cd $(srcdir)/html && gtkdoc-mkhtml $(mkhtml_options) $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
+ 	test "x$(HTML_IMAGES)" = "x" || ( cd $(srcdir) && cp $(HTML_IMAGES) html )
+ 	@echo 'gtk-doc: Fixing cross-references'
+-	cd $(srcdir) && gtkdoc-fixxref --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
++	cd $(srcdir) && gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	touch html-build.stamp
+ 
+ ##############
+diff --git a/docs/reference/calendar/libedata-cal/Makefile.in b/docs/reference/calendar/libedata-cal/Makefile.in
+index 8a0e6c1..0d00750 100644
+--- a/docs/reference/calendar/libedata-cal/Makefile.in
++++ b/docs/reference/calendar/libedata-cal/Makefile.in
+@@ -669,7 +669,7 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+ 	cd $(srcdir)/html && gtkdoc-mkhtml $(mkhtml_options) $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
+ 	test "x$(HTML_IMAGES)" = "x" || ( cd $(srcdir) && cp $(HTML_IMAGES) html )
+ 	@echo 'gtk-doc: Fixing cross-references'
+-	cd $(srcdir) && gtkdoc-fixxref --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
++	cd $(srcdir) && gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	touch html-build.stamp
+ 
+ ##############
+diff --git a/docs/reference/camel/Makefile.in b/docs/reference/camel/Makefile.in
+index 441d809..cf7d4d5 100644
+--- a/docs/reference/camel/Makefile.in
++++ b/docs/reference/camel/Makefile.in
+@@ -698,7 +698,7 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+ 	cd $(srcdir)/html && gtkdoc-mkhtml $(mkhtml_options) $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
+ 	test "x$(HTML_IMAGES)" = "x" || ( cd $(srcdir) && cp $(HTML_IMAGES) html )
+ 	@echo 'gtk-doc: Fixing cross-references'
+-	cd $(srcdir) && gtkdoc-fixxref --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
++	cd $(srcdir) && gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	touch html-build.stamp
+ 
+ ##############
+diff --git a/docs/reference/libebackend/Makefile.in b/docs/reference/libebackend/Makefile.in
+index dad0677..85751c4 100644
+--- a/docs/reference/libebackend/Makefile.in
++++ b/docs/reference/libebackend/Makefile.in
+@@ -658,7 +658,7 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+ 	cd $(srcdir)/html && gtkdoc-mkhtml $(mkhtml_options) $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
+ 	test "x$(HTML_IMAGES)" = "x" || ( cd $(srcdir) && cp $(HTML_IMAGES) html )
+ 	@echo 'gtk-doc: Fixing cross-references'
+-	cd $(srcdir) && gtkdoc-fixxref --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
++	cd $(srcdir) && gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	touch html-build.stamp
+ 
+ ##############
+diff --git a/docs/reference/libedataserver/Makefile.in b/docs/reference/libedataserver/Makefile.in
+index f755b2e..03e0a62 100644
+--- a/docs/reference/libedataserver/Makefile.in
++++ b/docs/reference/libedataserver/Makefile.in
+@@ -659,7 +659,7 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+ 	cd $(srcdir)/html && gtkdoc-mkhtml $(mkhtml_options) $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
+ 	test "x$(HTML_IMAGES)" = "x" || ( cd $(srcdir) && cp $(HTML_IMAGES) html )
+ 	@echo 'gtk-doc: Fixing cross-references'
+-	cd $(srcdir) && gtkdoc-fixxref --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
++	cd $(srcdir) && gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	touch html-build.stamp
+ 
+ ##############
+diff --git a/docs/reference/libedataserverui/Makefile.in b/docs/reference/libedataserverui/Makefile.in
+index ca077f7..9ee012c 100644
+--- a/docs/reference/libedataserverui/Makefile.in
++++ b/docs/reference/libedataserverui/Makefile.in
+@@ -664,7 +664,7 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+ 	cd $(srcdir)/html && gtkdoc-mkhtml $(mkhtml_options) $(MKHTML_OPTIONS) $(DOC_MODULE) ../$(DOC_MAIN_SGML_FILE)
+ 	test "x$(HTML_IMAGES)" = "x" || ( cd $(srcdir) && cp $(HTML_IMAGES) html )
+ 	@echo 'gtk-doc: Fixing cross-references'
+-	cd $(srcdir) && gtkdoc-fixxref --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
++	cd $(srcdir) && gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	touch html-build.stamp
+ 
+ ##############

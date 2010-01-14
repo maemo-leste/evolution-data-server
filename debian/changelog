@@ -3,8 +3,10 @@ evolution-data-server (2.29.5-1) UNRELEASED; urgency=low
   * New upstream development release.
   * debian/control:
     - rename package to libedata-cal-1.2-7 to match SONAME bump.
+  * debian/patches
+    - 66_fix-gtkdoc-call added, fix FTBFS with gtk-doc 1.13.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 11 Jan 2010 22:25:17 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 14 Jan 2010 21:37:12 +0100
 
 evolution-data-server (2.29.3-1) experimental; urgency=low
 
