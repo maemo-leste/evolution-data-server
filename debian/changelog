@@ -1,3 +1,12 @@
+evolution-data-server (2.29.6-1) UNRELEASED; urgency=low
+
+  * New upstream development release.
+  * debian/patches:
+    - 66_fix-gtkdoc-call dropped.
+    - build with --enable-largefile.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 26 Jan 2010 21:23:19 +0100
+
 evolution-data-server (2.29.5-1) experimental; urgency=low
 
   * New upstream development release.
