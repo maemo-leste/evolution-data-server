@@ -1,9 +1,9 @@
-evolution-data-server (2.29.91-1) UNRELEASED; urgency=low
+evolution-data-server (2.29.91-1) experimental; urgency=low
 
   * New upstream development release.
   * debian/libcamel1.2-14.shlibs: bump shlibs.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Tue, 23 Feb 2010 12:39:26 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 23 Feb 2010 21:38:26 +0100
 
 evolution-data-server (2.29.90-1) experimental; urgency=low
 
