@@ -1,3 +1,11 @@
+evolution-data-server (2.28.3-1) UNRELEASED; urgency=low
+
+  * New upstream bugfix release.                                closes: #572112
+  * debian/control:
+    - update standards version to 3.8.4.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 01 Mar 2010 18:14:28 +0100
+
 evolution-data-server (2.28.2-1) unstable; urgency=low
 
   * New upstream release.
