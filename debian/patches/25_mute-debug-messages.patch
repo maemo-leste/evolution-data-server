@@ -1,6 +1,6 @@
-diff -ruN evolution-data-server-2.22.0.orig/libedataserver/e-categories.c evolution-data-server-2.22.0/libedataserver/e-categories.c
---- evolution-data-server-2.22.0.orig/libedataserver/e-categories.c	2007-11-29 13:53:48.000000000 +0100
-+++ evolution-data-server-2.22.0/libedataserver/e-categories.c	2008-03-11 21:01:54.000000000 +0100
+diff -urN evolution-data-server-2.28.3.1/libedataserver/e-categories.c evolution-data-server-2.28.3.1-patch/libedataserver/e-categories.c
+--- evolution-data-server-2.28.3.1/libedataserver/e-categories.c	2009-08-07 16:20:30.000000000 +0300
++++ evolution-data-server-2.28.3.1-patch/libedataserver/e-categories.c	2010-03-03 03:21:14.258395634 +0200
 @@ -30,6 +30,8 @@
  
  #include "libedataserver-private.h"
@@ -8,9 +8,9 @@ diff -ruN evolution-data-server-2.22.0.orig/libedataserver/e-categories.c evolut
 +#define d(x)
 +
  typedef struct {
- 	char *category;
- 	char *icon_file;
-@@ -162,7 +164,7 @@
+ 	gchar *category;
+ 	gchar *icon_file;
+@@ -201,7 +203,7 @@
  
  	filename = build_categories_filename ();
  
@@ -19,7 +19,7 @@ diff -ruN evolution-data-server-2.22.0.orig/libedataserver/e-categories.c evolut
  
  	/* build the file contents */
  	buffer = g_string_new ("<categories>\n");
-@@ -268,7 +270,7 @@
+@@ -311,7 +313,7 @@
  	if (!g_file_test (filename, G_FILE_TEST_EXISTS))
  		goto exit;
  
@@ -28,7 +28,7 @@ diff -ruN evolution-data-server-2.22.0.orig/libedataserver/e-categories.c evolut
  
  	if (!g_file_get_contents (filename, &contents, &length, &error)) {
  		g_warning ("Unable to load categories: %s", error->message);
-@@ -324,7 +326,7 @@
+@@ -367,7 +369,7 @@
  	if (string == NULL || *string == '\0')
  		goto exit;
  
@@ -37,7 +37,7 @@ diff -ruN evolution-data-server-2.22.0.orig/libedataserver/e-categories.c evolut
  
  	n_added = parse_categories (string, strlen (string));
  	if (n_added == 0)
-@@ -401,20 +403,20 @@
+@@ -448,20 +450,20 @@
  
  	n_added = load_categories ();
  	if (n_added > 0) {

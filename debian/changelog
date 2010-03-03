@@ -1,3 +1,15 @@
+evolution-data-server (2.28.3.1-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * debian/control:
+    - Add myself to uploaders.
+  * debian/patches:
+    - 25_mute-debug-messages: Regenerated.
+    - 45_libcamel_providers_version: Regenerated.
+    - 65_evolution-color: Regenerated.
+
+ -- David Weinehall <tao@debian.org>  Wed, 03 Mar 2010 04:37:24 +0200
+
 evolution-data-server (2.28.3-1) unstable; urgency=low
 
   * New upstream bugfix release.                                closes: #572112

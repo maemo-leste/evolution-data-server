@@ -1,8 +1,7 @@
-diff --git a/evolution-data-server-2.27.91/configure b/evolution-data-server-2.27.91/configure
-index c2668d6..299e2ff 100755
---- a/evolution-data-server-2.27.91/configure
-+++ b/evolution-data-server-2.27.91/configure
-@@ -24791,7 +24791,7 @@ if test $use_gweather = yes; then
+diff -urN evolution-data-server-2.28.3.1/configure evolution-data-server-2.28.3.1-patch/configure
+--- evolution-data-server-2.28.3.1/configure	2010-03-02 08:36:33.000000000 +0200
++++ evolution-data-server-2.28.3.1-patch/configure	2010-03-03 03:23:31.930394594 +0200
+@@ -24800,7 +24800,7 @@
  
  fi
  
@@ -11,16 +10,16 @@ index c2668d6..299e2ff 100755
  
  
  INTERFACE_VERSION="$BASE_VERSION"
-diff --git a/evolution-data-server-2.27.91/configure.ac b/evolution-data-server-2.27.91/configure.ac
-index c89caff..a9f324d 100644
---- a/evolution-data-server-2.27.91/configure.ac
-+++ b/evolution-data-server-2.27.91/configure.ac
-@@ -1586,7 +1586,7 @@ if test $use_gweather = yes; then
+diff -urN evolution-data-server-2.28.3.1/configure.ac evolution-data-server-2.28.3.1-patch/configure.ac
+--- evolution-data-server-2.28.3.1/configure.ac	2010-03-02 08:29:38.000000000 +0200
++++ evolution-data-server-2.28.3.1-patch/configure.ac	2010-03-03 03:23:53.653903722 +0200
+@@ -1586,8 +1586,7 @@
  fi
  
  dnl separate camel from e-d-s? or should it be under the same spot? same for now.
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
+-AC_SUBST(camel_providerdir)
 +camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCANEL_CURRENT} - ${LIBCAMEL_AGE}`
- AC_SUBST(camel_providerdir)
  
  dnl IDL/Component Versioning
+ INTERFACE_VERSION="$BASE_VERSION"
