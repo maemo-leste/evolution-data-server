@@ -41,7 +41,8 @@ Build-Depends: debhelper (>= 5.0.0),
                libgweather-dev (>= 2.24.5),
                libical-dev,
                libicu-dev,
-               libdbus-glib-1-dev (>= 0.6)
+               libdbus-glib-1-dev (>= 0.6),
+               gperf
 
 Package: evolution-data-server
 Architecture: any

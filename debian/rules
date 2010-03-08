@@ -24,8 +24,7 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-libdb=/usr \
 	--enable-gtk-doc \
 	--enable-gnome-keyring=yes \
-	--enable-largefile \
-#	--enable-imapx=yes
+	--enable-largefile
 
 #post-patches::
 #	dh_testdir
