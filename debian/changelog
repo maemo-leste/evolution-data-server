@@ -1,11 +1,11 @@
-evolution-data-server (2.29.92-1) UNRELEASED; urgency=low
+evolution-data-server (2.29.92-1) experimental; urgency=low
 
   * New upstream release candidate.
   * debian/control:
     - add build-dep on gperf for imapx backend.
   * debian/libcamel1.2-14.shlibs: bump shlibs.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 08 Mar 2010 08:05:22 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 08 Mar 2010 23:15:54 +0100
 
 evolution-data-server (2.29.91-1) experimental; urgency=low
 
