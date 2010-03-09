@@ -1,3 +1,13 @@
+evolution-data-server (2.29.92-2) UNRELEASED; urgency=low
+
+  * debian/patches
+    - 66_fix-utf7-encoding-imapx, 68_delete-folders-while-sync,
+      69_really-fix-utf7-encoded-folders, 67_fix-move-message-marked-as-unread,
+      70_fix-namespace-separator, 72_imapx-inbox-subscription,
+      71_imapx-folder-subscription added, fixes for IMAP+ backend.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 09 Mar 2010 20:05:11 +0100
+
 evolution-data-server (2.29.92-1) experimental; urgency=low
 
   * New upstream release candidate.
