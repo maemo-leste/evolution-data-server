@@ -1,8 +1,13 @@
-commit fefd0922d62038905afc744dba5c3a3e02ba3e51
-Author: Chenthill Palanisamy <pchenthill@novell.com>
-Date:   Tue Mar 9 23:48:05 2010 +0530
+From fefd0922d62038905afc744dba5c3a3e02ba3e51 Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Tue, 9 Mar 2010 23:48:05 +0530
+Subject: [PATCH 13/21] Implement folder subscriptions - imapx
 
-    Implement folder subscriptions - imapx
+---
+ camel/providers/imapx/camel-imapx-server.c |   82 ++++++++++++++++++++++++++
+ camel/providers/imapx/camel-imapx-server.h |    2 +
+ camel/providers/imapx/camel-imapx-store.c  |   86 +++++++++++++++++++++++++---
+ 3 files changed, 161 insertions(+), 9 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
 index 8331c8d..cebccdd 100644
@@ -258,3 +263,6 @@ index b2a001f..1a5ad5a 100644
  }
  
  static void
+-- 
+1.7.0
+

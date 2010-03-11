@@ -1,8 +1,11 @@
-commit 433544fd66f0b774a2f42cff2ae229d3b534aab6
-Author: Chenthill Palanisamy <pchenthill@novell.com>
-Date:   Tue Mar 9 14:15:22 2010 +0530
+From 433544fd66f0b774a2f42cff2ae229d3b534aab6 Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Tue, 9 Mar 2010 14:15:22 +0530
+Subject: [PATCH 11/21] fix a error from previous commit for bug 612121
 
-    fix a error from previous commit for bug 612121
+---
+ camel/providers/imapx/camel-imapx-server.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
 index 1cdddd5..c1f48c8 100644
@@ -29,3 +32,6 @@ index 1cdddd5..c1f48c8 100644
  		imapx_store->dir_sep = ns->sep;
  	}
  
+-- 
+1.7.0
+

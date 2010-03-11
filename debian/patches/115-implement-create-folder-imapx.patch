@@ -1,0 +1,256 @@
+From f09f0fdd0222ad1017fc820715abb783a65df94a Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Wed, 10 Mar 2010 02:02:56 +0530
+Subject: [PATCH 15/21] implement create folder - imapx
+
+---
+ camel/providers/imapx/camel-imapx-server.c |   62 ++++++++++++++++
+ camel/providers/imapx/camel-imapx-server.h |    1 +
+ camel/providers/imapx/camel-imapx-store.c  |  109 +++++++++++++++++++++++-----
+ 3 files changed, 153 insertions(+), 19 deletions(-)
+
+diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
+index cebccdd..0ea9915 100644
+--- a/camel/providers/imapx/camel-imapx-server.c
++++ b/camel/providers/imapx/camel-imapx-server.c
+@@ -183,9 +183,11 @@ enum {
+ 	IMAPX_JOB_IDLE = 1<<8,
+ 	IMAPX_JOB_LIST = 1<<9,
+ 	IMAPX_JOB_MANAGE_SUBSCRIPTION = 1<<10,
++	IMAPX_JOB_CREATE_FOLDER = 1<<11,
+ };
+ 
+ enum {
++	IMAPX_PRIORITY_CREATE_FOLDER = 200,
+ 	IMAPX_PRIORITY_MANAGE_SUBSCRIPTION = 200,
+ 	IMAPX_PRIORITY_GET_MESSAGE = 100,
+ 	IMAPX_PRIORITY_REFRESH_INFO = 0,
+@@ -276,6 +278,8 @@ struct _CamelIMAPXJob {
+ 			const gchar *folder_name;
+ 			gboolean subscribe;
+ 		} manage_subscriptions;
++
++		const gchar *folder_name;
+ 	} u;
+ };
+ 
+@@ -1122,9 +1126,15 @@ imapx_untagged(CamelIMAPXServer *imap, CamelException *ex)
+ 		nsl = imapx_parse_namespace_list (imap->stream, ex);
+ 		if (nsl != NULL) {
+ 			CamelIMAPXStore *imapx_store = (CamelIMAPXStore *) imap->store;
++			CamelIMAPXStoreNamespace *ns;
+ 
+ 			imapx_store->summary->namespaces = nsl;
+ 			camel_store_summary_touch ((CamelStoreSummary *) imapx_store->summary);
++
++			/* TODO Need to remove imapx_store->dir_sep to support multiple namespaces */
++			ns = nsl->personal;
++			if (ns)
++				imapx_store->dir_sep = ns->sep;
+ 		}
+ 
+ 		return 0;
+@@ -3187,6 +3197,39 @@ imapx_job_manage_subscription_start (CamelIMAPXServer *is, CamelIMAPXJob *job)
+ }
+ 
+ /* ********************************************************************** */
++
++static void
++imapx_command_create_folder_done (CamelIMAPXServer *is, CamelIMAPXCommand *ic)
++{
++	if (camel_exception_is_set (ic->ex) || ic->status->result != IMAPX_OK) {
++		if (!camel_exception_is_set (ic->ex))
++			camel_exception_setv(ic->job->ex, 1, "Error creating to folder : %s", ic->status->text);
++		else
++			camel_exception_xfer (ic->job->ex, ic->ex);
++	}
++
++	imapx_job_done (is, ic->job);
++	camel_imapx_command_free (ic);
++}
++
++static void
++imapx_job_create_folder_start (CamelIMAPXServer *is, CamelIMAPXJob *job)
++{
++	CamelIMAPXCommand *ic;
++	gchar *encoded_fname = NULL;
++
++	encoded_fname = camel_utf8_utf7 (job->u.folder_name);
++	ic = camel_imapx_command_new ("CREATE", NULL, "CREATE %s", encoded_fname);
++	ic->pri = job->pri;
++	ic->job = job;
++	ic->complete = imapx_command_create_folder_done;
++	imapx_command_queue(is, ic);
++
++	g_free (encoded_fname);
++}
++
++/* ********************************************************************** */
++
+ static void
+ imapx_command_noop_done (CamelIMAPXServer *is, CamelIMAPXCommand *ic)
+ {
+@@ -4257,3 +4300,22 @@ camel_imapx_server_manage_subscription (CamelIMAPXServer *is, const gchar *folde
+ 
+ 	g_free (job);
+ }
++
++void
++camel_imapx_server_create_folder (CamelIMAPXServer *is, const gchar *folder_name, CamelException *ex)
++{
++	CamelIMAPXJob *job;
++	
++	job = g_malloc0(sizeof(*job));
++	job->type = IMAPX_JOB_CREATE_FOLDER;
++	job->start = imapx_job_create_folder_start;
++	job->pri = IMAPX_PRIORITY_CREATE_FOLDER;
++	job->ex = ex;
++	job->u.folder_name = folder_name;
++
++	if (imapx_register_job (is, job))
++		imapx_run_job (is, job);
++
++	g_free (job);
++}
++
+diff --git a/camel/providers/imapx/camel-imapx-server.h b/camel/providers/imapx/camel-imapx-server.h
+index ae50e59..9dc9b91 100644
+--- a/camel/providers/imapx/camel-imapx-server.h
++++ b/camel/providers/imapx/camel-imapx-server.h
+@@ -126,5 +126,6 @@ void camel_imapx_server_append_message(CamelIMAPXServer *is, CamelFolder *folder
+ void camel_imapx_server_sync_message (CamelIMAPXServer *is, CamelFolder *folder, const gchar *uid, CamelException *ex);
+ 
+ void camel_imapx_server_manage_subscription (CamelIMAPXServer *is, const gchar *folder_name, gboolean subscribe, CamelException *ex);
++void camel_imapx_server_create_folder (CamelIMAPXServer *is, const gchar *folder_name, CamelException *ex);
+ 
+ #endif /* _CAMEL_IMAPX_SERVER_H */
+diff --git a/camel/providers/imapx/camel-imapx-store.c b/camel/providers/imapx/camel-imapx-store.c
+index 56547e2..efd7462 100644
+--- a/camel/providers/imapx/camel-imapx-store.c
++++ b/camel/providers/imapx/camel-imapx-store.c
+@@ -577,6 +577,96 @@ imapx_delete_folder_from_cache (CamelIMAPXStore *istore, const gchar *folder_nam
+ 	camel_folder_info_free (fi);
+ }
+ 
++static void
++imapx_delete_folder (CamelStore *store, const gchar *folder_name, CamelException *ex)
++{
++	camel_exception_setv(ex, 1, "delete_folder::unimplemented");
++}
++
++static void
++imapx_rename_folder (CamelStore *store, const gchar *old, const gchar *new, CamelException *ex)
++{
++	camel_exception_setv(ex, 1, "rename_folder::unimplemented");
++}
++
++static CamelFolderInfo *
++imapx_create_folder (CamelStore *store, const gchar *parent_name, const gchar *folder_name, CamelException *ex)
++{	
++	const gchar *c;
++	CamelStoreInfo *si;
++	CamelIMAPXStoreNamespace *ns;
++	CamelIMAPXStore *istore = (CamelIMAPXStore *) store;
++	gchar *real_name, *full_name, *parent_real;
++	CamelFolderInfo *fi = NULL;
++	gchar dir_sep;
++	
++	if (CAMEL_OFFLINE_STORE (store)->state == CAMEL_OFFLINE_STORE_NETWORK_UNAVAIL) {
++		camel_exception_set (ex, CAMEL_EXCEPTION_SERVICE_UNAVAILABLE,
++				     _("You must be working online to complete this operation"));
++		return NULL;
++	}
++	
++	if (!parent_name)
++		parent_name = "";
++
++	ns = camel_imapx_store_summary_namespace_find_path (istore->summary, parent_name);
++	if (ns)
++		dir_sep = ns->sep;
++	else
++		dir_sep = '/';
++
++	c = folder_name;
++	while (*c && *c != dir_sep && !strchr ("#%*", *c))
++		c++;
++
++	if (*c != '\0') {
++		camel_exception_setv (ex, CAMEL_EXCEPTION_FOLDER_INVALID_PATH,
++				      _("The folder name \"%s\" is invalid because it contains the character \"%c\""),
++				      folder_name, *c);
++		return NULL;
++	}
++	
++	parent_real = camel_imapx_store_summary_full_from_path(istore->summary, parent_name);
++	si = camel_store_summary_path ((CamelStoreSummary *)istore->summary, parent_name);
++	if (si == NULL || parent_real == NULL) {
++		camel_exception_setv(ex, CAMEL_EXCEPTION_FOLDER_INVALID_STATE,
++				     _("Unknown parent folder: %s"), parent_name);
++		return NULL;
++	}
++
++	if (si->flags & CAMEL_STORE_INFO_FOLDER_NOINFERIORS) {
++		camel_exception_set (ex, CAMEL_EXCEPTION_FOLDER_INVALID_STATE,
++				_("The parent folder is not allowed to contain subfolders"));
++		return NULL;
++	}
++
++	camel_store_summary_info_free ((CamelStoreSummary *) istore->summary, si);
++
++	real_name = camel_imapx_store_summary_path_to_full (istore->summary, folder_name, dir_sep);
++	full_name = imapx_concat (istore, parent_real, real_name);
++	g_free(real_name);
++
++	if (istore->server && camel_imapx_server_connect (istore->server, 1))
++		camel_imapx_server_create_folder (istore->server, full_name, ex);
++
++	if (!camel_exception_is_set (ex)) {
++		CamelIMAPXStoreInfo *si;
++
++		si = camel_imapx_store_summary_add_from_full(istore->summary, full_name, dir_sep);
++		camel_store_summary_save((CamelStoreSummary *)istore->summary);
++		fi = imapx_build_folder_info(istore, camel_store_info_path(istore->summary, si));
++		fi->flags |= CAMEL_FOLDER_NOCHILDREN;
++		camel_object_trigger_event (CAMEL_OBJECT (store), "folder_created", fi);
++	}
++
++
++	g_free (full_name);
++	g_free(parent_real);
++
++	return fi;
++}
++
++
+ static CamelFolderInfo *
+ get_folder_info_offline (CamelStore *store, const gchar *top,
+ 			 guint32 flags, CamelException *ex)
+@@ -960,25 +1050,6 @@ imapx_get_folder_info(CamelStore *store, const gchar *top, guint32 flags, CamelE
+ 	return fi;
+ }
+ 
+-static void
+-imapx_delete_folder(CamelStore *store, const gchar *folder_name, CamelException *ex)
+-{
+-	camel_exception_setv(ex, 1, "delete_folder::unimplemented");
+-}
+-
+-static void
+-imapx_rename_folder(CamelStore *store, const gchar *old, const gchar *new, CamelException *ex)
+-{
+-	camel_exception_setv(ex, 1, "rename_folder::unimplemented");
+-}
+-
+-static CamelFolderInfo *
+-imapx_create_folder(CamelStore *store, const gchar *parent_name, const gchar *folder_name, CamelException *ex)
+-{
+-	camel_exception_setv(ex, 1, "create_folder::unimplemented");
+-	return NULL;
+-}
+-
+ static gboolean
+ imapx_can_refresh_folder (CamelStore *store, CamelFolderInfo *info, CamelException *ex)
+ {
+-- 
+1.7.0
+

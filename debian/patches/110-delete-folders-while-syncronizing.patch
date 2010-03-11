@@ -1,8 +1,12 @@
-commit 16cb2c60ff0f1d0cecf8ceb8ecf6a8f802d7f5e6
-Author: Chenthill Palanisamy <pchenthill@novell.com>
-Date:   Tue Mar 9 14:10:08 2010 +0530
+From 16cb2c60ff0f1d0cecf8ceb8ecf6a8f802d7f5e6 Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Tue, 9 Mar 2010 14:10:08 +0530
+Subject: [PATCH 10/21] delete folders while syncronizing
 
-    delete folders while syncronizing
+---
+ camel/providers/imapx/camel-imapx-server.c |    1 +
+ camel/providers/imapx/camel-imapx-store.c  |   78 ++++++++++++++++++++++++++-
+ 2 files changed, 76 insertions(+), 3 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
 index ac5c39b..1cdddd5 100644
@@ -126,3 +130,6 @@ index 0e21303..397c155 100644
  					g_free (dup_folder_name);
  					camel_exception_clear (&eex);
  				} else {
+-- 
+1.7.0
+

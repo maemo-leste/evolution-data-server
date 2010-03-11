@@ -1,8 +1,12 @@
-commit 3919abeb129f33e93ed00f99f5753790b250cfe6
-Author: Chenthill Palanisamy <pchenthill@novell.com>
-Date:   Tue Mar 9 16:23:39 2010 +0530
+From 3919abeb129f33e93ed00f99f5753790b250cfe6 Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Tue, 9 Mar 2010 16:23:39 +0530
+Subject: [PATCH 12/21] Bug 612116 - IMAPX: Problems with separator . and namespace INBOX.
 
-    Bug 612116 - IMAPX: Problems with separator . and namespace INBOX.
+---
+ camel/providers/imapx/camel-imapx-server.c |   16 +++++++++-------
+ camel/providers/imapx/camel-imapx-store.c  |    7 -------
+ 2 files changed, 9 insertions(+), 14 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
 index c1f48c8..8331c8d 100644
@@ -96,3 +100,6 @@ index 397c155..b2a001f 100644
  
  	storage_path = g_strdup_printf ("%s/folders", istore->storage_path);
  	folder_dir = imapx_path_to_physical (storage_path, folder_name);
+-- 
+1.7.0
+
