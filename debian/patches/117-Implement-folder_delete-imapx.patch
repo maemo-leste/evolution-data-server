@@ -1,0 +1,348 @@
+From e329ffa364e3cb389ad9e7295a1b276bef435d7c Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Wed, 10 Mar 2010 13:48:49 +0530
+Subject: [PATCH 17/21] Implement folder_delete - imapx
+ Bug 612388 - [imapx] can't move message from a folder to another
+
+---
+ camel/providers/imapx/camel-imapx-server.c        |   67 +++++++++++++++++-
+ camel/providers/imapx/camel-imapx-server.h        |    1 +
+ camel/providers/imapx/camel-imapx-store-summary.c |    6 +-
+ camel/providers/imapx/camel-imapx-store-summary.h |    6 +-
+ camel/providers/imapx/camel-imapx-store.c         |   77 ++++++++++++++++----
+ camel/providers/imapx/camel-imapx-utils.c         |    5 +-
+ 6 files changed, 135 insertions(+), 27 deletions(-)
+
+diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
+index 0ea9915..832c140 100644
+--- a/camel/providers/imapx/camel-imapx-server.c
++++ b/camel/providers/imapx/camel-imapx-server.c
+@@ -184,10 +184,14 @@ enum {
+ 	IMAPX_JOB_LIST = 1<<9,
+ 	IMAPX_JOB_MANAGE_SUBSCRIPTION = 1<<10,
+ 	IMAPX_JOB_CREATE_FOLDER = 1<<11,
++	IMAPX_JOB_DELETE_FOLDER = 1<<12,
+ };
+ 
++/* Operations on the store (folder_tree) will have highest priority as we know for sure they are sync
++   and user triggered. */
+ enum {
+ 	IMAPX_PRIORITY_CREATE_FOLDER = 200,
++	IMAPX_PRIORITY_DELETE_FOLDER = 200,
+ 	IMAPX_PRIORITY_MANAGE_SUBSCRIPTION = 200,
+ 	IMAPX_PRIORITY_GET_MESSAGE = 100,
+ 	IMAPX_PRIORITY_REFRESH_INFO = 0,
+@@ -2460,7 +2464,7 @@ imapx_command_copy_messages_step_start (CamelIMAPXServer *is, CamelIMAPXJob *job
+ 
+ 	job->u.copy_messages.index = i;
+ 	if (imapx_uidset_done (&job->u.copy_messages.uidset, ic)) {
+-		camel_imapx_command_add (ic, " %s", job->u.copy_messages.dest->full_name);
++		camel_imapx_command_add (ic, " %f", job->u.copy_messages.dest);
+ 		imapx_command_queue (is, ic);
+ 		return;
+ 	}
+@@ -3231,6 +3235,40 @@ imapx_job_create_folder_start (CamelIMAPXServer *is, CamelIMAPXJob *job)
+ /* ********************************************************************** */
+ 
+ static void
++imapx_command_delete_folder_done (CamelIMAPXServer *is, CamelIMAPXCommand *ic)
++{
++	if (camel_exception_is_set (ic->ex) || ic->status->result != IMAPX_OK) {
++		if (!camel_exception_is_set (ic->ex))
++			camel_exception_setv(ic->job->ex, 1, "Error deleting to folder : %s", ic->status->text);
++		else
++			camel_exception_xfer (ic->job->ex, ic->ex);
++	}
++
++	imapx_job_done (is, ic->job);
++	camel_imapx_command_free (ic);
++}
++
++static void
++imapx_job_delete_folder_start (CamelIMAPXServer *is, CamelIMAPXJob *job)
++{
++	CamelIMAPXCommand *ic;
++	gchar *encoded_fname = NULL;
++
++	encoded_fname = imapx_encode_folder_name ((CamelIMAPXStore *) is->store, job->u.folder_name);
++
++	/* make sure to-be-deleted folder is not selected by selecting INBOX for this operation */
++	ic = camel_imapx_command_new ("DELETE", "INBOX", "DELETE %s", encoded_fname);
++	ic->pri = job->pri;
++	ic->job = job;
++	ic->complete = imapx_command_delete_folder_done;
++	imapx_command_queue(is, ic);
++
++	g_free (encoded_fname);
++}
++
++/* ********************************************************************** */
++
++static void
+ imapx_command_noop_done (CamelIMAPXServer *is, CamelIMAPXCommand *ic)
+ {
+ 	if (camel_exception_is_set (ic->ex) || ic->status->result != IMAPX_OK) {
+@@ -4254,6 +4292,9 @@ camel_imapx_server_list(CamelIMAPXServer *is, const gchar *top, guint32 flags, C
+ {
+ 	CamelIMAPXJob *job;
+ 	GPtrArray *folders = NULL;
++	gchar *encoded_name;
++
++	encoded_name = camel_utf8_utf7 (top);
+ 
+ 	job = g_malloc0(sizeof(*job));
+ 	job->type = IMAPX_JOB_LIST;
+@@ -4262,11 +4303,11 @@ camel_imapx_server_list(CamelIMAPXServer *is, const gchar *top, guint32 flags, C
+ 	job->ex = ex;
+ 	job->u.list.flags = flags;
+ 	job->u.list.folders = g_hash_table_new(imapx_name_hash, imapx_name_equal);
+-	job->u.list.pattern = g_alloca(strlen(top)+5);
++	job->u.list.pattern = g_alloca(strlen(encoded_name)+5);
+ 	if (flags & CAMEL_STORE_FOLDER_INFO_RECURSIVE)
+-		sprintf(job->u.list.pattern, "%s*", top);
++		sprintf(job->u.list.pattern, "%s*", encoded_name);
+ 	else
+-		sprintf(job->u.list.pattern, "%s", top);
++		sprintf(job->u.list.pattern, "%s", encoded_name);
+ 
+ 	if (imapx_register_job (is, job)) {
+ 		imapx_run_job (is, job);
+@@ -4277,6 +4318,7 @@ camel_imapx_server_list(CamelIMAPXServer *is, const gchar *top, guint32 flags, C
+ 	}
+ 
+ 	g_hash_table_destroy(job->u.list.folders);
++	g_free (encoded_name);
+ 	g_free(job);
+ 
+ 	return folders;
+@@ -4319,3 +4361,20 @@ camel_imapx_server_create_folder (CamelIMAPXServer *is, const gchar *folder_name
+ 	g_free (job);
+ }
+ 
++void
++camel_imapx_server_delete_folder (CamelIMAPXServer *is, const gchar *folder_name, CamelException *ex)
++{
++	CamelIMAPXJob *job;
++	
++	job = g_malloc0(sizeof(*job));
++	job->type = IMAPX_JOB_DELETE_FOLDER;
++	job->start = imapx_job_delete_folder_start;
++	job->pri = IMAPX_PRIORITY_DELETE_FOLDER;
++	job->ex = ex;
++	job->u.folder_name = folder_name;
++
++	if (imapx_register_job (is, job))
++		imapx_run_job (is, job);
++
++	g_free (job);
++}
+diff --git a/camel/providers/imapx/camel-imapx-server.h b/camel/providers/imapx/camel-imapx-server.h
+index 9dc9b91..eba2adb 100644
+--- a/camel/providers/imapx/camel-imapx-server.h
++++ b/camel/providers/imapx/camel-imapx-server.h
+@@ -127,5 +127,6 @@ void camel_imapx_server_sync_message (CamelIMAPXServer *is, CamelFolder *folder,
+ 
+ void camel_imapx_server_manage_subscription (CamelIMAPXServer *is, const gchar *folder_name, gboolean subscribe, CamelException *ex);
+ void camel_imapx_server_create_folder (CamelIMAPXServer *is, const gchar *folder_name, CamelException *ex);
++void camel_imapx_server_delete_folder (CamelIMAPXServer *is, const gchar *folder_name, CamelException *ex);
+ 
+ #endif /* _CAMEL_IMAPX_SERVER_H */
+diff --git a/camel/providers/imapx/camel-imapx-store-summary.c b/camel/providers/imapx/camel-imapx-store-summary.c
+index 01ec307..e46caa7 100644
+--- a/camel/providers/imapx/camel-imapx-store-summary.c
++++ b/camel/providers/imapx/camel-imapx-store-summary.c
+@@ -333,7 +333,7 @@ camel_imapx_store_summary_add_from_full(CamelIMAPXStoreSummary *s, const gchar *
+ 	info = (CamelIMAPXStoreInfo *)camel_store_summary_add_from_path((CamelStoreSummary *)s, pathu8);
+ 	if (info) {
+ 		d(printf("  '%s' -> '%s'\n", pathu8, full_name));
+-		camel_store_info_set_string((CamelStoreSummary *)s, (CamelStoreInfo *)info, CAMEL_IMAP_STORE_INFO_FULL_NAME, full_name);
++		camel_store_info_set_string((CamelStoreSummary *)s, (CamelStoreInfo *)info, CAMEL_IMAPX_STORE_INFO_FULL_NAME, full_name);
+ 
+ 		if (!g_ascii_strcasecmp(full_name, "inbox"))
+ 			info->info.flags |= CAMEL_FOLDER_SYSTEM|CAMEL_FOLDER_TYPE_INBOX;
+@@ -649,7 +649,7 @@ store_info_string(CamelStoreSummary *s, const CamelStoreInfo *mi, gint type)
+ 	g_assert (mi != NULL);
+ 
+ 	switch (type) {
+-	case CAMEL_IMAP_STORE_INFO_FULL_NAME:
++	case CAMEL_IMAPX_STORE_INFO_FULL_NAME:
+ 		return isi->full_name;
+ 	default:
+ 		return camel_imapx_store_summary_parent->store_info_string(s, mi, type);
+@@ -664,7 +664,7 @@ store_info_set_string(CamelStoreSummary *s, CamelStoreInfo *mi, gint type, const
+ 	g_assert(mi != NULL);
+ 
+ 	switch (type) {
+-	case CAMEL_IMAP_STORE_INFO_FULL_NAME:
++	case CAMEL_IMAPX_STORE_INFO_FULL_NAME:
+ 		d(printf("Set full name %s -> %s\n", isi->full_name, str));
+ 		CAMEL_STORE_SUMMARY_LOCK(s, summary_lock);
+ 		g_free(isi->full_name);
+diff --git a/camel/providers/imapx/camel-imapx-store-summary.h b/camel/providers/imapx/camel-imapx-store-summary.h
+index 67f4004..1da5b2c 100644
+--- a/camel/providers/imapx/camel-imapx-store-summary.h
++++ b/camel/providers/imapx/camel-imapx-store-summary.h
+@@ -37,8 +37,8 @@ typedef struct _CamelIMAPXStoreSummaryClass CamelIMAPXStoreSummaryClass;
+ typedef struct _CamelIMAPXStoreInfo CamelIMAPXStoreInfo;
+ 
+ enum {
+-	CAMEL_IMAP_STORE_INFO_FULL_NAME = CAMEL_STORE_INFO_LAST,
+-	CAMEL_IMAP_STORE_INFO_LAST
++	CAMEL_IMAPX_STORE_INFO_FULL_NAME = CAMEL_STORE_INFO_LAST,
++	CAMEL_IMAPX_STORE_INFO_LAST
+ };
+ 
+ struct _CamelIMAPXStoreInfo {
+@@ -98,7 +98,7 @@ gchar *camel_imapx_store_summary_full_from_path(CamelIMAPXStoreSummary *s, const
+ void camel_imapx_store_summary_set_namespaces (CamelIMAPXStoreSummary *summary, const CamelIMAPXNamespaceList *nsl);
+ 
+ /* helpe macro's */
+-#define camel_imapx_store_info_full_name(s, i) (camel_store_info_string((CamelStoreSummary *)s, (const CamelStoreInfo *)i, CAMEL_IMAP_STORE_INFO_FULL_NAME))
++#define camel_imapx_store_info_full_name(s, i) (camel_store_info_string((CamelStoreSummary *)s, (const CamelStoreInfo *)i, CAMEL_IMAPX_STORE_INFO_FULL_NAME))
+ 
+ G_END_DECLS
+ 
+diff --git a/camel/providers/imapx/camel-imapx-store.c b/camel/providers/imapx/camel-imapx-store.c
+index efd7462..4ff9dc2 100644
+--- a/camel/providers/imapx/camel-imapx-store.c
++++ b/camel/providers/imapx/camel-imapx-store.c
+@@ -535,6 +535,11 @@ imapx_store_subscribe_folder (CamelStore *store, const gchar *folder_name, Camel
+ static void
+ imapx_store_unsubscribe_folder (CamelStore *store, const gchar *folder_name, CamelException *ex)
+ {
++	CamelException eex = CAMEL_EXCEPTION_INITIALISER;
++	
++	if (!ex)
++		ex = &eex;
++
+ 	imapx_unsubscribe_folder (store, folder_name, TRUE, ex);
+ }
+ 
+@@ -580,7 +585,19 @@ imapx_delete_folder_from_cache (CamelIMAPXStore *istore, const gchar *folder_nam
+ static void
+ imapx_delete_folder (CamelStore *store, const gchar *folder_name, CamelException *ex)
+ {
+-	camel_exception_setv(ex, 1, "delete_folder::unimplemented");
++	CamelIMAPXStore *istore = (CamelIMAPXStore *) store;
++
++	if (CAMEL_OFFLINE_STORE (store)->state == CAMEL_OFFLINE_STORE_NETWORK_UNAVAIL) {
++		camel_exception_set (ex, CAMEL_EXCEPTION_SERVICE_UNAVAILABLE,
++				     _("You must be working online to complete this operation"));
++		return;
++	}
++
++	if (istore->server && camel_imapx_server_connect (istore->server, 1))
++		camel_imapx_server_delete_folder (istore->server, folder_name, ex);
++
++	if (!camel_exception_is_set (ex))
++		imapx_delete_folder_from_cache (istore, folder_name, ex);
+ }
+ 
+ static void
+@@ -1006,12 +1023,32 @@ sync_folders (CamelIMAPXStore *istore, const gchar *pattern, CamelException *ex)
+ 	g_hash_table_destroy (folders_from_server);
+ }
+ 
++
++static void
++discover_inbox (CamelStore *store, CamelException *ex)
++{
++	CamelStoreInfo *si;
++	CamelIMAPXStore *istore = (CamelIMAPXStore *)store;
++	
++	si = camel_store_summary_path((CamelStoreSummary *) istore->summary, "INBOX");
++	if (si == NULL || (si->flags & CAMEL_FOLDER_SUBSCRIBED) == 0) {
++		imapx_subscribe_folder (store, "INBOX", FALSE, ex);
++		
++		if (!camel_exception_is_set(ex) && !si)
++			sync_folders (istore, "INBOX", ex);
++	
++		if (si)
++			camel_store_summary_info_free((CamelStoreSummary *) istore->summary, si);
++	}
++}
++
+ static CamelFolderInfo *
+ imapx_get_folder_info(CamelStore *store, const gchar *top, guint32 flags, CamelException *ex)
+ {
+ 	CamelIMAPXStore *istore = (CamelIMAPXStore *)store;
+ 	CamelFolderInfo * fi= NULL;
+ 	gboolean initial_setup = FALSE;
++	gchar *pattern;
+ 
+ 	if (top == NULL)
+ 		top = "";
+@@ -1027,24 +1064,32 @@ imapx_get_folder_info(CamelStore *store, const gchar *top, guint32 flags, CamelE
+ 	if (camel_store_summary_count ((CamelStoreSummary *) istore->summary) == 0)
+ 		initial_setup = TRUE;
+ 
+-	sync_folders (istore, top, ex);
++	if (*top) {
++		gchar *name;
++		gint i;
++
++		name = camel_imapx_store_summary_full_from_path(istore->summary, top);
++		if (name == NULL)
++			name = camel_imapx_store_summary_path_to_full(istore->summary, top, istore->dir_sep);
++
++		i = strlen(name);
++		pattern = g_alloca(i+5);
++		strcpy(pattern, name);
++		g_free(name);
++	} else {
++		pattern = g_alloca (1);
++		pattern[0] = '\0';
++	}
++
++	sync_folders (istore, pattern, ex);
++	if (camel_exception_is_set (ex))
++		return NULL;
++
+ 	camel_store_summary_save((CamelStoreSummary *) istore->summary);
+ 
+ 	/* ensure the INBOX is subscribed if lsub was preferred*/
+-	if (initial_setup && istore->rec_options & IMAPX_SUBSCRIPTIONS) {
+-		CamelStoreInfo *si;
+-		
+-		si = camel_store_summary_path((CamelStoreSummary *) istore->summary, "INBOX");
+-		if (si == NULL || (si->flags & CAMEL_FOLDER_SUBSCRIBED) == 0) {
+-			imapx_subscribe_folder (store, "INBOX", FALSE, ex);
+-			
+-			if (!camel_exception_is_set(ex) && !si)
+-				sync_folders (istore, "INBOX", ex);
+-		
+-			if (si)
+-				camel_store_summary_info_free((CamelStoreSummary *) istore->summary, si);
+-		}
+-	}
++	if (initial_setup && istore->rec_options & IMAPX_SUBSCRIPTIONS)
++		discover_inbox (store, ex);
+ 
+ 	fi = get_folder_info_offline (store, top, flags, ex);
+ 	return fi;
+diff --git a/camel/providers/imapx/camel-imapx-utils.c b/camel/providers/imapx/camel-imapx-utils.c
+index d93c0b3..939ab4b 100644
+--- a/camel/providers/imapx/camel-imapx-utils.c
++++ b/camel/providers/imapx/camel-imapx-utils.c
+@@ -475,7 +475,6 @@ imapx_parse_namespace_list (CamelIMAPXStream *stream, CamelException *ex)
+ 
+ 				node = g_new0 (CamelIMAPXStoreNamespace, 1);
+ 				node->next = NULL;
+-				node->full_name = g_strdup ((gchar *) token);
+ 				node->path = g_strdup ((gchar *) token);
+ 
+ 				tok = camel_imapx_stream_token (stream, &token, &len, ex);
+@@ -508,6 +507,10 @@ imapx_parse_namespace_list (CamelIMAPXStream *stream, CamelException *ex)
+ 				if (!g_ascii_strncasecmp (node->path, "INBOX", 5) &&
+ 						(node->path [6] == '\0' || node->path [6] == node->sep ))
+ 					memcpy (node->path, "INBOX", 5);
++				
++				/* TODO remove full_name later. not required */
++				node->full_name = g_strdup (node->path);
++
+ 				tok = camel_imapx_stream_token (stream, &token, &len, ex);
+ 				if (tok != ')') {
+ 					camel_exception_set (ex, 1, "namespace: expected a ')'");
+-- 
+1.7.0
+

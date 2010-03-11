@@ -1,8 +1,11 @@
-commit 41f4d710b3daff0b5730d23f5fc27c2df89e4b18
-Author: Chenthill Palanisamy <pchenthill@novell.com>
-Date:   Tue Mar 9 12:52:07 2010 +0530
+From 41f4d710b3daff0b5730d23f5fc27c2df89e4b18 Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Tue, 9 Mar 2010 12:52:07 +0530
+Subject: [PATCH 09/21] Bug 612260 - [imapx] Moving a message to other folder marks it as unread
 
-    Bug 612260 - [imapx] Moving a message to other folder marks it as unread
+---
+ camel/providers/imapx/camel-imapx-server.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
 index 2d5d6f4..ac5c39b 100644
@@ -27,3 +30,6 @@ index 2d5d6f4..ac5c39b 100644
  
  	camel_object_ref(source);
  	camel_object_ref (dest);
+-- 
+1.7.0
+

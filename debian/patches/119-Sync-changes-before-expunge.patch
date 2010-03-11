@@ -1,0 +1,34 @@
+From 356875ae171de8567645f833d4c7798b7be47059 Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Wed, 10 Mar 2010 17:07:52 +0530
+Subject: [PATCH 19/21] Sync changes before expunge
+
+---
+ camel/providers/imapx/camel-imapx-server.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
+index 832c140..66de9e8 100644
+--- a/camel/providers/imapx/camel-imapx-server.c
++++ b/camel/providers/imapx/camel-imapx-server.c
+@@ -224,7 +224,7 @@ struct _CamelIMAPXJob {
+ 
+ 	gint noreply:1;		/* dont wait for reply */
+ 	guint32 type;		/* operation type */
+-	gchar pri;		/* the command priority */
++	guint32 pri;		/* the command priority */
+ 	short commands;		/* counts how many commands are outstanding */
+ 
+ 	CamelFolder *folder;
+@@ -3107,6 +3107,8 @@ imapx_job_expunge_start(CamelIMAPXServer *is, CamelIMAPXJob *job)
+ {
+ 	CamelIMAPXCommand *ic;
+ 
++	camel_imapx_server_sync_changes (is, job->folder, job->ex);
++
+ 	/* TODO handle UIDPLUS capability */
+ 	ic = camel_imapx_command_new("EXPUNGE", job->folder->full_name, "EXPUNGE");
+ 	ic->job = job;
+-- 
+1.7.0
+
