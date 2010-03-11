@@ -1,8 +1,12 @@
-commit cf137de9d0b5298f2d01a7129dea40e5721fd8d1
-Author: Chenthill Palanisamy <pchenthill@novell.com>
-Date:   Tue Mar 9 12:37:30 2010 +0530
+From cf137de9d0b5298f2d01a7129dea40e5721fd8d1 Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Tue, 9 Mar 2010 12:37:30 +0530
+Subject: [PATCH 08/21] Bug 612121 - IMAPX: No UTF7 folder name encoding applied
 
-    Bug 612121 - IMAPX: No UTF7 folder name encoding applied
+---
+ camel/providers/imapx/camel-imapx-server.c |   13 +++++++++++--
+ camel/providers/imapx/camel-imapx-utils.c  |    2 +-
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
 index 8d666c4..2d5d6f4 100644
@@ -56,3 +60,6 @@ index 3f561db..d93c0b3 100644
  
  	return linfo;
  }
+-- 
+1.7.0
+

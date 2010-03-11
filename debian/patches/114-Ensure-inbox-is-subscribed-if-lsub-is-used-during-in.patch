@@ -1,8 +1,11 @@
-commit 3a3727de4c65a97b136fcd6d4ae27af0a3665f24
-Author: Chenthill Palanisamy <pchenthill@novell.com>
-Date:   Wed Mar 10 00:18:27 2010 +0530
+From 3a3727de4c65a97b136fcd6d4ae27af0a3665f24 Mon Sep 17 00:00:00 2001
+From: Chenthill Palanisamy <pchenthill@novell.com>
+Date: Wed, 10 Mar 2010 00:18:27 +0530
+Subject: [PATCH 14/21] Ensure inbox is subscribed if lsub is used during initial setup. - imapx
 
-    Ensure inbox is subscribed if lsub is used during initial setup. - imapx
+---
+ camel/providers/imapx/camel-imapx-store.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-store.c b/camel/providers/imapx/camel-imapx-store.c
 index 1a5ad5a..56547e2 100644
@@ -45,3 +48,6 @@ index 1a5ad5a..56547e2 100644
  	fi = get_folder_info_offline (store, top, flags, ex);
  	return fi;
  }
+-- 
+1.7.0
+
