@@ -1,2 +1,2 @@
-libcamel-1.2 14 libcamel1.2-14 (>= 2.29.92), libcamel1.2-14 (<< 2.30)
-libcamel-provider-1.2 14 libcamel1.2-14 (>= 2.29.92), libcamel1.2-14 (<< 2.30)
+libcamel-1.2 14 libcamel1.2-14 (>= 2.30), libcamel1.2-14 (<< 2.31)
+libcamel-provider-1.2 14 libcamel1.2-14 (>= 2.30), libcamel1.2-14 (<< 2.31)

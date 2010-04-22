@@ -1,23 +1,15 @@
-evolution-data-server (2.29.92-2) UNRELEASED; urgency=low
+evolution-data-server (2.30.0-1) UNRELEASED; urgency=low
 
-  * debian/patches
-    115-implement-create-folder-imapx,
-      111-fix-a-error-from-previous-commit-for-bug-612121,
-      113-Implement-folder-subscriptions-imapx,
-      110-delete-folders-while-syncronizing,
-      109-Bug-612260-imapx-Moving-a-message-to-other-folder-ma,
-      116-Bug-604047-Use-accessor-functions-instead-of-direct-,
-      118-Bug-612401-IMAPX-cann-t-create-folder-in-top-hierarc,
-      119-Sync-changes-before-expunge, 117-Implement-folder_delete-imapx,
-      108-Bug-612121-IMAPX-No-UTF7-folder-name-encoding-applie,
-      107-Fix-a-crash-during-offline-message-sync,
-      112-Bug-612116-IMAPX-Problems-with-separator-.-and-names,
-      114-Ensure-inbox-is-subscribed-if-lsub-is-used-during-in,
-      120-Strip-whitespace-off-strings-returned-from-e_contact added, a bunch
-    of patches for IMAP+ (imapx) backend.
+  * New upstream release.
+  * debian/watch updated to track stable releases.
+  * debian/control:
+    - bump required GTK+ version to 2.18.
+  * debian/patches/25_mute-debug-messages.patch dropped, doesn't apply anymore
+    and shouldn't be needed.
+  * debian/libcamel1.2-14.shlibs: bump shlibs dependencies to 2.30, conflicts
+    against 2.31.
 
-
- -- Yves-Alexis Perez <corsac@debian.org>  Thu, 11 Mar 2010 08:52:56 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 22 Apr 2010 08:10:26 +0200
 
 evolution-data-server (2.29.92-1) experimental; urgency=low
 
