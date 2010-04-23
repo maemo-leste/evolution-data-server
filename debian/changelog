@@ -4,12 +4,11 @@ evolution-data-server (2.30.0-1) UNRELEASED; urgency=low
   * debian/watch updated to track stable releases.
   * debian/control:
     - bump required GTK+ version to 2.18.
-  * debian/patches/25_mute-debug-messages.patch dropped, doesn't apply anymore
-    and shouldn't be needed.
+  * debian/patches/25_mute-debug-messages.patch updated.
   * debian/libcamel1.2-14.shlibs: bump shlibs dependencies to 2.30, conflicts
     against 2.31.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Thu, 22 Apr 2010 08:10:26 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 23 Apr 2010 08:24:02 +0200
 
 evolution-data-server (2.29.92-1) experimental; urgency=low
 
