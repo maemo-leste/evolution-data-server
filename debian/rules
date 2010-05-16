@@ -23,7 +23,12 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
 	--enable-gtk-doc \
-	--enable-gnome-keyring=yes
+	--enable-gnome-keyring=yes \
+	--enable-largefile
+
+#post-patches::
+#	dh_testdir
+#	autoreconf -vfi
 
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
