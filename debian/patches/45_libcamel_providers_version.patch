@@ -6,7 +6,7 @@ diff -urN evolution-data-server-2.28.3.1/configure evolution-data-server-2.28.3.
  fi
  
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
-+camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCANEL_CURRENT} - ${LIBCAMEL_AGE}`
++camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
  
  
  INTERFACE_VERSION="$BASE_VERSION"
@@ -18,8 +18,7 @@ diff -urN evolution-data-server-2.28.3.1/configure.ac evolution-data-server-2.28
  
  dnl separate camel from e-d-s? or should it be under the same spot? same for now.
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
--AC_SUBST(camel_providerdir)
-+camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCANEL_CURRENT} - ${LIBCAMEL_AGE}`
++camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
  
  dnl IDL/Component Versioning
  INTERFACE_VERSION="$BASE_VERSION"

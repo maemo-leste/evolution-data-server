@@ -1,3 +1,4 @@
-debian/tmp/usr/share/evolution-data-server-2.28
+debian/tmp/usr/share/evolution-data-server-2.30
 debian/tmp/usr/share/locale
 debian/tmp/usr/share/pixmaps
+debian/tmp/usr/share/dbus-1

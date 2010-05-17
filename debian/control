@@ -29,11 +29,21 @@ Build-Depends: debhelper (>= 5.0.0),
                libkrb5-dev,
                libldap2-dev,
                libglib2.0-dev (>= 2.16.1),
-               libbonobo2-dev (>= 2.20.3),
-               liborbit2-dev (>= 1:2.9.8),
-               libglade2-dev,
-               libgnomeui-dev,
-               libicu-dev
+               libxml2-dev,
+               libgconf2-dev,
+               libnss3-dev,
+               libgtk2.0-dev (>= 2.18.0),
+               libgnome2-dev,
+               libsoup2.4-dev,
+               libgnome-keyring-dev (>= 2.20.1),
+               gtk-doc-tools,
+               libsqlite3-dev (>= 3.6),
+               chrpath,
+               libgweather-dev (>= 2.24.5),
+               libical-dev,
+               libicu-dev,
+               libdbus-glib-1-dev (>= 0.6),
+               gperf
 
 Package: evolution-data-server
 Architecture: any
@@ -303,35 +313,6 @@ Description: Development files for libegroupwise
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
 
-Package: libexchange-storage1.2-3
-Section: libs
-Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends}
-Description: Client library for accessing Exchange server through webdav
- This package is a client library to access Exchange servers 
- through webdav.
- .
- Evolution is the integrated mail, calendar, task and address book
- distributed suite from Novell, Inc.
-
-Package: libexchange-storage1.2-dev
-Section: libdevel
-Architecture: any
-Depends: libexchange-storage1.2-3 (= ${binary:Version}),
-         ${misc:Depends},
-         ${shlibs:Depends},
-         libsoup2.4-dev
-Description: Backend library for evolution calendars (development files)
- This package contains header files and a static library for
- libexchange-storage1.2-3.
- .
- libexchange-storage is a client library to access Exchange servers
- through webdav.
- .
- Evolution is the integrated mail, calendar, task and address book
- distributed suite from Novell, Inc.
-  
 Package: libgdata1.2-1
 Section: libs
 Architecture: any
