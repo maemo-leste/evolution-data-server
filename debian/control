@@ -223,7 +223,6 @@ Depends: libedata-book1.2-2 (= ${binary:Version}),
          libedataserver1.2-dev,
          libebook1.2-dev,
          libdbus-glib-1-dev
-
 Description: Backend library for evolution address books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.

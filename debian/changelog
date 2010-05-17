@@ -2,8 +2,11 @@ evolution-data-server (2.30.1-3) UNRELEASED; urgency=low
 
   * debian/control:
     - adjust -dev packages dependencies according to .pc files.
+  * debian/patches:
+    - 02_fix-warning-in_source_get_uri added, fix e_source_get_uri() called on
+      source with no absolute URI.                              closes: #582029
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 17 May 2010 20:27:16 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 17 May 2010 21:45:06 +0200
 
 evolution-data-server (2.30.1-2) unstable; urgency=low
 
