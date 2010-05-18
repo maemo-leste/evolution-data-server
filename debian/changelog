@@ -1,9 +1,9 @@
 evolution-data-server (2.30.1-4) UNRELEASED; urgency=low
 
   * debian/control:
-    - adjust eds-dev dependencies.                              closes: #582150
+    - adjust eds-dev dependencies.                     closes: #582150, #582148
 
- -- Yves-Alexis Perez <corsac@debian.org>  Wed, 19 May 2010 01:00:23 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Wed, 19 May 2010 01:04:14 +0200
 
 evolution-data-server (2.30.1-3) unstable; urgency=low
 
