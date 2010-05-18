@@ -73,6 +73,9 @@ Section: devel
 Architecture: any
 Depends: ${misc:Depends},
          libgnome2-dev,
+         libdbus-glib-1-dev,
+         libnss3-dev,
+         libnspr4-dev 
 Description: Development files for evolution-data-server (metapackage)
  This package contains header files and static library of evolution-data-server.
 
