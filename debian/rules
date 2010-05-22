@@ -6,6 +6,7 @@ include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/class/gnome.mk
 include /usr/share/cdbs/1/rules/utils.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/rules/autoreconf.mk
 
 DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
@@ -25,10 +26,6 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--enable-gtk-doc \
 	--enable-gnome-keyring=yes \
 	--enable-largefile
-
-#post-patches::
-#	dh_testdir
-#	autoreconf -vfi
 
 DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
 
