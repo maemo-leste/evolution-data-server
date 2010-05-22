@@ -1,0 +1,36 @@
+commit 9930a96021157de4317d19dc275b51a917391df8
+Author: Matthew Barnes <mbarnes@redhat.com>
+Date:   Fri May 21 21:14:12 2010 -0400
+
+    Bump libedataserver soname twice.
+    
+    We screwed up and forgot to bump libedataserver's shared object name
+    when EComponentListener was removed during the 2.29 development cycle.
+    
+    The problem is we now need to bump both master and gnome-2-30 branches,
+    but master was already bumped once when all the deprecated API was
+    removed for 2.31.1.  So to keep all the names unique, the gnome-2-30
+    soname will leapfrog master, and master will leapfrog gnome-2-30.
+    
+    It breaks down like this:
+    
+        Version     Shared Object Name         Note
+    
+        <= 2.30.1 : libedataserver-1.2.so.11 :
+        == 2.31.1 : libedataserver-1.2.so.12 : Deprecated API removed
+        >= 2.30.2 : libedataserver-1.2.so.13 : EComponentListener removed
+        >= 2.31.2 : libedataserver-1.2.so.14 : EComponentListener removed
+
+diff --git a/configure.ac b/configure.ac
+index 2edb90c..9c3a099 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -55,7 +55,7 @@ EDS_MICRO_VERSION=eds_micro_version
+ dnl ******************************
+ dnl Libtool versioning
+ dnl ******************************
+-LIBEDATASERVER_CURRENT=11
++LIBEDATASERVER_CURRENT=13
+ LIBEDATASERVER_REVISION=1
+ LIBEDATASERVER_AGE=0
+ 
