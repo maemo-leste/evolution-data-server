@@ -1,4 +1,4 @@
-evolution-data-server (2.30.1-5) UNRELEASED; urgency=low
+evolution-data-server (2.30.1-5) unstable; urgency=low
 
   * debian/patches:
     - 03_bump-soname-libedataserver added, cherry-picked from upstream, bump
@@ -11,7 +11,7 @@ evolution-data-server (2.30.1-5) UNRELEASED; urgency=low
   * debian/rules:
     - run autoreconf to get soname change.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sat, 22 May 2010 12:08:53 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 22 May 2010 14:00:00 +0200
 
 evolution-data-server (2.30.1-4) unstable; urgency=low
 
