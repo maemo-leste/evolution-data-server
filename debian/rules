@@ -35,5 +35,5 @@ binary-install/evolution-data-server::
 	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server-1.2/*/*.so \
 	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
 
-install::
+binary-post-install::
 	dh_bugfiles -A
