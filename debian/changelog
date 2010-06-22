@@ -10,11 +10,13 @@ evolution-data-server (2.30.2-1) UNRELEASED; urgency=low
     - 01_unitialized_key, 02_fix-warning-in_source_get_uri, 
       03_bump-soname-libedataserver dropped, included upstream.
     - 25_mute-debug-messages updated.
+    - 45_libcamel_providers_version refreshed.
   * debian/libcamel1.2-14.shlibs updated for 2.30.2.
   * debian/control:
     - bump debhelper build-dep to 7.2.3 for dh_bugfiles.
+  * Switch to 3.0 (quilt) format.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 21 Jun 2010 00:19:01 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 22 Jun 2010 07:45:29 +0200
 
 evolution-data-server (2.30.1-5) unstable; urgency=low
 
