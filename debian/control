@@ -44,7 +44,8 @@ Build-Depends: debhelper (>= 7.2.3~),
                libical-dev,
                libicu-dev,
                libdbus-glib-1-dev (>= 0.6),
-               gperf
+               gperf,
+               gnome-pkg-tools
 
 Package: evolution-data-server
 Architecture: any
