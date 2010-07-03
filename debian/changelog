@@ -1,3 +1,17 @@
+evolution-data-server (2.30.2-2) UNRELEASED; urgency=low
+
+  * debian/patches:
+    - 01_make-nss-db-init-more-robust added.                    closes: #587849
+    - 02_remove-courier-imap-workaround-breaking-rename added, fix renaming on
+      courier-imap servers.
+  * debian/rules:
+    - rename --enable-nss to -enable-ssl in configure call.
+    - DEB_FIXPERMS_EXCLUDE switched to _evolution-data-server.
+  * debian/control:
+    - update standards version to 3.9.0.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 03 Jul 2010 12:42:41 +0200
+
 evolution-data-server (2.30.2-1) unstable; urgency=low
 
   * New upstream release.

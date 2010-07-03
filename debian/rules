@@ -18,7 +18,7 @@ CFLAGS += -fPIC
 DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
 	--enable-ipv6 \
-	--enable-nss \
+	--enable-ssl \
 	--enable-nntp \
 	--enable-smime \
 	--with-openldap \
@@ -28,7 +28,7 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--enable-gnome-keyring=yes \
 	--enable-largefile
 
-DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
+DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
 
 binary-install/evolution-data-server::
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
