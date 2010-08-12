@@ -6,8 +6,10 @@ evolution-data-server (2.30.3-1) UNRELEASED; urgency=low
     - 02_remove-courier-imap-workaround-breaking-rename as well. 
   * debian/control:
     - update standards version to 3.9.1.
+  * debian/*.shlibs:
+    - bump shlibs to 2.30.3.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Thu, 12 Aug 2010 08:37:45 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 12 Aug 2010 08:38:45 +0200
 
 evolution-data-server (2.30.2.1-1) unstable; urgency=low
 
