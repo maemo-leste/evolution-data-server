@@ -1,3 +1,12 @@
+evolution-data-server (2.30.3-1) UNRELEASED; urgency=low
+
+  * New upstream bugfix release.
+  * debian/patches:
+    - 01_make-nss-db-init-more-robust dropped, included upstream
+    - 02_remove-courier-imap-workaround-breaking-rename as well. 
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 12 Aug 2010 07:54:18 +0200
+
 evolution-data-server (2.30.2.1-1) unstable; urgency=low
 
   * New upstream bugfix release.
