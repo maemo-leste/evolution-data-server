@@ -1,3 +1,10 @@
+evolution-data-server (2.30.3-2) UNRELEASED; urgency=low
+
+  * 01_imapx_lockup.patch: stolen upstream. Avoid evolution lockups when 
+    logging out with IDLE enabled.
+
+ -- Josselin Mouette <joss@debian.org>  Sat, 18 Sep 2010 12:34:22 +0200
+
 evolution-data-server (2.30.3-1) unstable; urgency=low
 
   * New upstream bugfix release.

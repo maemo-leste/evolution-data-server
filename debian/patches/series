@@ -1,3 +1,4 @@
+01_imapx_lockup.patch
 25_mute-debug-messages.patch
 45_libcamel_providers_version.patch
 65_evolution-color.patch
