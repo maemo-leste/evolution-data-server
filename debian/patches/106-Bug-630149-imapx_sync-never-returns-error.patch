@@ -1,4 +1,4 @@
-From b32377db3459e257b9b9ea83399619c42feebe9b Mon Sep 17 00:00:00 2001
+From 237352d97330812bbbb0f061c3a01e35374da19c Mon Sep 17 00:00:00 2001
 From: David Woodhouse <David.Woodhouse@intel.com>
 Date: Mon, 20 Sep 2010 13:29:20 +0100
 Subject: [PATCH 6/6] Bug 630149 - imapx_sync() never returns error
@@ -8,10 +8,10 @@ Subject: [PATCH 6/6] Bug 630149 - imapx_sync() never returns error
  1 files changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-folder.c b/camel/providers/imapx/camel-imapx-folder.c
-index bdd398d..e558949 100644
+index 44f8410..87b49d0 100644
 --- a/camel/providers/imapx/camel-imapx-folder.c
 +++ b/camel/providers/imapx/camel-imapx-folder.c
-@@ -173,19 +173,20 @@ imapx_sync (CamelFolder *folder, gboolean expunge, CamelException *ex)
+@@ -172,19 +172,20 @@ imapx_sync (CamelFolder *folder, gboolean expunge, CamelException *ex)
  		ex = &eex;
  
  	server = camel_imapx_store_get_server(is, ex);

@@ -1,4 +1,4 @@
-From 00b3267433a27002b794617fabbedd26db7e7b07 Mon Sep 17 00:00:00 2001
+From ebb8a861406825a27ef3f8f09039455bdbe7ca9e Mon Sep 17 00:00:00 2001
 From: David Woodhouse <David.Woodhouse@intel.com>
 Date: Mon, 20 Sep 2010 13:30:13 +0100
 Subject: [PATCH 3/6] Bug 630150 - imapx attempts to connect to server when already cancelled
@@ -8,10 +8,10 @@ Subject: [PATCH 3/6] Bug 630150 - imapx attempts to connect to server when alrea
  1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-store.c b/camel/providers/imapx/camel-imapx-store.c
-index be30538..6e05e89 100644
+index 79567ea..1fd4148 100644
 --- a/camel/providers/imapx/camel-imapx-store.c
 +++ b/camel/providers/imapx/camel-imapx-store.c
-@@ -212,6 +212,11 @@ camel_imapx_store_get_server(CamelIMAPXStore *store, CamelException *ex)
+@@ -211,6 +211,11 @@ camel_imapx_store_get_server(CamelIMAPXStore *store, CamelException *ex)
  {
  	CamelIMAPXServer *server = NULL;
  

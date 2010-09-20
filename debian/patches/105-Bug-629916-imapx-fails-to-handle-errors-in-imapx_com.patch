@@ -1,4 +1,4 @@
-From a7657a1bb6950ec78311d45eec42d4c57fef9a82 Mon Sep 17 00:00:00 2001
+From 6bab108176cdbeb1ee259ab01160db4c5fbbba5d Mon Sep 17 00:00:00 2001
 From: David Woodhouse <David.Woodhouse@intel.com>
 Date: Mon, 20 Sep 2010 15:18:03 +0100
 Subject: [PATCH 5/6] Bug 629916 - imapx fails to handle errors in imapx_command_idle_stop()
@@ -8,10 +8,10 @@ Subject: [PATCH 5/6] Bug 629916 - imapx fails to handle errors in imapx_command_
  1 files changed, 18 insertions(+), 4 deletions(-)
 
 diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
-index 89a9f74..31a571f 100644
+index b0397a7..5d6b1e2 100644
 --- a/camel/providers/imapx/camel-imapx-server.c
 +++ b/camel/providers/imapx/camel-imapx-server.c
-@@ -924,7 +924,9 @@ imapx_command_start_next(CamelIMAPXServer *is, CamelException *ex)
+@@ -942,7 +942,9 @@ imapx_command_start_next(CamelIMAPXServer *is, CamelException *ex)
  		if (imapx_in_idle (is) && !camel_dlist_empty (&is->queue)) {
  			/* if imapx_stop_idle() returns FALSE, it was only
  			   pending and we can go ahead and send a new command
@@ -22,7 +22,7 @@ index 89a9f74..31a571f 100644
  			if (imapx_stop_idle (is, ex)) {
  				c(printf ("waiting for idle to stop \n"));
  				return;
-@@ -1707,7 +1709,10 @@ imapx_continuation(CamelIMAPXServer *imap, CamelException *ex, gboolean litplus)
+@@ -1725,7 +1727,10 @@ imapx_continuation(CamelIMAPXServer *imap, CamelException *ex, gboolean litplus)
  			/* IDLE got cancelled after we sent the command, while
  			   we were waiting for this continuation. Send DONE
  			   immediately. */
@@ -34,7 +34,7 @@ index 89a9f74..31a571f 100644
  			imap->idle->state = IMAPX_IDLE_OFF;
  		} else {
  			c(printf("idle starts in wrong state %d\n",
-@@ -2034,6 +2039,11 @@ imapx_command_idle_stop (CamelIMAPXServer *is, CamelException *ex)
+@@ -2052,6 +2057,11 @@ imapx_command_idle_stop (CamelIMAPXServer *is, CamelException *ex)
  {
  	if (!is->stream || camel_stream_printf((CamelStream *)is->stream, "%s", "DONE\r\n") == -1) {
  		camel_exception_set (ex, 1, "Unable to issue DONE");
@@ -46,7 +46,7 @@ index 89a9f74..31a571f 100644
  		return FALSE;
  	}
  
-@@ -2200,9 +2210,13 @@ imapx_stop_idle (CamelIMAPXServer *is, CamelException *ex)
+@@ -2218,9 +2228,13 @@ imapx_stop_idle (CamelIMAPXServer *is, CamelException *ex)
  		break;
  
  	case IMAPX_IDLE_STARTED:
