@@ -1,0 +1,42 @@
+From b32377db3459e257b9b9ea83399619c42feebe9b Mon Sep 17 00:00:00 2001
+From: David Woodhouse <David.Woodhouse@intel.com>
+Date: Mon, 20 Sep 2010 13:29:20 +0100
+Subject: [PATCH 6/6] Bug 630149 - imapx_sync() never returns error
+
+---
+ camel/providers/imapx/camel-imapx-folder.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/camel/providers/imapx/camel-imapx-folder.c b/camel/providers/imapx/camel-imapx-folder.c
+index bdd398d..e558949 100644
+--- a/camel/providers/imapx/camel-imapx-folder.c
++++ b/camel/providers/imapx/camel-imapx-folder.c
+@@ -173,19 +173,20 @@ imapx_sync (CamelFolder *folder, gboolean expunge, CamelException *ex)
+ 		ex = &eex;
+ 
+ 	server = camel_imapx_store_get_server(is, ex);
+-	if (server)
+-		camel_imapx_server_sync_changes (server, folder, ex);
++	if (!server)
++		return;
++
++	camel_imapx_server_sync_changes (server, folder, ex);
+ 
+ 	/* Sync twice - make sure deleted flags are written out,
+ 	   then sync again incase expunge changed anything */
+ 	camel_exception_clear(ex);
+ 
+-	if (server && expunge) {
++	if (expunge) {
+ 		camel_imapx_server_expunge(server, folder, ex);
+ 		camel_exception_clear(ex);
+ 	}
+-	if (server)
+-		camel_object_unref(server);
++	camel_object_unref(server);
+ }
+ 
+ static CamelMimeMessage *
+-- 
+1.7.1
+

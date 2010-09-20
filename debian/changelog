@@ -1,9 +1,20 @@
 evolution-data-server (2.30.3-2) UNRELEASED; urgency=low
 
+  [ Josselin Mouette ]
   * 01_imapx_lockup.patch: stolen upstream. Avoid evolution lockups when 
     logging out with IDLE enabled.
 
- -- Josselin Mouette <joss@debian.org>  Sat, 18 Sep 2010 12:34:22 +0200
+  [ Yves-Alexis Perez ]
+  * debian/patches:
+    - 101-Bug-629714-endless-loop-in-imapx_parse_status,
+      102-Bug-630135-No-UI-feedback-when-imapx-connection-fail,
+      103-Bug-630150-imapx-attempts-to-connect-to-server-when-,
+      104-Bug-630152-imapx_parser_thread-registers-wrong-opera,
+      105-Bug-629916-imapx-fails-to-handle-errors-in-imapx_com and
+      106-Bug-630149-imapx_sync-never-returns-error added, fix various issues
+      with IMAP+ backend leading to endless loops.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 20 Sep 2010 18:09:51 +0200
 
 evolution-data-server (2.30.3-1) unstable; urgency=low
 
