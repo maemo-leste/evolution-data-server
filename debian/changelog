@@ -1,4 +1,4 @@
-evolution-data-server (2.30.3-2) UNRELEASED; urgency=low
+evolution-data-server (2.30.3-2) unstable; urgency=low
 
   [ Josselin Mouette ]
   * 01_imapx_lockup.patch: stolen upstream. Avoid evolution lockups when 
@@ -14,7 +14,7 @@ evolution-data-server (2.30.3-2) UNRELEASED; urgency=low
       106-Bug-630149-imapx_sync-never-returns-error added, fix various issues
       with IMAP+ backend leading to endless loops.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 20 Sep 2010 18:09:51 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 21 Sep 2010 21:00:52 +0200
 
 evolution-data-server (2.30.3-1) unstable; urgency=low
 
