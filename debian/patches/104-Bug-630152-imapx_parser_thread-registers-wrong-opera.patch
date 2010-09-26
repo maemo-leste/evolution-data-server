@@ -1,0 +1,25 @@
+From 1cccc30897f4bb8003841636cbddc639170a62fb Mon Sep 17 00:00:00 2001
+From: David Woodhouse <David.Woodhouse@intel.com>
+Date: Mon, 20 Sep 2010 13:47:48 +0100
+Subject: [PATCH 4/6] Bug 630152 - imapx_parser_thread registers wrong operation
+
+---
+ camel/providers/imapx/camel-imapx-server.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
+index 61121da..b0397a7 100644
+--- a/camel/providers/imapx/camel-imapx-server.c
++++ b/camel/providers/imapx/camel-imapx-server.c
+@@ -4494,7 +4494,7 @@ imapx_parser_thread (gpointer d)
+ 	CamelOperation *op;
+ 
+ 	op = camel_operation_new (NULL, NULL);
+-	op = camel_operation_register (op);
++	camel_operation_register (op);
+ 	is->op = op;
+ 
+ 	while (!camel_exception_is_set (&ex) && is->stream) {
+-- 
+1.7.1
+

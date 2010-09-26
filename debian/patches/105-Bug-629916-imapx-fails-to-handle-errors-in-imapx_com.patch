@@ -1,0 +1,67 @@
+From 6bab108176cdbeb1ee259ab01160db4c5fbbba5d Mon Sep 17 00:00:00 2001
+From: David Woodhouse <David.Woodhouse@intel.com>
+Date: Mon, 20 Sep 2010 15:18:03 +0100
+Subject: [PATCH 5/6] Bug 629916 - imapx fails to handle errors in imapx_command_idle_stop()
+
+---
+ camel/providers/imapx/camel-imapx-server.c |   22 ++++++++++++++++++----
+ 1 files changed, 18 insertions(+), 4 deletions(-)
+
+diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
+index b0397a7..5d6b1e2 100644
+--- a/camel/providers/imapx/camel-imapx-server.c
++++ b/camel/providers/imapx/camel-imapx-server.c
+@@ -942,7 +942,9 @@ imapx_command_start_next(CamelIMAPXServer *is, CamelException *ex)
+ 		if (imapx_in_idle (is) && !camel_dlist_empty (&is->queue)) {
+ 			/* if imapx_stop_idle() returns FALSE, it was only
+ 			   pending and we can go ahead and send a new command
+-			   immediately. If it returns TRUE, we must wait. */
++			   immediately. If it returns TRUE, either it sent the
++			   DONE to exit IDLE mode, or there was an error.
++			   Either way, we do nothing more right now. */
+ 			if (imapx_stop_idle (is, ex)) {
+ 				c(printf ("waiting for idle to stop \n"));
+ 				return;
+@@ -1725,7 +1727,10 @@ imapx_continuation(CamelIMAPXServer *imap, CamelException *ex, gboolean litplus)
+ 			/* IDLE got cancelled after we sent the command, while
+ 			   we were waiting for this continuation. Send DONE
+ 			   immediately. */
+-			imapx_command_idle_stop(imap, ex);
++			if (!imapx_command_idle_stop (imap, ex)) {
++				IDLE_UNLOCK(imap->idle);
++				return -1;
++			}
+ 			imap->idle->state = IMAPX_IDLE_OFF;
+ 		} else {
+ 			c(printf("idle starts in wrong state %d\n",
+@@ -2052,6 +2057,11 @@ imapx_command_idle_stop (CamelIMAPXServer *is, CamelException *ex)
+ {
+ 	if (!is->stream || camel_stream_printf((CamelStream *)is->stream, "%s", "DONE\r\n") == -1) {
+ 		camel_exception_set (ex, 1, "Unable to issue DONE");
++		c(printf("Failed to issue DONE to terminate IDLE\n"));
++		is->state = IMAPX_SHUTDOWN;
++		if (is->op)
++			camel_operation_cancel(is->op);
++		is->parser_quit = TRUE;
+ 		return FALSE;
+ 	}
+ 
+@@ -2218,9 +2228,13 @@ imapx_stop_idle (CamelIMAPXServer *is, CamelException *ex)
+ 		break;
+ 
+ 	case IMAPX_IDLE_STARTED:
+-		imapx_command_idle_stop (is, ex);
+-		idle->state = IMAPX_IDLE_OFF;
++		/* We set 'stopped' even if sending DONE fails, to ensure that
++		   our caller doesn't try to submit its own command. */
+ 		stopped = TRUE;
++		if (!imapx_command_idle_stop (is, ex))
++			break;
++
++		idle->state = IMAPX_IDLE_OFF;
+ 		c(printf("Stopping idle after %ld seconds\n",
+ 			 (long)(now - idle->started)));
+ 	case IMAPX_IDLE_PENDING:
+-- 
+1.7.1
+
