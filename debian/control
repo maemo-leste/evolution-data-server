@@ -260,7 +260,7 @@ Description: Client library for evolution calendars (development files)
  .
  This package contains header files and static library for libecal1.2-8.
 
-Package: libedata-cal1.2-7
+Package: libedata-cal1.2-10
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -274,7 +274,7 @@ Description: Backend library for evolution calendars
 Package: libedata-cal1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libedata-cal1.2-7 (= ${binary:Version}),
+Depends: libedata-cal1.2-10 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libdbus-glib-1-dev,
@@ -285,7 +285,7 @@ Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package contains header files and static library for libedata-cal1.2-7.
+ This package contains header files and static library for libedata-cal1.2-10.
 
 Package: libegroupwise1.2-13
 Section: libs
