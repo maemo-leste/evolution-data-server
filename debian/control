@@ -29,21 +29,21 @@ Build-Depends: debhelper (>= 7.2.3~),
                libdb-dev,
                libkrb5-dev,
                libldap2-dev,
-               libglib2.0-dev (>= 2.16.1),
+               libglib2.0-dev (>= 2.25.12),
                libxml2-dev,
                libgconf2-dev,
                libnss3-dev,
-               libgtk2.0-dev (>= 2.18.0),
+               libgtk2.0-dev (>= 2.20.0),
                libgnome2-dev,
                libsoup2.4-dev,
                libgnome-keyring-dev (>= 2.20.1),
                gtk-doc-tools,
                libsqlite3-dev (>= 3.6),
                chrpath,
-               libgweather-dev (>= 2.24.5),
+               libgweather-dev (>= 2.25.4),
                libical-dev,
                libicu-dev,
-               libdbus-glib-1-dev (>= 0.6),
+               libgdata-dev (>= 0.6.3),
                gperf,
                gnome-pkg-tools
 
@@ -311,63 +311,6 @@ Description: Development files for libegroupwise
  .
  libegroupwise is client library for accessing groupwise POA through SOAP
  interface of Evolution.
- .
- Evolution is the integrated mail, calendar, task and address book
- distributed suite from Novell, Inc.
-
-Package: libgdata1.2-1
-Section: libs
-Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends}
-Description: Client library for accessing Google POA through SOAP interface
- This package is a client library to access the Google Data APIs through a 
- SOAP interface.
- .
- Evolution is the integrated mail, calendar, task and address book
- distributed suite from Novell, Inc.
-
-Package: libgdata1.2-dev
-Section: libdevel
-Architecture: any
-Depends: libgdata1.2-1 (= ${binary:Version}),
-         ${misc:Depends},
-         libsoup2.4-dev
-Description: Client library for accessing Google POA (development files)
- This package contains header files and static library for
- libgdata1.2-1.
- .
- libgdata is a client library to access the Google Data APIs through a
- SOAP interface.
- .
- Evolution is the integrated mail, calendar, task and address book
- distributed suite from Novell, Inc.
-
-Package: libgdata-google1.2-1
-Section: libs
-Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends}
-Description: Client library for accessing Google POA through SOAP interface
- This package is a client library to access Google services through a SOAP
- interface.
- .
- Evolution is the integrated mail, calendar, task and address book
- distributed suite from Novell, Inc.
-
-Package: libgdata-google1.2-dev
-Section: libdevel
-Architecture: any
-Depends: libgdata-google1.2-1 (= ${binary:Version}),
-         ${misc:Depends},
-         libsoup2.4-dev,
-         libgdata1.2-dev
-Description: Client library for accessing Google POA (development files)
- This package contains header files and static library for
- libgdata-google1.2-1.
- .
- libgdata-google is a client library to access Google services through a SOAP
- interface.
  .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
