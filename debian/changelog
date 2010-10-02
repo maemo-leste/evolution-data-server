@@ -7,8 +7,8 @@ evolution-data-server (2.32.0-1) UNRELEASED; urgency=low
     - add build dep on libgdata.
     - drop dbus-glib build-dep.
     - drop libgdata* packages, now external.
-    - rename libedataserver, libcamel1.2, libebook1.2 packages to follow 
-      soname changes.
+    - rename libedataserver, libcamel1.2, libebook1.2, libedataserverui1.2
+      packages to follow soname changes.
   * debian/patches:
     - 01_imapx_lockup dropped, included upstream.
     - 65_evolution-color dropped as well, not relevant anymore.
@@ -28,9 +28,10 @@ evolution-data-server (2.32.0-1) UNRELEASED; urgency=low
   * debian/libedataserver-13.install renamed to follow soname change.
   * debian/libcamel1.2-14.install renamed to follow soname change.
   * debian/libebook1.2-9.install renamed to follow soname change.
+  * debian/libedataserverui1.2-8.install renamed to follow soname change.
   * lintian overrides updated to follow soname changes.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sat, 02 Oct 2010 15:42:37 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 02 Oct 2010 15:44:51 +0200
 
 evolution-data-server (2.30.3-2) unstable; urgency=low
 
