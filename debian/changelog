@@ -1,8 +1,118 @@
-evolution-data-server (2.30.1-2) UNRELEASED; urgency=low
+evolution-data-server (2.30.3-2) unstable; urgency=low
 
+  [ Josselin Mouette ]
+  * 01_imapx_lockup.patch: stolen upstream. Avoid evolution lockups when 
+    logging out with IDLE enabled.
+
+  [ Yves-Alexis Perez ]
+  * debian/patches:
+    - 101-Bug-629714-endless-loop-in-imapx_parse_status,
+      102-Bug-630135-No-UI-feedback-when-imapx-connection-fail,
+      103-Bug-630150-imapx-attempts-to-connect-to-server-when-,
+      104-Bug-630152-imapx_parser_thread-registers-wrong-opera,
+      105-Bug-629916-imapx-fails-to-handle-errors-in-imapx_com and
+      106-Bug-630149-imapx_sync-never-returns-error added, fix various issues
+      with IMAP+ backend leading to endless loops.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 21 Sep 2010 21:00:52 +0200
+
+evolution-data-server (2.30.3-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * debian/patches:
+    - 01_make-nss-db-init-more-robust dropped, included upstream
+    - 02_remove-courier-imap-workaround-breaking-rename as well. 
+  * debian/control:
+    - update standards version to 3.9.1.
+  * debian/*.shlibs:
+    - bump shlibs to 2.30.3.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 14 Aug 2010 13:47:40 +0200
+
+evolution-data-server (2.30.2.1-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * debian/patches:
+    - 01_make-nss-db-init-more-robust added.                    closes: #587849
+    - 02_remove-courier-imap-workaround-breaking-rename added, fix renaming on
+      courier-imap servers.
+  * debian/rules:
+    - rename --enable-nss to -enable-ssl in configure call.
+    - DEB_FIXPERMS_EXCLUDE switched to _evolution-data-server.
+    - disable largefile support for now, it'll be re-enabled for squeeze+1
+      cycle.                                                    closes: #588316
+  * debian/control:
+    - update standards version to 3.9.0.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 10 Jul 2010 14:30:12 +0200
+
+evolution-data-server (2.30.2-1) unstable; urgency=low
+
+  * New upstream release.
+    - fix random mailbox corruption causing expunge problems.   closes: #526216
+  * debian/watch:
+    - update rule to order hrefs correctly.
+    - install some information on bug reporting
+  * debian/bug-presubj: warn user that she should report upstream issues
+    directly to upstream bugzilla because of lack of time and manpower.
+  * debian/patches:
+    - 01_unitialized_key, 02_fix-warning-in_source_get_uri, 
+      03_bump-soname-libedataserver dropped, included upstream.
+    - 25_mute-debug-messages updated.
+    - 45_libcamel_providers_version refreshed.
+  * debian/libcamel1.2-14.shlibs updated for 2.30.2.
+  * debian/control:
+    - bump debhelper build-dep to 7.2.3 for dh_bugfiles.
+    - add build-dep on gnome-pkg-tools for gnome-get-source.mk.
+  * Switch to 3.0 (quilt) format.
+  * debian/rules:
+    - include gnome-get-source.mk.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Wed, 23 Jun 2010 21:31:37 +0200
+
+evolution-data-server (2.30.1-5) unstable; urgency=low
+
+  * debian/patches:
+    - 03_bump-soname-libedataserver added, cherry-picked from upstream, bump
+      libedataserver soname before 2.30.2 to ease transition.
+  * debian/control:
+    - rename libedataserver package to follow soname change.
+    - add build-dep on dh-autoreconf.
+  * debian/lintian:
+    - rename libedataserver override.
+  * debian/rules:
+    - run autoreconf to get soname change.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 22 May 2010 14:00:00 +0200
+
+evolution-data-server (2.30.1-4) unstable; urgency=low
+
+  * debian/control:
+    - adjust eds-dev dependencies.                     closes: #582150, #582148
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Wed, 19 May 2010 01:22:40 +0200
+
+evolution-data-server (2.30.1-3) unstable; urgency=low
+
+  * debian/control:
+    - adjust -dev packages dependencies according to .pc files.
+  * debian/patches:
+    - 02_fix-warning-in_source_get_uri added, fix e_source_get_uri() called on
+      source with no absolute URI.                              closes: #582029
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 17 May 2010 21:46:57 +0200
+
+evolution-data-server (2.30.1-2) unstable; urgency=low
+
+  [ Josselin Mouette ]
   * 01_unitialized_key.patch: stolen upsteam. Fix a crasher.
 
- -- Josselin Mouette <joss@debian.org>  Thu, 29 Apr 2010 12:06:23 +0200
+  [ Yves-Alexis Perez ]
+  * Upload to unstable.
+  * debian/lib{camel,edata-book1.2,ebackend1.2,edataserverui1.2}-dev.install:
+    - ship gtk-doc in the package.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 17 May 2010 12:52:06 +0200
 
 evolution-data-server (2.30.1-1) experimental; urgency=low
 
@@ -97,6 +207,32 @@ evolution-data-server (2.29.2-1) experimental; urgency=low
   * New upstream development release.
 
  -- Yves-Alexis Perez <corsac@debian.org>  Mon, 16 Nov 2009 21:53:26 +0100
+
+evolution-data-server (2.28.3.1-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * debian/control:
+    - Add myself to uploaders.
+  * debian/patches:
+    - 25_mute-debug-messages: Regenerated.
+    - 45_libcamel_providers_version: Regenerated.
+    - 65_evolution-color: Regenerated.
+
+ -- David Weinehall <tao@debian.org>  Wed, 03 Mar 2010 04:37:24 +0200
+
+evolution-data-server (2.28.3-1) unstable; urgency=low
+
+  * New upstream bugfix release.                                closes: #572112
+  * debian/control:
+    - update standards version to 3.8.4.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 01 Mar 2010 18:16:49 +0100
+
+evolution-data-server (2.28.2-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Tue, 15 Dec 2009 08:20:19 +0100
 
 evolution-data-server (2.28.1-1) unstable; urgency=low
 

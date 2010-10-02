@@ -1,3 +1,4 @@
 debian/tmp/usr/lib/libcamel*.so
 debian/tmp/usr/lib/pkgconfig/camel*
 debian/tmp/usr/include/evolution-data-server-2.30/camel
+debian/tmp/usr/share/gtk-doc/html/camel

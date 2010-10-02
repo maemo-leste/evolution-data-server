@@ -1,0 +1,9 @@
+01_imapx_lockup.patch
+25_mute-debug-messages.patch
+45_libcamel_providers_version.patch
+65_evolution-color.patch
+102-Bug-630135-No-UI-feedback-when-imapx-connection-fail.patch
+103-Bug-630150-imapx-attempts-to-connect-to-server-when-.patch
+104-Bug-630152-imapx_parser_thread-registers-wrong-opera.patch
+105-Bug-629916-imapx-fails-to-handle-errors-in-imapx_com.patch
+106-Bug-630149-imapx_sync-never-returns-error.patch

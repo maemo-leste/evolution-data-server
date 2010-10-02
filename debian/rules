@@ -5,7 +5,9 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/class/gnome.mk
 include /usr/share/cdbs/1/rules/utils.mk
-include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/rules/autoreconf.mk
+include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk                  
+
 
 DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
@@ -16,24 +18,22 @@ CFLAGS += -fPIC
 DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
 	--enable-ipv6 \
-	--enable-nss \
+	--enable-ssl \
 	--enable-nntp \
 	--enable-smime \
 	--with-openldap \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
 	--enable-gtk-doc \
-	--enable-gnome-keyring=yes \
-	--enable-largefile
+	--enable-gnome-keyring=yes
 
-#post-patches::
-#	dh_testdir
-#	autoreconf -vfi
-
-DEB_FIXPERMS_EXCLUDE += usr/lib/evolution/camel-lock-helper*
+DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
 
 binary-install/evolution-data-server::
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server-1.2/*/*.so \
-	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2 \
+	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
+
+common-binary-post-install-indep::
+	dh_bugfiles -A
