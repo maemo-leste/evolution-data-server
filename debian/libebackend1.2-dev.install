@@ -1,3 +1,4 @@
 debian/tmp/usr/lib/pkgconfig/libebackend-1.2.pc
 debian/tmp/usr/lib/libebackend-1.2.so
 debian/tmp/usr/include/evolution-data-server-2.30/libebackend
+debian/tmp/usr/share/gtk-doc/html/libebackend

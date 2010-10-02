@@ -1,0 +1,21 @@
+From 5e04a3462d5266b5a651562ab32fd572b348fc7a Mon Sep 17 00:00:00 2001
+From: David Woodhouse <David.Woodhouse@intel.com>
+Date: Tue, 14 Sep 2010 21:57:18 +0000
+Subject: Bug 629714 - endless loop in imapx_parse_status()
+
+---
+diff --git a/camel/providers/imapx/camel-imapx-utils.c b/camel/providers/imapx/camel-imapx-utils.c
+index f77ed3a..359891e 100644
+--- a/camel/providers/imapx/camel-imapx-utils.c
++++ b/camel/providers/imapx/camel-imapx-utils.c
+@@ -1731,7 +1731,7 @@ imapx_parse_status(CamelIMAPXStream *is, CamelException *ex)
+ 		/* ignore anything we dont know about */
+ 		do {
+ 			tok = camel_imapx_stream_token(is, &token, &len, ex);
+-			if (tok == '\n') {
++			if (tok == '\n' || tok < 0) {
+ 				camel_exception_set (ex, 1, "server response truncated");
+ 				imapx_free_status(sinfo);
+ 				return NULL;
+--
+cgit v0.8.3.1

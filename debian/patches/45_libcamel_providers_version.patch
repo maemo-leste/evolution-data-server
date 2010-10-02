@@ -1,21 +1,21 @@
-diff --git a/evolution-data-server-2.27.91/configure b/evolution-data-server-2.27.91/configure
-index c2668d6..299e2ff 100755
---- a/evolution-data-server-2.27.91/configure
-+++ b/evolution-data-server-2.27.91/configure
-@@ -24791,7 +24791,7 @@ if test $use_gweather = yes; then
+diff --git a/configure b/configure
+index a1cd865..ac10dc5 100755
+--- a/configure
++++ b/configure
+@@ -18943,7 +18943,7 @@ if test "x$use_gweather" = "xyes"; then
  
  fi
  
 -camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers
-+camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
++camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}
  
  
  INTERFACE_VERSION="$BASE_VERSION"
-diff --git a/evolution-data-server-2.27.91/configure.ac b/evolution-data-server-2.27.91/configure.ac
-index c89caff..a9f324d 100644
---- a/evolution-data-server-2.27.91/configure.ac
-+++ b/evolution-data-server-2.27.91/configure.ac
-@@ -1586,7 +1586,7 @@ if test $use_gweather = yes; then
+diff --git a/configure.ac b/configure.ac
+index 9c3a099..c69e488 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1390,7 +1390,7 @@ if test "x$use_gweather" = "xyes"; then
  fi
  
  dnl separate camel from e-d-s? or should it be under the same spot? same for now.
@@ -23,4 +23,4 @@ index c89caff..a9f324d 100644
 +camel_providerdir='${libdir}'/evolution-data-server-$API_VERSION/camel-providers-`expr ${LIBCAMEL_CURRENT} - ${LIBCAMEL_AGE}`
  AC_SUBST(camel_providerdir)
  
- dnl IDL/Component Versioning
+ dnl ******************************
