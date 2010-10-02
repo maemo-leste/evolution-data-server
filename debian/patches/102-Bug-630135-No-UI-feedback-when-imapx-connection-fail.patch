@@ -1,0 +1,30 @@
+From 7dfbd0660bd8311ea7e06bf76e578afdc15840cd Mon Sep 17 00:00:00 2001
+From: David Woodhouse <David.Woodhouse@intel.com>
+Date: Mon, 20 Sep 2010 11:25:10 +0100
+Subject: [PATCH 2/6] Bug 630135 - No UI feedback when imapx connection fails
+
+Don't call camel_operation_cancel(NULL). That has undesired effects.
+
+Only call camel_operation_cancel(server->op) if it's non-NULL -- i.e. if the
+parser thread had actually started up and set it.
+---
+ camel/providers/imapx/camel-imapx-server.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/camel/providers/imapx/camel-imapx-server.c b/camel/providers/imapx/camel-imapx-server.c
+index a11a979..61121da 100644
+--- a/camel/providers/imapx/camel-imapx-server.c
++++ b/camel/providers/imapx/camel-imapx-server.c
+@@ -4647,7 +4647,8 @@ imapx_server_finalise(CamelIMAPXServer *is, CamelIMAPXServerClass *isclass)
+ 	QUEUE_UNLOCK(is);
+ 
+ 	is->parser_quit = TRUE;
+-	camel_operation_cancel (is->op);
++	if (is->op)
++		camel_operation_cancel (is->op);
+ 
+ 	if (is->parser_thread)
+ 		g_thread_join (is->parser_thread);
+-- 
+1.7.1
+

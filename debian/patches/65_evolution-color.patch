@@ -1,6 +1,7 @@
---- evolution-data-server-2.22.1.orig/libedataserver/e-source.c
-+++ evolution-data-server-2.22.1/libedataserver/e-source.c
-@@ -689,7 +689,7 @@
+diff -urN evolution-data-server-2.28.3.1/libedataserver/e-source.c evolution-data-server-2.28.3.1-patch/libedataserver/e-source.c
+--- evolution-data-server-2.28.3.1/libedataserver/e-source.c	2009-08-07 16:20:30.000000000 +0300
++++ evolution-data-server-2.28.3.1-patch/libedataserver/e-source.c	2010-03-03 03:17:43.901896131 +0200
+@@ -690,7 +690,7 @@
  		    guint32 *color_return)
  {
  	const gchar *color_spec;
@@ -9,7 +10,7 @@
  
  	g_return_val_if_fail (E_IS_SOURCE (source), FALSE);
  
-@@ -698,9 +698,23 @@
+@@ -699,9 +699,23 @@
  	if (color_spec == NULL)
  		return FALSE;
  
