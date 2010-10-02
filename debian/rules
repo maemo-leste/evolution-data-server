@@ -13,6 +13,9 @@ DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
 DEB_DH_MAKESHLIBS_ARGS_ALL += -V
 
+LDFLAGS=$(shell dpkg-buildflags --get LDFLAGS)
+CFLAGS=$(shell dpkg-buildflags --get CFLAGS)
+LDFLAGS+=-Wl,-z,defs -Wl,--as-needed
 CFLAGS += -fPIC
 
 DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
@@ -25,7 +28,8 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
 	--enable-gtk-doc \
-	--enable-gnome-keyring=yes
+	--enable-gnome-keyring=yes \
+	--enable-gtk3=no
 
 DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
 
