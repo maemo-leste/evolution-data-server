@@ -180,7 +180,7 @@ Description: Client library for evolution address books (development files)
  distributed suite from Novell, Inc.
  .
 
-Package: libedataserverui1.2-8
+Package: libedataserverui1.2-11
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -195,7 +195,7 @@ Description: GUI utility library for evolution data servers
 Package: libedataserverui1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libedataserverui1.2-8 (= ${binary:Version}),
+Depends: libedataserverui1.2-11 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libgtk2.0-dev,
@@ -206,7 +206,7 @@ Description: GUI utility library for evolution data servers (development files)
  calendar and addressbook information.
  .
  This package contains header files and static library for
- libedataserverui1.2-8.
+ libedataserverui1.2-11.
 
 Package: libedata-book1.2-2
 Section: libs
