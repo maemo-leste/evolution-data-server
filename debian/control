@@ -208,7 +208,7 @@ Description: GUI utility library for evolution data servers (development files)
  This package contains header files and static library for
  libedataserverui1.2-11.
 
-Package: libedata-book1.2-2
+Package: libedata-book1.2-8
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -222,7 +222,7 @@ Description: Backend library for evolution address books
 Package: libedata-book1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libedata-book1.2-2 (= ${binary:Version}),
+Depends: libedata-book1.2-8 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libedataserver1.2-dev,
@@ -232,7 +232,7 @@ Description: Backend library for evolution address books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
- This package contains header files and static library for libedata-book1.2-2
+ This package contains header files and static library for libedata-book1.2-8
 
 Package: libecal1.2-7
 Section: libs
