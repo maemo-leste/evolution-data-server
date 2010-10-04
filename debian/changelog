@@ -10,6 +10,7 @@ evolution-data-server (2.32.0-1) UNRELEASED; urgency=low
     - rename libedataserver, libcamel1.2, libebook1.2, libedataserverui1.2,
       libedata-book1.2, libecal1.2, libedata-cal1.2 packages to follow 
       soname changes.
+    - add build-dep on hardening-includes.
   * debian/patches:
     - 01_imapx_lockup dropped, included upstream.
     - 65_evolution-color dropped as well, not relevant anymore.
@@ -21,8 +22,10 @@ evolution-data-server (2.32.0-1) UNRELEASED; urgency=low
         included upstream.
   * debian/rules:
     - explicitly disable gtk3 build.
-    - get flags from dpkg-buildflags
-    - add --as-needed to LDFLAGS.
+    - get flags from dpkg-buildflags.
+    - include hardening rules.
+    - add hardening and --as-needed to LDFLAGS.
+    - add hardening to CFLAGS.
   * debian/libcamel1.2-14.shlibs: 
     - bump depends/conflicts for 2.32.
     - bump soversion to 19.
@@ -35,7 +38,7 @@ evolution-data-server (2.32.0-1) UNRELEASED; urgency=low
   * debian/libedata-cal1.2-7.install renamed to follow soname change.
   * lintian overrides updated to follow soname changes.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sat, 02 Oct 2010 15:50:36 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 04 Oct 2010 08:38:26 +0200
 
 evolution-data-server (2.30.3-2) unstable; urgency=low
 
