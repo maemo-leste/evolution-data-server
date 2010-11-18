@@ -1,4 +1,4 @@
-evolution-data-server (2.32.0-1) UNRELEASED; urgency=low
+evolution-data-server (2.32.1-1) UNRELEASED; urgency=low
 
   * New upstream release.
   * debian/watch updated.
@@ -20,11 +20,14 @@ evolution-data-server (2.32.0-1) UNRELEASED; urgency=low
         105-Bug-629916-imapx-fails-to-handle-errors-in-imapx_com, 
         106-Bug-630149-imapx_sync-never-returns-error dropped as well,
         included upstream.
+    - 25_mute-debug-messages dropped, included upstream.
+    - 45_libcamel_providers_version finally dropped, stop diverting from
+      upstream on this.
   * debian/rules:
     - explicitly disable gtk3 build.
     - get flags from dpkg-buildflags.
     - include hardening rules.
-    - add hardening and --as-needed to LDFLAGS.
+    - add hardening, -z,defs, -O1 and --as-needed to LDFLAGS.
     - add hardening to CFLAGS.
   * debian/libcamel1.2-14.shlibs: 
     - bump depends/conflicts for 2.32.
@@ -37,8 +40,10 @@ evolution-data-server (2.32.0-1) UNRELEASED; urgency=low
   * debian/libecal1.2-7.install renamed to follow soname change.
   * debian/libedata-cal1.2-7.install renamed to follow soname change.
   * lintian overrides updated to follow soname changes.
+  * debian/evolution-data-server.install:
+    - update install file to follow camel-provider rename patch removal.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 04 Oct 2010 08:38:26 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 18 Nov 2010 18:53:42 +0100
 
 evolution-data-server (2.30.3-2) unstable; urgency=low
 
