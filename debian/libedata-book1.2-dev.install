@@ -1,4 +1,4 @@
 debian/tmp/usr/lib/pkgconfig/libedata-book-1.2.pc
 debian/tmp/usr/lib/libedata-book-1.2.so
-debian/tmp/usr/include/evolution-data-server-2.30/libedata-book
+debian/tmp/usr/include/evolution-data-server-2.32/libedata-book
 debian/tmp/usr/share/gtk-doc/html/libedata-book
