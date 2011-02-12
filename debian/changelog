@@ -1,4 +1,4 @@
-evolution-data-server (2.32.1-1) UNRELEASED; urgency=low
+evolution-data-server (2.32.1-1) unstable; urgency=low
 
   * New upstream release.
   * debian/watch updated.
@@ -43,7 +43,7 @@ evolution-data-server (2.32.1-1) UNRELEASED; urgency=low
   * debian/evolution-data-server.install:
     - update install file to follow camel-provider rename patch removal.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Thu, 18 Nov 2010 18:53:42 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 12 Feb 2011 20:07:16 +0100
 
 evolution-data-server (2.30.3-2) unstable; urgency=low
 
