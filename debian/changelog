@@ -1,8 +1,9 @@
 evolution-data-server (2.32.2-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * debian/watch updated, remove call to uupdate.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sat, 12 Feb 2011 21:43:43 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 12 Feb 2011 21:45:32 +0100
 
 evolution-data-server (2.32.1-1) unstable; urgency=low
 
