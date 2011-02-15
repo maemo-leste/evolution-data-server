@@ -170,9 +170,9 @@ Architecture: any
 Depends: libebook1.2-10 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
-         libgnome2-dev,
          libedataserver1.2-dev,
-         libdbus-glib-1-dev
+         libcamel1.2-dev,
+         libglib2.0-dev
 Description: Client library for evolution address books (development files)
  This package contains header files and static library for libebook1.2-10.
  .
