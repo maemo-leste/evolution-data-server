@@ -201,7 +201,7 @@ Depends: libedataserverui1.2-11 (= ${binary:Version}),
          ${shlibs:Depends},
          libgtk2.0-dev,
          libedataserver1.2-dev,
-         libebook1.2-dev,
+         libebook1.2-dev
 Description: GUI utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
