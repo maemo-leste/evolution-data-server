@@ -1,9 +1,9 @@
-evolution-data-server (2.32.2-2) UNRELEASED; urgency=low
+evolution-data-server (2.32.2-2) unstable; urgency=low
 
   * debian/control:
     - update libcamel1.2-dev dependencies from the .pc file.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Tue, 15 Feb 2011 17:58:55 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sat, 19 Feb 2011 11:51:35 +0100
 
 evolution-data-server (2.32.2-1) unstable; urgency=low
 
