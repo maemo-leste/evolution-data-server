@@ -5,7 +5,7 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/class/gnome.mk
 include /usr/share/cdbs/1/rules/utils.mk
-include /usr/share/cdbs/1/rules/autoreconf.mk
+#include /usr/share/cdbs/1/rules/autoreconf.mk
 include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk                  
 include /usr/share/hardening-includes/hardening.make
 
@@ -31,16 +31,15 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
 	--enable-gtk-doc \
-	--enable-gnome-keyring=yes \
-	--enable-gtk3=no
+	--enable-gnome-keyring=yes
 
 DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
 
 binary-install/evolution-data-server::
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
-	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server-1.2/*/*.so \
-	$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
+	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server/*/*.so \
+		$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
 
 common-binary-post-install-indep::
 	dh_bugfiles -A

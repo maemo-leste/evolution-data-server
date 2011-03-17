@@ -1,5 +1,5 @@
 debian/tmp/usr/lib/evolution
-debian/tmp/usr/lib/evolution-data-server-1.2/extensions/*.so
-debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers/*.urls
-debian/tmp/usr/lib/evolution-data-server-1.2/camel-providers/*.so
+debian/tmp/usr/lib/evolution-data-server/*-backends/*.so
+debian/tmp/usr/lib/evolution-data-server/camel-providers/*.urls
+debian/tmp/usr/lib/evolution-data-server/camel-providers/*.so
 debian/lintian/evolution-data-server usr/share/lintian/overrides/
