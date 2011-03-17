@@ -1,3 +1,16 @@
+evolution-data-server (2.91.91-1) UNRELEASED; urgency=low
+
+  * New upstream pre-release.
+  * Update build-dependencies and development dependencies.
+  * Rename packages that need to.
+  * source.lintian-overrides: say goodbye to the bundled libdb.
+  * Add introspection packages for libedataserver and libecal.
+  * Drop dh-autoreconf, it doesn’t cope well with intltool.
+  * Update list of copyright holders.
+  * Remove licenses for code that isn’t here anymore.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 16 Mar 2011 22:18:36 +0100
+
 evolution-data-server (2.32.2-2) unstable; urgency=low
 
   * debian/control:
