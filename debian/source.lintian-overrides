@@ -1,6 +1,0 @@
-# We link libdb dynamically, so this won't be used
-evolution-data-server source: configure-generated-file-in-source libdb/dist/config.status
-evolution-data-server source: configure-generated-file-in-source libdb/dist/config.log
-evolution-data-server source: ancient-libtool libdb/dist/ltmain.sh 1.4.2
-evolution-data-server source: ancient-autotools-helper-file libdb/dist/config.sub 2002-07-03
-evolution-data-server source: ancient-autotools-helper-file libdb/dist/config.guess 2002-07-23
