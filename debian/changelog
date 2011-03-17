@@ -1,3 +1,10 @@
+evolution-data-server (2.32.2-3) UNRELEASED; urgency=low
+
+  * debian/patches:
+    - 01_fix-path_max-hurd added, fix PATH_MAX non existent on hurd.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 17 Mar 2011 23:31:41 +0100
+
 evolution-data-server (2.32.2-2) unstable; urgency=low
 
   * debian/control:

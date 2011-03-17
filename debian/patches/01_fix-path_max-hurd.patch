@@ -1,0 +1,59 @@
+From 7086de11546c8484376e2761de6a84850f180311 Mon Sep 17 00:00:00 2001
+From: Emilio Pozuelo Monfort <pochu27@gmail.com>
+Date: Sat, 19 Feb 2011 22:45:13 +0000
+Subject: [PATCH] Don't use PATH_MAX for buffers
+
+Since that's not portable. Use dynamic allocation instead.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=642783
+---
+ camel/providers/local/camel-local-folder.c |   13 +++----------
+ 1 files changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/camel/providers/local/camel-local-folder.c b/camel/providers/local/camel-local-folder.c
+index 3b7443c..afc9e16 100644
+--- a/camel/providers/local/camel-local-folder.c
++++ b/camel/providers/local/camel-local-folder.c
+@@ -36,10 +36,6 @@
+ #include <glib/gi18n-lib.h>
+ #include <glib/gstdio.h>
+ 
+-#if !defined (G_OS_WIN32) && !defined (_POSIX_PATH_MAX)
+-#include <posix1_lim.h>
+-#endif
+-
+ #include "camel-local-folder.h"
+ #include "camel-local-private.h"
+ #include "camel-local-store.h"
+@@ -47,10 +43,6 @@
+ 
+ #define d(x) /*(printf("%s(%d): ", __FILE__, __LINE__),(x))*/
+ 
+-#ifndef PATH_MAX
+-#define PATH_MAX _POSIX_PATH_MAX
+-#endif
+-
+ #define CAMEL_LOCAL_FOLDER_GET_PRIVATE(obj) \
+ 	(G_TYPE_INSTANCE_GET_PRIVATE \
+ 	((obj), CAMEL_TYPE_LOCAL_FOLDER, CamelLocalFolderPrivate))
+@@ -302,7 +294,7 @@ camel_local_folder_construct(CamelLocalFolder *lf, guint32 flags, GError **error
+ 	const gchar *root_dir_path;
+ 	gchar *tmp, *statepath;
+ #ifndef G_OS_WIN32
+-	gchar folder_path[PATH_MAX];
++	gchar *folder_path;
+ 	struct stat st;
+ #endif
+ 	gint forceindex, len;
+@@ -346,9 +338,10 @@ camel_local_folder_construct(CamelLocalFolder *lf, guint32 flags, GError **error
+ #ifndef G_OS_WIN32
+ 	/* follow any symlinks to the mailbox */
+ 	if (g_lstat (lf->folder_path, &st) != -1 && S_ISLNK (st.st_mode) &&
+-	    realpath (lf->folder_path, folder_path) != NULL) {
++	    (folder_path = realpath (lf->folder_path, NULL)) != NULL) {
+ 		g_free (lf->folder_path);
+ 		lf->folder_path = g_strdup (folder_path);
++		free (folder_path);
+ 	}
+ #endif
+ 	lf->changes = camel_folder_change_info_new();
