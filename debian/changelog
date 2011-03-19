@@ -8,6 +8,7 @@ evolution-data-server (2.91.91-1) UNRELEASED; urgency=low
   * Drop dh-autoreconf, it doesn’t cope well with intltool.
   * Update list of copyright holders.
   * Remove licenses for code that isn’t here anymore.
+  * 01_hurd_path-max.patch: stolen upstream. Fix build on Hurd.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 16 Mar 2011 22:18:36 +0100
 
