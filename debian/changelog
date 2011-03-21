@@ -1,4 +1,4 @@
-evolution-data-server (2.91.91-1) UNRELEASED; urgency=low
+evolution-data-server (2.91.91-1) experimental; urgency=low
 
   * New upstream pre-release.
   * Update build-dependencies and development dependencies.
@@ -10,7 +10,7 @@ evolution-data-server (2.91.91-1) UNRELEASED; urgency=low
   * Remove licenses for code that isn’t here anymore.
   * 01_hurd_path-max.patch: stolen upstream. Fix build on Hurd.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 16 Mar 2011 22:18:36 +0100
+ -- Josselin Mouette <joss@debian.org>  Mon, 21 Mar 2011 12:37:06 +0100
 
 evolution-data-server (2.32.2-2) unstable; urgency=low
 
