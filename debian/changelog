@@ -2,8 +2,11 @@ evolution-data-server (2.32.2-3) UNRELEASED; urgency=low
 
   * debian/patches:
     - 01_fix-path_max-hurd added, fix PATH_MAX non existent on hurd.
+    - 02_remove-disable-deprecated-from-configure.patch added, remove
+      DISABLE_DEPRECATED options, unusable on real releases. Fix ftbfs with
+      GTK+ 2.24.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Thu, 17 Mar 2011 23:31:41 +0100
+ -- Yves-Alexis Perez <corsac@debian.org>  Sun, 27 Mar 2011 15:50:51 +0200
 
 evolution-data-server (2.32.2-2) unstable; urgency=low
 
