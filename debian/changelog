@@ -1,3 +1,11 @@
+evolution-data-server (2.32.2-4) UNRELEASED; urgency=low
+
+  * debian/patches:
+    - 01_fix-path_max-hurd refreshed, previous patch wasn't sufficient, thanks
+      to Emilio Pozuelo Monfort.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Sun, 27 Mar 2011 20:59:51 +0200
+
 evolution-data-server (2.32.2-3) unstable; urgency=low
 
   * debian/patches:
