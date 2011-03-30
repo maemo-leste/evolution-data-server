@@ -1,6 +1,8 @@
-evolution-data-server (2.91.91-2) experimental; urgency=low
+evolution-data-server (2.91.92-1) experimental; urgency=low
 
   * Bump libsoup build-dependency. Closes: #620090.
+  * New upstream pre-release.
+  * 01_hurd_path-max.patch: dropped, merged upstream.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 30 Mar 2011 09:31:07 +0200
 
