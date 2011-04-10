@@ -6,6 +6,7 @@ evolution-data-server3 (3.0.0-1) experimental; urgency=low
   * New upstream stable release.
   * 01_calendar_exit.patch: stolen upstream. Fix a process not exiting 
     at the end of the session.
+  * Fix short description for libcamel.
 
  -- Josselin Mouette <joss@debian.org>  Sun, 10 Apr 2011 10:55:32 +0200
 
