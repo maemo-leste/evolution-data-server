@@ -1,0 +1,32 @@
+From 6760f863ac6d569d170b7486677ce0e46878b114 Mon Sep 17 00:00:00 2001
+From: Matthew Barnes <mbarnes@redhat.com>
+Date: Thu, 07 Apr 2011 20:11:55 +0000
+Subject: Bug 46117 - e-calendar-factory does not exit
+
+---
+diff --git a/addressbook/libebook/e-book.c b/addressbook/libebook/e-book.c
+index c104787..aeb281b 100644
+--- a/addressbook/libebook/e-book.c
++++ b/addressbook/libebook/e-book.c
+@@ -330,7 +330,6 @@ e_book_activate (GError **error)
+ 	}
+ 
+ 	connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (book_factory_proxy));
+-	g_dbus_connection_set_exit_on_close (connection, FALSE);
+ 	book_connection_closed_id = g_dbus_connection_signal_subscribe (connection,
+ 		NULL,						/* sender */
+ 		"org.freedesktop.DBus",				/* interface */
+diff --git a/calendar/libecal/e-cal.c b/calendar/libecal/e-cal.c
+index 6835d45..e1162f5 100644
+--- a/calendar/libecal/e-cal.c
++++ b/calendar/libecal/e-cal.c
+@@ -713,7 +713,6 @@ e_cal_activate (GError **error)
+ 	}
+ 
+ 	connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (cal_factory_proxy));
+-	g_dbus_connection_set_exit_on_close (connection, FALSE);
+ 	cal_connection_closed_id = g_dbus_connection_signal_subscribe (connection,
+ 		NULL,					/* sender */
+ 		"org.freedesktop.DBus",			/* interface */
+--
+cgit v0.9
