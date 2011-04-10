@@ -1,9 +1,13 @@
-evolution-data-server3 (2.91.92-2) UNRELEASED; urgency=low
+evolution-data-server3 (3.0.0-1) experimental; urgency=low
 
   * Rename source package to allow parallel installation/migration for
     libedataserverui.
+  * Fix missing file rename for libcamel.shlibs.
+  * New upstream stable release.
+  * 01_calendar_exit.patch: stolen upstream. Fix a process not exiting 
+    at the end of the session.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 06 Apr 2011 21:12:51 +0200
+ -- Josselin Mouette <joss@debian.org>  Sun, 10 Apr 2011 10:55:32 +0200
 
 evolution-data-server (2.91.92-1) experimental; urgency=low
 
