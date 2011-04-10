@@ -55,7 +55,8 @@ Package: evolution-data-server
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (= ${source:Version})
+         evolution-data-server-common (= ${source:Version}),
+         libcamel-1.2-23 (= ${binary:Version})
 Suggests: evolution (>= 2.6.1),
           evolution-data-server-dbg (= ${binary:Version})
 Replaces: evolution-data-server1.2
@@ -201,7 +202,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= 2.91)
+         evolution-data-server-common (= ${source:Version})
 Conflicts: libedataserverui1.2-dev
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
