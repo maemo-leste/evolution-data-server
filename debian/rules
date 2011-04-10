@@ -6,7 +6,8 @@ include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/class/gnome.mk
 include /usr/share/cdbs/1/rules/utils.mk
 #include /usr/share/cdbs/1/rules/autoreconf.mk
-include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk                  
+include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
+include /usr/share/gnome-pkg-tools/1/rules/gnome-version.mk
 include /usr/share/hardening-includes/hardening.make
 
 GNOME_MODULE := evolution-data-server
@@ -14,6 +15,7 @@ GNOME_MODULE := evolution-data-server
 DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
 DEB_DH_MAKESHLIBS_ARGS_ALL += -V
+DEB_DH_MAKESHLIBS_ARGS_libcamel-1.2-23 += -V'libcamel-1.2-23 (>= $(DEB_GNOME_VERSION)), libcamel-1.2-23 (<< $(DEB_GNOME_NEXTVERSION))'
 
 LDFLAGS=$(shell dpkg-buildflags --get LDFLAGS)
 CFLAGS=$(shell dpkg-buildflags --get CFLAGS)
