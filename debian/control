@@ -124,7 +124,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Breaks: evolution (<< 2.26)
-Description: The Evolution MIME message handling library
+Description: Evolution MIME message handling library
  Camel is a generic messaging library. It supports the standard
  messaging system for receiving and sending messages. It is the
  messaging backend for Evolution.
