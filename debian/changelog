@@ -1,3 +1,14 @@
+evolution-data-server3 (3.0.2.1-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * debian/watch updated to track 3.x versions.
+  * debian/patches:
+    - 01_calendar_exit dropped, included upstream.
+  * debian/control:
+    - update standards version to 3.9.2.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Mon, 01 Aug 2011 10:45:18 +0200
+
 evolution-data-server3 (3.0.0-1) experimental; urgency=low
 
   * Rename source package to allow parallel installation/migration for
