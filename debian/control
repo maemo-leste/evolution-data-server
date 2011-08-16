@@ -203,7 +203,6 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (= ${source:Version})
-Conflicts: libedataserverui1.2-dev
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -219,6 +218,7 @@ Depends: libedataserverui-3.0-0 (= ${binary:Version}),
          libgtk-3-dev,
          libedataserver1.2-dev,
          libebook1.2-dev
+Conflicts: libedataserverui1.2-dev
 Description: GUI utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
