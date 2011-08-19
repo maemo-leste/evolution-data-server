@@ -1,11 +1,16 @@
 evolution-data-server3 (3.0.2.1-1) UNRELEASED; urgency=low
 
+  [ Yves-Alexis Perez ]
   * New upstream release.
   * debian/watch updated to track 3.x versions.
   * debian/patches:
     - 01_calendar_exit dropped, included upstream.
   * debian/control:
     - update standards version to 3.9.2.
+
+  [ Josselin Mouette ]
+  * Move Conflict against libedataserverui1.2-dev from the runtime 
+    package to the development one.
 
  -- Yves-Alexis Perez <corsac@debian.org>  Mon, 01 Aug 2011 10:45:18 +0200
 
