@@ -3,6 +3,8 @@ evolution-data-server3 (3.0.3-1) UNRELEASED; urgency=low
   * New upstream bugfix release.
   * debian/rules:
     - delete .la files
+  * debian/{control,libebook1.2-dev.install,gir1.2-ebook-1.2.install}:
+    - install GObject introspect files for EBook library.
 
  -- Yves-Alexis Perez <corsac@debian.org>  Wed, 31 Aug 2011 14:12:08 +0200
 

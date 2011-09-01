@@ -2,3 +2,4 @@ debian/tmp/usr/lib/pkgconfig/libebook-1.2.pc
 debian/tmp/usr/lib/libebook-1.2.so
 debian/tmp/usr/include/evolution-data-server-*/libebook
 debian/tmp/usr/share/gtk-doc/html/libebook
+debian/tmp/usr/share/gir-1.0/EBook-1.2.gir
