@@ -1,6 +1,8 @@
 evolution-data-server3 (3.0.3-1) UNRELEASED; urgency=low
 
   * New upstream bugfix release.
+  * debian/rules:
+    - delete .la files
 
  -- Yves-Alexis Perez <corsac@debian.org>  Wed, 31 Aug 2011 14:12:08 +0200
 
