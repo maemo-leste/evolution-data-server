@@ -43,6 +43,8 @@ binary-install/evolution-data-server::
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server/*/*.so \
 		$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
+	rm $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server/*/*.la
+	rm $(CURDIR)/debian/evolution-data-server/usr/lib/*.la
 
 common-binary-post-install-indep::
 	dh_bugfiles -A
