@@ -109,6 +109,7 @@ Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
 Depends: libedataserver1.2-14 (= ${binary:Version}),
+         gir1.2-edataserver-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
          libxml2-dev,
@@ -185,6 +186,7 @@ Package: libebook1.2-dev
 Section: libdevel
 Architecture: any
 Depends: libebook1.2-10 (= ${binary:Version}),
+         gir1.2-ebook-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libedataserver1.2-dev,
@@ -281,6 +283,7 @@ Package: libecal1.2-dev
 Section: libdevel
 Architecture: any
 Depends: libecal1.2-8 (= ${binary:Version}),
+         gir1.2-ecalendar-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libical-dev (>= 0.43),
