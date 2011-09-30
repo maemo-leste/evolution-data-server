@@ -19,7 +19,7 @@ Vcs-Svn: svn://svn.debian.org/svn/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-evolution/unstable/evolution-data-server
 Build-Depends: debhelper (>= 8),
                cdbs (>= 0.4.37),
-               dpkg-dev (>= 1.14.16),
+               dpkg-dev (>= 1.16.1),
                pkg-config (>= 0.16),
                flex,
                bison,
