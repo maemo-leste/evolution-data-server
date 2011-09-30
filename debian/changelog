@@ -8,12 +8,13 @@ evolution-data-server3 (3.2.0-1) UNRELEASED; urgency=low
     - drop hardening-includes
     - add build-dep on liboauth-dev
     - drop libegroupwise packages.
+    - update dpkg-dev build-dep for hardening support.
   * debian/rules:
     - set hardening flags using cdbs.
     - use --disable-goa since libgoa is not in Debian.
   * debian/compat bumped to 8.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Fri, 30 Sep 2011 22:56:59 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 30 Sep 2011 23:24:51 +0200
 
 evolution-data-server3 (3.0.3-2) unstable; urgency=low
 
