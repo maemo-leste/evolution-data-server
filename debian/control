@@ -48,7 +48,8 @@ Build-Depends: debhelper (>= 8.9.4),
                gir1.2-glib-2.0,
                gir1.2-freedesktop,
                gperf,
-               gnome-pkg-tools
+               gnome-pkg-tools,
+               liboauth-dev (>= 0.9.4)
 
 Package: evolution-data-server
 Architecture: any
