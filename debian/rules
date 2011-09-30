@@ -11,15 +11,13 @@ include /usr/share/gnome-pkg-tools/1/rules/gnome-version.mk
 
 GNOME_MODULE := evolution-data-server
 
-DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
+DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
 DEB_DH_MAKESHLIBS_ARGS_ALL += -V
 DEB_DH_MAKESHLIBS_ARGS_libcamel-1.2-23 += -V'libcamel-1.2-23 (>= $(DEB_GNOME_VERSION)), libcamel-1.2-23 (<< $(DEB_GNOME_NEXTVERSION))'
 
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-z,defs -Wl,--as-needed -Wl,-O1
 export DEB_BUILD_MAINT_OPTIONS=hardening=+pie,+bindnow
-
-DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
@@ -37,12 +35,12 @@ DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
 
 binary-install/evolution-data-server::
-	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/$(DEB_HOST_MULTIARCH)/evolution/camel-lock-helper*
-	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/$(DEB_HOST_MULTIARCH)/evolution/camel-lock-helper*
-	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/$(DEB_HOST_MULTIARCH)/evolution-data-server/*/*.so \
-		$(CURDIR)/debian/evolution-data-server/usr/lib/$(DEB_HOST_MULTIARCH)/evolution/camel*1.2
-	rm $(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/evolution-data-server/*/*.la
-	rm $(CURDIR)/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/*.la
+	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
+	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
+	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server/*/*.so \
+		$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
+	rm $(CURDIR)/debian/tmp/usr/lib/evolution-data-server/*/*.la
+	rm $(CURDIR)/debian/tmp/usr/lib/*.la
 
 common-binary-post-install-indep::
 	dh_bugfiles -A
