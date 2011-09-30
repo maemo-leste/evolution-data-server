@@ -9,12 +9,15 @@ evolution-data-server3 (3.2.0-1) UNRELEASED; urgency=low
     - add build-dep on liboauth-dev
     - drop libegroupwise packages.
     - update dpkg-dev build-dep for hardening support.
+    - rename packages for soname bumps: libedata-cal-1.2-13,
+      libedata-book-1.2-11, libedataserverui-3.0-1, libcamel-1.2-29,
+      libedataserver-1.2-15, libebook-1.2-12 libecal-1.2-10
   * debian/rules:
     - set hardening flags using cdbs.
     - use --disable-goa since libgoa is not in Debian.
   * debian/compat bumped to 8.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Fri, 30 Sep 2011 23:24:51 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 30 Sep 2011 23:31:08 +0200
 
 evolution-data-server3 (3.0.3-2) unstable; urgency=low
 
