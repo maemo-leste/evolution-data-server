@@ -56,7 +56,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (= ${source:Version}),
-         libcamel-1.2-23 (= ${binary:Version})
+         libcamel-1.2-29 (= ${binary:Version})
 Suggests: evolution (>= 2.6.1),
           evolution-data-server-dbg (= ${binary:Version})
 Replaces: evolution-data-server1.2
@@ -94,7 +94,7 @@ Depends: evolution-data-server (= ${binary:Version}),
 Description: evolution database backend server with debugging symbols
  This package contains unstripped binaries used for debugging.
 
-Package: libedataserver1.2-14
+Package: libedataserver1.2-15
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -136,7 +136,7 @@ Description: GObject introspection for the EDataServer library
  library. It can be used by packages using the GIRepository format to 
  generate dynamic bindings.
 
-Package: libcamel-1.2-23
+Package: libcamel-1.2-29
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -171,7 +171,7 @@ Description: Development files for libcamel
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
 
-Package: libebook1.2-10
+Package: libebook1.2-12
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -213,7 +213,7 @@ Description: GObject introspection for the EBook library
  library. It can be used by packages using the GIRepository format to 
  generate dynamic bindings.
 
-Package: libedataserverui-3.0-0
+Package: libedataserverui-3.0-1
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -242,7 +242,7 @@ Description: GUI utility library for evolution data servers (development files)
  This package contains header files and static library for
  libedataserverui.
 
-Package: libedata-book-1.2-9
+Package: libedata-book-1.2-11
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -268,7 +268,7 @@ Description: Backend library for evolution address books (development files)
  .
  This package contains header files and static library for libedata-book.
 
-Package: libecal1.2-8
+Package: libecal1.2-10
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -309,7 +309,7 @@ Description: GObject introspection for the ECalendar library
  can be used by packages using the GIRepository format to generate 
  dynamic bindings.
 
-Package: libedata-cal-1.2-11
+Package: libedata-cal-1.2-13
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
