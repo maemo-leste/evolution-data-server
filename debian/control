@@ -336,34 +336,6 @@ Description: Backend library for evolution calendars (development files)
  .
  This package contains header files and static library for libedata-cal.
 
-Package: libegroupwise1.2-13
-Section: libs
-Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends}
-Description: Client library for accessing groupwise POA through SOAP interface
- This package is a client library for accessing groupwise POA through SOAP
- interface of Evolution.
- .
- Evolution is the integrated mail, calendar, task and address book
- distributed suite from Novell, Inc.
-
-Package: libegroupwise1.2-dev
-Section: libdevel
-Architecture: any
-Depends: libegroupwise1.2-13 (= ${binary:Version}),
-         ${misc:Depends},
-         ${shlibs:Depends},
-         libsoup2.4-dev
-Description: Development files for libegroupwise
- This package contains header files and static library for libegroupwise.
- .
- libegroupwise is client library for accessing groupwise POA through SOAP
- interface of Evolution.
- .
- Evolution is the integrated mail, calendar, task and address book
- distributed suite from Novell, Inc.
-
 Package: libebackend-1.2-1
 Section: libs
 Architecture: any
