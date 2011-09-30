@@ -1,9 +1,17 @@
-evolution-data-server3 (3.0.3-2) UNRELEASED; urgency=low
+evolution-data-server3 (3.2.0-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    - correctly use secure connection (if used in imap) when storing mail in
+      sent folder.  This fixes CVE-2011-3355.                   closes: #641052
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 30 Sep 2011 21:53:18 +0200
+
+evolution-data-server3 (3.0.3-2) unstable; urgency=low
 
   * debian/control:
     - make -dev packages depend on corresponding gir package.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Fri, 02 Sep 2011 23:45:34 +0200
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 02 Sep 2011 23:47:23 +0200
 
 evolution-data-server3 (3.0.3-1) unstable; urgency=low
 
