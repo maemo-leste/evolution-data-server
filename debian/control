@@ -33,7 +33,6 @@ Build-Depends: debhelper (>= 8),
                libgconf2-dev,
                libnss3-dev,
                libgtk-3-dev (>= 3.0),
-               libgnome2-dev,
                libsoup2.4-dev (>= 2.31.2),
                libgnome-keyring-dev (>= 2.20.1),
                gtk-doc-tools,
@@ -42,14 +41,16 @@ Build-Depends: debhelper (>= 8),
                libgweather-3-dev (>= 2.90.0),
                libical-dev,
                libicu-dev,
-               libgdata-dev (>= 0.7.0),
+               libgdata-dev (>= 0.9.1),
                libgirepository1.0-dev (>= 0.9.12),
                gobject-introspection (>= 0.9.12-4~),
                gir1.2-glib-2.0,
                gir1.2-freedesktop,
                gperf,
                gnome-pkg-tools,
-               liboauth-dev (>= 0.9.4)
+               liboauth-dev (>= 0.9.4),
+               libgoa-1.0-dev,
+               valac-0.14
 
 Package: evolution-data-server
 Architecture: any
