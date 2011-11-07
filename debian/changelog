@@ -1,5 +1,6 @@
-evolution-data-server3 (3.2.0-1) UNRELEASED; urgency=low
+evolution-data-server3 (3.2.1-1) UNRELEASED; urgency=low
 
+  [ Yves-Alexis Perez ]
   * New upstream release.
     - correctly use secure connection (if used in imap) when storing mail in
       sent folder. This fixes CVE-2011-3355.                    closes: #641052
@@ -17,7 +18,13 @@ evolution-data-server3 (3.2.0-1) UNRELEASED; urgency=low
     - use --disable-goa since libgoa is not in Debian.
   * debian/compat bumped to 8.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Fri, 30 Sep 2011 23:31:08 +0200
+  [ Sjoerd Simons ]
+  * New upstream release
+  * enable goa
+  * Update libgdata b-d for goa
+  * Enable vala bindings
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 06 Nov 2011 20:23:39 +0000
 
 evolution-data-server3 (3.0.3-2) unstable; urgency=low
 
