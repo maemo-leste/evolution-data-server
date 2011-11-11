@@ -14,7 +14,7 @@ GNOME_MODULE := evolution-data-server
 DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
 DEB_DH_MAKESHLIBS_ARGS_ALL += -V
-DEB_DH_MAKESHLIBS_ARGS_libcamel-1.2-23 += -V'libcamel-1.2-23 (>= $(DEB_GNOME_VERSION)), libcamel-1.2-23 (<< $(DEB_GNOME_NEXTVERSION))'
+DEB_DH_MAKESHLIBS_ARGS_libcamel-1.2-29 += -V'libcamel-1.2-29 (>= $(DEB_GNOME_VERSION)), libcamel-1.2-29 (<< $(DEB_GNOME_NEXTVERSION))'
 
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-z,defs -Wl,--as-needed -Wl,-O1
 export DEB_BUILD_MAINT_OPTIONS=hardening=+pie,+bindnow
