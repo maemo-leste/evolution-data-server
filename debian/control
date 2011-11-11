@@ -219,7 +219,7 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (= ${source:Version})
+         evolution-data-server-common (>= ${gnome:Version})
 Description: GUI utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
