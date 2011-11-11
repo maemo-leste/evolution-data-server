@@ -1,0 +1,2 @@
+debian/tmp/usr/lib/libedataserver-1.2.so.*
+debian/lintian/libedataserver1.2-15 usr/share/lintian/overrides/
