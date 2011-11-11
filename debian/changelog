@@ -1,4 +1,4 @@
-evolution-data-server3 (3.2.1-1) UNRELEASED; urgency=low
+evolution-data-server3 (3.2.1-1) experimental; urgency=low
 
   [ Yves-Alexis Perez ]
   * New upstream release.
@@ -24,7 +24,11 @@ evolution-data-server3 (3.2.1-1) UNRELEASED; urgency=low
   * Update libgdata b-d for goa
   * Enable vala bindings
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sun, 06 Nov 2011 20:23:39 +0000
+  [ Josselin Mouette ]
+  * Update remaining library package names to standard names. Drop the 
+    lintian warnings accordingly.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 11 Nov 2011 13:35:58 +0100
 
 evolution-data-server3 (3.0.3-2) unstable; urgency=low
 
