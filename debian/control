@@ -1,4 +1,4 @@
-Source: evolution-data-server3
+Source: evolution-data-server
 Section: gnome
 Priority: optional
 Maintainer: Debian Evolution Maintainers <pkg-evolution-maintainers@lists.alioth.debian.org>
