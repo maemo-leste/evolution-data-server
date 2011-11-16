@@ -3,6 +3,7 @@ evolution-data-server (3.2.1-2) UNRELEASED; urgency=low
   * Loosen dependency of libedataserverui on e-d-s-common to avoid 
     problems with the upcoming transition.
   * Rename back the source package to evolution-data-server.
+  * Drop libicu-dev build-dependency.
 
  -- Josselin Mouette <joss@debian.org>  Fri, 11 Nov 2011 18:50:12 +0100
 
