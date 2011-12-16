@@ -1,4 +1,4 @@
-evolution-data-server (3.2.2-1) UNRELEASED; urgency=low
+evolution-data-server (3.2.2-1) experimental; urgency=low
 
   * Loosen dependency of libedataserverui on e-d-s-common to avoid 
     problems with the upcoming transition.
@@ -6,8 +6,15 @@ evolution-data-server (3.2.2-1) UNRELEASED; urgency=low
   * Drop libicu-dev build-dependency.
   * Tighten dependencies between -dev packages.
   * New upstream release.
+  * 01_timezones.patch, 02_deprecated.patch, 03_ports_translation.patch, 
+    04_delay_vcard_parsing.patch, 05_contact_fields.patch, 
+    06_revert_space_categories.patch, 07_http_crash.patch,
+    08_newfolder_imap.patch: bugfixes from upstream 3.2 git.
+  * 20_gettext_intltool.patch: don’t confuse autoreconf by using both 
+    gettext and intltool.
+  * Call dh-autoreconf.
 
- -- Josselin Mouette <joss@debian.org>  Fri, 11 Nov 2011 18:50:12 +0100
+ -- Josselin Mouette <joss@debian.org>  Fri, 16 Dec 2011 19:15:23 +0100
 
 evolution-data-server3 (3.2.1-1) experimental; urgency=low
 

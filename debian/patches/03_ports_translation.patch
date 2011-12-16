@@ -1,0 +1,36 @@
+From 4d6c98ff5c610994ec5c495d6ba77f310e0daa4a Mon Sep 17 00:00:00 2001
+From: Gabor Kelemen <kelemeng@gnome.hu>
+Date: Fri, 02 Dec 2011 18:30:01 +0000
+Subject: Call gettext on the short descriptions of port numbers.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=665421
+---
+diff --git a/camel/camel-provider.c b/camel/camel-provider.c
+index 751cf02..4155be8 100644
+--- a/camel/camel-provider.c
++++ b/camel/camel-provider.c
+@@ -229,6 +229,7 @@ camel_provider_register (CamelProvider *provider)
+ {
+ 	gint i;
+ 	CamelProviderConfEntry *conf;
++	CamelProviderPortEntry *port;
+ 	GList *l;
+ 
+ 	g_return_if_fail (provider != NULL);
+@@ -265,8 +266,13 @@ camel_provider_register (CamelProvider *provider)
+ 		l = l->next;
+ 	}
+ 
+-	if (provider->port_entries)
++	if (provider->port_entries) {
+ 		provider->url_flags |= CAMEL_URL_NEED_PORT;
++		port = provider->port_entries;
++		for (i = 0; port[i].port != 0; i++)
++			if (port[i].desc)
++				port[i].desc = P_(port[i].desc);
++	}
+ 	else
+ 		provider->url_flags &= ~CAMEL_URL_NEED_PORT;
+ 
+--
+cgit v0.9.0.2
