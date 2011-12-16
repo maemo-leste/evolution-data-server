@@ -124,7 +124,7 @@ Description: Utility library for evolution data servers (development files)
  This package contains header files and static library for libedataserver.
 
 Package: gir1.2-edataserver-1.2
-Section: libs
+Section: introspection
 Architecture: any
 Depends: ${gir:Depends},
          ${shlibs:Depends},
@@ -201,7 +201,7 @@ Description: Client library for evolution address books (development files)
  distributed suite from Novell, Inc.
 
 Package: gir1.2-ebook-1.2
-Section: libs
+Section: introspection
 Architecture: any
 Depends: ${gir:Depends},
          ${shlibs:Depends},
@@ -297,7 +297,7 @@ Description: Client library for evolution calendars (development files)
  This package contains header files and static library for libecal.
 
 Package: gir1.2-ecalendar-1.2
-Section: libs
+Section: introspection
 Architecture: any
 Depends: ${gir:Depends},
          ${shlibs:Depends},

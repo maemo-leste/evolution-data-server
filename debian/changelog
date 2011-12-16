@@ -13,6 +13,9 @@ evolution-data-server (3.2.2-1) unstable; urgency=low
   * 20_gettext_intltool.patch: don’t confuse autoreconf by using both 
     gettext and intltool.
   * Call dh-autoreconf.
+  * Move gir packages to introspection section.
+  * 21_link_libical.patch: new patch. Correctly link to libical (for 
+    01_timezones.patch).
 
  -- Josselin Mouette <joss@debian.org>  Fri, 16 Dec 2011 19:43:35 +0100
 
