@@ -1,30 +1,114 @@
-evolution-data-server (2.32.3-1) unstable; urgency=low
+evolution-data-server (3.2.2-1) UNRELEASED; urgency=low
 
+  * Loosen dependency of libedataserverui on e-d-s-common to avoid 
+    problems with the upcoming transition.
+  * Rename back the source package to evolution-data-server.
+  * Drop libicu-dev build-dependency.
+  * Tighten dependencies between -dev packages.
   * New upstream release.
-  * debian/watch updated to only track 2.32 branch.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 11 Nov 2011 18:50:12 +0100
+
+evolution-data-server3 (3.2.1-1) experimental; urgency=low
+
+  [ Yves-Alexis Perez ]
+  * New upstream release.
+    - correctly use secure connection (if used in imap) when storing mail in
+      sent folder. This fixes CVE-2011-3355.                    closes: #641052
+  * debian/control:
+    - update debhelper build-dep to 8.
+    - drop hardening-includes
+    - add build-dep on liboauth-dev
+    - drop libegroupwise packages.
+    - update dpkg-dev build-dep for hardening support.
+    - rename packages for soname bumps: libedata-cal-1.2-13,
+      libedata-book-1.2-11, libedataserverui-3.0-1, libcamel-1.2-29,
+      libedataserver-1.2-15, libebook-1.2-12 libecal-1.2-10
+  * debian/rules:
+    - set hardening flags using cdbs.
+    - use --disable-goa since libgoa is not in Debian.
+  * debian/compat bumped to 8.
+
+  [ Sjoerd Simons ]
+  * New upstream release
+  * enable goa
+  * Update libgdata b-d for goa
+  * Enable vala bindings
+
+  [ Josselin Mouette ]
+  * Update remaining library package names to standard names. Drop the 
+    lintian warnings accordingly.
+  * Update shlibs for libcamel.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 11 Nov 2011 13:35:58 +0100
+
+evolution-data-server3 (3.0.3-2) unstable; urgency=low
+
+  * debian/control:
+    - make -dev packages depend on corresponding gir package.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Fri, 02 Sep 2011 23:47:23 +0200
+
+evolution-data-server3 (3.0.3-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * debian/rules:
+    - delete .la files
+  * debian/{control,libebook1.2-dev.install,gir1.2-ebook-1.2.install}:
+    - install GObject introspect files for EBook library.
+
+ -- Yves-Alexis Perez <corsac@debian.org>  Thu, 01 Sep 2011 22:20:25 +0200
+
+evolution-data-server3 (3.0.2.1-1) unstable; urgency=low
+
+  [ Yves-Alexis Perez ]
+  * New upstream release.
+  * debian/watch updated to track 3.x versions.
+  * debian/patches:
+    - 01_calendar_exit dropped, included upstream.
   * debian/control:
     - update standards version to 3.9.2.
-    - drop article from libcamel short description. 
 
- -- Yves-Alexis Perez <corsac@debian.org>  Wed, 27 Apr 2011 08:43:54 +0200
+  [ Josselin Mouette ]
+  * Move Conflict against libedataserverui1.2-dev from the runtime 
+    package to the development one.
 
-evolution-data-server (2.32.2-4) unstable; urgency=low
+ -- Josselin Mouette <joss@debian.org>  Fri, 19 Aug 2011 22:06:12 +0200
 
-  * debian/patches:
-    - 01_fix-path_max-hurd refreshed, previous patch wasn't sufficient, thanks
-      to Emilio Pozuelo Monfort.
+evolution-data-server3 (3.0.0-1) experimental; urgency=low
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sun, 27 Mar 2011 21:19:49 +0200
+  * Rename source package to allow parallel installation/migration for
+    libedataserverui.
+  * New upstream stable release.
+  * 01_calendar_exit.patch: stolen upstream. Fix a process not exiting 
+    at the end of the session.
+  * Fix short description for libcamel.
+  * Automatically generate better shlibs for libcamel.
+  * Tighten dependencies on libcamel and e-d-s-common.
 
-evolution-data-server (2.32.2-3) unstable; urgency=low
+ -- Josselin Mouette <joss@debian.org>  Sun, 10 Apr 2011 10:55:32 +0200
 
-  * debian/patches:
-    - 01_fix-path_max-hurd added, fix PATH_MAX non existent on hurd.
-    - 02_remove-disable-deprecated-from-configure.patch added, remove
-      DISABLE_DEPRECATED options, unusable on real releases. Fix ftbfs with
-      GTK+ 2.24.
+evolution-data-server (2.91.92-1) experimental; urgency=low
 
- -- Yves-Alexis Perez <corsac@debian.org>  Sun, 27 Mar 2011 16:14:40 +0200
+  * Bump libsoup build-dependency. Closes: #620090.
+  * New upstream pre-release.
+  * 01_hurd_path-max.patch: dropped, merged upstream.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 30 Mar 2011 09:31:07 +0200
+
+evolution-data-server (2.91.91-1) experimental; urgency=low
+
+  * New upstream pre-release.
+  * Update build-dependencies and development dependencies.
+  * Rename packages that need to.
+  * source.lintian-overrides: say goodbye to the bundled libdb.
+  * Add introspection packages for libedataserver and libecal.
+  * Drop dh-autoreconf, it doesn’t cope well with intltool.
+  * Update list of copyright holders.
+  * Remove licenses for code that isn’t here anymore.
+  * 01_hurd_path-max.patch: stolen upstream. Fix build on Hurd.
+
+ -- Josselin Mouette <joss@debian.org>  Mon, 21 Mar 2011 12:37:06 +0100
 
 evolution-data-server (2.32.2-2) unstable; urgency=low
 
