@@ -1,4 +1,4 @@
-evolution-data-server (3.2.2-1) experimental; urgency=low
+evolution-data-server (3.2.2-1) unstable; urgency=low
 
   * Loosen dependency of libedataserverui on e-d-s-common to avoid 
     problems with the upcoming transition.
@@ -14,7 +14,7 @@ evolution-data-server (3.2.2-1) experimental; urgency=low
     gettext and intltool.
   * Call dh-autoreconf.
 
- -- Josselin Mouette <joss@debian.org>  Fri, 16 Dec 2011 19:15:23 +0100
+ -- Josselin Mouette <joss@debian.org>  Fri, 16 Dec 2011 19:43:35 +0100
 
 evolution-data-server3 (3.2.1-1) experimental; urgency=low
 
