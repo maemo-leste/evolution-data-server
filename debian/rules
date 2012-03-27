@@ -41,6 +41,3 @@ binary-install/evolution-data-server::
 		$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
 	rm $(CURDIR)/debian/tmp/usr/lib/evolution-data-server/*/*.la
 	rm $(CURDIR)/debian/tmp/usr/lib/*.la
-
-common-binary-post-install-indep::
-	dh_bugfiles -A
