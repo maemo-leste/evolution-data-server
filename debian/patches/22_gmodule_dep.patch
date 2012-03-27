@@ -1,0 +1,61 @@
+Author: Jordi Mallach <jordi@debian.org>
+Description: Add explicit dependencies on gmodule-2.0
+ Add explicit dependencies on gmodule-2.0, to fix FTBFS caused
+ by gio-2.0.pc in GLib 2.32 moving gmodule-2.0 from Requires to
+ Requires.private.
+Bug-GNOME: http://bugzilla.gnome.org/show_bug.cgi?id=664819
+Bug-GNOME: http://bugzilla.gnome.org/show_bug.cgi?id=666770
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=665664
+Forwarded: not-needed
+
+Index: evolution-data-server-3.2.2/configure.ac
+===================================================================
+--- evolution-data-server-3.2.2.orig/configure.ac	2012-03-27 18:38:18.000000000 +0200
++++ evolution-data-server-3.2.2/configure.ac	2012-03-27 18:45:45.161259076 +0200
+@@ -334,6 +334,7 @@
+ dnl ***********************************
+ PKG_CHECK_MODULES(GNOME_PLATFORM,
+ 	[gio-2.0 >= glib_minimum_version
++        gmodule-2.0 >= glib_minimum_version
+ 	gtk+-3.0 >= gtk_minimum_version
+ 	gconf-2.0 >= gconf_minimum_version
+ 	libxml-2.0 >= libxml_minimum_version
+@@ -1294,7 +1295,7 @@
+ dnl ******************************
+ dnl libedataserver flags
+ dnl ******************************
+-E_DATA_SERVER_DEPS="gio-2.0 libxml-2.0 libsoup-2.4 gconf-2.0 $mozilla_nspr"
++E_DATA_SERVER_DEPS="gio-2.0 gmodule-2.0 libxml-2.0 libsoup-2.4 gconf-2.0 $mozilla_nspr"
+ 
+ EVO_SET_COMPILE_FLAGS(E_DATA_SERVER, $E_DATA_SERVER_DEPS, $MANUAL_NSPR_CFLAGS, $MANUAL_NSPR_LIBS)
+ AC_SUBST(E_DATA_SERVER_CFLAGS)
+@@ -1316,7 +1317,7 @@
+ 	AC_SUBST(FACTORY_GTK_LIBS)
+ fi
+ 
+-E_BACKEND_DEPS="gio-2.0 libxml-2.0 gconf-2.0"
++E_BACKEND_DEPS="gio-2.0 gmodule-2.0 libxml-2.0 gconf-2.0"
+ 
+ dnl ******************************
+ dnl libebackend flags
+@@ -1459,7 +1460,7 @@
+ 
+ AM_CONDITIONAL(ENABLE_LARGEFILE, [test "x$enable_largefile" = "xyes"])
+ 
+-EVO_SET_COMPILE_FLAGS(CAMEL, gio-2.0 $mozilla_nss sqlite3 >= sqlite_minimum_version, $KRB5_CFLAGS $MANUAL_NSS_CFLAGS $LARGEFILE_CFLAGS, -lz $KRB5_LIBS $MANUAL_NSS_LIBS)
++EVO_SET_COMPILE_FLAGS(CAMEL, gio-2.0 gmodule-2.0 $mozilla_nss sqlite3 >= sqlite_minimum_version, $KRB5_CFLAGS $MANUAL_NSS_CFLAGS $LARGEFILE_CFLAGS, -lz $KRB5_LIBS $MANUAL_NSS_LIBS)
+ AC_SUBST(CAMEL_CFLAGS)
+ AC_SUBST(CAMEL_LIBS)
+ 
+Index: evolution-data-server-3.2.2/libedataserver/libedataserver.pc.in
+===================================================================
+--- evolution-data-server-3.2.2.orig/libedataserver/libedataserver.pc.in	2011-04-26 16:25:02.000000000 +0200
++++ evolution-data-server-3.2.2/libedataserver/libedataserver.pc.in	2012-03-27 18:46:01.477258344 +0200
+@@ -10,6 +10,6 @@
+ Name: libedataserver
+ Description: Utility library for Evolution Data Server
+ Version: @VERSION@
+-Requires: gio-2.0 libxml-2.0 gconf-2.0 libsoup-2.4
++Requires: gio-2.0 gmodule-2.0 libxml-2.0 gconf-2.0 libsoup-2.4
+ Libs: -L${libdir} -ledataserver-@API_VERSION@
+ Cflags: -I${privincludedir}

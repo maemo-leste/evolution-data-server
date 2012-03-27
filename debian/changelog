@@ -4,8 +4,10 @@ evolution-data-server (3.2.2-2) UNRELEASED; urgency=low
     affecting arch:all packages. Instead, bump to cdbs (>= 0.4.90) to
     ensure integrated dh_bugfiles support (closes: #593786).
   * Update Vcs-* URLs.
+  * Add 22_gmodule_dep.patch: Add explicit dependencies on gmodule-2.0
+    (closes: #665664).
 
- -- Jordi Mallach <jordi@debian.org>  Tue, 27 Mar 2012 18:23:27 +0200
+ -- Jordi Mallach <jordi@debian.org>  Tue, 27 Mar 2012 18:56:12 +0200
 
 evolution-data-server (3.2.2-1) unstable; urgency=low
 

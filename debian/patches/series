@@ -8,3 +8,4 @@
 08_newfolder_imap.patch
 20_gettext_intltool.patch
 21_link_libical.patch
+22_gmodule_dep.patch
