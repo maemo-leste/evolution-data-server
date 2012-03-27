@@ -175,8 +175,7 @@ Package: libebook-1.2-12
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         evolution-data-server (>= ${gnome:Version}), evolution-data-server (<< ${gnome:NextVersion}) 
+         ${misc:Depends}
 Description: Client library for evolution address books
  This package is a client library for evolution addressbooks.
  .
@@ -272,8 +271,7 @@ Package: libecal-1.2-10
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         evolution-data-server (>= ${gnome:Version}), evolution-data-server (<< ${gnome:NextVersion}) 
+         ${misc:Depends}
 Description: Client library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.

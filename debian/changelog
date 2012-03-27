@@ -10,8 +10,6 @@ evolution-data-server (3.2.2-2) unstable; urgency=low
   * Add Breaks on old versions of libecal1.2 and libebook1.2 to e-d-s, to
     ensure no packages using the old libs try to talk to the new server
     (closes: #623216).
-  * To prevent further GNOME upgrade woes, add explicit dependencies on
-    e-d-s (>= ${gnome:Version}), (<< ${gnome:NextVersion}) for both libs.
   * Bump Standards-Version to 3.9.3, with no further changes.
 
  -- Jordi Mallach <jordi@debian.org>  Tue, 27 Mar 2012 19:51:37 +0200
