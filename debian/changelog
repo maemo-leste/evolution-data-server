@@ -1,3 +1,9 @@
+evolution-data-server (3.2.2-3) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Jordi Mallach <jordi@debian.org>  Tue, 27 Mar 2012 20:11:28 +0200
+
 evolution-data-server (3.2.2-2) unstable; urgency=low
 
   * Remove manual call to dh_bugfiles in binary-indep which was also
@@ -7,8 +13,8 @@ evolution-data-server (3.2.2-2) unstable; urgency=low
   * Add 22_gmodule_dep.patch: Add explicit dependencies on gmodule-2.0
     (closes: #665664).
   * Drop obsolete e-d-s1.2 Conflicts/Replaces.
-  * Add Breaks on old versions of libecal1.2 and libebook1.2 to e-d-s, to
-    ensure no packages using the old libs try to talk to the new server
+  * Make e-d-s onflict against old versions of libecal1.2 and libebook1.2,
+    to ensure no packages using the old libs try to talk to the new server
     (closes: #623216).
   * Bump Standards-Version to 3.9.3, with no further changes.
 
