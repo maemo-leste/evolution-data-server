@@ -1,3 +1,12 @@
+evolution-data-server (3.2.2-3) UNRELEASED; urgency=low
+
+  * debian/patches/23_dbus_glib_threading.patch
+   - Added. Initialize threading support in dbus-glib which is used through
+     gconf (Closes: #666890).
+  * debian/control: Add myself to uploaders
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 02 Apr 2012 10:28:59 +0200
+
 evolution-data-server (3.2.2-2) unstable; urgency=low
 
   * Remove manual call to dh_bugfiles in binary-indep which was also

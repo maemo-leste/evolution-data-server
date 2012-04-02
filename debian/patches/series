@@ -9,3 +9,4 @@
 20_gettext_intltool.patch
 21_link_libical.patch
 22_gmodule_dep.patch
+23_dbus_glib_threading.patch
