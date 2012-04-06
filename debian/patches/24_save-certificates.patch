@@ -1,0 +1,29 @@
+Description: It is supposed to save your certificate in the local
+ certificate database and mark it as trusted or not trusted based on your
+ decision, and this change should be saved, but there was a bug that this didn't
+ work in certain cases.
+Author: Milan Crha
+Origin: https://bugzilla.gnome.org/show_bug.cgi?id=440316
+Bug-GNOME: https://bugzilla.gnome.org/show_bug.cgi?id=666150
+Applied-Upstream: http://git.gnome.org/browse/evolution-data-server/commit/?id=287ea88b08c4fd81b49587a432e6e0d329ccdbe9
+
+Index: evolution-data-server/camel/camel-tcp-stream-ssl.c
+===================================================================
+--- evolution-data-server.orig/camel/camel-tcp-stream-ssl.c	2011-10-20 12:32:50.000000000 +0200
++++ evolution-data-server/camel/camel-tcp-stream-ssl.c	2012-04-06 22:06:28.000000000 +0200
+@@ -479,13 +479,14 @@
+ 		if (accept) {
+ 			camel_certdb_nss_cert_set (certdb, ccert, cert);
+ 			camel_cert_set_trust (certdb, ccert, CAMEL_CERT_TRUST_FULLY);
+-			camel_certdb_touch (certdb);
+ 		}
++	camel_certdb_touch (certdb);
+ 	} else {
+ 		accept = ccert->trust != CAMEL_CERT_TRUST_NEVER;
+ 	}
+ 
+ 	camel_certdb_cert_unref (certdb, ccert);
++	camel_certdb_save (certdb);
+ 	g_object_unref (certdb);
+ 
+ 	return accept ? SECSuccess : SECFailure;

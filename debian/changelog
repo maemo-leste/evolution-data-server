@@ -1,3 +1,14 @@
+evolution-data-server (3.2.2-4) UNRELEASED; urgency=low
+
+  * debian/patches/24_save-certificates.patch:
+    E-d-s is supposed to save the user's certificate in the local
+    certificate database and mark it as trusted or not trusted based on
+    the user's decision, and this change should be saved, but there was
+    a bug that this didn't work in certain cases.
+    Patch backported from upstream.
+
+ -- Fabian Greffrath <fabian+debian@greffrath.com>  Fri, 06 Apr 2012 22:09:27 +0200
+
 evolution-data-server (3.2.2-3) unstable; urgency=low
 
   * debian/patches/23_dbus_glib_threading.patch
