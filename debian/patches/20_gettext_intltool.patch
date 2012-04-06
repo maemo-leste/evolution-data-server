@@ -1,0 +1,14 @@
+Index: evolution-data-server-3.2.2/configure.ac
+===================================================================
+--- evolution-data-server-3.2.2.orig/configure.ac	2011-12-16 19:13:22.103941922 +0100
++++ evolution-data-server-3.2.2/configure.ac	2011-12-16 19:13:45.732057437 +0100
+@@ -249,9 +249,6 @@ dnl I18N stuff
+ dnl ******************************
+ IT_PROG_INTLTOOL([0.35.5])
+ 
+-AM_GNU_GETTEXT_VERSION([0.17])
+-AM_GNU_GETTEXT([external])
+-
+ GETTEXT_PACKAGE=evolution-data-server-$BASE_VERSION
+ AC_SUBST(GETTEXT_PACKAGE)
+ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Package name for gettext])
