@@ -1,3 +1,12 @@
+evolution-data-server (3.4.0-1) unstable; urgency=low
+
+  * New upstream version.
+  * Watch for xz tarballs.
+  * Bump Build-Depends as per configure.ac.
+  * Rename packages for soname bumps.
+
+ -- Jordi Mallach <jordi@debian.org>  Fri, 06 Apr 2012 16:53:15 +0200
+
 evolution-data-server (3.2.2-3) unstable; urgency=low
 
   * debian/patches/23_dbus_glib_threading.patch
