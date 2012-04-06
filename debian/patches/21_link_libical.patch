@@ -1,0 +1,13 @@
+Index: evolution-data-server-3.2.2/calendar/libedata-cal/Makefile.am
+===================================================================
+--- evolution-data-server-3.2.2.orig/calendar/libedata-cal/Makefile.am	2011-10-20 12:32:50.000000000 +0200
++++ evolution-data-server-3.2.2/calendar/libedata-cal/Makefile.am	2011-12-16 20:10:38.716742670 +0100
+@@ -115,6 +115,8 @@ e_calendar_factory_LDADD =						\
+ 	libedata-cal-1.2.la						\
+ 	$(top_builddir)/libedataserver/libedataserver-1.2.la 		\
+ 	$(top_builddir)/libebackend/libebackend-1.2.la			\
++	$(LIBICAL_LIBS)							\
++	$(EVOLUTION_CALENDAR_LIBS)					\
+ 	$(FACTORY_GTK_LIBS)
+ 
+ -include $(top_srcdir)/git.mk

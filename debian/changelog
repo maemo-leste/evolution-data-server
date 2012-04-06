@@ -1,4 +1,29 @@
-evolution-data-server (3.2.2-1) UNRELEASED; urgency=low
+evolution-data-server (3.2.2-3) unstable; urgency=low
+
+  * debian/patches/23_dbus_glib_threading.patch
+   - Added. Initialize threading support in dbus-glib which is used through
+     gconf (Closes: #666890).
+  * debian/control: Add myself to uploaders
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 02 Apr 2012 10:50:44 +0200
+
+evolution-data-server (3.2.2-2) unstable; urgency=low
+
+  * Remove manual call to dh_bugfiles in binary-indep which was also
+    affecting arch:all packages. Instead, bump to cdbs (>= 0.4.90) to
+    ensure integrated dh_bugfiles support (closes: #593786).
+  * Update Vcs-* URLs.
+  * Add 22_gmodule_dep.patch: Add explicit dependencies on gmodule-2.0
+    (closes: #665664).
+  * Drop obsolete e-d-s1.2 Conflicts/Replaces.
+  * Make e-d-s onflict against old versions of libecal1.2 and libebook1.2,
+    to ensure no packages using the old libs try to talk to the new server
+    (closes: #623216).
+  * Bump Standards-Version to 3.9.3, with no further changes.
+
+ -- Jordi Mallach <jordi@debian.org>  Tue, 27 Mar 2012 19:51:37 +0200
+
+evolution-data-server (3.2.2-1) unstable; urgency=low
 
   * Loosen dependency of libedataserverui on e-d-s-common to avoid 
     problems with the upcoming transition.
@@ -6,8 +31,18 @@ evolution-data-server (3.2.2-1) UNRELEASED; urgency=low
   * Drop libicu-dev build-dependency.
   * Tighten dependencies between -dev packages.
   * New upstream release.
+  * 01_timezones.patch, 02_deprecated.patch, 03_ports_translation.patch, 
+    04_delay_vcard_parsing.patch, 05_contact_fields.patch, 
+    06_revert_space_categories.patch, 07_http_crash.patch,
+    08_newfolder_imap.patch: bugfixes from upstream 3.2 git.
+  * 20_gettext_intltool.patch: don’t confuse autoreconf by using both 
+    gettext and intltool.
+  * Call dh-autoreconf.
+  * Move gir packages to introspection section.
+  * 21_link_libical.patch: new patch. Correctly link to libical (for 
+    01_timezones.patch).
 
- -- Josselin Mouette <joss@debian.org>  Fri, 11 Nov 2011 18:50:12 +0100
+ -- Josselin Mouette <joss@debian.org>  Fri, 16 Dec 2011 19:43:35 +0100
 
 evolution-data-server3 (3.2.1-1) experimental; urgency=low
 

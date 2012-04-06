@@ -1,0 +1,23 @@
+From d15bdd08427b19398d17f2704cd5b5daf4ec6420 Mon Sep 17 00:00:00 2001
+From: Milan Crha <mcrha@redhat.com>
+Date: Wed, 14 Dec 2011 09:19:56 +0000
+Subject: Revert patch for bug #514041
+
+See the bug for more information:
+https://bugzilla.gnome.org/show_bug.cgi?id=514041#c9
+---
+diff --git a/addressbook/libebook/e-contact.c b/addressbook/libebook/e-contact.c
+index f938dd8..cdd7ac0 100644
+--- a/addressbook/libebook/e-contact.c
++++ b/addressbook/libebook/e-contact.c
+@@ -1603,7 +1603,7 @@ e_contact_get (EContact *contact,
+ 					g_string_append (str, (gchar *) v->data);
+ 					v = v->next;
+ 					if (v)
+-						g_string_append (str, ", ");
++						g_string_append_c (str, ',');
+ 				}
+ 
+ 				rv = g_string_free (str, FALSE);
+--
+cgit v0.9.0.2
