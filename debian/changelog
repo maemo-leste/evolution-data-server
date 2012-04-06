@@ -1,4 +1,4 @@
-evolution-data-server (3.4.0-1) unstable; urgency=low
+evolution-data-server (3.4.0-1) experimental; urgency=low
 
   * New upstream version.
   * Watch for xz tarballs.

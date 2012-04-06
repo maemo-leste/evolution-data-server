@@ -53,7 +53,7 @@ Build-Depends: debhelper (>= 8),
                gperf,
                gnome-pkg-tools,
                pkg-config (>= 0.16),
-               valac (>= 0.16)
+               valac-0.16 (>= 0.16)
 
 Package: evolution-data-server
 Architecture: any
