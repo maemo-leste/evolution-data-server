@@ -174,7 +174,7 @@ Description: Development files for libcamel
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
 
-Package: libebook-1.2-16
+Package: libebook-1.2-13
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -188,7 +188,7 @@ Description: Client library for evolution address books
 Package: libebook1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libebook-1.2-16 (= ${binary:Version}),
+Depends: libebook-1.2-13 (= ${binary:Version}),
          gir1.2-ebook-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -270,7 +270,7 @@ Description: Backend library for evolution address books (development files)
  .
  This package contains header files and static library for libedata-book.
 
-Package: libecal-1.2-13
+Package: libecal-1.2-11
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -284,7 +284,7 @@ Description: Client library for evolution calendars
 Package: libecal1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libecal-1.2-13 (= ${binary:Version}),
+Depends: libecal-1.2-11 (= ${binary:Version}),
          gir1.2-ecalendar-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
