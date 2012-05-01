@@ -1,4 +1,4 @@
-evolution-data-server (3.4.0-1) experimental; urgency=low
+evolution-data-server (3.4.1-1) experimental; urgency=low
 
   * New upstream version.
   * Watch for xz tarballs.
@@ -6,7 +6,7 @@ evolution-data-server (3.4.0-1) experimental; urgency=low
   * Rename packages for soname bumps.
   * Remove all patches except 20_gettext_intltool.patch, all are obsolete.
 
- -- Jordi Mallach <jordi@debian.org>  Fri, 06 Apr 2012 16:53:15 +0200
+ -- Jordi Mallach <jordi@debian.org>  Tue, 01 May 2012 23:04:11 +0200
 
 evolution-data-server (3.2.2-3) unstable; urgency=low
 
