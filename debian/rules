@@ -15,7 +15,8 @@ DEB_DH_MAKESHLIBS_ARGS_ALL += -V
 DEB_DH_MAKESHLIBS_ARGS_libcamel-1.2-33 += -V'libcamel-1.2-33 (>= $(DEB_GNOME_VERSION)), libcamel-1.2-33 (<< $(DEB_GNOME_NEXTVERSION))'
 
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-z,defs -Wl,--as-needed -Wl,-O1
-export DEB_BUILD_MAINT_OPTIONS=hardening=+pie,+bindnow
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+include /usr/share/dpkg/buildflags.mk
 
 DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
@@ -41,3 +42,5 @@ binary-install/evolution-data-server::
 		$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
 	rm $(CURDIR)/debian/tmp/usr/lib/evolution-data-server/*/*.la
 	rm $(CURDIR)/debian/tmp/usr/lib/*.la
+
+common-binary-post-install-arch:: list-missing

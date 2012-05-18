@@ -1,4 +1,6 @@
+debian/tmp/usr/share/GConf
+debian/tmp/usr/share/dbus-1
 debian/tmp/usr/share/evolution-data-server-*
+debian/tmp/usr/share/glib-2.0
 debian/tmp/usr/share/locale
 debian/tmp/usr/share/pixmaps
-debian/tmp/usr/share/dbus-1
