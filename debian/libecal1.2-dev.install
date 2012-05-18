@@ -1,6 +1,6 @@
-debian/tmp/usr/lib/pkgconfig/libecal-1.2.pc
-debian/tmp/usr/lib/libecal-1.2.so
-debian/tmp/usr/include/evolution-data-server-*/libecal
-debian/tmp/usr/share/gir-1.0/ECalendar-1.2.gir
-debian/tmp/usr/share/vala/vapi/libecalendar-1.2.deps
-debian/tmp/usr/share/vala/vapi/libecalendar-1.2.vapi
+usr/lib/pkgconfig/libecal-1.2.pc
+usr/lib/libecal-1.2.so
+usr/include/evolution-data-server-*/libecal
+usr/share/gir-1.0/ECalendar-1.2.gir
+usr/share/vala/vapi/libecalendar-1.2.deps
+usr/share/vala/vapi/libecalendar-1.2.vapi
