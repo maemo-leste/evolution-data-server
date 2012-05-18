@@ -1,4 +1,4 @@
-evolution-data-server (3.4.2-1) UNRELEASED; urgency=low
+evolution-data-server (3.4.2-1) experimental; urgency=low
 
   * New upstream version.
   * Add list-missing target.
@@ -10,7 +10,7 @@ evolution-data-server (3.4.2-1) UNRELEASED; urgency=low
   * Build-Depend on libglib2.0-doc and libdbus-glib-1-doc to ensure
     proper cross-reference links in generated gtk-doc API documentation.
 
- -- Jordi Mallach <jordi@debian.org>  Fri, 18 May 2012 17:55:44 +0200
+ -- Jordi Mallach <jordi@debian.org>  Fri, 18 May 2012 19:32:20 +0200
 
 evolution-data-server (3.4.1-1) experimental; urgency=low
 
