@@ -4,8 +4,11 @@ evolution-data-server (3.4.2-1) UNRELEASED; urgency=low
   * Add list-missing target.
   * Install gsettings schemas and gconf conversion scripts.
   * Include buildflags.mk, and adjust rules to use all hardening flags.
-  * Let libedataserverui-3.0-dev Break/Replace obsolete
-    libedataserverui1.2-dev (closes: #672253).
+  * Move all gtk-doc API documentation to a new evolution-data-server-doc
+    binary, and let it break/replace obsolete libedataserverui1.2-dev
+    (closes: #672253).
+  * Build-Depend on libglib2.0-doc and libdbus-glib-1-doc to ensure
+    proper cross-reference links in generated gtk-doc API documentation.
 
  -- Jordi Mallach <jordi@debian.org>  Fri, 18 May 2012 17:55:44 +0200
 

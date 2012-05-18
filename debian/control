@@ -28,7 +28,9 @@ Build-Depends: debhelper (>= 8),
                intltool (>= 0.35.5),
                libdb-dev,
                libdbus-glib-1-dev (>= 0.6),
+               libdbus-glib-1-doc,
                libglib2.0-dev (>= 2.30),
+               libglib2.0-doc,
                libgconf2-dev,
                libgdata-dev (>= 0.10),
                libgirepository1.0-dev (>= 0.9.12),
@@ -96,6 +98,36 @@ Depends: evolution-data-server (= ${binary:Version}),
          ${misc:Depends}
 Description: evolution database backend server with debugging symbols
  This package contains unstripped binaries used for debugging.
+
+Package: evolution-data-server-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}
+Breaks: libedataserverui1.2-dev,
+        libcamel1.2-dev (<< 3.4.2),
+        libebackend1.2-dev (<< 3.4.2),
+        libebook1.2-dev (<< 3.4.2),
+        libecal1.2-dev (<< 3.4.2),
+        libedata-book1.2-dev (<< 3.4.2),
+        libedata-cal1.2-dev (<< 3.4.2),
+        libedataserver1.2-dev (<< 3.4.2),
+        libedataserverui-3.0-dev (<< 3.4.2)
+Replaces: libedataserverui1.2-dev,
+          libcamel1.2-dev (<< 3.4.2),
+          libebackend1.2-dev (<< 3.4.2),
+          libebook1.2-dev (<< 3.4.2),
+          libecal1.2-dev (<< 3.4.2),
+          libedata-book1.2-dev (<< 3.4.2),
+          libedata-cal1.2-dev (<< 3.4.2),
+          libedataserver1.2-dev (<< 3.4.2),
+          libedataserverui-3.0-dev (<< 3.4.2)
+Suggests: devhelp
+Description: Documentation files for the Evolution Data Server libraries
+ The data server, called "Evolution Data Server" is responsible for managing
+ calendar and addressbook information.
+ .
+ This package contains the API documentation for all the individual
+ Evolution Data Server libraries.
 
 Package: libedataserver-1.2-16
 Section: libs
@@ -237,8 +269,6 @@ Depends: libedataserverui-3.0-1 (= ${binary:Version}),
          libgtk-3-dev,
          libedataserver1.2-dev (= ${binary:Version}),
          libebook1.2-dev (= ${binary:Version})
-Breaks: libedataserverui1.2-dev
-Replaces: libedataserverui1.2-dev
 Description: GUI utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
