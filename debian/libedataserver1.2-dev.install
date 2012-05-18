@@ -1,6 +1,5 @@
 debian/tmp/usr/lib/pkgconfig/libedataserver-1.2.pc
 debian/tmp/usr/lib/libedataserver-1.2.so
 debian/tmp/usr/include/evolution-data-server-*/libedataserver
-debian/tmp/usr/share/gtk-doc/html/libedataserver
 debian/tmp/usr/share/gir-1.0/EDataServer-1.2.gir
 debian/tmp/usr/share/vala/vapi/libedataserver-1.2.vapi
