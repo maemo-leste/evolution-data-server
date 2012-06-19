@@ -1,3 +1,10 @@
+evolution-data-server (3.4.3-1) UNRELEASED; urgency=low
+
+  * Team upload.
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 19 Jun 2012 17:02:31 +0200
+
 evolution-data-server (3.4.2-2) experimental; urgency=low
 
   * Bump to debhelper compat v9.
