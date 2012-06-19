@@ -1,13 +1,1 @@
-01_timezones.patch
-02_deprecated.patch
-03_ports_translation.patch
-04_delay_vcard_parsing.patch
-05_contact_fields.patch
-06_revert_space_categories.patch
-07_http_crash.patch
-08_newfolder_imap.patch
 20_gettext_intltool.patch
-21_link_libical.patch
-22_gmodule_dep.patch
-23_dbus_glib_threading.patch
-24_save-certificates.patch

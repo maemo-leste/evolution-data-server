@@ -1,13 +1,35 @@
-evolution-data-server (3.2.2-4) UNRELEASED; urgency=low
+evolution-data-server (3.4.2-2) experimental; urgency=low
 
-  * debian/patches/24_save-certificates.patch:
-    E-d-s is supposed to save the user's certificate in the local
-    certificate database and mark it as trusted or not trusted based on
-    the user's decision, and this change should be saved, but there was
-    a bug that this didn't work in certain cases.
-    Patch backported from upstream.
+  * Bump to debhelper compat v9.
+  * Strip debian/tmp/ prefix from install files.
+  * Make libedata-cal1.2-dev depend on libebackend1.2-dev, as it uses
+    one of its header files.
 
- -- Fabian Greffrath <fabian+debian@greffrath.com>  Fri, 06 Apr 2012 22:09:27 +0200
+ -- Jordi Mallach <jordi@debian.org>  Sun, 17 Jun 2012 17:45:21 +0200
+
+evolution-data-server (3.4.2-1) experimental; urgency=low
+
+  * New upstream version.
+  * Add list-missing target.
+  * Install gsettings schemas and gconf conversion scripts.
+  * Include buildflags.mk, and adjust rules to use all hardening flags.
+  * Move all gtk-doc API documentation to a new evolution-data-server-doc
+    binary, and let it break/replace obsolete libedataserverui1.2-dev
+    (closes: #672253).
+  * Build-Depend on libglib2.0-doc and libdbus-glib-1-doc to ensure
+    proper cross-reference links in generated gtk-doc API documentation.
+
+ -- Jordi Mallach <jordi@debian.org>  Fri, 18 May 2012 19:32:20 +0200
+
+evolution-data-server (3.4.1-1) experimental; urgency=low
+
+  * New upstream version.
+  * Watch for xz tarballs.
+  * Bump Build-Depends as per configure.ac.
+  * Rename packages for soname bumps.
+  * Remove all patches except 20_gettext_intltool.patch, all are obsolete.
+
+ -- Jordi Mallach <jordi@debian.org>  Tue, 01 May 2012 23:04:11 +0200
 
 evolution-data-server (3.2.2-3) unstable; urgency=low
 
