@@ -1,3 +1,10 @@
+evolution-data-server (3.6.1-1) experimental; urgency=low
+
+  * New upstream release
+  * debian/evolution-data-server.install: Install the registry-modules 
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Thu, 18 Oct 2012 20:42:38 +0200
+
 evolution-data-server (3.6.0-1) experimental; urgency=low
 
   * New upstream release
