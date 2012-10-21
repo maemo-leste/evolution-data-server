@@ -1,6 +1,8 @@
 evolution-data-server (3.4.4-1) unstable; urgency=low
 
   * New upstream bugfix release.
+  * Add 30_e_book_backend_file_open_test_directory_existence.patch: Fix
+    directory existence test.
 
  -- Jordi Mallach <jordi@debian.org>  Mon, 08 Oct 2012 19:29:57 +0200
 

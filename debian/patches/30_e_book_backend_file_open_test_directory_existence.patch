@@ -1,0 +1,27 @@
+From 9ce3be5e6c44ac07c0dd8020627073c7427e7677 Mon Sep 17 00:00:00 2001
+From: Matthew Barnes <mbarnes@redhat.com>
+Date: Tue, 19 Jun 2012 19:17:04 +0000
+Subject: e_book_backend_file_open: Fix directory existence test.
+
+In e_book_backend_file_open() we seem to be bailing out if the data
+directory does not exist, but yet we don't create the directory until
+further down.
+
+Not sure if this is correct, but it seems to me we only want to check
+for the data directory if 'only_if_exists == TRUE'.
+---
+diff --git a/addressbook/backends/file/e-book-backend-file.c b/addressbook/backends/file/e-book-backend-file.c
+index 79194c7..8cd6712 100644
+--- a/addressbook/backends/file/e-book-backend-file.c
++++ b/addressbook/backends/file/e-book-backend-file.c
+@@ -1884,7 +1884,7 @@ e_book_backend_file_open (EBookBackendSync *backend,
+ 	dirname = e_book_backend_file_extract_path_from_source (
+ 		registry, source, GET_PATH_DB_DIR);
+ 
+-	if (!g_file_test (dirname, G_FILE_TEST_IS_DIR)) {
++	if (only_if_exists && !g_file_test (dirname, G_FILE_TEST_IS_DIR)) {
+ 		g_free (dirname);
+ 		g_propagate_error (perror, EDB_ERROR (NO_SUCH_BOOK));
+ 		return;
+--
+cgit v0.9.0.2
