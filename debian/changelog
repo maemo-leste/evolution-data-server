@@ -1,3 +1,11 @@
+evolution-data-server (3.6.3-1) experimental; urgency=low
+
+  * New upstream release
+  * debian/libcamel-1.2-40.symbols: Rmoved symbols that were accidentally
+    exported (and were never in a Debian unstable)
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Thu, 24 Jan 2013 20:29:07 +0100
+
 evolution-data-server (3.6.1-1) experimental; urgency=low
 
   * New upstream release
