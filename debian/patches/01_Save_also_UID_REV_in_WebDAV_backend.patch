@@ -1,0 +1,19 @@
+From a540f318df15819167108671a472c2b34d3ef0a3 Mon Sep 17 00:00:00 2001
+From: Milan Crha <mcrha@redhat.com>
+Date: Mon, 22 Oct 2012 09:25:00 +0000
+Subject: Bug #640594 - Save also UID/REV in WebDAV backend (for CardDAV)
+
+---
+--- a/addressbook/backends/webdav/e-book-backend-webdav.c
++++ b/addressbook/backends/webdav/e-book-backend-webdav.c
+@@ -238,10 +238,6 @@ upload_contact (EBookBackendWebdav *webd
+ 		}
+ 	}
+ 
+-	/* don't upload the UID and REV fields, they're only interesting inside
+-	 * evolution and not on the webdav server */
+-	e_contact_set (contact, E_CONTACT_UID, NULL);
+-	e_contact_set (contact, E_CONTACT_REV, NULL);
+ 	request = e_vcard_to_string (E_VCARD (contact), EVC_FORMAT_VCARD_30);
+ 	soup_message_set_request(message, "text/vcard", SOUP_MEMORY_TEMPORARY,
+ 				 request, strlen (request));

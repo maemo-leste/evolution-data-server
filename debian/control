@@ -12,7 +12,8 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Pedro Fragoso <ember@ubuntu.com>,
            Josselin Mouette <joss@debian.org>,
            David Weinehall <tao@debian.org>,
-           Sjoerd Simons <sjoerd@debian.org>
+           Sjoerd Simons <sjoerd@debian.org>,
+           Laurent Bigonville <bigon@debian.org>
 Standards-Version: 3.9.3
 Dm-Upload-Allowed: yes
 Homepage: http://www.gnome.org/projects/evolution/

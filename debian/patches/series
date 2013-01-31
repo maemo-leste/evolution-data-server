@@ -1,1 +1,3 @@
+01_Save_also_UID_REV_in_WebDAV_backend.patch
+02-Check_email_value_in_e_destination_set_contact.patch
 20_gettext_intltool.patch
