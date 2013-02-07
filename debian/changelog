@@ -1,4 +1,4 @@
-evolution-data-server (3.4.4-2) UNRELEASED; urgency=low
+evolution-data-server (3.4.4-2) unstable; urgency=low
 
   * d/p/01_Save_also_UID_REV_in_WebDAV_backend.patch: Save contact UID value
     when exporting to WebDAV (CardDAV) backend (Closes: #699353)
@@ -9,7 +9,7 @@ evolution-data-server (3.4.4-2) UNRELEASED; urgency=low
   * d/p/03_EBookBackendSqliteDB_Escape_SQL_strings.patch: Properly escape
     strings in convert_match_exp() (Closes: #699925)
 
- -- Laurent Bigonville <bigon@debian.org>  Thu, 31 Jan 2013 10:51:58 +0100
+ -- Laurent Bigonville <bigon@debian.org>  Thu, 07 Feb 2013 22:42:17 +0100
 
 evolution-data-server (3.4.4-1) unstable; urgency=low
 
