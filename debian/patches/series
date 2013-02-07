@@ -1,3 +1,4 @@
 01_Save_also_UID_REV_in_WebDAV_backend.patch
 02-Check_email_value_in_e_destination_set_contact.patch
+03_EBookBackendSqliteDB_Escape_SQL_strings.patch
 20_gettext_intltool.patch

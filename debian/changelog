@@ -6,6 +6,8 @@ evolution-data-server (3.4.4-2) UNRELEASED; urgency=low
     check email value in e_destination_set_contact() to avoid crash in some
     conditions (Closes: #687951)
   * debian/control: Add myself as an Uploaders
+  * d/p/03_EBookBackendSqliteDB_Escape_SQL_strings.patch: Properly escape
+    strings in convert_match_exp() (Closes: #699925)
 
  -- Laurent Bigonville <bigon@debian.org>  Thu, 31 Jan 2013 10:51:58 +0100
 
