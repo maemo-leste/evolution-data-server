@@ -1,3 +1,10 @@
+evolution-data-server (3.4.4-3) unstable; urgency=low
+
+  * 04_mbox_index.patch: patch from upstream git. Correctly display 
+    emails from mboxes. Closes: #640851.
+
+ -- Josselin Mouette <joss@debian.org>  Sun, 10 Feb 2013 19:16:56 +0100
+
 evolution-data-server (3.4.4-2) unstable; urgency=low
 
   * d/p/01_Save_also_UID_REV_in_WebDAV_backend.patch: Save contact UID value

@@ -1,0 +1,40 @@
+From 70935cf6280b7730c439ccdbcb4193effb80961f Mon Sep 17 00:00:00 2001
+From: Milan Crha <mcrha@redhat.com>
+Date: Mon, 04 Feb 2013 11:56:26 +0000
+Subject: Bug #675287 - Spool file account doesn't show messages
+
+---
+Index: evolution-data-server-3.4.4/camel/providers/local/camel-mbox-summary.c
+===================================================================
+--- evolution-data-server-3.4.4.orig/camel/providers/local/camel-mbox-summary.c	2013-02-10 18:50:31.159779464 +0100
++++ evolution-data-server-3.4.4/camel/providers/local/camel-mbox-summary.c	2013-02-10 18:50:31.151779412 +0100
+@@ -744,8 +744,8 @@ mbox_summary_sync_full (CamelMboxSummary
+ }
+ 
+ static gint
+-cms_sort_frompos (gpointer a,
+-                  gpointer b,
++cms_sort_frompos (gconstpointer a,
++                  gconstpointer b,
+                   gpointer data)
+ {
+ 	CamelFolderSummary *summary = (CamelFolderSummary *) data;
+@@ -828,7 +828,7 @@ mbox_summary_sync_quick (CamelMboxSummar
+ 	/* Sync only the changes */
+ 	summary = camel_folder_summary_get_changed ((CamelFolderSummary *) mbs);
+ 	if (summary->len)
+-		g_ptr_array_sort_with_data (summary, (GCompareDataFunc) cms_sort_frompos, (gpointer) mbs);
++		g_ptr_array_sort_with_data (summary, cms_sort_frompos, mbs);
+ 
+ 	for (i = 0; i < summary->len; i++) {
+ 		gint xevoffset;
+@@ -1094,6 +1094,9 @@ camel_mbox_summary_sync_mbox (CamelMboxS
+ 
+ 	camel_folder_summary_prepare_fetch_all (s, NULL);
+ 	known_uids = camel_folder_summary_get_array (s);
++	/* walk them in the same order as stored in the file */
++	if (known_uids->len)
++		g_ptr_array_sort_with_data (known_uids, cms_sort_frompos, mbs);
+ 	for (i = 0; known_uids && i < known_uids->len; i++) {
+ 		gint pc = (i + 1) * 100 / known_uids->len;
+ 
