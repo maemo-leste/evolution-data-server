@@ -12,26 +12,27 @@ include /usr/share/dpkg/buildflags.mk
 
 DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
 
+LIBCAMEL := $(shell grep '^Package: libcamel-' debian/control | awk '{ print $$2 }')
+
 DEB_DH_MAKESHLIBS_ARGS_ALL += -V
-DEB_DH_MAKESHLIBS_ARGS_libcamel-1.2-40 += -V'libcamel-1.2-40 (>= $(DEB_GNOME_VERSION)), libcamel-1.2-40 (<< $(DEB_GNOME_NEXTVERSION))'
+DEB_DH_MAKESHLIBS_ARGS_$(LIBCAMEL) += -V'$(LIBCAMEL) (>= $(DEB_GNOME_VERSION)), $(LIBCAMEL) (<< $(DEB_GNOME_NEXTVERSION))'
 
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-z,defs -Wl,--as-needed -Wl,-O1
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
-DEB_CONFIGURE_EXTRA_FLAGS += --sysconfdir=/etc \
+DEB_CONFIGURE_EXTRA_FLAGS += \
+	--sysconfdir=/etc \
 	--libexecdir=\$${prefix}/lib/evolution \
-	--enable-ipv6 \
-	--enable-ssl \
-	--enable-nntp \
-	--enable-smime \
 	--with-openldap \
 	--with-krb5=/usr \
 	--with-libdb=/usr \
+	--enable-gtk \
 	--enable-gtk-doc \
-	--enable-gnome-keyring=yes \
 	--enable-goa \
-	--enable-gojb \
-	--enable-vala-bindings
+	--enable-google \
+	--enable-vala-bindings \
+	--disable-uoa \
+	$(NULL)
 
 DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
 
