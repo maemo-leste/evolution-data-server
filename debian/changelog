@@ -1,4 +1,4 @@
-evolution-data-server (3.6.3-2) UNRELEASED; urgency=low
+evolution-data-server (3.7.90-1) UNRELEASED; urgency=low
 
   [ Jeremy Bicha ]
   * Team upload.
@@ -11,7 +11,27 @@ evolution-data-server (3.6.3-2) UNRELEASED; urgency=low
     - Add Breaks against libecal-1.2-11 and libebook-1.2-13 from 3.4, D-Bus API
       has been broken again (Closes: #689930)
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 24 Jan 2013 23:52:02 -0500
+  [ Sjoerd Simons ]
+  * New upstream release
+  * Sync with Ubuntu
+    - debian/rules: Tune configure flags to match the current defaults of
+      e-d-s.
+    - debian/*.install updated
+    - Update sonames of various libraries:
+      + libedata-book
+      + libebackend
+      + libcamel
+      + libedata-book
+      + libebackend
+    - Drop libedataserverui packages, library no longer shipped upstream
+    - Add new libebook-conacts library
+    - debian/control: Update build-depends
+  * debian/control: Bump gnome-common (>= 3.6.0)
+  * debian/libecal1.2-dev.install:
+    debian/gir1.2-ecalendar-1.2.install:
+      Remove introspection installation (removed upstream)
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Wed, 27 Feb 2013 22:08:42 +0100
 
 evolution-data-server (3.6.3-1) experimental; urgency=low
 
