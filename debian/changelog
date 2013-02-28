@@ -30,8 +30,11 @@ evolution-data-server (3.7.90-1) UNRELEASED; urgency=low
   * debian/libecal1.2-dev.install:
     debian/gir1.2-ecalendar-1.2.install:
       Remove introspection installation (removed upstream)
+  * debian/patches/Fixing-pkg-config-files-for-libebook-libedata-book.patch
+    - Added, let the edataserver pkg-config file require libebook-contacts and
+      libedata-book (From upstream git)
 
- -- Sjoerd Simons <sjoerd@debian.org>  Wed, 27 Feb 2013 22:08:42 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Thu, 28 Feb 2013 19:24:11 +0100
 
 evolution-data-server (3.6.3-1) experimental; urgency=low
 
