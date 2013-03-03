@@ -237,6 +237,7 @@ Depends: libebook-1.2-14 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libedataserver1.2-dev (= ${binary:Version}),
+         libebook-contacts1.2-dev (= ${binary:Version}),
          libcamel1.2-dev (= ${binary:Version}),
          libglib2.0-dev
 Description: Client library for evolution address books (development files)
