@@ -35,8 +35,9 @@ evolution-data-server (3.7.90-1) UNRELEASED; urgency=low
       libedata-book (From upstream git)
   * debian/control: Update -dev package depends to better match the pkg-config
     files
+  * debian/control: libebook dev should depend on libebook-contacts-1.2
 
- -- Sjoerd Simons <sjoerd@debian.org>  Thu, 28 Feb 2013 21:39:24 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 03 Mar 2013 11:01:14 +0100
 
 evolution-data-server (3.6.3-1) experimental; urgency=low
 
