@@ -1,4 +1,4 @@
-evolution-data-server (3.7.90-1) UNRELEASED; urgency=low
+evolution-data-server (3.7.91-1) UNRELEASED; urgency=low
 
   [ Jeremy Bicha ]
   * Team upload.
@@ -30,14 +30,11 @@ evolution-data-server (3.7.90-1) UNRELEASED; urgency=low
   * debian/libecal1.2-dev.install:
     debian/gir1.2-ecalendar-1.2.install:
       Remove introspection installation (removed upstream)
-  * debian/patches/Fixing-pkg-config-files-for-libebook-libedata-book.patch
-    - Added, let the edataserver pkg-config file require libebook-contacts and
-      libedata-book (From upstream git)
   * debian/control: Update -dev package depends to better match the pkg-config
     files
   * debian/control: libebook dev should depend on libebook-contacts-1.2
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sun, 03 Mar 2013 11:01:14 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Wed, 06 Mar 2013 20:13:06 +0100
 
 evolution-data-server (3.6.3-1) experimental; urgency=low
 
