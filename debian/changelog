@@ -1,4 +1,4 @@
-evolution-data-server (3.7.91-1) UNRELEASED; urgency=low
+evolution-data-server (3.7.91-1) experimental; urgency=low
 
   [ Jeremy Bicha ]
   * Team upload.
@@ -34,7 +34,7 @@ evolution-data-server (3.7.91-1) UNRELEASED; urgency=low
     files
   * debian/control: libebook dev should depend on libebook-contacts-1.2
 
- -- Sjoerd Simons <sjoerd@debian.org>  Wed, 06 Mar 2013 20:13:06 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 15 Mar 2013 21:37:55 +0100
 
 evolution-data-server (3.6.3-1) experimental; urgency=low
 
