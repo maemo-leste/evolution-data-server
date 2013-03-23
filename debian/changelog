@@ -1,6 +1,9 @@
 evolution-data-server (3.7.92-1) experimental; urgency=low
 
   * New upstream release
+  * debian/patches/imapx_dont_remove_folders_on_error.patch:
+    + Added. Don't throw away local folders when syncing the folders from the
+      server only returned partial results (bgo#693101)
 
  -- Sjoerd Simons <sjoerd@debian.org>  Fri, 22 Mar 2013 10:47:27 +0100
 
