@@ -1,3 +1,10 @@
+evolution-data-server (3.8.0-2) experimental; urgency=low
+
+  * Oops, bring imapx_dont_remove_folders_on_error.patch back: it was
+    actually a post 3.8.0 patch from git.
+
+ -- Jordi Mallach <jordi@debian.org>  Sun, 31 Mar 2013 11:20:06 -0500
+
 evolution-data-server (3.8.0-1) experimental; urgency=low
 
   * New upstream release.
