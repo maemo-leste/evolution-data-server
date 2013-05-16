@@ -1,3 +1,14 @@
+evolution-data-server (3.8.2-1) UNRELEASED; urgency=low
+
+  * New upstream release
+  * debian/patches/imapx_dont_remove_folders_on_error.patch:
+    + Removed, fixed upstream
+  * debian/patches/imapx_fix_memleak.patch
+    + Removed, fixed upstream
+  * debian/*.symbols: Updated
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Thu, 16 May 2013 21:50:49 +0200
+
 evolution-data-server (3.8.0-2) experimental; urgency=low
 
   * Oops, bring imapx_dont_remove_folders_on_error.patch back: it was

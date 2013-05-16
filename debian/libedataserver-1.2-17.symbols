@@ -1,4 +1,5 @@
 libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
+ __e_source_private_replace_dbus_object@Base 3.8.2-1
  e_async_closure_callback@Base 3.5.91
  e_async_closure_free@Base 3.5.91
  e_async_closure_new@Base 3.5.91
@@ -41,6 +42,7 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_client_open@Base 3.5.91
  e_client_open_finish@Base 3.5.91
  e_client_open_sync@Base 3.5.91
+ e_client_ref_main_context@Base 3.8.2-1
  e_client_refresh@Base 3.5.91
  e_client_refresh_finish@Base 3.5.91
  e_client_refresh_sync@Base 3.5.91
@@ -737,13 +739,16 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_source_authentication_get_host@Base 3.5.91
  e_source_authentication_get_method@Base 3.5.91
  e_source_authentication_get_port@Base 3.5.91
+ e_source_authentication_get_remember_password@Base 3.8.2-1
  e_source_authentication_get_type@Base 3.5.91
  e_source_authentication_get_user@Base 3.5.91
+ e_source_authentication_ref_connectable@Base 3.8.2-1
  e_source_authentication_required@Base 3.5.91
  e_source_authentication_result_get_type@Base 3.5.91
  e_source_authentication_set_host@Base 3.5.91
  e_source_authentication_set_method@Base 3.5.91
  e_source_authentication_set_port@Base 3.5.91
+ e_source_authentication_set_remember_password@Base 3.8.2-1
  e_source_authentication_set_user@Base 3.5.91
  e_source_authenticator_get_prompt_strings@Base 3.5.91
  e_source_authenticator_get_type@Base 3.5.91
@@ -914,6 +919,7 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_source_registry_create_sources_finish@Base 3.5.91
  e_source_registry_create_sources_sync@Base 3.5.91
  e_source_registry_debug_dump@Base 3.5.91
+ e_source_registry_dup_unique_display_name@Base 3.8.2-1
  e_source_registry_find_extension@Base 3.5.91
  e_source_registry_free_display_tree@Base 3.5.91
  e_source_registry_get_type@Base 3.5.91
