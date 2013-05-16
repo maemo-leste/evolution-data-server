@@ -48,6 +48,9 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_backend_get_type@Base 0
  e_backend_get_user_prompter@Base 3.7.4
  e_backend_is_destination_reachable@Base 3.7.90
+ e_backend_ref_connectable@Base 3.8.2-1
+ e_backend_ref_main_context@Base 3.8.2-1
+ e_backend_set_connectable@Base 3.8.2-1
  e_backend_set_online@Base 0
  e_backend_trust_prompt@Base 3.7.4
  e_backend_trust_prompt_finish@Base 3.7.4
