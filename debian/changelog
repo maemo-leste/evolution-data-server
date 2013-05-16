@@ -1,4 +1,4 @@
-evolution-data-server (3.8.2-1) UNRELEASED; urgency=low
+evolution-data-server (3.8.2-1) experimental; urgency=low
 
   * New upstream release
   * debian/patches/imapx_dont_remove_folders_on_error.patch:
@@ -8,7 +8,7 @@ evolution-data-server (3.8.2-1) UNRELEASED; urgency=low
   * debian/*.symbols: Updated
   * debian/control: Change valac-0.18 depend to valac
 
- -- Sjoerd Simons <sjoerd@debian.org>  Fri, 17 May 2013 00:08:47 +0200
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 17 May 2013 00:12:50 +0200
 
 evolution-data-server (3.8.0-2) experimental; urgency=low
 
