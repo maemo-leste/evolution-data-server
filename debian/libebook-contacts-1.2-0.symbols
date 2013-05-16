@@ -63,6 +63,7 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_contact_new@Base 3.7.90
  e_contact_new_from_vcard@Base 3.7.90
  e_contact_new_from_vcard_with_uid@Base 3.7.90
+ e_contact_photo_copy@Base 3.8.2-1
  e_contact_photo_free@Base 3.7.90
  e_contact_photo_get_inlined@Base 3.7.90
  e_contact_photo_get_mime_type@Base 3.7.90
@@ -81,6 +82,7 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_name_western_parse@Base 3.7.90
  e_phone_number_compare@Base 3.7.90
  e_phone_number_compare_strings@Base 3.7.90
+ e_phone_number_compare_strings_with_region@Base 3.8.2-1
  e_phone_number_copy@Base 3.7.90
  e_phone_number_error_quark@Base 3.7.90
  e_phone_number_free@Base 3.7.90
