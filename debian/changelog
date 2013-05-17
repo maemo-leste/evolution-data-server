@@ -96,6 +96,26 @@ evolution-data-server (3.6.0-1) experimental; urgency=low
 
  -- Sjoerd Simons <sjoerd@debian.org>  Fri, 05 Oct 2012 22:20:25 +0200
 
+evolution-data-server (3.4.4-3) unstable; urgency=low
+
+  * 04_mbox_index.patch: patch from upstream git. Correctly display
+    emails from mboxes. Closes: #640851.
+
+ -- Josselin Mouette <joss@debian.org>  Sun, 10 Feb 2013 19:16:56 +0100
+
+evolution-data-server (3.4.4-2) unstable; urgency=low
+
+  * d/p/01_Save_also_UID_REV_in_WebDAV_backend.patch: Save contact UID value
+    when exporting to WebDAV (CardDAV) backend (Closes: #699353)
+  * d/p/02-Check_email_value_in_e_destination_set_contact.patch: Properly
+    check email value in e_destination_set_contact() to avoid crash in some
+    conditions (Closes: #687951)
+  * debian/control: Add myself as an Uploaders
+  * d/p/03_EBookBackendSqliteDB_Escape_SQL_strings.patch: Properly escape
+    strings in convert_match_exp() (Closes: #699925)
+
+ -- Laurent Bigonville <bigon@debian.org>  Thu, 07 Feb 2013 22:42:17 +0100
+
 evolution-data-server (3.4.4-1) unstable; urgency=low
 
   * New upstream bugfix release.
