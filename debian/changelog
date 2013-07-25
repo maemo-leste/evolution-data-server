@@ -1,3 +1,13 @@
+evolution-data-server (3.8.4-1) UNRELEASED; urgency=low
+
+  * New upstream release
+  * debian/libcamel-1.2-43.symbols: Updated
+    - camel_imapx_conn_manager_ref_store() replaces
+      camel_imapx_conn_manager_get_store() which wasn't thread-safe
+  * Drop Debian revision from *.symbols
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 25 Jul 2013 14:19:36 -0400
+
 evolution-data-server (3.8.2-1) experimental; urgency=low
 
   * New upstream release

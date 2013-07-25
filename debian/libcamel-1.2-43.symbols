@@ -500,6 +500,7 @@ libcamel-1.2.so.43 libcamel-1.2-43 #MINVER#
  camel_iconv_open@Base 0
  camel_imapx_command_add@Base 0
  camel_imapx_command_add_part@Base 0
+ camel_imapx_command_add_qresync_parameter@Base 3.8.3
  camel_imapx_command_addv@Base 0
  camel_imapx_command_check@Base 0
  camel_imapx_command_close@Base 0
@@ -526,12 +527,13 @@ libcamel-1.2.so.43 libcamel-1.2-43 #MINVER#
  camel_imapx_conn_manager_close_connections@Base 0
  camel_imapx_conn_manager_get_connection@Base 0
  camel_imapx_conn_manager_get_connections@Base 0
- camel_imapx_conn_manager_get_store@Base 0
  camel_imapx_conn_manager_get_type@Base 0
  camel_imapx_conn_manager_new@Base 0
+ camel_imapx_conn_manager_ref_store@Base 3.8.3
  camel_imapx_conn_manager_update_con_info@Base 0
  camel_imapx_debug_flags@Base 0
  camel_imapx_destroy_job_queue_info@Base 0
+ camel_imapx_dup_uid_from_summary_index@Base 3.8.3
  camel_imapx_error_quark@Base 0
  camel_imapx_folder_add_move_to_real_junk@Base 3.7.4~
  camel_imapx_folder_add_move_to_real_trash@Base 3.7.4~
@@ -542,7 +544,7 @@ libcamel-1.2.so.43 libcamel-1.2-43 #MINVER#
  camel_imapx_job_cancel@Base 3.7.2
  camel_imapx_job_check@Base 0
  camel_imapx_job_done@Base 0
- camel_imapx_job_get_cancellable@Base 3.8.2-1
+ camel_imapx_job_get_cancellable@Base 3.8.2
  camel_imapx_job_get_data@Base 0
  camel_imapx_job_has_folder@Base 3.7.4~
  camel_imapx_job_matches@Base 0
@@ -664,7 +666,7 @@ libcamel-1.2.so.43 libcamel-1.2-43 #MINVER#
  camel_imapx_stream_ref_source@Base 3.5.91
  camel_imapx_stream_set_literal@Base 0
  camel_imapx_stream_skip@Base 0
- camel_imapx_stream_skip_until@Base 3.8.2-1
+ camel_imapx_stream_skip_until@Base 3.8.2
  camel_imapx_stream_text@Base 0
  camel_imapx_stream_token@Base 0
  camel_imapx_stream_ungettoken@Base 0
@@ -944,12 +946,12 @@ libcamel-1.2.so.43 libcamel-1.2-43 #MINVER#
  camel_network_security_method_get_type@Base 0
  camel_network_service_connect_sync@Base 0
  camel_network_service_get_default_port@Base 0
- camel_network_service_get_host_reachable@Base 3.8.2-1
+ camel_network_service_get_host_reachable@Base 3.8.2
  camel_network_service_get_service_name@Base 0
  camel_network_service_get_type@Base 0
- camel_network_service_init@Base 3.8.2-1
- camel_network_service_ref_connectable@Base 3.8.2-1
- camel_network_service_set_connectable@Base 3.8.2-1
+ camel_network_service_init@Base 3.8.2
+ camel_network_service_ref_connectable@Base 3.8.2
+ camel_network_service_set_connectable@Base 3.8.2
  camel_network_settings_dup_auth_mechanism@Base 0
  camel_network_settings_dup_host@Base 0
  camel_network_settings_dup_user@Base 0
@@ -1127,7 +1129,7 @@ libcamel-1.2.so.43 libcamel-1.2-43 #MINVER#
  camel_session_idle_add@Base 0
  camel_session_list_services@Base 0
  camel_session_lookup_addressbook@Base 0
- camel_session_ref_main_context@Base 3.8.2-1
+ camel_session_ref_main_context@Base 3.8.2
  camel_session_ref_service@Base 0
  camel_session_ref_service_by_url@Base 0
  camel_session_remove_service@Base 0
