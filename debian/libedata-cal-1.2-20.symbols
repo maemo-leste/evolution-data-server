@@ -86,6 +86,7 @@ libedata-cal-1.2.so.20 libedata-cal-1.2-20 #MINVER#
  e_cal_backend_store_get_component_ids@Base 0
  e_cal_backend_store_get_components@Base 0
  e_cal_backend_store_get_components_by_uid@Base 0
+ e_cal_backend_store_get_components_by_uid_as_ical_string@Base 3.8.4
  e_cal_backend_store_get_components_occuring_in_range@Base 0
  e_cal_backend_store_get_default_timezone@Base 0
  e_cal_backend_store_get_key_value@Base 0

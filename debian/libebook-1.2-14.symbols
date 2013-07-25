@@ -25,10 +25,10 @@ libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  e_book_client_add_contacts@Base 3.5.91
  e_book_client_add_contacts_finish@Base 3.5.91
  e_book_client_add_contacts_sync@Base 3.5.91
- e_book_client_connect@Base 3.7.90-1
- e_book_client_connect_direct_sync@Base 3.7.90-1
- e_book_client_connect_finish@Base 3.7.90-1
- e_book_client_connect_sync@Base 3.7.90-1
+ e_book_client_connect@Base 3.7.90
+ e_book_client_connect_direct_sync@Base 3.7.90
+ e_book_client_connect_finish@Base 3.7.90
+ e_book_client_connect_sync@Base 3.7.90
  e_book_client_get_contact@Base 3.5.91
  e_book_client_get_contact_finish@Base 3.5.91
  e_book_client_get_contact_sync@Base 3.5.91
@@ -62,8 +62,8 @@ libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  e_book_client_remove_contacts_sync@Base 3.5.91
  e_book_client_set_self@Base 3.5.91
  e_book_client_view_get_client@Base 3.5.91
- e_book_client_view_get_connection@Base 3.7.90-1
- e_book_client_view_get_object_path@Base 3.7.90-1
+ e_book_client_view_get_connection@Base 3.7.90
+ e_book_client_view_get_object_path@Base 3.7.90
  e_book_client_view_get_type@Base 3.5.91
  e_book_client_view_set_fields_of_interest@Base 3.5.91
  e_book_client_view_set_flags@Base 3.5.91
