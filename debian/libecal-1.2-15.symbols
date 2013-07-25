@@ -15,9 +15,9 @@ libecal-1.2.so.15 libecal-1.2-15 #MINVER#
  e_cal_client_check_recurrences_no_master@Base 3.5.91
  e_cal_client_check_save_schedules@Base 3.5.91
  e_cal_client_check_timezones@Base 3.5.91
- e_cal_client_connect@Base 3.7.90-1
- e_cal_client_connect_finish@Base 3.7.90-1
- e_cal_client_connect_sync@Base 3.7.90-1
+ e_cal_client_connect@Base 3.7.90
+ e_cal_client_connect_finish@Base 3.7.90
+ e_cal_client_connect_sync@Base 3.7.90
  e_cal_client_create_object@Base 3.5.91
  e_cal_client_create_object_finish@Base 3.5.91
  e_cal_client_create_object_sync@Base 3.5.91
@@ -89,12 +89,12 @@ libecal-1.2.so.15 libecal-1.2-15 #MINVER#
  e_cal_client_send_objects_finish@Base 3.5.91
  e_cal_client_send_objects_sync@Base 3.5.91
  e_cal_client_set_default_timezone@Base 3.5.91
- e_cal_client_source_type_get_type@Base 3.7.90-1
+ e_cal_client_source_type_get_type@Base 3.7.90
  e_cal_client_tzlookup@Base 3.5.91
  e_cal_client_tzlookup_icomp@Base 3.5.91
  e_cal_client_view_get_client@Base 3.5.91
- e_cal_client_view_get_connection@Base 3.7.90-1
- e_cal_client_view_get_object_path@Base 3.7.90-1
+ e_cal_client_view_get_connection@Base 3.7.90
+ e_cal_client_view_get_object_path@Base 3.7.90
  e_cal_client_view_get_type@Base 3.5.91
  e_cal_client_view_is_running@Base 3.5.91
  e_cal_client_view_set_fields_of_interest@Base 3.5.91
@@ -279,7 +279,7 @@ libecal-1.2.so.15 libecal-1.2-15 #MINVER#
  e_cal_match_tzid@Base 3.5.91
  e_cal_modify_object@Base 3.5.91
  e_cal_new@Base 3.5.91
- e_cal_obj_mod_type_get_type@Base 3.7.90-1
+ e_cal_obj_mod_type_get_type@Base 3.7.90
  e_cal_open@Base 3.5.91
  e_cal_open_async@Base 3.5.91
  e_cal_receive_objects@Base 3.5.91
@@ -364,10 +364,10 @@ libecal-1.2.so.15 libecal-1.2-15 #MINVER#
  e_gdbus_cal_view_register_object@Base 3.5.91
  e_gdbus_cal_view_stub_get_type@Base 3.5.91
  e_gdbus_cal_view_stub_new@Base 3.5.91
- e_timezone_cache_add_timezone@Base 3.7.90-1
- e_timezone_cache_get_timezone@Base 3.7.90-1
- e_timezone_cache_get_type@Base 3.7.90-1
- e_timezone_cache_list_timezones@Base 3.7.90-1
+ e_timezone_cache_add_timezone@Base 3.7.90
+ e_timezone_cache_get_timezone@Base 3.7.90
+ e_timezone_cache_get_type@Base 3.7.90
+ e_timezone_cache_list_timezones@Base 3.7.90
  icaltimetype_to_tm@Base 3.5.91
  icaltimetype_to_tm_with_zone@Base 3.5.91
  isodate_from_time_t@Base 3.5.91
