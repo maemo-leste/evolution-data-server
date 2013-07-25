@@ -5,6 +5,7 @@ evolution-data-server (3.8.4-1) UNRELEASED; urgency=low
     - camel_imapx_conn_manager_ref_store() replaces
       camel_imapx_conn_manager_get_store() which wasn't thread-safe
   * Drop Debian revision from *.symbols
+  * Drop gir1.2-ecalendar-1.2; it's no longer provided in 3.8
   * debian/patches/fix-google-2fa-*.patch:
     - Backport commits to fix Google Two-Factor Authentication
       with GNOME Online Accounts by using Google's new OAuth v2
