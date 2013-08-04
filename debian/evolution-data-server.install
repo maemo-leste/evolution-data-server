@@ -3,4 +3,3 @@ usr/lib/evolution-data-server/*-backends/*.so
 usr/lib/evolution-data-server/camel-providers/*.urls
 usr/lib/evolution-data-server/camel-providers/*.so
 usr/lib/evolution-data-server/registry-modules/*.so
-debian/lintian/evolution-data-server usr/share/lintian/overrides/
