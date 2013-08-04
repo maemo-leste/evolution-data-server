@@ -1,5 +1,6 @@
 evolution-data-server (3.8.4-1) UNRELEASED; urgency=low
 
+  [ Jeremy Bicha ]
   * New upstream release
   * debian/libcamel-1.2-43.symbols: Updated
     - camel_imapx_conn_manager_ref_store() replaces
@@ -11,7 +12,18 @@ evolution-data-server (3.8.4-1) UNRELEASED; urgency=low
       with GNOME Online Accounts by using Google's new OAuth v2
       support for CalDav
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 25 Jul 2013 14:19:36 -0400
+  [ Laurent Bigonville ]
+  * debian/control:
+    - Drop obsolete Dm-Upload-Allowed field
+    - Use canonical Vcs-* field
+  * debian/rules:
+    - Include buildflags.mk after the flags have been overridden so they are
+      actually used
+    - Call dh_autoreconf with --as-needed option
+    - Do not generate shlibs info for the modules installed under
+      /usr/lib/evolution-data-server/ directory
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 04 Aug 2013 22:33:39 +0200
 
 evolution-data-server (3.8.2-1) experimental; urgency=low
 
