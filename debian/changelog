@@ -1,4 +1,4 @@
-evolution-data-server (3.8.4-1) UNRELEASED; urgency=low
+evolution-data-server (3.8.4-1) experimental; urgency=low
 
   [ Jeremy Bicha ]
   * New upstream release
@@ -24,7 +24,7 @@ evolution-data-server (3.8.4-1) UNRELEASED; urgency=low
       /usr/lib/evolution-data-server/ directory
   * Use dh_lintian to install lintian-overrides files
 
- -- Laurent Bigonville <bigon@debian.org>  Sun, 04 Aug 2013 23:20:42 +0200
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 04 Aug 2013 23:55:04 +0200
 
 evolution-data-server (3.8.2-1) experimental; urgency=low
 
