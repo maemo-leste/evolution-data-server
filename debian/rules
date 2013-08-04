@@ -8,9 +8,9 @@ include /usr/share/cdbs/1/rules/utils.mk
 include /usr/share/cdbs/1/rules/autoreconf.mk
 include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 include /usr/share/gnome-pkg-tools/1/rules/gnome-version.mk
-include /usr/share/dpkg/buildflags.mk
 
 DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
+DEB_DH_AUTORECONF_ARGS = --as-needed
 
 LIBCAMEL := $(shell grep '^Package: libcamel-' debian/control | awk '{ print $$2 }')
 
@@ -19,6 +19,7 @@ DEB_DH_MAKESHLIBS_ARGS_$(LIBCAMEL) += -V'$(LIBCAMEL) (>= $(DEB_GNOME_VERSION)), 
 
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,-z,defs -Wl,--as-needed -Wl,-O1
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+include /usr/share/dpkg/buildflags.mk
 
 DEB_CONFIGURE_EXTRA_FLAGS += \
 	--sysconfdir=/etc \
@@ -34,6 +35,7 @@ DEB_CONFIGURE_EXTRA_FLAGS += \
 	--disable-uoa \
 	$(NULL)
 
+DEB_DH_MAKESHLIBS_ARGS_evolution-data-server += -Xusr/lib/evolution-data-server/
 DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
 
 binary-install/evolution-data-server::
