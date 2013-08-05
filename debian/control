@@ -15,7 +15,7 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Laurent Bigonville <bigon@debian.org>
 Standards-Version: 3.9.4
-Homepage: http://www.gnome.org/projects/evolution/
+Homepage: http://projects.gnome.org/evolution/
 Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
 Build-Depends: debhelper (>= 9),
