@@ -5,6 +5,7 @@ evolution-data-server (3.8.5-1) UNRELEASED; urgency=low
 
   [ Michael Biebl ]
   * New upstream release.
+  * Refresh fix-google-2fa-2.patch.
 
  -- Laurent Bigonville <bigon@debian.org>  Mon, 05 Aug 2013 10:23:44 +0200
 

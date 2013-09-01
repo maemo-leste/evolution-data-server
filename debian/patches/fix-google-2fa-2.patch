@@ -4,11 +4,11 @@ Date: Tue, 09 Jul 2013 21:06:16 +0000
 Subject: CalDAV: Add support for OAuth 2.0 authentication.
 
 ---
-diff --git a/calendar/backends/caldav/e-cal-backend-caldav.c b/calendar/backends/caldav/e-cal-backend-caldav.c
-index 58c70b6..58f0654 100644
---- a/calendar/backends/caldav/e-cal-backend-caldav.c
-+++ b/calendar/backends/caldav/e-cal-backend-caldav.c
-@@ -968,6 +968,32 @@ parse_propfind_response (SoupMessage *message,
+Index: evolution-data-server-3.8.5/calendar/backends/caldav/e-cal-backend-caldav.c
+===================================================================
+--- evolution-data-server-3.8.5.orig/calendar/backends/caldav/e-cal-backend-caldav.c	2013-09-01 22:36:20.224754093 +0200
++++ evolution-data-server-3.8.5/calendar/backends/caldav/e-cal-backend-caldav.c	2013-09-01 22:36:20.220754053 +0200
+@@ -958,6 +958,32 @@
  /* Authentication helpers for libsoup */
  
  static void
@@ -41,7 +41,7 @@ index 58c70b6..58f0654 100644
  soup_authenticate (SoupSession *session,
                     SoupMessage *msg,
                     SoupAuth *auth,
-@@ -985,8 +1011,14 @@ soup_authenticate (SoupSession *session,
+@@ -975,8 +1001,14 @@
  	extension_name = E_SOURCE_EXTENSION_AUTHENTICATION;
  	auth_extension = e_source_get_extension (source, extension_name);
  
@@ -57,7 +57,7 @@ index 58c70b6..58f0654 100644
  		gchar *user;
  
  		user = e_source_authentication_dup_user (auth_extension);
-@@ -5194,6 +5226,8 @@ cal_backend_caldav_constructed (GObject *object)
+@@ -5210,6 +5242,8 @@
  static void
  e_cal_backend_caldav_init (ECalBackendCalDAV *cbdav)
  {
@@ -66,7 +66,7 @@ index 58c70b6..58f0654 100644
  	cbdav->priv = E_CAL_BACKEND_CALDAV_GET_PRIVATE (cbdav);
  	cbdav->priv->session = soup_session_sync_new ();
  	g_object_set (
-@@ -5203,6 +5237,16 @@ e_cal_backend_caldav_init (ECalBackendCalDAV *cbdav)
+@@ -5219,6 +5253,16 @@
  		SOUP_SESSION_SSL_USE_SYSTEM_CA_FILE, TRUE,
  		NULL);
  
@@ -83,4 +83,3 @@ index 58c70b6..58f0654 100644
  	cbdav->priv->proxy = e_proxy_new ();
  	e_proxy_setup_proxy (cbdav->priv->proxy);
  	g_signal_connect (cbdav->priv->proxy, "changed", G_CALLBACK (proxy_settings_changed), cbdav->priv);
-
