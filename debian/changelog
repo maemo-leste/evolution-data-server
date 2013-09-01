@@ -1,6 +1,10 @@
-evolution-data-server (3.8.4-2) UNRELEASED; urgency=low
+evolution-data-server (3.8.5-1) UNRELEASED; urgency=low
 
+  [ Laurent Bigonville ]
   * debian/control: Fix Homepage URL
+
+  [ Michael Biebl ]
+  * New upstream release.
 
  -- Laurent Bigonville <bigon@debian.org>  Mon, 05 Aug 2013 10:23:44 +0200
 
