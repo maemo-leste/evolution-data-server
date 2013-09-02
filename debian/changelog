@@ -1,4 +1,6 @@
-evolution-data-server (3.8.5-1) UNRELEASED; urgency=low
+evolution-data-server (3.8.5-1) experimental; urgency=low
+
+  * Team upload.
 
   [ Laurent Bigonville ]
   * debian/control: Fix Homepage URL
@@ -7,7 +9,7 @@ evolution-data-server (3.8.5-1) UNRELEASED; urgency=low
   * New upstream release.
   * Refresh fix-google-2fa-2.patch.
 
- -- Laurent Bigonville <bigon@debian.org>  Mon, 05 Aug 2013 10:23:44 +0200
+ -- Michael Biebl <biebl@debian.org>  Tue, 03 Sep 2013 00:02:17 +0200
 
 evolution-data-server (3.8.4-1) experimental; urgency=low
 
