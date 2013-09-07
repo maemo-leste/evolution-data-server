@@ -137,6 +137,22 @@ evolution-data-server (3.6.0-1) experimental; urgency=low
 
  -- Sjoerd Simons <sjoerd@debian.org>  Fri, 05 Oct 2012 22:20:25 +0200
 
+evolution-data-server (3.4.4-4) unstable; urgency=low
+
+  * Team upload.
+  * Update Build-Depends on vala to valac (>= 0.20) to fix build failures with
+    newer gobject-introspection. Closes: #707349, #709737
+  * 21_Dont_override_CPPFLAGS.patch: Don't override CPPFLAGS but use
+    AM_CPPFLAGS instead.
+  * 22_Remove-Werror-from-AM_INIT_AUTOMAKE.patch: Remove -Werror from
+    AM_INIT_AUTOMAKE. Patch cherry-picked from upstream Git.
+  * 23_Support-both-old-and-new-buf-libxml2-APIs.patch: Support both old and
+    new-buf libxml2 APIs. libxml2 changed the API for xmlOutputBuffer
+    incompatibly. Patch cherry-picked from upstream Git.
+  * Drop obsolete Dm-Upload-Allowed field.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 11 Aug 2013 18:44:28 +0200
+
 evolution-data-server (3.4.4-3) unstable; urgency=low
 
   * 04_mbox_index.patch: patch from upstream git. Correctly display
