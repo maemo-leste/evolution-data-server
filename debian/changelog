@@ -1,3 +1,9 @@
+evolution-data-server (3.8.5-2) UNRELEASED; urgency=low
+
+  * Upload to unstable.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 08 Sep 2013 01:59:27 +0200
+
 evolution-data-server (3.8.5-1) experimental; urgency=low
 
   * Team upload.
