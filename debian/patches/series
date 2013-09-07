@@ -1,5 +1,4 @@
-01_Save_also_UID_REV_in_WebDAV_backend.patch
-02-Check_email_value_in_e_destination_set_contact.patch
-03_EBookBackendSqliteDB_Escape_SQL_strings.patch
-04_mbox_index.patch
-20_gettext_intltool.patch
+fix-google-2fa-1.patch
+fix-google-2fa-2.patch
+fix-google-2fa-3.patch
+fix-google-2fa-4.patch

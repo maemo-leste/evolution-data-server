@@ -1,6 +1,161 @@
+evolution-data-server (3.8.5-1) experimental; urgency=low
+
+  * Team upload.
+
+  [ Laurent Bigonville ]
+  * debian/control: Fix Homepage URL
+
+  [ Michael Biebl ]
+  * New upstream release.
+  * Refresh fix-google-2fa-2.patch.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 03 Sep 2013 00:02:17 +0200
+
+evolution-data-server (3.8.4-1) experimental; urgency=low
+
+  [ Jeremy Bicha ]
+  * New upstream release
+  * debian/libcamel-1.2-43.symbols: Updated
+    - camel_imapx_conn_manager_ref_store() replaces
+      camel_imapx_conn_manager_get_store() which wasn't thread-safe
+  * Drop Debian revision from *.symbols
+  * Drop gir1.2-ecalendar-1.2; it's no longer provided in 3.8
+  * debian/patches/fix-google-2fa-*.patch:
+    - Backport commits to fix Google Two-Factor Authentication
+      with GNOME Online Accounts by using Google's new OAuth v2
+      support for CalDav
+
+  [ Laurent Bigonville ]
+  * debian/control:
+    - Drop obsolete Dm-Upload-Allowed field
+    - Use canonical Vcs-* field
+  * debian/rules:
+    - Include buildflags.mk after the flags have been overridden so they are
+      actually used
+    - Call dh_autoreconf with --as-needed option
+    - Do not generate shlibs info for the modules installed under
+      /usr/lib/evolution-data-server/ directory
+  * Use dh_lintian to install lintian-overrides files
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 04 Aug 2013 23:55:04 +0200
+
+evolution-data-server (3.8.2-1) experimental; urgency=low
+
+  * New upstream release
+  * debian/patches/imapx_dont_remove_folders_on_error.patch:
+    + Removed, fixed upstream
+  * debian/patches/imapx_fix_memleak.patch
+    + Removed, fixed upstream
+  * debian/*.symbols: Updated
+  * debian/control: Change valac-0.18 depend to valac
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 17 May 2013 00:12:50 +0200
+
+evolution-data-server (3.8.0-2) experimental; urgency=low
+
+  * Oops, bring imapx_dont_remove_folders_on_error.patch back: it was
+    actually a post 3.8.0 patch from git.
+
+ -- Jordi Mallach <jordi@debian.org>  Sun, 31 Mar 2013 11:20:06 -0500
+
+evolution-data-server (3.8.0-1) experimental; urgency=low
+
+  * New upstream release.
+  * Drop imapx_dont_remove_folders_on_error.patch, included in this version.
+  * Add imapx_fix_memleak.patch: fix for memory leak in IMAPx.
+
+ -- Jordi Mallach <jordi@debian.org>  Sat, 30 Mar 2013 21:19:10 -0500
+
+evolution-data-server (3.7.92-1) experimental; urgency=low
+
+  * New upstream release
+  * debian/patches/imapx_dont_remove_folders_on_error.patch:
+    + Added. Don't throw away local folders when syncing the folders from the
+      server only returned partial results (bgo#693101)
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 22 Mar 2013 10:47:27 +0100
+
+evolution-data-server (3.7.91-1) experimental; urgency=low
+
+  [ Jeremy Bicha ]
+  * Team upload.
+  * Merge from Ubuntu:
+    - Add debian/tests/
+
+  [ Laurent Bigonville ]
+  * debian/control:
+    - Add myself as an Uploaders
+    - Add Breaks against libecal-1.2-11 and libebook-1.2-13 from 3.4, D-Bus API
+      has been broken again (Closes: #689930)
+
+  [ Sjoerd Simons ]
+  * New upstream release
+  * Sync with Ubuntu
+    - debian/rules: Tune configure flags to match the current defaults of
+      e-d-s.
+    - debian/*.install updated
+    - Update sonames of various libraries:
+      + libedata-book
+      + libebackend
+      + libcamel
+      + libedata-book
+      + libebackend
+    - Drop libedataserverui packages, library no longer shipped upstream
+    - Add new libebook-conacts library
+    - debian/control: Update build-depends
+  * debian/control: Bump gnome-common (>= 3.6.0)
+  * debian/libecal1.2-dev.install:
+    debian/gir1.2-ecalendar-1.2.install:
+      Remove introspection installation (removed upstream)
+  * debian/control: Update -dev package depends to better match the pkg-config
+    files
+  * debian/control: libebook dev should depend on libebook-contacts-1.2
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 15 Mar 2013 21:37:55 +0100
+
+evolution-data-server (3.6.3-1) experimental; urgency=low
+
+  * New upstream release
+  * debian/libcamel-1.2-40.symbols: Rmoved symbols that were accidentally
+    exported (and were never in a Debian unstable)
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Thu, 24 Jan 2013 20:29:07 +0100
+
+evolution-data-server (3.6.1-1) experimental; urgency=low
+
+  * New upstream release
+  * debian/evolution-data-server.install: Install the registry-modules 
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Thu, 18 Oct 2012 20:42:38 +0200
+
+evolution-data-server (3.6.0-1) experimental; urgency=low
+
+  * New upstream release
+  * Sync with Ubuntu
+    * Add symbols files
+    * drop debian/patches/20_gettext_intltool.patch: Applied upstream
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 05 Oct 2012 22:20:25 +0200
+
+evolution-data-server (3.4.4-4) unstable; urgency=low
+
+  * Team upload.
+  * Update Build-Depends on vala to valac (>= 0.20) to fix build failures with
+    newer gobject-introspection. Closes: #707349, #709737
+  * 21_Dont_override_CPPFLAGS.patch: Don't override CPPFLAGS but use
+    AM_CPPFLAGS instead.
+  * 22_Remove-Werror-from-AM_INIT_AUTOMAKE.patch: Remove -Werror from
+    AM_INIT_AUTOMAKE. Patch cherry-picked from upstream Git.
+  * 23_Support-both-old-and-new-buf-libxml2-APIs.patch: Support both old and
+    new-buf libxml2 APIs. libxml2 changed the API for xmlOutputBuffer
+    incompatibly. Patch cherry-picked from upstream Git.
+  * Drop obsolete Dm-Upload-Allowed field.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 11 Aug 2013 18:44:28 +0200
+
 evolution-data-server (3.4.4-3) unstable; urgency=low
 
-  * 04_mbox_index.patch: patch from upstream git. Correctly display 
+  * 04_mbox_index.patch: patch from upstream git. Correctly display
     emails from mboxes. Closes: #640851.
 
  -- Josselin Mouette <joss@debian.org>  Sun, 10 Feb 2013 19:16:56 +0100
