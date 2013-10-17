@@ -1,4 +1,4 @@
-libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
+libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  __e_source_private_replace_dbus_object@Base 3.8.2
  e_async_closure_callback@Base 3.5.91
  e_async_closure_free@Base 3.5.91
@@ -195,6 +195,7 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_dbus_authenticator_emit_authenticate@Base 3.5.91
  e_dbus_authenticator_emit_dismissed@Base 3.5.91
  e_dbus_authenticator_get_type@Base 3.5.91
+ e_dbus_authenticator_get_without_password@Base 3.10.0-1
  e_dbus_authenticator_interface_info@Base 3.5.91
  e_dbus_authenticator_override_properties@Base 3.5.91
  e_dbus_authenticator_proxy_get_type@Base 3.5.91
@@ -204,6 +205,7 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_dbus_authenticator_proxy_new_for_bus_finish@Base 3.5.91
  e_dbus_authenticator_proxy_new_for_bus_sync@Base 3.5.91
  e_dbus_authenticator_proxy_new_sync@Base 3.5.91
+ e_dbus_authenticator_set_without_password@Base 3.10.0-1
  e_dbus_authenticator_skeleton_get_type@Base 3.5.91
  e_dbus_authenticator_skeleton_new@Base 3.5.91
  e_dbus_calendar_call_add_timezone@Base 3.7.90
@@ -570,17 +572,6 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_gdbus_complete_sync_method_strv@Base 3.5.91
  e_gdbus_complete_sync_method_uint@Base 3.5.91
  e_gdbus_complete_sync_method_void@Base 3.5.91
- e_gdbus_marshallers_BOOLEAN__OBJECT@Base 3.5.91
- e_gdbus_marshallers_BOOLEAN__OBJECT_BOOLEAN@Base 3.5.91
- e_gdbus_marshallers_BOOLEAN__OBJECT_BOXED@Base 3.5.91
- e_gdbus_marshallers_BOOLEAN__OBJECT_STRING@Base 3.5.91
- e_gdbus_marshallers_BOOLEAN__OBJECT_UINT@Base 3.5.91
- e_gdbus_marshallers_BOOLEAN__POINTER@Base 3.5.91
- e_gdbus_marshallers_VOID__STRING_STRING@Base 3.5.91
- e_gdbus_marshallers_VOID__UINT_BOXED@Base 3.5.91
- e_gdbus_marshallers_VOID__UINT_BOXED_BOXED@Base 3.5.91
- e_gdbus_marshallers_VOID__UINT_BOXED_STRING@Base 3.5.91
- e_gdbus_marshallers_VOID__UINT_STRING@Base 3.5.91
  e_gdbus_proxy_async_method_done_boolean@Base 3.5.91
  e_gdbus_proxy_async_method_done_string@Base 3.5.91
  e_gdbus_proxy_async_method_done_strv@Base 3.5.91
@@ -672,8 +663,6 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_list_remove_iterator@Base 3.5.91
  e_list_remove_link@Base 3.5.91
  e_localtime_with_offset@Base 3.5.91
- e_marshal_VOID__INT_STRING_STRING_STRING_STRING_BOOLEAN_POINTER@Base 3.7.90
- e_marshal_VOID__OBJECT_BOXED@Base 3.5.91
  e_mdn_response_policy_get_type@Base 3.5.91
  e_memchunk_alloc0@Base 3.5.91
  e_memchunk_alloc@Base 3.5.91
@@ -752,6 +741,7 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_source_authentication_set_user@Base 3.5.91
  e_source_authenticator_get_prompt_strings@Base 3.5.91
  e_source_authenticator_get_type@Base 3.5.91
+ e_source_authenticator_get_without_password@Base 3.10.0
  e_source_authenticator_try_password@Base 3.5.91
  e_source_authenticator_try_password_finish@Base 3.5.91
  e_source_authenticator_try_password_sync@Base 3.5.91
@@ -923,6 +913,7 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_source_registry_find_extension@Base 3.5.91
  e_source_registry_free_display_tree@Base 3.5.91
  e_source_registry_get_type@Base 3.5.91
+ e_source_registry_list_enabled@Base 3.10.0
  e_source_registry_list_sources@Base 3.5.91
  e_source_registry_new@Base 3.5.91
  e_source_registry_new_finish@Base 3.5.91
@@ -1068,6 +1059,8 @@ libedataserver-1.2.so.17 libedataserver-1.2-17 #MINVER#
  e_util_utf8_strcasecmp@Base 3.5.91
  e_util_utf8_strstrcase@Base 3.5.91
  e_util_utf8_strstrcasedecomp@Base 3.5.91
+ e_weak_ref_free@Base 3.10.0
+ e_weak_ref_new@Base 3.10.0
  e_xml_destroy_hash@Base 3.5.91
  e_xml_from_hash@Base 3.5.91
  e_xml_get_child_by_name@Base 3.5.91

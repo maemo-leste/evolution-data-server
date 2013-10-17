@@ -7,7 +7,6 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_book_client_error_quark@Base 3.7.90
  e_book_client_error_to_string@Base 3.7.90
  e_book_client_view_flags_get_type@Base 3.7.90
- e_book_contacts_marshal_VOID__UINT_STRING@Base 3.7.90
  e_book_index_type_get_type@Base 3.7.90
  e_book_query_and@Base 3.7.90
  e_book_query_andv@Base 3.7.90

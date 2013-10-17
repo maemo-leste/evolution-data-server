@@ -1,5 +1,4 @@
-libedata-book-1.2.so.17 libedata-book-1.2-17 #MINVER#
- e_book_backend_add_client@Base 0
+libedata-book-1.2.so.20 libedata-book-1.2-20 #MINVER#
  e_book_backend_add_view@Base 3.7.1
  e_book_backend_cache_add_contact@Base 0
  e_book_backend_cache_check_contact@Base 0
@@ -15,6 +14,8 @@ libedata-book-1.2.so.17 libedata-book-1.2-17 #MINVER#
  e_book_backend_cache_set_time@Base 0
  e_book_backend_configure_direct@Base 3.7.90
  e_book_backend_create_contacts@Base 0
+ e_book_backend_create_contacts_finish@Base 3.10.0
+ e_book_backend_create_contacts_sync@Base 3.10.0
  e_book_backend_db_cache_add_contact@Base 0
  e_book_backend_db_cache_check_contact@Base 0
  e_book_backend_db_cache_exists@Base 0
@@ -28,40 +29,48 @@ libedata-book-1.2.so.17 libedata-book-1.2-17 #MINVER#
  e_book_backend_db_cache_set_filename@Base 0
  e_book_backend_db_cache_set_populated@Base 0
  e_book_backend_db_cache_set_time@Base 0
+ e_book_backend_dup_cache_dir@Base 3.10.0
  e_book_backend_factory_get_type@Base 0
- e_book_backend_foreach_view@Base 0
  e_book_backend_get_backend_property@Base 0
  e_book_backend_get_cache_dir@Base 0
  e_book_backend_get_contact@Base 0
+ e_book_backend_get_contact_finish@Base 3.10.0
  e_book_backend_get_contact_list@Base 0
+ e_book_backend_get_contact_list_finish@Base 3.10.0
+ e_book_backend_get_contact_list_sync@Base 3.10.0
  e_book_backend_get_contact_list_uids@Base 0
+ e_book_backend_get_contact_list_uids_finish@Base 3.10.0
+ e_book_backend_get_contact_list_uids_sync@Base 3.10.0
+ e_book_backend_get_contact_sync@Base 3.10.0
  e_book_backend_get_direct_book@Base 3.7.90
  e_book_backend_get_registry@Base 0
  e_book_backend_get_type@Base 0
  e_book_backend_get_writable@Base 3.7.90
  e_book_backend_is_opened@Base 0
- e_book_backend_is_opening@Base 0
  e_book_backend_is_readonly@Base 0
- e_book_backend_is_removed@Base 0
  e_book_backend_list_views@Base 3.7.1
  e_book_backend_modify_contacts@Base 0
+ e_book_backend_modify_contacts_finish@Base 3.10.0
+ e_book_backend_modify_contacts_sync@Base 3.10.0
  e_book_backend_notify_complete@Base 0
  e_book_backend_notify_error@Base 0
- e_book_backend_notify_online@Base 0
- e_book_backend_notify_opened@Base 0
  e_book_backend_notify_property_changed@Base 0
- e_book_backend_notify_readonly@Base 0
  e_book_backend_notify_remove@Base 0
  e_book_backend_notify_update@Base 0
  e_book_backend_open@Base 0
+ e_book_backend_open_finish@Base 3.10.0
+ e_book_backend_open_sync@Base 3.10.0
+ e_book_backend_prepare_for_completion@Base 3.10.0
+ e_book_backend_ref_data_book@Base 3.10.0
  e_book_backend_refresh@Base 0
- e_book_backend_remove_client@Base 0
+ e_book_backend_refresh_finish@Base 3.10.0
+ e_book_backend_refresh_sync@Base 3.10.0
  e_book_backend_remove_contacts@Base 0
+ e_book_backend_remove_contacts_finish@Base 3.10.0
+ e_book_backend_remove_contacts_sync@Base 3.10.0
  e_book_backend_remove_view@Base 3.7.1
- e_book_backend_respond_opened@Base 0
- e_book_backend_set_backend_property@Base 0
  e_book_backend_set_cache_dir@Base 0
- e_book_backend_set_is_removed@Base 0
+ e_book_backend_set_data_book@Base 3.10.0
  e_book_backend_set_writable@Base 3.7.90
  e_book_backend_sexp_get_type@Base 0
  e_book_backend_sexp_match_contact@Base 0
@@ -121,21 +130,6 @@ libedata-book-1.2.so.17 libedata-book-1.2-17 #MINVER#
  e_book_backend_summary_search@Base 0
  e_book_backend_summary_touch@Base 0
  e_book_backend_sync@Base 0
- e_book_backend_sync_construct@Base 0
- e_book_backend_sync_create_contacts@Base 0
- e_book_backend_sync_get_backend_property@Base 0
- e_book_backend_sync_get_contact@Base 0
- e_book_backend_sync_get_contact_list@Base 0
- e_book_backend_sync_get_contact_list_uids@Base 0
- e_book_backend_sync_get_type@Base 0
- e_book_backend_sync_modify_contacts@Base 0
- e_book_backend_sync_open@Base 0
- e_book_backend_sync_refresh@Base 0
- e_book_backend_sync_remove_contacts@Base 0
- e_book_backend_sync_set_backend_property@Base 0
- e_data_book_close@Base 3.7.90
- e_data_book_close_finish@Base 3.7.90
- e_data_book_close_sync@Base 3.7.90
  e_data_book_create_error@Base 0
  e_data_book_create_error_fmt@Base 0
  e_data_book_direct_get_type@Base 3.7.90
@@ -145,29 +139,14 @@ libedata-book-1.2.so.17 libedata-book-1.2-17 #MINVER#
  e_data_book_factory_get_registry@Base 0
  e_data_book_factory_get_type@Base 0
  e_data_book_factory_new@Base 0
- e_data_book_get_backend@Base 0
  e_data_book_get_connection@Base 3.7.1
- e_data_book_get_contact@Base 3.7.90
- e_data_book_get_contact_finish@Base 3.7.90
- e_data_book_get_contact_sync@Base 3.7.90
- e_data_book_get_contacts@Base 3.7.90
- e_data_book_get_contacts_finish@Base 3.7.90
- e_data_book_get_contacts_sync@Base 3.7.90
- e_data_book_get_contacts_uids@Base 3.7.90
- e_data_book_get_contacts_uids_finish@Base 3.7.90
- e_data_book_get_contacts_uids_sync@Base 3.7.90
  e_data_book_get_object_path@Base 3.7.1
  e_data_book_get_type@Base 0
  e_data_book_new@Base 0
- e_data_book_new_direct@Base 3.7.90
- e_data_book_open_sync@Base 3.7.90
+ e_data_book_ref_backend@Base 3.10.0
  e_data_book_report_backend_property_changed@Base 0
  e_data_book_report_error@Base 0
- e_data_book_report_online@Base 0
- e_data_book_report_opened@Base 0
- e_data_book_report_readonly@Base 0
  e_data_book_respond_create_contacts@Base 0
- e_data_book_respond_get_backend_property@Base 0
  e_data_book_respond_get_contact@Base 0
  e_data_book_respond_get_contact_list@Base 0
  e_data_book_respond_get_contact_list_uids@Base 0
@@ -175,7 +154,6 @@ libedata-book-1.2.so.17 libedata-book-1.2-17 #MINVER#
  e_data_book_respond_open@Base 0
  e_data_book_respond_refresh@Base 0
  e_data_book_respond_remove_contacts@Base 0
- e_data_book_respond_set_backend_property@Base 0
  e_data_book_status_to_string@Base 0
  e_data_book_string_slist_to_comma_string@Base 0
  e_data_book_view_get_backend@Base 0
@@ -225,4 +203,3 @@ libedata-book-1.2.so.17 libedata-book-1.2-17 #MINVER#
  e_gdbus_book_view_register_object@Base 0
  e_gdbus_book_view_stub_get_type@Base 0
  e_gdbus_book_view_stub_new@Base 0
- g__modules_table_lock@Base 3.7.90

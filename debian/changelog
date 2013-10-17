@@ -1,3 +1,20 @@
+evolution-data-server (3.10.0-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * Drop all patches, all were cherrypicked from git.
+  * Bump Build-Depends on libgoa-dev to >= 3.8, as per configure.ac.
+  * Adjust packaging for the usual eds soname bumps.
+  * Update symbols.
+
+ -- Jordi Mallach <jordi@debian.org>  Thu, 17 Oct 2013 19:30:01 +0200
+
+evolution-data-server (3.8.5-2) unstable; urgency=low
+
+  * Team upload.
+  * Upload to unstable.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 17 Sep 2013 21:38:53 +0200
+
 evolution-data-server (3.8.5-1) experimental; urgency=low
 
   * Team upload.

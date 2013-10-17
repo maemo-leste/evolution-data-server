@@ -1,4 +1,4 @@
-libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
+libebackend-1.2.so.7 libebackend-1.2-7 #MINVER#
  e_authentication_mediator_dismiss@Base 0
  e_authentication_mediator_get_connection@Base 0
  e_authentication_mediator_get_object_path@Base 0

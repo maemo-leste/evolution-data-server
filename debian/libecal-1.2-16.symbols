@@ -1,4 +1,4 @@
-libecal-1.2.so.15 libecal-1.2-15 #MINVER#
+libecal-1.2.so.16 libecal-1.2-16 #MINVER#
  _e_cal_view_new@Base 3.5.91
  cal_mode_enum_get_type@Base 3.5.91
  cal_obj_instance_list_free@Base 3.5.91
@@ -97,6 +97,7 @@ libecal-1.2.so.15 libecal-1.2-15 #MINVER#
  e_cal_client_view_get_object_path@Base 3.7.90
  e_cal_client_view_get_type@Base 3.5.91
  e_cal_client_view_is_running@Base 3.5.91
+ e_cal_client_view_ref_client@Base 3.10.0
  e_cal_client_view_set_fields_of_interest@Base 3.5.91
  e_cal_client_view_set_flags@Base 3.5.91
  e_cal_client_view_start@Base 3.5.91
@@ -194,6 +195,10 @@ libecal-1.2.so.15 libecal-1.2-15 #MINVER#
  e_cal_component_has_recurrences@Base 3.5.91
  e_cal_component_has_rrules@Base 3.5.91
  e_cal_component_has_simple_recurrence@Base 3.5.91
+ e_cal_component_id_copy@Base 3.10.0
+ e_cal_component_id_equal@Base 3.10.0
+ e_cal_component_id_hash@Base 3.10.0
+ e_cal_component_id_new@Base 3.10.0
  e_cal_component_is_instance@Base 3.5.91
  e_cal_component_new@Base 3.5.91
  e_cal_component_new_from_icalcomponent@Base 3.5.91
@@ -273,9 +278,6 @@ libecal-1.2.so.15 libecal-1.2-15 #MINVER#
  e_cal_get_timezone@Base 3.5.91
  e_cal_get_type@Base 3.5.91
  e_cal_is_read_only@Base 3.5.91
- e_cal_marshal_VOID__ENUM_ENUM@Base 3.5.91
- e_cal_marshal_VOID__STRING_UINT@Base 3.5.91
- e_cal_marshal_VOID__UINT_STRING@Base 3.5.91
  e_cal_match_tzid@Base 3.5.91
  e_cal_modify_object@Base 3.5.91
  e_cal_new@Base 3.5.91
