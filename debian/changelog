@@ -1,4 +1,4 @@
-evolution-data-server (3.10.0-1) UNRELEASED; urgency=low
+evolution-data-server (3.10.0-1) experimental; urgency=low
 
   * New upstream release.
   * Drop all patches, all were cherrypicked from git.
@@ -6,7 +6,7 @@ evolution-data-server (3.10.0-1) UNRELEASED; urgency=low
   * Adjust packaging for the usual eds soname bumps.
   * Update symbols.
 
- -- Jordi Mallach <jordi@debian.org>  Thu, 17 Oct 2013 19:30:01 +0200
+ -- Jordi Mallach <jordi@debian.org>  Thu, 17 Oct 2013 23:59:24 +0200
 
 evolution-data-server (3.8.5-2) unstable; urgency=low
 
