@@ -1,8 +1,32 @@
-evolution-data-server (3.8.4-2) UNRELEASED; urgency=low
+evolution-data-server (3.10.0-1) UNRELEASED; urgency=low
 
+  * New upstream release.
+  * Drop all patches, all were cherrypicked from git.
+  * Bump Build-Depends on libgoa-dev to >= 3.8, as per configure.ac.
+  * Adjust packaging for the usual eds soname bumps.
+  * Update symbols.
+
+ -- Jordi Mallach <jordi@debian.org>  Thu, 17 Oct 2013 19:30:01 +0200
+
+evolution-data-server (3.8.5-2) unstable; urgency=low
+
+  * Team upload.
+  * Upload to unstable.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 17 Sep 2013 21:38:53 +0200
+
+evolution-data-server (3.8.5-1) experimental; urgency=low
+
+  * Team upload.
+
+  [ Laurent Bigonville ]
   * debian/control: Fix Homepage URL
 
- -- Laurent Bigonville <bigon@debian.org>  Mon, 05 Aug 2013 10:23:44 +0200
+  [ Michael Biebl ]
+  * New upstream release.
+  * Refresh fix-google-2fa-2.patch.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 03 Sep 2013 00:02:17 +0200
 
 evolution-data-server (3.8.4-1) experimental; urgency=low
 
@@ -129,6 +153,22 @@ evolution-data-server (3.6.0-1) experimental; urgency=low
     * drop debian/patches/20_gettext_intltool.patch: Applied upstream
 
  -- Sjoerd Simons <sjoerd@debian.org>  Fri, 05 Oct 2012 22:20:25 +0200
+
+evolution-data-server (3.4.4-4) unstable; urgency=low
+
+  * Team upload.
+  * Update Build-Depends on vala to valac (>= 0.20) to fix build failures with
+    newer gobject-introspection. Closes: #707349, #709737
+  * 21_Dont_override_CPPFLAGS.patch: Don't override CPPFLAGS but use
+    AM_CPPFLAGS instead.
+  * 22_Remove-Werror-from-AM_INIT_AUTOMAKE.patch: Remove -Werror from
+    AM_INIT_AUTOMAKE. Patch cherry-picked from upstream Git.
+  * 23_Support-both-old-and-new-buf-libxml2-APIs.patch: Support both old and
+    new-buf libxml2 APIs. libxml2 changed the API for xmlOutputBuffer
+    incompatibly. Patch cherry-picked from upstream Git.
+  * Drop obsolete Dm-Upload-Allowed field.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 11 Aug 2013 18:44:28 +0200
 
 evolution-data-server (3.4.4-3) unstable; urgency=low
 

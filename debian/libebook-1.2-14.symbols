@@ -65,6 +65,7 @@ libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  e_book_client_view_get_connection@Base 3.7.90
  e_book_client_view_get_object_path@Base 3.7.90
  e_book_client_view_get_type@Base 3.5.91
+ e_book_client_view_ref_client@Base 3.10.0
  e_book_client_view_set_fields_of_interest@Base 3.5.91
  e_book_client_view_set_flags@Base 3.5.91
  e_book_client_view_start@Base 3.5.91
@@ -95,7 +96,6 @@ libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  e_book_is_opened@Base 3.5.91
  e_book_is_self@Base 3.5.91
  e_book_is_writable@Base 3.5.91
- e_book_marshal_VOID__UINT_STRING@Base 3.5.91
  e_book_new@Base 3.5.91
  e_book_open@Base 3.5.91
  e_book_open_async@Base 3.5.91
