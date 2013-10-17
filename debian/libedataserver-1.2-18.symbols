@@ -195,7 +195,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_dbus_authenticator_emit_authenticate@Base 3.5.91
  e_dbus_authenticator_emit_dismissed@Base 3.5.91
  e_dbus_authenticator_get_type@Base 3.5.91
- e_dbus_authenticator_get_without_password@Base 3.10.0-1
+ e_dbus_authenticator_get_without_password@Base 3.10.0
  e_dbus_authenticator_interface_info@Base 3.5.91
  e_dbus_authenticator_override_properties@Base 3.5.91
  e_dbus_authenticator_proxy_get_type@Base 3.5.91
@@ -205,7 +205,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_dbus_authenticator_proxy_new_for_bus_finish@Base 3.5.91
  e_dbus_authenticator_proxy_new_for_bus_sync@Base 3.5.91
  e_dbus_authenticator_proxy_new_sync@Base 3.5.91
- e_dbus_authenticator_set_without_password@Base 3.10.0-1
+ e_dbus_authenticator_set_without_password@Base 3.10.0
  e_dbus_authenticator_skeleton_get_type@Base 3.5.91
  e_dbus_authenticator_skeleton_new@Base 3.5.91
  e_dbus_calendar_call_add_timezone@Base 3.7.90
