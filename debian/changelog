@@ -1,10 +1,14 @@
-evolution-data-server (3.8.5-3) UNRELEASED; urgency=low
+evolution-data-server (3.8.5-3) unstable; urgency=medium
 
-  * Team upload.
+  [ Yves-Alexis Perez ]
   * Remove myself from uploaders, this should have been done a long time
     ago.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 28 Oct 2013 09:01:33 +0100
+  [ Josselin Mouette ]
+  * 01_gconf_tree.patch: fix upgrades on accounts where gconf-merge-tree 
+    has been run.
+
+ -- Josselin Mouette <joss@debian.org>  Thu, 31 Oct 2013 15:58:55 +0100
 
 evolution-data-server (3.8.5-2) unstable; urgency=low
 
