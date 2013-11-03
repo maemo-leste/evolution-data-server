@@ -1,10 +1,14 @@
-evolution-data-server (3.10.1-2) UNRELEASED; urgency=low
+evolution-data-server (3.10.1-2) experimental; urgency=low
 
+  [ Yves-Alexis Perez ]
   * Team upload.
   * Remove myself from uploaders, this should have been done a long time
     ago.
 
- -- Yves-Alexis Perez <corsac@debian.org>  Mon, 28 Oct 2013 09:02:23 +0100
+  [ Sjoerd Simons ]
+  * debian/control: Build against G3.10 gnome-online-accounts
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 03 Nov 2013 23:22:38 +0100
 
 evolution-data-server (3.10.1-1) experimental; urgency=low
 
