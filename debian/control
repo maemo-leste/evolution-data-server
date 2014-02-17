@@ -13,8 +13,8 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            David Weinehall <tao@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Laurent Bigonville <bigon@debian.org>
-Standards-Version: 3.9.4
-Homepage: http://projects.gnome.org/evolution/
+Standards-Version: 3.9.5
+Homepage: https://wiki.gnome.org/Apps/Evolution
 Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
 Build-Depends: debhelper (>= 9),
@@ -26,7 +26,7 @@ Build-Depends: debhelper (>= 9),
                libdb-dev,
                libdbus-glib-1-dev (>= 0.6),
                libdbus-glib-1-doc,
-               libglib2.0-dev (>= 2.34),
+               libglib2.0-dev (>= 2.36),
                libglib2.0-doc,
                libgdata-dev (>= 0.10),
                libgirepository1.0-dev (>= 0.9.12),
@@ -34,8 +34,9 @@ Build-Depends: debhelper (>= 9),
                libgcr-3-dev (>= 3.4),
                libgoa-1.0-dev (>= 3.10),
                libgtk-3-dev (>= 3.2),
-               libgweather-3-dev (>= 3.5.0),
+               libgweather-3-dev (>= 3.8),
                libical-dev (>= 0.43),
+               libicu-dev,
                libkrb5-dev,
                libldap2-dev,
                liboauth-dev (>= 0.9.4),
@@ -43,7 +44,7 @@ Build-Depends: debhelper (>= 9),
                librest-dev (>= 0.7),
                libnss3-dev,
                libnspr4-dev,
-               libsoup2.4-dev (>= 2.40.3),
+               libsoup2.4-dev (>= 2.42),
                libsqlite3-dev (>= 3.5),
                libxml2-dev (>= 2.0.0),
                gtk-doc-tools (>= 1.14),
@@ -61,7 +62,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (= ${source:Version}),
-         libcamel-1.2-45 (= ${binary:Version})
+         libcamel-1.2-49 (= ${binary:Version})
 Suggests: evolution,
           evolution-data-server-dbg (= ${binary:Version})
 Breaks: libecal1.2-7 (<< 2.32),
@@ -181,7 +182,7 @@ Description: GObject introspection for the EDataServer library
  library. It can be used by packages using the GIRepository format to 
  generate dynamic bindings.
 
-Package: libcamel-1.2-45
+Package: libcamel-1.2-49
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -198,7 +199,7 @@ Description: Evolution MIME message handling library
 Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libcamel-1.2-45 (= ${binary:Version}),
+Depends: libcamel-1.2-49 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libglib2.0-dev,
