@@ -1,4 +1,11 @@
 libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
+ _ZN6icu_5214StringByteSinkISsE6AppendEPKci@Base 3.11.90
+ _ZN6icu_5214StringByteSinkISsED0Ev@Base 3.11.90
+ _ZN6icu_5214StringByteSinkISsED1Ev@Base 3.11.90
+ _ZN6icu_5214StringByteSinkISsED2Ev@Base 3.11.90
+ _ZTIN6icu_5214StringByteSinkISsEE@Base 3.11.90
+ _ZTSN6icu_5214StringByteSinkISsEE@Base 3.11.90
+ _ZTVN6icu_5214StringByteSinkISsEE@Base 3.11.90
  __e_source_private_replace_dbus_object@Base 3.8.2
  e_async_closure_callback@Base 3.5.91
  e_async_closure_free@Base 3.5.91
@@ -67,6 +74,17 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_client_util_slist_to_strv@Base 3.5.91
  e_client_util_strv_to_slist@Base 3.5.91
  e_client_util_unwrap_dbus_error@Base 3.5.91
+ e_collator_collate@Base 3.11.90
+ e_collator_error_quark@Base 3.11.90
+ e_collator_generate_key@Base 3.11.90
+ e_collator_generate_key_for_index@Base 3.11.90
+ e_collator_get_index@Base 3.11.90
+ e_collator_get_index_labels@Base 3.11.90
+ e_collator_get_type@Base 3.11.90
+ e_collator_new@Base 3.11.90
+ e_collator_new_interpret_country@Base 3.11.90
+ e_collator_ref@Base 3.11.90
+ e_collator_unref@Base 3.11.90
  e_credentials_clear@Base 3.5.91
  e_credentials_clear_peek@Base 3.5.91
  e_credentials_equal@Base 3.5.91
@@ -103,6 +121,9 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_dbus_address_book_call_get_contact_list_uids_finish@Base 3.7.90
  e_dbus_address_book_call_get_contact_list_uids_sync@Base 3.7.90
  e_dbus_address_book_call_get_contact_sync@Base 3.7.90
+ e_dbus_address_book_call_get_cursor@Base 3.11.90
+ e_dbus_address_book_call_get_cursor_finish@Base 3.11.90
+ e_dbus_address_book_call_get_cursor_sync@Base 3.11.90
  e_dbus_address_book_call_get_view@Base 3.7.90
  e_dbus_address_book_call_get_view_finish@Base 3.7.90
  e_dbus_address_book_call_get_view_sync@Base 3.7.90
@@ -123,13 +144,47 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_dbus_address_book_complete_get_contact@Base 3.7.90
  e_dbus_address_book_complete_get_contact_list@Base 3.7.90
  e_dbus_address_book_complete_get_contact_list_uids@Base 3.7.90
+ e_dbus_address_book_complete_get_cursor@Base 3.11.90
  e_dbus_address_book_complete_get_view@Base 3.7.90
  e_dbus_address_book_complete_modify_contacts@Base 3.7.90
  e_dbus_address_book_complete_open@Base 3.7.90
  e_dbus_address_book_complete_refresh@Base 3.7.90
  e_dbus_address_book_complete_remove_contacts@Base 3.7.90
+ e_dbus_address_book_cursor_call_dispose@Base 3.11.90
+ e_dbus_address_book_cursor_call_dispose_finish@Base 3.11.90
+ e_dbus_address_book_cursor_call_dispose_sync@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_alphabetic_index@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_alphabetic_index_finish@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_alphabetic_index_sync@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_query@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_query_finish@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_query_sync@Base 3.11.90
+ e_dbus_address_book_cursor_call_step@Base 3.11.90
+ e_dbus_address_book_cursor_call_step_finish@Base 3.11.90
+ e_dbus_address_book_cursor_call_step_sync@Base 3.11.90
+ e_dbus_address_book_cursor_complete_dispose@Base 3.11.90
+ e_dbus_address_book_cursor_complete_set_alphabetic_index@Base 3.11.90
+ e_dbus_address_book_cursor_complete_set_query@Base 3.11.90
+ e_dbus_address_book_cursor_complete_step@Base 3.11.90
+ e_dbus_address_book_cursor_get_position@Base 3.11.90
+ e_dbus_address_book_cursor_get_total@Base 3.11.90
+ e_dbus_address_book_cursor_get_type@Base 3.11.90
+ e_dbus_address_book_cursor_interface_info@Base 3.11.90
+ e_dbus_address_book_cursor_override_properties@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_get_type@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_finish@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_for_bus@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_for_bus_finish@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_for_bus_sync@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_sync@Base 3.11.90
+ e_dbus_address_book_cursor_set_position@Base 3.11.90
+ e_dbus_address_book_cursor_set_total@Base 3.11.90
+ e_dbus_address_book_cursor_skeleton_get_type@Base 3.11.90
+ e_dbus_address_book_cursor_skeleton_new@Base 3.11.90
  e_dbus_address_book_dup_cache_dir@Base 3.7.90
  e_dbus_address_book_dup_capabilities@Base 3.7.90
+ e_dbus_address_book_dup_locale@Base 3.11.90
  e_dbus_address_book_dup_required_fields@Base 3.7.90
  e_dbus_address_book_dup_revision@Base 3.7.90
  e_dbus_address_book_dup_supported_fields@Base 3.7.90
@@ -152,6 +207,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_dbus_address_book_factory_skeleton_new@Base 3.7.90
  e_dbus_address_book_get_cache_dir@Base 3.7.90
  e_dbus_address_book_get_capabilities@Base 3.7.90
+ e_dbus_address_book_get_locale@Base 3.11.90
  e_dbus_address_book_get_online@Base 3.7.90
  e_dbus_address_book_get_required_fields@Base 3.7.90
  e_dbus_address_book_get_revision@Base 3.7.90
@@ -169,6 +225,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_dbus_address_book_proxy_new_sync@Base 3.7.90
  e_dbus_address_book_set_cache_dir@Base 3.7.90
  e_dbus_address_book_set_capabilities@Base 3.7.90
+ e_dbus_address_book_set_locale@Base 3.11.90
  e_dbus_address_book_set_online@Base 3.7.90
  e_dbus_address_book_set_required_fields@Base 3.7.90
  e_dbus_address_book_set_revision@Base 3.7.90
@@ -194,6 +251,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_dbus_authenticator_complete_rejected@Base 3.5.91
  e_dbus_authenticator_emit_authenticate@Base 3.5.91
  e_dbus_authenticator_emit_dismissed@Base 3.5.91
+ e_dbus_authenticator_emit_server_error@Base 3.11.90
  e_dbus_authenticator_get_type@Base 3.5.91
  e_dbus_authenticator_get_without_password@Base 3.10.0
  e_dbus_authenticator_interface_info@Base 3.5.91
@@ -353,6 +411,21 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_dbus_direct_book_set_backend_path@Base 3.7.90
  e_dbus_direct_book_skeleton_get_type@Base 3.7.90
  e_dbus_direct_book_skeleton_new@Base 3.7.90
+ e_dbus_locale1_dup_locale@Base 3.11.90
+ e_dbus_locale1_get_locale@Base 3.11.90
+ e_dbus_locale1_get_type@Base 3.11.90
+ e_dbus_locale1_interface_info@Base 3.11.90
+ e_dbus_locale1_override_properties@Base 3.11.90
+ e_dbus_locale1_proxy_get_type@Base 3.11.90
+ e_dbus_locale1_proxy_new@Base 3.11.90
+ e_dbus_locale1_proxy_new_finish@Base 3.11.90
+ e_dbus_locale1_proxy_new_for_bus@Base 3.11.90
+ e_dbus_locale1_proxy_new_for_bus_finish@Base 3.11.90
+ e_dbus_locale1_proxy_new_for_bus_sync@Base 3.11.90
+ e_dbus_locale1_proxy_new_sync@Base 3.11.90
+ e_dbus_locale1_set_locale@Base 3.11.90
+ e_dbus_locale1_skeleton_get_type@Base 3.11.90
+ e_dbus_locale1_skeleton_new@Base 3.11.90
  e_dbus_object_get_source@Base 3.5.91
  e_dbus_object_get_source_oauth2_support@Base 3.7.90
  e_dbus_object_get_source_remote_creatable@Base 3.5.91
@@ -688,6 +761,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_operation_pool_release_opid@Base 3.5.91
  e_operation_pool_reserve_opid@Base 3.5.91
  e_proxy_get_type@Base 3.5.91
+ e_proxy_method_get_type@Base 3.11.90
  e_proxy_new@Base 3.5.91
  e_proxy_peek_uri_for@Base 3.5.91
  e_proxy_require_proxy_for_uri@Base 3.5.91
@@ -724,10 +798,12 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_source_alarms_set_last_notified@Base 3.5.91
  e_source_authentication_dup_host@Base 3.5.91
  e_source_authentication_dup_method@Base 3.5.91
+ e_source_authentication_dup_proxy_uid@Base 3.11.90
  e_source_authentication_dup_user@Base 3.5.91
  e_source_authentication_get_host@Base 3.5.91
  e_source_authentication_get_method@Base 3.5.91
  e_source_authentication_get_port@Base 3.5.91
+ e_source_authentication_get_proxy_uid@Base 3.11.90
  e_source_authentication_get_remember_password@Base 3.8.2
  e_source_authentication_get_type@Base 3.5.91
  e_source_authentication_get_user@Base 3.5.91
@@ -737,6 +813,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_source_authentication_set_host@Base 3.5.91
  e_source_authentication_set_method@Base 3.5.91
  e_source_authentication_set_port@Base 3.5.91
+ e_source_authentication_set_proxy_uid@Base 3.11.90
  e_source_authentication_set_remember_password@Base 3.8.2
  e_source_authentication_set_user@Base 3.5.91
  e_source_authenticator_get_prompt_strings@Base 3.5.91
@@ -772,8 +849,12 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_source_collection_set_identity@Base 3.5.91
  e_source_collection_set_mail_enabled@Base 3.5.91
  e_source_compare_by_display_name@Base 3.5.91
+ e_source_delete_password@Base 3.11.90
+ e_source_delete_password_finish@Base 3.11.90
+ e_source_delete_password_sync@Base 3.11.90
  e_source_dup_display_name@Base 3.5.91
  e_source_dup_parent@Base 3.5.91
+ e_source_dup_secret_label@Base 3.11.90
  e_source_dup_uid@Base 3.5.91
  e_source_equal@Base 3.5.91
  e_source_extension_get_source@Base 3.5.91
@@ -804,6 +885,9 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_source_goa_set_contacts_url@Base 3.7.90
  e_source_has_extension@Base 3.5.91
  e_source_hash@Base 3.5.91
+ e_source_lookup_password@Base 3.11.90
+ e_source_lookup_password_finish@Base 3.11.90
+ e_source_lookup_password_sync@Base 3.11.90
  e_source_mail_account_dup_identity_uid@Base 3.5.91
  e_source_mail_account_get_identity_uid@Base 3.5.91
  e_source_mail_account_get_type@Base 3.5.91
@@ -886,6 +970,46 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_source_openpgp_set_sign_by_default@Base 3.5.91
  e_source_openpgp_set_signing_algorithm@Base 3.5.91
  e_source_parameter_to_key@Base 3.5.91
+ e_source_proxy_dup_autoconfig_url@Base 3.11.90
+ e_source_proxy_dup_ftp_host@Base 3.11.90
+ e_source_proxy_dup_http_auth_password@Base 3.11.90
+ e_source_proxy_dup_http_auth_user@Base 3.11.90
+ e_source_proxy_dup_http_host@Base 3.11.90
+ e_source_proxy_dup_https_host@Base 3.11.90
+ e_source_proxy_dup_ignore_hosts@Base 3.11.90
+ e_source_proxy_dup_socks_host@Base 3.11.90
+ e_source_proxy_get_autoconfig_url@Base 3.11.90
+ e_source_proxy_get_ftp_host@Base 3.11.90
+ e_source_proxy_get_ftp_port@Base 3.11.90
+ e_source_proxy_get_http_auth_password@Base 3.11.90
+ e_source_proxy_get_http_auth_user@Base 3.11.90
+ e_source_proxy_get_http_host@Base 3.11.90
+ e_source_proxy_get_http_port@Base 3.11.90
+ e_source_proxy_get_http_use_auth@Base 3.11.90
+ e_source_proxy_get_https_host@Base 3.11.90
+ e_source_proxy_get_https_port@Base 3.11.90
+ e_source_proxy_get_ignore_hosts@Base 3.11.90
+ e_source_proxy_get_method@Base 3.11.90
+ e_source_proxy_get_socks_host@Base 3.11.90
+ e_source_proxy_get_socks_port@Base 3.11.90
+ e_source_proxy_get_type@Base 3.11.90
+ e_source_proxy_lookup@Base 3.11.90
+ e_source_proxy_lookup_finish@Base 3.11.90
+ e_source_proxy_lookup_sync@Base 3.11.90
+ e_source_proxy_set_autoconfig_url@Base 3.11.90
+ e_source_proxy_set_ftp_host@Base 3.11.90
+ e_source_proxy_set_ftp_port@Base 3.11.90
+ e_source_proxy_set_http_auth_password@Base 3.11.90
+ e_source_proxy_set_http_auth_user@Base 3.11.90
+ e_source_proxy_set_http_host@Base 3.11.90
+ e_source_proxy_set_http_port@Base 3.11.90
+ e_source_proxy_set_http_use_auth@Base 3.11.90
+ e_source_proxy_set_https_host@Base 3.11.90
+ e_source_proxy_set_https_port@Base 3.11.90
+ e_source_proxy_set_ignore_hosts@Base 3.11.90
+ e_source_proxy_set_method@Base 3.11.90
+ e_source_proxy_set_socks_host@Base 3.11.90
+ e_source_proxy_set_socks_port@Base 3.11.90
  e_source_ref_dbus_object@Base 3.5.91
  e_source_ref_main_context@Base 3.5.91
  e_source_refresh_add_timeout@Base 3.5.91
@@ -922,6 +1046,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_source_registry_ref_builtin_calendar@Base 3.5.91
  e_source_registry_ref_builtin_mail_account@Base 3.5.91
  e_source_registry_ref_builtin_memo_list@Base 3.5.91
+ e_source_registry_ref_builtin_proxy@Base 3.11.90
  e_source_registry_ref_builtin_task_list@Base 3.5.91
  e_source_registry_ref_default_address_book@Base 3.5.91
  e_source_registry_ref_default_calendar@Base 3.5.91
@@ -985,6 +1110,9 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_source_smime_set_sign_by_default@Base 3.5.91
  e_source_smime_set_signing_algorithm@Base 3.5.91
  e_source_smime_set_signing_certificate@Base 3.5.91
+ e_source_store_password@Base 3.11.90
+ e_source_store_password_finish@Base 3.11.90
+ e_source_store_password_sync@Base 3.11.90
  e_source_task_list_get_type@Base 3.5.91
  e_source_to_string@Base 3.5.91
  e_source_uoa_get_account_id@Base 3.7.90
@@ -1030,6 +1158,8 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_time_parse_date_and_time_ex@Base 3.5.91
  e_time_parse_date_ex@Base 3.5.91
  e_time_parse_time@Base 3.5.91
+ e_timeout_add_seconds_with_name@Base 3.11.90
+ e_timeout_add_with_name@Base 3.11.90
  e_trust_prompt_response_get_type@Base 3.7.90
  e_uid_new@Base 3.5.91
  e_uri_copy@Base 3.5.91
@@ -1050,6 +1180,7 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_util_slist_to_strv@Base 3.5.91
  e_util_strdup_strip@Base 3.5.91
  e_util_strstrcase@Base 3.5.91
+ e_util_strv_equal@Base 3.11.90
  e_util_strv_to_slist@Base 3.5.91
  e_util_unicode_get_utf8@Base 3.5.91
  e_util_utf8_data_make_valid@Base 3.5.91

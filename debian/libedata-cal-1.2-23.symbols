@@ -74,6 +74,7 @@ libedata-cal-1.2.so.23 libedata-cal-1.2-23 #MINVER#
  e_cal_backend_receive_objects_finish@Base 3.10.0
  e_cal_backend_receive_objects_sync@Base 3.10.0
  e_cal_backend_ref_data_cal@Base 3.10.0
+ e_cal_backend_ref_proxy_resolver@Base 3.11.90
  e_cal_backend_refresh@Base 0
  e_cal_backend_refresh_finish@Base 3.10.0
  e_cal_backend_refresh_sync@Base 3.10.0

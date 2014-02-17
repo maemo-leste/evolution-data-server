@@ -1,8 +1,4 @@
-libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
- _camel_tcp_stream_raw_replace_file_desc@Base 0
- _set_errno_from_pr_error@Base 0
- _set_error_from_pr_error@Base 0
- _set_g_error_from_errno@Base 0
+libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  bdata_extract_digit@Base 0
  bdata_extract_string@Base 0
  camel_address_cat@Base 0
@@ -17,6 +13,10 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_address_remove@Base 0
  camel_address_unformat@Base 0
  camel_application_is_exiting@Base 0
+ camel_async_closure_callback@Base 0
+ camel_async_closure_free@Base 0
+ camel_async_closure_new@Base 0
+ camel_async_closure_wait@Base 0
  camel_authentication_result_get_type@Base 0
  camel_block_file_attach_block@Base 0
  camel_block_file_delete@Base 0
@@ -31,30 +31,21 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_block_file_sync_block@Base 0
  camel_block_file_touch_block@Base 0
  camel_block_file_unref_block@Base 0
- camel_cert_get_string@Base 0
- camel_cert_get_trust@Base 0
- camel_cert_set_string@Base 0
- camel_cert_set_trust@Base 0
- camel_certdb_cert_new@Base 0
- camel_certdb_cert_ref@Base 0
- camel_certdb_cert_unref@Base 0
+ camel_cert_new@Base 0
+ camel_cert_ref@Base 0
+ camel_cert_unref@Base 0
  camel_certdb_clear@Base 0
  camel_certdb_get_default@Base 0
  camel_certdb_get_host@Base 0
  camel_certdb_get_type@Base 0
  camel_certdb_load@Base 0
- camel_certdb_lock@Base 0
  camel_certdb_new@Base 0
- camel_certdb_nss_cert_convert@Base 0
- camel_certdb_nss_cert_get@Base 0
- camel_certdb_nss_cert_set@Base 0
  camel_certdb_put@Base 0
  camel_certdb_remove_host@Base 0
  camel_certdb_save@Base 0
  camel_certdb_set_default@Base 0
  camel_certdb_set_filename@Base 0
  camel_certdb_touch@Base 0
- camel_certdb_unlock@Base 0
  camel_charset_best@Base 0
  camel_charset_best_name@Base 0
  camel_charset_init@Base 0
@@ -67,16 +58,10 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_cipher_context_encrypt@Base 0
  camel_cipher_context_encrypt_finish@Base 0
  camel_cipher_context_encrypt_sync@Base 0
- camel_cipher_context_export_keys@Base 0
- camel_cipher_context_export_keys_finish@Base 0
- camel_cipher_context_export_keys_sync@Base 0
  camel_cipher_context_get_session@Base 0
  camel_cipher_context_get_type@Base 0
  camel_cipher_context_hash_to_id@Base 0
  camel_cipher_context_id_to_hash@Base 0
- camel_cipher_context_import_keys@Base 0
- camel_cipher_context_import_keys_finish@Base 0
- camel_cipher_context_import_keys_sync@Base 0
  camel_cipher_context_new@Base 0
  camel_cipher_context_sign@Base 0
  camel_cipher_context_sign_finish@Base 0
@@ -134,11 +119,9 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_data_wrapper_get_mime_type_field@Base 0
  camel_data_wrapper_get_type@Base 0
  camel_data_wrapper_is_offline@Base 0
- camel_data_wrapper_lock@Base 0
  camel_data_wrapper_new@Base 0
  camel_data_wrapper_set_mime_type@Base 0
  camel_data_wrapper_set_mime_type_field@Base 0
- camel_data_wrapper_unlock@Base 0
  camel_data_wrapper_write_to_stream@Base 0
  camel_data_wrapper_write_to_stream_finish@Base 0
  camel_data_wrapper_write_to_stream_sync@Base 0
@@ -191,25 +174,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_debug_end@Base 0
  camel_debug_init@Base 0
  camel_debug_start@Base 0
- camel_disco_diary_empty@Base 0
- camel_disco_diary_get_type@Base 0
- camel_disco_diary_log@Base 0
- camel_disco_diary_new@Base 0
- camel_disco_diary_replay@Base 0
- camel_disco_diary_uidmap_add@Base 0
- camel_disco_diary_uidmap_lookup@Base 0
- camel_disco_folder_cache_message@Base 0
- camel_disco_folder_expunge_uids@Base 0
- camel_disco_folder_get_offline_sync@Base 0
- camel_disco_folder_get_type@Base 0
- camel_disco_folder_prepare_for_offline@Base 0
- camel_disco_folder_set_offline_sync@Base 0
- camel_disco_store_can_work_offline@Base 0
- camel_disco_store_check_online@Base 0
- camel_disco_store_get_type@Base 0
- camel_disco_store_prepare_for_offline@Base 0
- camel_disco_store_set_status@Base 0
- camel_disco_store_status@Base 0
  camel_enriched_to_html@Base 0
  camel_error_quark@Base 0
  camel_fetch_headers_type_get_type@Base 0
@@ -244,6 +208,12 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_filter_driver_set_shell_func@Base 0
  camel_filter_driver_set_status_func@Base 0
  camel_filter_driver_set_system_beep_func@Base 0
+ camel_filter_input_stream_get_filter@Base 0
+ camel_filter_input_stream_get_type@Base 0
+ camel_filter_input_stream_new@Base 0
+ camel_filter_output_stream_get_filter@Base 0
+ camel_filter_output_stream_get_type@Base 0
+ camel_filter_output_stream_new@Base 0
  camel_filter_search_match@Base 0
  camel_flag_get@Base 0
  camel_flag_list_copy@Base 0
@@ -278,12 +248,8 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_folder_expunge@Base 0
  camel_folder_expunge_finish@Base 0
  camel_folder_expunge_sync@Base 0
- camel_folder_fetch_messages@Base 0
- camel_folder_fetch_messages_finish@Base 0
- camel_folder_fetch_messages_sync@Base 0
  camel_folder_flags_get_type@Base 0
  camel_folder_free_deep@Base 0
- camel_folder_free_message_info@Base 0
  camel_folder_free_nop@Base 0
  camel_folder_free_shallow@Base 0
  camel_folder_free_summary@Base 0
@@ -327,7 +293,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_folder_quota_info_clone@Base 0
  camel_folder_quota_info_free@Base 0
  camel_folder_quota_info_new@Base 0
- camel_folder_ref_message_info@Base 0
  camel_folder_refresh_info@Base 0
  camel_folder_refresh_info_finish@Base 0
  camel_folder_refresh_info_sync@Base 0
@@ -354,9 +319,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_folder_set_message_user_tag@Base 0
  camel_folder_sort_uids@Base 0
  camel_folder_summary_add@Base 0
- camel_folder_summary_add_from_header@Base 0
- camel_folder_summary_add_from_message@Base 0
- camel_folder_summary_add_from_parser@Base 0
  camel_folder_summary_add_preview@Base 0
  camel_folder_summary_check_uid@Base 0
  camel_folder_summary_clear@Base 0
@@ -380,7 +342,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_folder_summary_get_type@Base 0
  camel_folder_summary_get_unread_count@Base 0
  camel_folder_summary_get_visible_count@Base 0
- camel_folder_summary_guess_content_info@Base 0
  camel_folder_summary_header_load_from_db@Base 0
  camel_folder_summary_header_save_to_db@Base 0
  camel_folder_summary_info_new_from_header@Base 0
@@ -423,7 +384,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_folder_unlock@Base 0
  camel_freeaddrinfo@Base 0
  camel_getaddrinfo@Base 0
- camel_getnameinfo@Base 0
  camel_gpg_context_get_always_trust@Base 0
  camel_gpg_context_get_type@Base 0
  camel_gpg_context_new@Base 0
@@ -498,202 +458,11 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_iconv_locale_charset@Base 0
  camel_iconv_locale_language@Base 0
  camel_iconv_open@Base 0
- camel_imapx_command_add@Base 0
- camel_imapx_command_add_part@Base 0
- camel_imapx_command_add_qresync_parameter@Base 3.8.3
- camel_imapx_command_addv@Base 0
- camel_imapx_command_check@Base 0
- camel_imapx_command_close@Base 0
- camel_imapx_command_compare@Base 0
- camel_imapx_command_done@Base 0
- camel_imapx_command_failed@Base 3.10.0
- camel_imapx_command_get_job@Base 0
- camel_imapx_command_new@Base 0
- camel_imapx_command_queue_delete_link@Base 0
- camel_imapx_command_queue_free@Base 0
- camel_imapx_command_queue_get_length@Base 0
- camel_imapx_command_queue_insert_sorted@Base 0
- camel_imapx_command_queue_is_empty@Base 0
- camel_imapx_command_queue_new@Base 0
- camel_imapx_command_queue_peek_head@Base 0
- camel_imapx_command_queue_peek_head_link@Base 0
- camel_imapx_command_queue_push_tail@Base 0
- camel_imapx_command_queue_ref_by_tag@Base 3.10.0
- camel_imapx_command_queue_remove@Base 0
- camel_imapx_command_queue_transfer@Base 0
- camel_imapx_command_ref@Base 0
- camel_imapx_command_set_error_if_failed@Base 0
- camel_imapx_command_set_job@Base 0
- camel_imapx_command_unref@Base 0
- camel_imapx_command_wait@Base 0
- camel_imapx_debug_flags@Base 0
- camel_imapx_dup_uid_from_summary_index@Base 3.8.3
- camel_imapx_error_quark@Base 0
- camel_imapx_folder_add_move_to_real_junk@Base 3.7.4~
- camel_imapx_folder_add_move_to_real_trash@Base 3.7.4~
- camel_imapx_folder_dup_quota_root_names@Base 3.7.3
- camel_imapx_folder_get_type@Base 0
- camel_imapx_folder_invalidate_local_cache@Base 3.10.0
- camel_imapx_folder_new@Base 0
- camel_imapx_folder_path_to_mailbox@Base 3.10.0
- camel_imapx_folder_process_status_response@Base 3.10.0
- camel_imapx_folder_set_quota_root_names@Base 3.7.3
- camel_imapx_job_cancel@Base 3.7.2
- camel_imapx_job_check@Base 0
- camel_imapx_job_done@Base 0
- camel_imapx_job_get_cancellable@Base 3.8.2
- camel_imapx_job_get_data@Base 0
- camel_imapx_job_has_folder@Base 3.7.4~
- camel_imapx_job_matches@Base 0
- camel_imapx_job_new@Base 0
- camel_imapx_job_ref@Base 0
- camel_imapx_job_ref_folder@Base 3.7.4~
- camel_imapx_job_run@Base 0
- camel_imapx_job_set_data@Base 0
- camel_imapx_job_set_folder@Base 3.7.4~
- camel_imapx_job_take_error@Base 3.10.0
- camel_imapx_job_unref@Base 0
- camel_imapx_job_wait@Base 0
- camel_imapx_list_response_add_attribute@Base 3.10.0
- camel_imapx_list_response_compare@Base 3.10.0
- camel_imapx_list_response_dup_attributes@Base 3.10.0
- camel_imapx_list_response_equal@Base 3.10.0
- camel_imapx_list_response_get_mailbox_name@Base 3.10.0
- camel_imapx_list_response_get_separator@Base 3.10.0
- camel_imapx_list_response_get_summary_flags@Base 3.10.0
- camel_imapx_list_response_get_type@Base 3.10.0
- camel_imapx_list_response_has_attribute@Base 3.10.0
- camel_imapx_list_response_hash@Base 3.10.0
- camel_imapx_list_response_new@Base 3.10.0
- camel_imapx_list_response_ref_extended_item@Base 3.10.0
- camel_imapx_mailbox_is_inbox@Base 3.10.0
- camel_imapx_mailbox_to_folder_path@Base 3.10.0
- camel_imapx_namespace_list_clear@Base 0
- camel_imapx_normalize_mailbox@Base 3.10.0
- camel_imapx_parse_mailbox@Base 3.10.0
- camel_imapx_parse_quota@Base 3.7.3
- camel_imapx_parse_quotaroot@Base 3.7.3
- camel_imapx_password_authtype@Base 0
- camel_imapx_search_get_type@Base 3.7.4~
- camel_imapx_search_new@Base 3.7.4~
- camel_imapx_search_ref_server@Base 3.7.4~
- camel_imapx_search_set_server@Base 3.7.4~
- camel_imapx_server_append_message@Base 0
- camel_imapx_server_authenticate@Base 0
- camel_imapx_server_connect@Base 0
- camel_imapx_server_copy_message@Base 0
- camel_imapx_server_create_folder@Base 0
- camel_imapx_server_delete_folder@Base 0
- camel_imapx_server_expunge@Base 0
- camel_imapx_server_fetch_messages@Base 0
- camel_imapx_server_get_message@Base 0
- camel_imapx_server_get_type@Base 0
- camel_imapx_server_list@Base 0
- camel_imapx_server_manage_subscription@Base 0
- camel_imapx_server_new@Base 0
- camel_imapx_server_noop@Base 0
- camel_imapx_server_ref_settings@Base 3.5.91
- camel_imapx_server_ref_store@Base 3.5.91
- camel_imapx_server_ref_stream@Base 3.5.91
- camel_imapx_server_refresh_info@Base 0
- camel_imapx_server_register_untagged_handler@Base 0
- camel_imapx_server_rename_folder@Base 0
- camel_imapx_server_sync_changes@Base 0
- camel_imapx_server_sync_message@Base 0
- camel_imapx_server_uid_search@Base 3.7.4~
- camel_imapx_server_update_quota_info@Base 3.7.3
- camel_imapx_settings_dup_namespace@Base 0
- camel_imapx_settings_dup_real_junk_path@Base 3.7.4~
- camel_imapx_settings_dup_real_trash_path@Base 3.7.4~
- camel_imapx_settings_dup_shell_command@Base 0
- camel_imapx_settings_get_batch_fetch_count@Base 0
- camel_imapx_settings_get_check_all@Base 0
- camel_imapx_settings_get_check_subscribed@Base 0
- camel_imapx_settings_get_fetch_order@Base 0
- camel_imapx_settings_get_filter_all@Base 0
- camel_imapx_settings_get_filter_junk@Base 0
- camel_imapx_settings_get_filter_junk_inbox@Base 0
- camel_imapx_settings_get_mobile_mode@Base 0
- camel_imapx_settings_get_namespace@Base 0
- camel_imapx_settings_get_real_junk_path@Base 3.7.4~
- camel_imapx_settings_get_real_trash_path@Base 3.7.4~
- camel_imapx_settings_get_shell_command@Base 0
- camel_imapx_settings_get_type@Base 0
- camel_imapx_settings_get_use_idle@Base 0
- camel_imapx_settings_get_use_namespace@Base 0
- camel_imapx_settings_get_use_qresync@Base 0
- camel_imapx_settings_get_use_real_junk_path@Base 3.7.4~
- camel_imapx_settings_get_use_real_trash_path@Base 3.7.4~
- camel_imapx_settings_get_use_shell_command@Base 0
- camel_imapx_settings_get_use_subscriptions@Base 0
- camel_imapx_settings_set_batch_fetch_count@Base 0
- camel_imapx_settings_set_check_all@Base 0
- camel_imapx_settings_set_check_subscribed@Base 0
- camel_imapx_settings_set_fetch_order@Base 0
- camel_imapx_settings_set_filter_all@Base 0
- camel_imapx_settings_set_filter_junk@Base 0
- camel_imapx_settings_set_filter_junk_inbox@Base 0
- camel_imapx_settings_set_mobile_mode@Base 0
- camel_imapx_settings_set_namespace@Base 0
- camel_imapx_settings_set_real_junk_path@Base 3.7.4~
- camel_imapx_settings_set_real_trash_path@Base 3.7.4~
- camel_imapx_settings_set_shell_command@Base 0
- camel_imapx_settings_set_use_idle@Base 0
- camel_imapx_settings_set_use_namespace@Base 0
- camel_imapx_settings_set_use_qresync@Base 0
- camel_imapx_settings_set_use_real_junk_path@Base 3.7.4~
- camel_imapx_settings_set_use_real_trash_path@Base 3.7.4~
- camel_imapx_settings_set_use_shell_command@Base 0
- camel_imapx_settings_set_use_subscriptions@Base 0
- camel_imapx_status_response_get_highestmodseq@Base 3.10.0
- camel_imapx_status_response_get_mailbox_name@Base 3.10.0
- camel_imapx_status_response_get_messages@Base 3.10.0
- camel_imapx_status_response_get_recent@Base 3.10.0
- camel_imapx_status_response_get_type@Base 3.10.0
- camel_imapx_status_response_get_uidnext@Base 3.10.0
- camel_imapx_status_response_get_uidvalidity@Base 3.10.0
- camel_imapx_status_response_get_unseen@Base 3.10.0
- camel_imapx_status_response_new@Base 3.10.0
- camel_imapx_store_dup_quota_info@Base 3.7.3
- camel_imapx_store_get_type@Base 0
- camel_imapx_store_ref_server@Base 3.10.0
- camel_imapx_store_set_quota_info@Base 3.7.3
- camel_imapx_store_summary_add_from_mailbox@Base 3.10.0
- camel_imapx_store_summary_get_type@Base 0
- camel_imapx_store_summary_mailbox@Base 3.10.0
- camel_imapx_store_summary_mailbox_from_path@Base 3.10.0
- camel_imapx_store_summary_namespace_find_by_mailbox@Base 3.10.0
- camel_imapx_store_summary_namespace_find_by_path@Base 3.10.0
- camel_imapx_store_summary_new@Base 0
- camel_imapx_store_summary_path_to_mailbox@Base 3.10.0
- camel_imapx_stream_astring@Base 0
- camel_imapx_stream_atom@Base 0
- camel_imapx_stream_buffered@Base 0
- camel_imapx_stream_get_type@Base 0
- camel_imapx_stream_getl@Base 0
- camel_imapx_stream_gets@Base 0
- camel_imapx_stream_new@Base 0
- camel_imapx_stream_nstring@Base 0
- camel_imapx_stream_nstring_stream@Base 0
- camel_imapx_stream_number@Base 0
- camel_imapx_stream_ref_source@Base 3.5.91
- camel_imapx_stream_set_literal@Base 0
- camel_imapx_stream_skip@Base 0
- camel_imapx_stream_skip_until@Base 3.8.2
- camel_imapx_stream_text@Base 0
- camel_imapx_stream_token@Base 0
- camel_imapx_stream_ungettoken@Base 0
- camel_imapx_summary_add_offline@Base 0
- camel_imapx_summary_add_offline_uncached@Base 0
- camel_imapx_summary_get_type@Base 0
- camel_imapx_summary_new@Base 0
  camel_index_add_name@Base 0
  camel_index_compress@Base 0
  camel_index_construct@Base 0
  camel_index_cursor_get_type@Base 0
- camel_index_cursor_new@Base 0
  camel_index_cursor_next@Base 0
- camel_index_cursor_reset@Base 0
  camel_index_delete@Base 0
  camel_index_delete_name@Base 0
  camel_index_find@Base 0
@@ -703,9 +472,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_index_name_add_buffer@Base 0
  camel_index_name_add_word@Base 0
  camel_index_name_get_type@Base 0
- camel_index_name_new@Base 0
- camel_index_names@Base 0
- camel_index_new@Base 0
  camel_index_rename@Base 0
  camel_index_set_normalize@Base 0
  camel_index_sync@Base 0
@@ -774,7 +540,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_mempool_strdup@Base 0
  camel_message_info_clone@Base 0
  camel_message_info_dump@Base 0
- camel_message_info_free@Base 0
  camel_message_info_new@Base 0
  camel_message_info_new_from_header@Base 0
  camel_message_info_ptr@Base 0
@@ -784,6 +549,7 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_message_info_set_user_tag@Base 0
  camel_message_info_time@Base 0
  camel_message_info_uint32@Base 0
+ camel_message_info_unref@Base 0
  camel_message_info_user_flag@Base 0
  camel_message_info_user_tag@Base 0
  camel_mime_filter_backup@Base 0
@@ -827,8 +593,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_mime_filter_progress_get_type@Base 0
  camel_mime_filter_progress_new@Base 0
  camel_mime_filter_reset@Base 0
- camel_mime_filter_save_get_type@Base 0
- camel_mime_filter_save_new@Base 0
  camel_mime_filter_set_size@Base 0
  camel_mime_filter_to_html_flags_get_type@Base 3.7.90
  camel_mime_filter_tohtml_get_type@Base 0
@@ -872,14 +636,15 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_mime_parser_content_type@Base 0
  camel_mime_parser_drop_step@Base 0
  camel_mime_parser_errno@Base 0
- camel_mime_parser_fd@Base 0
  camel_mime_parser_filter_add@Base 0
  camel_mime_parser_filter_remove@Base 0
  camel_mime_parser_from_line@Base 0
  camel_mime_parser_get_type@Base 0
  camel_mime_parser_header@Base 0
  camel_mime_parser_headers_raw@Base 0
+ camel_mime_parser_init_with_bytes@Base 0
  camel_mime_parser_init_with_fd@Base 0
+ camel_mime_parser_init_with_input_stream@Base 0
  camel_mime_parser_init_with_stream@Base 0
  camel_mime_parser_new@Base 0
  camel_mime_parser_postface@Base 0
@@ -936,24 +701,28 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_msgport_try_pop@Base 0
  camel_msgport_timeout_pop@Base 3.7.2
  camel_multipart_add_part@Base 0
- camel_multipart_add_part_at@Base 0
  camel_multipart_construct_from_parser@Base 0
  camel_multipart_encrypted_get_type@Base 0
  camel_multipart_encrypted_new@Base 0
  camel_multipart_get_boundary@Base 0
  camel_multipart_get_number@Base 0
  camel_multipart_get_part@Base 0
+ camel_multipart_get_postface@Base 0
+ camel_multipart_get_preface@Base 0
  camel_multipart_get_type@Base 0
  camel_multipart_new@Base 0
- camel_multipart_remove_part@Base 0
- camel_multipart_remove_part_at@Base 0
  camel_multipart_set_boundary@Base 0
  camel_multipart_set_postface@Base 0
  camel_multipart_set_preface@Base 0
  camel_multipart_signed_get_content_stream@Base 0
  camel_multipart_signed_get_type@Base 0
  camel_multipart_signed_new@Base 0
+ camel_multipart_signed_set_content_stream@Base 0
+ camel_multipart_signed_set_signature@Base 0
  camel_network_security_method_get_type@Base 0
+ camel_network_service_can_reach@Base 0
+ camel_network_service_can_reach_finish@Base 0
+ camel_network_service_can_reach_sync@Base 0
  camel_network_service_connect_sync@Base 0
  camel_network_service_get_default_port@Base 0
  camel_network_service_get_host_reachable@Base 3.8.2
@@ -962,6 +731,7 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_network_service_init@Base 3.8.2
  camel_network_service_ref_connectable@Base 3.8.2
  camel_network_service_set_connectable@Base 3.8.2
+ camel_network_service_starttls@Base 0
  camel_network_settings_dup_auth_mechanism@Base 0
  camel_network_settings_dup_host@Base 0
  camel_network_settings_dup_user@Base 0
@@ -980,6 +750,9 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_nntp_address_get@Base 0
  camel_nntp_address_get_type@Base 0
  camel_nntp_address_new@Base 0
+ camel_null_output_stream_get_bytes_written@Base 0
+ camel_null_output_stream_get_type@Base 0
+ camel_null_output_stream_new@Base 0
  camel_object_bag_abort@Base 0
  camel_object_bag_add@Base 0
  camel_object_bag_destroy@Base 0
@@ -1007,6 +780,7 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_offline_store_get_online@Base 0
  camel_offline_store_get_type@Base 0
  camel_offline_store_prepare_for_offline_sync@Base 0
+ camel_offline_store_requires_downsync@Base 0
  camel_offline_store_set_online_sync@Base 0
  camel_operation_cancel_all@Base 0
  camel_operation_get_type@Base 0
@@ -1032,7 +806,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_provider_load@Base 0
  camel_provider_register@Base 0
  camel_provider_type_get_type@Base 0
- camel_proxy_error_quark@Base 0
  camel_pstring_add@Base 0
  camel_pstring_dump_stat@Base 0
  camel_pstring_free@Base 0
@@ -1042,7 +815,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_quoted_encode_close@Base 0
  camel_quoted_encode_step@Base 0
  camel_read@Base 0
- camel_read_socket@Base 0
  camel_sasl_anon_trace_type_get_type@Base 0
  camel_sasl_anonymous_get_type@Base 0
  camel_sasl_anonymous_new@Base 0
@@ -1062,6 +834,8 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_sasl_get_service_name@Base 0
  camel_sasl_get_type@Base 0
  camel_sasl_gssapi_get_type@Base 0
+ camel_sasl_gssapi_is_available@Base 0
+ camel_sasl_gssapi_override_host_and_user@Base 0
  camel_sasl_login_get_type@Base 0
  camel_sasl_new@Base 0
  camel_sasl_ntlm_get_type@Base 0
@@ -1087,13 +861,14 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_service_disconnect@Base 0
  camel_service_disconnect_finish@Base 0
  camel_service_disconnect_sync@Base 0
+ camel_service_dup_display_name@Base 0
+ camel_service_dup_password@Base 0
  camel_service_error_quark@Base 0
  camel_service_get_connection_status@Base 0
  camel_service_get_display_name@Base 0
  camel_service_get_name@Base 0
  camel_service_get_password@Base 0
  camel_service_get_provider@Base 0
- camel_service_get_session@Base 0
  camel_service_get_type@Base 0
  camel_service_get_uid@Base 0
  camel_service_get_user_cache_dir@Base 0
@@ -1103,31 +878,28 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_service_query_auth_types@Base 0
  camel_service_query_auth_types_finish@Base 0
  camel_service_query_auth_types_sync@Base 0
+ camel_service_queue_task@Base 0
+ camel_service_ref_proxy_resolver@Base 0
  camel_service_ref_session@Base 3.7.90
  camel_service_ref_settings@Base 0
  camel_service_set_display_name@Base 0
  camel_service_set_password@Base 0
+ camel_service_set_proxy_resolver@Base 0
  camel_service_set_settings@Base 0
  camel_session_add_service@Base 0
  camel_session_alert_type_get_type@Base 0
- camel_session_alert_user@Base 0
  camel_session_authenticate@Base 0
  camel_session_authenticate_finish@Base 0
  camel_session_authenticate_sync@Base 0
- camel_session_build_password_prompt@Base 0
  camel_session_forget_password@Base 0
  camel_session_forward_to@Base 0
  camel_session_forward_to_finish@Base 0
  camel_session_forward_to_sync@Base 0
- camel_session_get_check_junk@Base 0
  camel_session_get_filter_driver@Base 0
  camel_session_get_junk_filter@Base 0
  camel_session_get_junk_headers@Base 0
- camel_session_get_main_context@Base 0
- camel_session_get_network_available@Base 0
  camel_session_get_online@Base 0
  camel_session_get_password@Base 0
- camel_session_get_socks_proxy@Base 0
  camel_session_get_type@Base 0
  camel_session_get_user_cache_dir@Base 0
  camel_session_get_user_data_dir@Base 0
@@ -1139,13 +911,12 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_session_ref_service_by_url@Base 0
  camel_session_remove_service@Base 0
  camel_session_remove_services@Base 0
- camel_session_set_check_junk@Base 0
  camel_session_set_junk_filter@Base 0
  camel_session_set_junk_headers@Base 0
- camel_session_set_network_available@Base 0
  camel_session_set_online@Base 0
  camel_session_submit_job@Base 0
  camel_session_trust_prompt@Base 3.7.3
+ camel_session_user_alert@Base 0
  camel_settings_class_list_settings@Base 0
  camel_settings_clone@Base 0
  camel_settings_equal@Base 0
@@ -1193,9 +964,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_store_folder_info_stale@Base 3.10.0
  camel_store_folder_opened@Base 0
  camel_store_folder_renamed@Base 0
- camel_store_free_folder_info@Base 0
- camel_store_free_folder_info_full@Base 0
- camel_store_free_folder_info_nop@Base 0
  camel_store_get_folder@Base 0
  camel_store_get_folder_finish@Base 0
  camel_store_get_folder_info@Base 0
@@ -1217,10 +985,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_store_info_name@Base 3.10.0
  camel_store_info_path@Base 3.10.0
  camel_store_info_set_string@Base 0
- camel_store_lock@Base 0
- camel_store_noop@Base 0
- camel_store_noop_finish@Base 0
- camel_store_noop_sync@Base 0
  camel_store_permission_flags_get_type@Base 0
  camel_store_rename_folder@Base 0
  camel_store_rename_folder_finish@Base 0
@@ -1250,14 +1014,12 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_store_synchronize@Base 0
  camel_store_synchronize_finish@Base 0
  camel_store_synchronize_sync@Base 0
- camel_store_unlock@Base 0
  camel_strcase_equal@Base 0
  camel_strcase_hash@Base 0
  camel_strdown@Base 0
  camel_stream_buffer_get_type@Base 0
  camel_stream_buffer_gets@Base 0
  camel_stream_buffer_new@Base 0
- camel_stream_buffer_new_with_vbuf@Base 0
  camel_stream_buffer_read_line@Base 0
  camel_stream_close@Base 0
  camel_stream_eos@Base 0
@@ -1280,21 +1042,18 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_stream_mem_set_buffer@Base 0
  camel_stream_mem_set_byte_array@Base 0
  camel_stream_mem_set_secure@Base 0
+ camel_stream_new@Base 0
  camel_stream_null_get_type@Base 0
  camel_stream_null_new@Base 0
  camel_stream_process_connect@Base 0
  camel_stream_process_get_type@Base 0
  camel_stream_process_new@Base 0
  camel_stream_read@Base 0
- camel_stream_vfs_get_type@Base 0
- camel_stream_vfs_is_writable@Base 0
- camel_stream_vfs_new_with_stream@Base 0
- camel_stream_vfs_new_with_uri@Base 0
- camel_stream_vfs_open_method_get_type@Base 0
+ camel_stream_ref_base_stream@Base 0
+ camel_stream_set_base_stream@Base 0
  camel_stream_write@Base 0
  camel_stream_write_string@Base 0
  camel_stream_write_to_stream@Base 0
- camel_string_list_free@Base 0
  camel_strstrcase@Base 0
  camel_subscribable_folder_is_subscribed@Base 0
  camel_subscribable_folder_subscribed@Base 0
@@ -1313,22 +1072,6 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_tag_list_free@Base 0
  camel_tag_list_size@Base 0
  camel_tag_set@Base 0
- camel_tcp_stream_connect@Base 0
- camel_tcp_stream_get_file_desc@Base 0
- camel_tcp_stream_get_local_address@Base 0
- camel_tcp_stream_get_remote_address@Base 0
- camel_tcp_stream_get_type@Base 0
- camel_tcp_stream_getsockopt@Base 0
- camel_tcp_stream_peek_socks_proxy@Base 0
- camel_tcp_stream_raw_get_type@Base 0
- camel_tcp_stream_raw_new@Base 0
- camel_tcp_stream_set_socks_proxy@Base 0
- camel_tcp_stream_setsockopt@Base 0
- camel_tcp_stream_ssl_enable_ssl@Base 0
- camel_tcp_stream_ssl_flags_get_type@Base 0
- camel_tcp_stream_ssl_get_type@Base 0
- camel_tcp_stream_ssl_new@Base 0
- camel_tcp_stream_ssl_new_raw@Base 0
  camel_text_index_check@Base 0
  camel_text_index_cursor_get_type@Base 0
  camel_text_index_cursor_new@Base 0
@@ -1344,17 +1087,13 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_text_index_rename@Base 0
  camel_text_index_validate@Base 0
  camel_text_to_html@Base 0
- camel_tolower@Base 0
- camel_toupper@Base 0
  camel_transfer_encoding_from_string@Base 0
  camel_transfer_encoding_get_type@Base 0
  camel_transfer_encoding_to_string@Base 0
  camel_transport_get_type@Base 0
- camel_transport_lock@Base 0
  camel_transport_send_to@Base 0
  camel_transport_send_to_finish@Base 0
  camel_transport_send_to_sync@Base 0
- camel_transport_unlock@Base 0
  camel_trie_add@Base 0
  camel_trie_free@Base 0
  camel_trie_new@Base 0
@@ -1431,15 +1170,14 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_vee_folder_get_type@Base 0
  camel_vee_folder_get_vee_uid_folder@Base 0
  camel_vee_folder_ignore_next_changed_event@Base 0
- camel_vee_folder_lock@Base 0
  camel_vee_folder_new@Base 0
  camel_vee_folder_rebuild_folder@Base 0
  camel_vee_folder_remove_folder@Base 0
+ camel_vee_folder_remove_from_ignore_changed_event@Base 0
  camel_vee_folder_remove_vuid@Base 0
  camel_vee_folder_set_auto_update@Base 0
  camel_vee_folder_set_expression@Base 0
  camel_vee_folder_set_folders@Base 0
- camel_vee_folder_unlock@Base 0
  camel_vee_message_info_data_get_orig_message_uid@Base 0
  camel_vee_message_info_data_get_subfolder_data@Base 0
  camel_vee_message_info_data_get_type@Base 0
@@ -1470,47 +1208,11 @@ libcamel-1.2.so.45 libcamel-1.2-45 #MINVER#
  camel_vtrash_folder_get_type@Base 0
  camel_vtrash_folder_new@Base 0
  camel_write@Base 0
- camel_write_socket@Base 0
  camel_ydecode_step@Base 0
  camel_yencode_close@Base 0
  camel_yencode_step@Base 0
- capa_table@Base 0
  g_string_append_u@Base 0
  generators_count@Base 0
- imapx_concat@Base 0
- imapx_connect_to_server@Base 0
- imapx_copy_status@Base 0
- imapx_dump_fetch@Base 0
- imapx_free_body@Base 0
- imapx_free_capability@Base 0
- imapx_free_fetch@Base 0
- imapx_free_status@Base 0
- imapx_get_temp_uid@Base 0
- imapx_is_mask@Base 0
- imapx_lookup_capability@Base 3.5.91
- imapx_parse_address_list@Base 0
- imapx_parse_body@Base 0
- imapx_parse_body_fields@Base 0
- imapx_parse_capability@Base 0
- imapx_parse_envelope@Base 0
- imapx_parse_ext_optional@Base 0
- imapx_parse_fetch@Base 0
- imapx_parse_flags@Base 0
- imapx_parse_namespace_list@Base 0
- imapx_parse_param_list@Base 0
- imapx_parse_section@Base 0
- imapx_parse_status@Base 0
- imapx_parse_uids@Base 0
- imapx_path_to_physical@Base 0
- imapx_register_capability@Base 0
- imapx_set_message_info_flags_for_new_message@Base 0
- imapx_specials@Base 0
- imapx_tokenise@Base 0
- imapx_tokenise_struct@Base 0
- imapx_update_message_info_flags@Base 0
- imapx_update_store_summary@Base 0
- imapx_utils_init@Base 0
- imapx_write_flags@Base 0
  known_iconv_charsets@Base 0
  nss_initialized@Base 0
  nss_initlock@Base 0

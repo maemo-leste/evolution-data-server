@@ -1,3 +1,15 @@
+evolution-data-server (3.11.90-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+    - Adjust build-dependencies
+    - Bump soname for libcamel-1.2 from 45 to 49
+    - Adjust .symbols files
+  * debian/control.in:
+    - Bump Standards-Version to 3.9.5 (no further changes)
+    - Adjust Homepage URL
+
+ -- Laurent Bigonville <bigon@debian.org>  Mon, 17 Feb 2014 22:37:52 +0100
+
 evolution-data-server (3.10.1-2) experimental; urgency=low
 
   [ Yves-Alexis Perez ]
