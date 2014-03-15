@@ -11,6 +11,9 @@ evolution-data-server (3.11.91-1) UNRELEASED; urgency=medium
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release (3.11.91).
+  * debian/control:
+    + Build against gnome-online-accounts 3.8 in preparation for an
+      upload to unstable.
 
  -- Laurent Bigonville <bigon@debian.org>  Mon, 17 Feb 2014 22:37:52 +0100
 
