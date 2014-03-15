@@ -16,6 +16,8 @@ evolution-data-server (3.11.91-1) UNRELEASED; urgency=medium
       upload to unstable.
   * debian/libcamel-1.2-49.symbols:
     + Update for the new symbols.
+  * debian/rules:
+    + Fail the build if there are mismatches with the symbols files.
 
  -- Laurent Bigonville <bigon@debian.org>  Mon, 17 Feb 2014 22:37:52 +0100
 
