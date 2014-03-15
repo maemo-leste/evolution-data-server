@@ -111,6 +111,9 @@ libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  camel_data_wrapper_construct_from_stream@Base 0
  camel_data_wrapper_construct_from_stream_finish@Base 0
  camel_data_wrapper_construct_from_stream_sync@Base 0
+ camel_data_wrapper_decode_to_output_stream@Base 3.11.91
+ camel_data_wrapper_decode_to_output_stream_finish@Base 3.11.91
+ camel_data_wrapper_decode_to_output_stream_sync@Base 3.11.91
  camel_data_wrapper_decode_to_stream@Base 0
  camel_data_wrapper_decode_to_stream_finish@Base 0
  camel_data_wrapper_decode_to_stream_sync@Base 0
@@ -122,6 +125,9 @@ libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  camel_data_wrapper_new@Base 0
  camel_data_wrapper_set_mime_type@Base 0
  camel_data_wrapper_set_mime_type_field@Base 0
+ camel_data_wrapper_write_to_output_stream@Base 3.11.91
+ camel_data_wrapper_write_to_output_stream_finish@Base 3.11.91
+ camel_data_wrapper_write_to_output_stream_sync@Base 3.11.91
  camel_data_wrapper_write_to_stream@Base 0
  camel_data_wrapper_write_to_stream_finish@Base 0
  camel_data_wrapper_write_to_stream_sync@Base 0
@@ -172,6 +178,7 @@ libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  camel_db_write_preview_record@Base 0
  camel_debug@Base 0
  camel_debug_end@Base 0
+ camel_debug_get_backtrace@Base 3.11.91
  camel_debug_init@Base 0
  camel_debug_start@Base 0
  camel_enriched_to_html@Base 0
@@ -334,6 +341,7 @@ libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  camel_folder_summary_get_folder@Base 0
  camel_folder_summary_get_hash@Base 0
  camel_folder_summary_get_index@Base 0
+ camel_folder_summary_get_info_flags@Base 3.11.91
  camel_folder_summary_get_junk_count@Base 0
  camel_folder_summary_get_junk_not_deleted_count@Base 0
  camel_folder_summary_get_need_preview@Base 0
