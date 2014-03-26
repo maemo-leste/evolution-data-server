@@ -1,4 +1,4 @@
-evolution-data-server (3.11.91-1) UNRELEASED; urgency=medium
+evolution-data-server (3.12.0-1) UNRELEASED; urgency=medium
 
   [ Laurent Bigonville ]
   * New upstream release (3.11.90).
@@ -10,7 +10,7 @@ evolution-data-server (3.11.91-1) UNRELEASED; urgency=medium
     - Adjust Homepage URL
 
   [ Emilio Pozuelo Monfort ]
-  * New upstream release (3.11.91).
+  * New upstream release (3.12.0).
   * debian/control:
     + Build against gnome-online-accounts 3.8 in preparation for an
       upload to unstable.
