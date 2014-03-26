@@ -1,4 +1,6 @@
-evolution-data-server (3.12.0-1) UNRELEASED; urgency=medium
+evolution-data-server (3.12.0-1) experimental; urgency=medium
+
+  * Team upload.
 
   [ Laurent Bigonville ]
   * New upstream release (3.11.90).
@@ -19,7 +21,7 @@ evolution-data-server (3.12.0-1) UNRELEASED; urgency=medium
   * debian/rules:
     + Fail the build if there are mismatches with the symbols files.
 
- -- Laurent Bigonville <bigon@debian.org>  Mon, 17 Feb 2014 22:37:52 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 26 Mar 2014 17:29:30 +0100
 
 evolution-data-server (3.10.1-2) experimental; urgency=low
 
