@@ -108,6 +108,9 @@ libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  camel_data_cache_set_expire_access@Base 0
  camel_data_cache_set_expire_age@Base 0
  camel_data_cache_set_path@Base 0
+ camel_data_wrapper_construct_from_input_stream@Base 3.12.0
+ camel_data_wrapper_construct_from_input_stream_finish@Base 3.12.0
+ camel_data_wrapper_construct_from_input_stream_sync@Base 3.12.0
  camel_data_wrapper_construct_from_stream@Base 0
  camel_data_wrapper_construct_from_stream_finish@Base 0
  camel_data_wrapper_construct_from_stream_sync@Base 0
