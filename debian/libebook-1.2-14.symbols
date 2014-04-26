@@ -1,5 +1,6 @@
 libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  _e_book_view_new@Base 3.5.91
+ book_client_delete_direct_cursor@Base 3.11.90
  e_book_add_contact@Base 3.5.91
  e_book_add_contact_async@Base 3.5.91
  e_book_async_add_contact@Base 3.5.91
@@ -26,9 +27,26 @@ libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  e_book_client_add_contacts_finish@Base 3.5.91
  e_book_client_add_contacts_sync@Base 3.5.91
  e_book_client_connect@Base 3.7.90
+ e_book_client_connect_direct@Base 3.11.90
+ e_book_client_connect_direct_finish@Base 3.11.90
  e_book_client_connect_direct_sync@Base 3.7.90
  e_book_client_connect_finish@Base 3.7.90
  e_book_client_connect_sync@Base 3.7.90
+ e_book_client_cursor_get_alphabet@Base 3.11.90
+ e_book_client_cursor_get_contact_alphabetic_index@Base 3.11.90
+ e_book_client_cursor_get_position@Base 3.11.90
+ e_book_client_cursor_get_total@Base 3.11.90
+ e_book_client_cursor_get_type@Base 3.11.90
+ e_book_client_cursor_ref_client@Base 3.11.90
+ e_book_client_cursor_set_alphabetic_index@Base 3.11.90
+ e_book_client_cursor_set_alphabetic_index_finish@Base 3.11.90
+ e_book_client_cursor_set_alphabetic_index_sync@Base 3.11.90
+ e_book_client_cursor_set_sexp@Base 3.11.90
+ e_book_client_cursor_set_sexp_finish@Base 3.11.90
+ e_book_client_cursor_set_sexp_sync@Base 3.11.90
+ e_book_client_cursor_step@Base 3.11.90
+ e_book_client_cursor_step_finish@Base 3.11.90
+ e_book_client_cursor_step_sync@Base 3.11.90
  e_book_client_get_contact@Base 3.5.91
  e_book_client_get_contact_finish@Base 3.5.91
  e_book_client_get_contact_sync@Base 3.5.91
@@ -38,6 +56,10 @@ libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  e_book_client_get_contacts_uids@Base 3.5.91
  e_book_client_get_contacts_uids_finish@Base 3.5.91
  e_book_client_get_contacts_uids_sync@Base 3.5.91
+ e_book_client_get_cursor@Base 3.11.90
+ e_book_client_get_cursor_finish@Base 3.11.90
+ e_book_client_get_cursor_sync@Base 3.11.90
+ e_book_client_get_locale@Base 3.11.90
  e_book_client_get_self@Base 3.5.91
  e_book_client_get_type@Base 3.5.91
  e_book_client_get_view@Base 3.5.91
@@ -65,6 +87,7 @@ libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  e_book_client_view_get_connection@Base 3.7.90
  e_book_client_view_get_object_path@Base 3.7.90
  e_book_client_view_get_type@Base 3.5.91
+ e_book_client_view_ref_client@Base 3.10.0
  e_book_client_view_set_fields_of_interest@Base 3.5.91
  e_book_client_view_set_flags@Base 3.5.91
  e_book_client_view_start@Base 3.5.91
@@ -95,7 +118,6 @@ libebook-1.2.so.14 libebook-1.2-14 #MINVER#
  e_book_is_opened@Base 3.5.91
  e_book_is_self@Base 3.5.91
  e_book_is_writable@Base 3.5.91
- e_book_marshal_VOID__UINT_STRING@Base 3.5.91
  e_book_new@Base 3.5.91
  e_book_open@Base 3.5.91
  e_book_open_async@Base 3.5.91

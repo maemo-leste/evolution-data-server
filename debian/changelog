@@ -1,14 +1,49 @@
-evolution-data-server (3.8.5-3) unstable; urgency=medium
+evolution-data-server (3.12.0-1) experimental; urgency=medium
+
+  * Team upload.
+
+  [ Laurent Bigonville ]
+  * New upstream release (3.11.90).
+    - Adjust build-dependencies
+    - Bump soname for libcamel-1.2 from 45 to 49
+    - Adjust .symbols files
+  * debian/control.in:
+    - Bump Standards-Version to 3.9.5 (no further changes)
+    - Adjust Homepage URL
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream release (3.12.0).
+  * debian/control:
+    + Build against gnome-online-accounts 3.8 in preparation for an
+      upload to unstable.
+  * debian/libcamel-1.2-49.symbols:
+    + Update for the new symbols.
+  * debian/rules:
+    + Fail the build if there are mismatches with the symbols files.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 26 Mar 2014 17:29:30 +0100
+
+evolution-data-server (3.10.1-2) experimental; urgency=low
 
   [ Yves-Alexis Perez ]
+  * Team upload.
   * Remove myself from uploaders, this should have been done a long time
     ago.
 
-  [ Josselin Mouette ]
-  * 01_gconf_tree.patch: fix upgrades on accounts where gconf-merge-tree 
-    has been run.
+  [ Sjoerd Simons ]
+  * debian/control: Build against G3.10 gnome-online-accounts
 
- -- Josselin Mouette <joss@debian.org>  Thu, 31 Oct 2013 15:58:55 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 03 Nov 2013 23:22:38 +0100
+
+evolution-data-server (3.10.1-1) experimental; urgency=low
+
+  * New upstream release.
+  * Drop all patches, all were cherrypicked from git.
+  * Bump Build-Depends on libgoa-dev to >= 3.8, as per configure.ac.
+  * Adjust packaging for the usual eds soname bumps.
+  * Update symbols.
+
+ -- Jordi Mallach <jordi@debian.org>  Thu, 17 Oct 2013 23:59:24 +0200
 
 evolution-data-server (3.8.5-2) unstable; urgency=low
 

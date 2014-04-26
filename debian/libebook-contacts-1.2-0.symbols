@@ -7,7 +7,9 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_book_client_error_quark@Base 3.7.90
  e_book_client_error_to_string@Base 3.7.90
  e_book_client_view_flags_get_type@Base 3.7.90
- e_book_contacts_marshal_VOID__UINT_STRING@Base 3.7.90
+ e_book_cursor_origin_get_type@Base 3.11.90
+ e_book_cursor_sort_type_get_type@Base 3.11.90
+ e_book_cursor_step_flags_get_type@Base 3.11.90
  e_book_index_type_get_type@Base 3.7.90
  e_book_query_and@Base 3.7.90
  e_book_query_andv@Base 3.7.90
@@ -142,6 +144,7 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_vcard_attribute_remove_value@Base 3.7.90
  e_vcard_attribute_remove_values@Base 3.7.90
  e_vcard_construct@Base 3.7.90
+ e_vcard_construct_full@Base 3.11.90
  e_vcard_construct_with_uid@Base 3.7.90
  e_vcard_dump_structure@Base 3.7.90
  e_vcard_escape_string@Base 3.7.90

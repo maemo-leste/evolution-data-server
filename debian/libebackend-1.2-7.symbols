@@ -1,10 +1,11 @@
-libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
+libebackend-1.2.so.7 libebackend-1.2-7 #MINVER#
  e_authentication_mediator_dismiss@Base 0
  e_authentication_mediator_get_connection@Base 0
  e_authentication_mediator_get_object_path@Base 0
  e_authentication_mediator_get_sender@Base 0
  e_authentication_mediator_get_type@Base 0
  e_authentication_mediator_new@Base 0
+ e_authentication_mediator_server_error@Base 3.11.90
  e_authentication_mediator_wait_for_client@Base 0
  e_authentication_mediator_wait_for_client_finish@Base 0
  e_authentication_mediator_wait_for_client_sync@Base 0
@@ -71,6 +72,7 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_collection_backend_list_contacts_sources@Base 0
  e_collection_backend_list_mail_sources@Base 0
  e_collection_backend_new_child@Base 0
+ e_collection_backend_ref_proxy_resolver@Base 3.11.90
  e_collection_backend_ref_server@Base 0
  e_data_factory_get_type@Base 0
  e_data_factory_ref_backend@Base 0
@@ -100,6 +102,9 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_dbus_address_book_call_get_contact_list_uids_finish@Base 3.7.90
  e_dbus_address_book_call_get_contact_list_uids_sync@Base 3.7.90
  e_dbus_address_book_call_get_contact_sync@Base 3.7.90
+ e_dbus_address_book_call_get_cursor@Base 3.11.90
+ e_dbus_address_book_call_get_cursor_finish@Base 3.11.90
+ e_dbus_address_book_call_get_cursor_sync@Base 3.11.90
  e_dbus_address_book_call_get_view@Base 3.7.90
  e_dbus_address_book_call_get_view_finish@Base 3.7.90
  e_dbus_address_book_call_get_view_sync@Base 3.7.90
@@ -120,13 +125,47 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_dbus_address_book_complete_get_contact@Base 3.7.90
  e_dbus_address_book_complete_get_contact_list@Base 3.7.90
  e_dbus_address_book_complete_get_contact_list_uids@Base 3.7.90
+ e_dbus_address_book_complete_get_cursor@Base 3.11.90
  e_dbus_address_book_complete_get_view@Base 3.7.90
  e_dbus_address_book_complete_modify_contacts@Base 3.7.90
  e_dbus_address_book_complete_open@Base 3.7.90
  e_dbus_address_book_complete_refresh@Base 3.7.90
  e_dbus_address_book_complete_remove_contacts@Base 3.7.90
+ e_dbus_address_book_cursor_call_dispose@Base 3.11.90
+ e_dbus_address_book_cursor_call_dispose_finish@Base 3.11.90
+ e_dbus_address_book_cursor_call_dispose_sync@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_alphabetic_index@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_alphabetic_index_finish@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_alphabetic_index_sync@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_query@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_query_finish@Base 3.11.90
+ e_dbus_address_book_cursor_call_set_query_sync@Base 3.11.90
+ e_dbus_address_book_cursor_call_step@Base 3.11.90
+ e_dbus_address_book_cursor_call_step_finish@Base 3.11.90
+ e_dbus_address_book_cursor_call_step_sync@Base 3.11.90
+ e_dbus_address_book_cursor_complete_dispose@Base 3.11.90
+ e_dbus_address_book_cursor_complete_set_alphabetic_index@Base 3.11.90
+ e_dbus_address_book_cursor_complete_set_query@Base 3.11.90
+ e_dbus_address_book_cursor_complete_step@Base 3.11.90
+ e_dbus_address_book_cursor_get_position@Base 3.11.90
+ e_dbus_address_book_cursor_get_total@Base 3.11.90
+ e_dbus_address_book_cursor_get_type@Base 3.11.90
+ e_dbus_address_book_cursor_interface_info@Base 3.11.90
+ e_dbus_address_book_cursor_override_properties@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_get_type@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_finish@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_for_bus@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_for_bus_finish@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_for_bus_sync@Base 3.11.90
+ e_dbus_address_book_cursor_proxy_new_sync@Base 3.11.90
+ e_dbus_address_book_cursor_set_position@Base 3.11.90
+ e_dbus_address_book_cursor_set_total@Base 3.11.90
+ e_dbus_address_book_cursor_skeleton_get_type@Base 3.11.90
+ e_dbus_address_book_cursor_skeleton_new@Base 3.11.90
  e_dbus_address_book_dup_cache_dir@Base 3.7.90
  e_dbus_address_book_dup_capabilities@Base 3.7.90
+ e_dbus_address_book_dup_locale@Base 3.11.90
  e_dbus_address_book_dup_required_fields@Base 3.7.90
  e_dbus_address_book_dup_revision@Base 3.7.90
  e_dbus_address_book_dup_supported_fields@Base 3.7.90
@@ -149,6 +188,7 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_dbus_address_book_factory_skeleton_new@Base 3.7.90
  e_dbus_address_book_get_cache_dir@Base 3.7.90
  e_dbus_address_book_get_capabilities@Base 3.7.90
+ e_dbus_address_book_get_locale@Base 3.11.90
  e_dbus_address_book_get_online@Base 3.7.90
  e_dbus_address_book_get_required_fields@Base 3.7.90
  e_dbus_address_book_get_revision@Base 3.7.90
@@ -166,6 +206,7 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_dbus_address_book_proxy_new_sync@Base 3.7.90
  e_dbus_address_book_set_cache_dir@Base 3.7.90
  e_dbus_address_book_set_capabilities@Base 3.7.90
+ e_dbus_address_book_set_locale@Base 3.11.90
  e_dbus_address_book_set_online@Base 3.7.90
  e_dbus_address_book_set_required_fields@Base 3.7.90
  e_dbus_address_book_set_revision@Base 3.7.90
@@ -191,7 +232,9 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_dbus_authenticator_complete_rejected@Base 0
  e_dbus_authenticator_emit_authenticate@Base 0
  e_dbus_authenticator_emit_dismissed@Base 0
+ e_dbus_authenticator_emit_server_error@Base 3.11.90
  e_dbus_authenticator_get_type@Base 0
+ e_dbus_authenticator_get_without_password@Base 3.10.0
  e_dbus_authenticator_interface_info@Base 0
  e_dbus_authenticator_override_properties@Base 0
  e_dbus_authenticator_proxy_get_type@Base 0
@@ -201,6 +244,7 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_dbus_authenticator_proxy_new_for_bus_finish@Base 0
  e_dbus_authenticator_proxy_new_for_bus_sync@Base 0
  e_dbus_authenticator_proxy_new_sync@Base 0
+ e_dbus_authenticator_set_without_password@Base 3.10.0
  e_dbus_authenticator_skeleton_get_type@Base 0
  e_dbus_authenticator_skeleton_new@Base 0
  e_dbus_calendar_call_add_timezone@Base 3.7.90
@@ -348,6 +392,21 @@ libebackend-1.2.so.6 libebackend-1.2-6 #MINVER#
  e_dbus_direct_book_set_backend_path@Base 3.7.90
  e_dbus_direct_book_skeleton_get_type@Base 3.7.90
  e_dbus_direct_book_skeleton_new@Base 3.7.90
+ e_dbus_locale1_dup_locale@Base 3.11.90
+ e_dbus_locale1_get_locale@Base 3.11.90
+ e_dbus_locale1_get_type@Base 3.11.90
+ e_dbus_locale1_interface_info@Base 3.11.90
+ e_dbus_locale1_override_properties@Base 3.11.90
+ e_dbus_locale1_proxy_get_type@Base 3.11.90
+ e_dbus_locale1_proxy_new@Base 3.11.90
+ e_dbus_locale1_proxy_new_finish@Base 3.11.90
+ e_dbus_locale1_proxy_new_for_bus@Base 3.11.90
+ e_dbus_locale1_proxy_new_for_bus_finish@Base 3.11.90
+ e_dbus_locale1_proxy_new_for_bus_sync@Base 3.11.90
+ e_dbus_locale1_proxy_new_sync@Base 3.11.90
+ e_dbus_locale1_set_locale@Base 3.11.90
+ e_dbus_locale1_skeleton_get_type@Base 3.11.90
+ e_dbus_locale1_skeleton_new@Base 3.11.90
  e_dbus_object_get_source@Base 0
  e_dbus_object_get_source_oauth2_support@Base 3.7.4~
  e_dbus_object_get_source_remote_creatable@Base 0
