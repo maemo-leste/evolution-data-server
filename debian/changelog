@@ -1,3 +1,10 @@
+evolution-data-server (3.12.2-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * debian/control: downgrade Build-Depends on libgoa-1.0-dev to >= 3.8.
+
+ -- Jordi Mallach <jordi@debian.org>  Mon, 12 May 2014 01:34:22 +0200
+
 evolution-data-server (3.12.1-1) unstable; urgency=medium
 
   * New upstream release.
