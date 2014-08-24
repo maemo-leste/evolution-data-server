@@ -46,6 +46,7 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_contact_duplicate@Base 3.7.90
  e_contact_field_id@Base 3.7.90
  e_contact_field_id_from_vcard@Base 3.7.90
+ e_contact_field_is_string@Base 3.12.5
  e_contact_field_name@Base 3.7.90
  e_contact_field_type@Base 3.7.90
  e_contact_geo_free@Base 3.7.90

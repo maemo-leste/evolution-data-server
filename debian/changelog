@@ -1,3 +1,11 @@
+evolution-data-server (3.12.5-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Update debian/libebook-contacts-1.2-0.symbols with one addition.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sat, 23 Aug 2014 17:57:19 -0700
+
 evolution-data-server (3.12.2-1) unstable; urgency=medium
 
   * New upstream release.
