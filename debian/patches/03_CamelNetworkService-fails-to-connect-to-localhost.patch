@@ -5,12 +5,10 @@ Subject: Bug 734853 - CamelNetworkService fails to connect to 'localhost'
 
 A regression after a change for bug 731585.
 
-diff --git a/camel/camel-network-service.c b/camel/camel-network-service.c
-index d1ad212..c54f284 100644
---- a/camel/camel-network-service.c
-+++ b/camel/camel-network-service.c
-@@ -665,7 +665,7 @@ network_service_new_connectable (CamelNetworkService *service)
- 	host = camel_network_settings_dup_host_ensure_ascii (network_settings);
+--- evolution-data-server-3.12.5.orig/camel/camel-network-service.c
++++ evolution-data-server-3.12.5/camel/camel-network-service.c
+@@ -665,7 +665,7 @@ network_service_new_connectable (CamelNe
+ 	host = camel_network_settings_dup_host (network_settings);
  	port = camel_network_settings_get_port (network_settings);
  
 -	if (host && *host && g_ascii_strcasecmp (host, "localhost") != 0)
@@ -18,11 +16,9 @@ index d1ad212..c54f284 100644
  		connectable = g_network_address_new (host, port);
  
  	g_free (host);
-diff --git a/camel/camel-network-settings.c b/camel/camel-network-settings.c
-index 9bd2c06..7322634 100644
---- a/camel/camel-network-settings.c
-+++ b/camel/camel-network-settings.c
-@@ -57,7 +57,7 @@ camel_network_settings_default_init (CamelNetworkSettingsInterface *iface)
+--- evolution-data-server-3.12.5.orig/camel/camel-network-settings.c
++++ evolution-data-server-3.12.5/camel/camel-network-settings.c
+@@ -56,7 +56,7 @@ camel_network_settings_default_init (Cam
  			"host",
  			"Host",
  			"Host name for the network service",
@@ -31,11 +27,9 @@ index 9bd2c06..7322634 100644
  			G_PARAM_READWRITE |
  			G_PARAM_CONSTRUCT |
  			G_PARAM_STATIC_STRINGS));
-diff --git a/camel/camel-sasl-digest-md5.c b/camel/camel-sasl-digest-md5.c
-index 49846f9..53b835a 100644
---- a/camel/camel-sasl-digest-md5.c
-+++ b/camel/camel-sasl-digest-md5.c
-@@ -838,8 +838,10 @@ sasl_digest_md5_challenge_sync (CamelSasl *sasl,
+--- evolution-data-server-3.12.5.orig/camel/camel-sasl-digest-md5.c
++++ evolution-data-server-3.12.5/camel/camel-sasl-digest-md5.c
+@@ -838,8 +838,10 @@ sasl_digest_md5_challenge_sync (CamelSas
  
  	g_return_val_if_fail (user != NULL, NULL);
  
@@ -47,11 +41,9 @@ index 49846f9..53b835a 100644
  
  	password = camel_service_get_password (service);
  	g_return_val_if_fail (password != NULL, NULL);
-diff --git a/camel/camel-sasl-gssapi.c b/camel/camel-sasl-gssapi.c
-index d8b53b4..5bf09a8 100644
---- a/camel/camel-sasl-gssapi.c
-+++ b/camel/camel-sasl-gssapi.c
-@@ -315,8 +315,10 @@ sasl_gssapi_challenge_sync (CamelSasl *sasl,
+--- evolution-data-server-3.12.5.orig/camel/camel-sasl-gssapi.c
++++ evolution-data-server-3.12.5/camel/camel-sasl-gssapi.c
+@@ -315,8 +315,10 @@ sasl_gssapi_challenge_sync (CamelSasl *s
  
  	g_return_val_if_fail (user != NULL, NULL);
  
@@ -63,6 +55,3 @@ index d8b53b4..5bf09a8 100644
  
  	switch (priv->state) {
  	case GSSAPI_STATE_INIT:
--- 
-cgit v0.10.1
-
