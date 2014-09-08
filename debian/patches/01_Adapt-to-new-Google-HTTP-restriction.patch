@@ -1,0 +1,185 @@
+From 00a465670ef3d8adbaf011b3e697ba5befb00623 Mon Sep 17 00:00:00 2001
+From: Matthew Barnes <mbarnes@redhat.com>
+Date: Mon, 25 Aug 2014 11:01:20 -0400
+Subject: Bug 735311 - Adapt to new Google HTTP restriction
+
+Google has recently imposed a limit on the number of unauthorized HTTP
+requests to its OAuth2-based interfaces.
+
+The normal operation of SoupSession is to issue the first HTTP request
+unauthorized and see if the server issues a "401 Unauthorized" response
+(since not all HTTP services require authorization).
+
+On a "401 Unauthorized" response, SoupSession emits an "authenticate"
+signal, which the application is supposed to handle.  Once credentials
+are in hand, SoupSession resends the same HTTP request and subsequent
+requests with an Authenticate header while the socket connection holds.
+
+Google's unauthorized request limit breaks this logic flow.  Once the
+limit is exceeded, the Google server issues a "403 Forbidden" response
+instead of "401 Unauthorized" to an unauthorized HTTP request.  This
+breaks error handling in the E-D-S CalDAV backend.
+
+The workaround is to preload the SoupAuthManager with a pre-configured
+SoupAuth when using OAuth 2.0 authentication.  This avoids the initial
+unauthorized HTTP round-trip.
+
+The backend implements the GInitable interface for this since obtaining
+a valid access token is a failable step.
+
+diff --git a/calendar/backends/caldav/e-cal-backend-caldav.c b/calendar/backends/caldav/e-cal-backend-caldav.c
+index 7f10720..f94a5a9 100644
+--- a/calendar/backends/caldav/e-cal-backend-caldav.c
++++ b/calendar/backends/caldav/e-cal-backend-caldav.c
+@@ -130,6 +130,8 @@ struct _ECalBackendCalDAVPrivate {
+ };
+ 
+ /* Forward Declarations */
++static void	e_caldav_backend_initable_init
++				(GInitableIface *interface);
+ static void	caldav_source_authenticator_init
+ 				(ESourceAuthenticatorInterface *iface);
+ 
+@@ -138,6 +140,9 @@ G_DEFINE_TYPE_WITH_CODE (
+ 	e_cal_backend_caldav,
+ 	E_TYPE_CAL_BACKEND_SYNC,
+ 	G_IMPLEMENT_INTERFACE (
++		G_TYPE_INITABLE,
++		e_caldav_backend_initable_init)
++	G_IMPLEMENT_INTERFACE (
+ 		E_TYPE_SOURCE_AUTHENTICATOR,
+ 		caldav_source_authenticator_init))
+ 
+@@ -5206,11 +5211,83 @@ e_cal_backend_caldav_finalize (GObject *object)
+ 	G_OBJECT_CLASS (parent_class)->finalize (object);
+ }
+ 
+-static void
+-e_cal_backend_caldav_init (ECalBackendCalDAV *cbdav)
++static gboolean
++caldav_backend_initable_init (GInitable *initable,
++                              GCancellable *cancellable,
++                              GError **error)
+ {
++	ECalBackendCalDAVPrivate *priv;
+ 	SoupSessionFeature *feature;
++	ESource *source;
++	const gchar *extension_name;
++	gchar *auth_method = NULL;
++	gboolean success = TRUE;
++
++	priv = E_CAL_BACKEND_CALDAV_GET_PRIVATE (initable);
++
++	feature = soup_session_get_feature (
++		priv->session, SOUP_TYPE_AUTH_MANAGER);
++
++	/* Add the "Bearer" auth type to support OAuth 2.0. */
++	soup_session_feature_add_feature (feature, E_TYPE_SOUP_AUTH_BEARER);
++	g_mutex_init (&priv->bearer_auth_error_lock);
++
++	/* Preload the SoupAuthManager with a valid "Bearer" token
++	 * when using OAuth 2.0.  This avoids an extra unauthorized
++	 * HTTP round-trip, which apparently Google doesn't like. */
++
++	source = e_backend_get_source (E_BACKEND (initable));
++
++	extension_name = E_SOURCE_EXTENSION_AUTHENTICATION;
++	if (e_source_has_extension (source, extension_name)) {
++		ESourceAuthentication *extension;
++
++		extension = e_source_get_extension (source, extension_name);
++		auth_method = e_source_authentication_dup_method (extension);
++	}
++
++	if (g_strcmp0 (auth_method, "OAuth2") == 0) {
++		ESourceWebdav *extension;
++		SoupAuth *soup_auth;
++		SoupURI *soup_uri;
++		gchar *access_token = NULL;
++		gint expires_in_seconds = -1;
++
++		extension_name = E_SOURCE_EXTENSION_WEBDAV_BACKEND;
++		extension = e_source_get_extension (source, extension_name);
++		soup_uri = e_source_webdav_dup_soup_uri (extension);
+ 
++		soup_auth = g_object_new (
++			E_TYPE_SOUP_AUTH_BEARER,
++			SOUP_AUTH_HOST, soup_uri->host, NULL);
++
++		success = e_source_get_oauth2_access_token_sync (
++			source, cancellable, &access_token,
++			&expires_in_seconds, error);
++
++		if (success) {
++			e_soup_auth_bearer_set_access_token (
++				E_SOUP_AUTH_BEARER (soup_auth),
++				access_token, expires_in_seconds);
++
++			soup_auth_manager_use_auth (
++				SOUP_AUTH_MANAGER (feature),
++				soup_uri, soup_auth);
++		}
++
++		g_free (access_token);
++		g_object_unref (soup_auth);
++		soup_uri_free (soup_uri);
++	}
++
++	g_free (auth_method);
++
++	return success;
++}
++
++static void
++e_cal_backend_caldav_init (ECalBackendCalDAV *cbdav)
++{
+ 	cbdav->priv = E_CAL_BACKEND_CALDAV_GET_PRIVATE (cbdav);
+ 	cbdav->priv->session = soup_session_sync_new ();
+ 	g_object_set (
+@@ -5225,17 +5302,6 @@ e_cal_backend_caldav_init (ECalBackendCalDAV *cbdav)
+ 		cbdav->priv->session, "proxy-resolver",
+ 		G_BINDING_SYNC_CREATE);
+ 
+-	/* XXX SoupAuthManager is public API as of libsoup 2.42, but
+-	 *     this isn't worth bumping our libsoup requirement over.
+-	 *     So get the SoupAuthManager GType by its type name. */
+-	feature = soup_session_get_feature (
+-		cbdav->priv->session,
+-		g_type_from_name ("SoupAuthManager"));
+-
+-	/* Add the "Bearer" auth type to support OAuth 2.0. */
+-	soup_session_feature_add_feature (feature, E_TYPE_SOUP_AUTH_BEARER);
+-	g_mutex_init (&cbdav->priv->bearer_auth_error_lock);
+-
+ 	if (G_UNLIKELY (caldav_debug_show (DEBUG_MESSAGE)))
+ 		caldav_debug_setup (cbdav->priv->session);
+ 
+@@ -5305,3 +5371,10 @@ e_cal_backend_caldav_class_init (ECalBackendCalDAVClass *class)
+ 
+ 	backend_class->start_view = caldav_start_view;
+ }
++
++static void
++e_caldav_backend_initable_init (GInitableIface *interface)
++{
++	interface->init = caldav_backend_initable_init;
++}
++
+diff --git a/libedataserver/e-source-webdav.c b/libedataserver/e-source-webdav.c
+index 5ec6b9a..c30d353 100644
+--- a/libedataserver/e-source-webdav.c
++++ b/libedataserver/e-source-webdav.c
+@@ -244,7 +244,9 @@ source_webdav_update_soup_uri_from_properties (ESourceWebdav *webdav_extension)
+ 
+ 	soup_uri_set_user (soup_uri, user);
+ 	soup_uri_set_host (soup_uri, host);
+-	soup_uri_set_port (soup_uri, port);
++
++	if (port > 0)
++		soup_uri_set_port (soup_uri, port);
+ 
+ 	/* SoupURI doesn't like NULL paths. */
+ 	soup_uri_set_path (soup_uri, (path != NULL) ? path : "");
+-- 
+cgit v0.10.1
+

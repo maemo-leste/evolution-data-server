@@ -1,4 +1,15 @@
 libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
+ _ZN4i18n12phonenumbers10NullLogger12WriteMessageERKSs@Base 3.13.5
+ _ZN4i18n12phonenumbers10NullLoggerD0Ev@Base 3.13.5
+ _ZN4i18n12phonenumbers10NullLoggerD1Ev@Base 3.13.5
+ _ZN4i18n12phonenumbers10NullLoggerD2Ev@Base 3.13.5
+ _ZN4i18n12phonenumbers6Logger10WriteLevelEv@Base 3.13.5
+ _ZTIN4i18n12phonenumbers10NullLoggerE@Base 3.13.5
+ _ZTIN4i18n12phonenumbers6LoggerE@Base 3.13.5
+ _ZTSN4i18n12phonenumbers10NullLoggerE@Base 3.13.5
+ _ZTSN4i18n12phonenumbers6LoggerE@Base 3.13.5
+ _ZTVN4i18n12phonenumbers10NullLoggerE@Base 3.13.5
+ _ZTVN4i18n12phonenumbers6LoggerE@Base 3.13.5
  e_address_western_free@Base 3.7.90
  e_address_western_parse@Base 3.7.90
  e_book_change_type_get_type@Base 3.7.90
@@ -46,6 +57,7 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_contact_duplicate@Base 3.7.90
  e_contact_field_id@Base 3.7.90
  e_contact_field_id_from_vcard@Base 3.7.90
+ e_contact_field_is_string@Base 3.12.5
  e_contact_field_name@Base 3.7.90
  e_contact_field_type@Base 3.7.90
  e_contact_geo_free@Base 3.7.90
@@ -53,6 +65,7 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_contact_geo_new@Base 3.7.90
  e_contact_get@Base 3.7.90
  e_contact_get_attributes@Base 3.7.90
+ e_contact_get_attributes_set@Base 3.13.5
  e_contact_get_const@Base 3.7.90
  e_contact_get_type@Base 3.7.90
  e_contact_inline_local_photos@Base 3.7.90
@@ -159,4 +172,3 @@ libebook-contacts-1.2.so.0 libebook-contacts-1.2-0 #MINVER#
  e_vcard_remove_attributes@Base 3.7.90
  e_vcard_to_string@Base 3.7.90
  e_vcard_unescape_string@Base 3.7.90
-
