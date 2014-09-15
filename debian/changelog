@@ -6,6 +6,9 @@ evolution-data-server (3.13.5-1) UNRELEASED; urgency=medium
     calendar
   * debian/rules, debian/control: Enable libphonenumber on linux architectures
     (Closes: #758653)
+  * Add debian/patches/02_Only-export-symbols-starting-with-e.patch: Hide
+    symbols not starting with 'e_.*' to avoid some libphonenumber symbols to
+    be exported.
 
   [ Jean Schurger ]
   * New upstream release.
@@ -18,7 +21,7 @@ evolution-data-server (3.13.5-1) UNRELEASED; urgency=medium
     - Bump soname for libedata-cal-1.2 from 23 to 26
     - Bump soname for libedataserver-1.2 from 18 to 19  
 
- -- Jean Schurger <jean@schurger.org>  Sat, 06 Sep 2014 17:20:31 -0400
+ -- Jean Schurger <jean@schurger.org>  Mon, 15 Sep 2014 09:46:40 -0400
 
 evolution-data-server (3.12.5-1) unstable; urgency=medium
 
