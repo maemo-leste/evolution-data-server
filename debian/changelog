@@ -1,4 +1,4 @@
-evolution-data-server (3.12.6-1) UNRELEASED; urgency=medium
+evolution-data-server (3.12.6-1) unstable; urgency=medium
 
   * New upstream release.
     - Drop d/p/01_Adapt-to-new-Google-HTTP-restriction.patch,
@@ -6,7 +6,7 @@ evolution-data-server (3.12.6-1) UNRELEASED; urgency=medium
       upstream
     - Adjust debian/libcamel-1.2-49.symbols file: New symbols added
 
- -- Laurent Bigonville <bigon@debian.org>  Mon, 15 Sep 2014 10:49:42 +0200
+ -- Laurent Bigonville <bigon@debian.org>  Mon, 15 Sep 2014 15:28:33 +0200
 
 evolution-data-server (3.12.5-2) unstable; urgency=medium
 
