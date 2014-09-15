@@ -1,3 +1,1 @@
-01_Adapt-to-new-Google-HTTP-restriction.patch
 02_Only-export-symbols-starting-with-e.patch
-03_CamelNetworkService-fails-to-connect-to-localhost.patch

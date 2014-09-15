@@ -454,6 +454,7 @@ libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  camel_header_set_param@Base 0
  camel_header_token_decode@Base 0
  camel_header_unfold@Base 0
+ camel_host_idna_to_ascii@Base 3.12.6
  camel_html_parser_attr@Base 0
  camel_html_parser_attr_list@Base 0
  camel_html_parser_get_type@Base 0
@@ -491,6 +492,7 @@ libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  camel_init@Base 0
  camel_internet_address_add@Base 0
  camel_internet_address_encode_address@Base 0
+ camel_internet_address_ensure_ascii_domains@Base 3.12.6
  camel_internet_address_find_address@Base 0
  camel_internet_address_find_name@Base 0
  camel_internet_address_format_address@Base 0
@@ -745,6 +747,7 @@ libcamel-1.2.so.49 libcamel-1.2-49 #MINVER#
  camel_network_service_starttls@Base 0
  camel_network_settings_dup_auth_mechanism@Base 0
  camel_network_settings_dup_host@Base 0
+ camel_network_settings_dup_host_ensure_ascii@Base 3.12.6
  camel_network_settings_dup_user@Base 0
  camel_network_settings_get_auth_mechanism@Base 0
  camel_network_settings_get_host@Base 0
