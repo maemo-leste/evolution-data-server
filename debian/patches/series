@@ -1,1 +1,2 @@
 01_Adapt-to-new-Google-HTTP-restriction.patch
+02_Only-export-symbols-starting-with-e.patch
