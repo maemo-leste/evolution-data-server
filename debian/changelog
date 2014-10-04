@@ -1,3 +1,12 @@
+evolution-data-server (3.12.6-1.1) unstable; urgency=medium
+
+  * Non-Maintainer Upload
+  * Restrict use of libphonenumber to architectures where it is confirmed to
+    be available. (Closes: 762129)
+  
+
+ -- Peter Michael Green <plugwash@debian.org>  Wed, 17 Sep 2014 19:10:52 +0000
+
 evolution-data-server (3.12.6-1) unstable; urgency=medium
 
   * New upstream release.
