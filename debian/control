@@ -13,7 +13,7 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            David Weinehall <tao@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Laurent Bigonville <bigon@debian.org>
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: https://wiki.gnome.org/Apps/Evolution
 Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server

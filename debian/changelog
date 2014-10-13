@@ -1,6 +1,7 @@
 evolution-data-server (3.12.7-1) UNRELEASED; urgency=medium
 
   * New upstream release 3.12.7
+  * debian/control: Standards-Version → 3.9.6, no changes required
 
  -- Iain Lane <laney@debian.org>  Mon, 13 Oct 2014 14:49:53 +0100
 
