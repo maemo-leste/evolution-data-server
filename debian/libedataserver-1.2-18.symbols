@@ -1033,6 +1033,8 @@ libedataserver-1.2.so.18 libedataserver-1.2-18 #MINVER#
  e_source_registry_create_sources_finish@Base 3.5.91
  e_source_registry_create_sources_sync@Base 3.5.91
  e_source_registry_debug_dump@Base 3.5.91
+ e_source_registry_debug_enabled@Base 3.12.9~
+ e_source_registry_debug_print@Base 3.12.9~
  e_source_registry_dup_unique_display_name@Base 3.8.2
  e_source_registry_find_extension@Base 3.5.91
  e_source_registry_free_display_tree@Base 3.5.91

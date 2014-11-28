@@ -1,7 +1,9 @@
-evolution-data-server (3.12.7.1-2) UNRELEASED; urgency=medium
+evolution-data-server (3.12.9~git20141128.5242b0-1) UNRELEASED; urgency=medium
 
   * Fix dependencies for development packages. Closes: #724595.
   * Depend on gnome-keyring. Closes: #739324, #753478.
+  * New upstream git snapshot from stable branch, includes only bugfixes 
+    and translations.
 
  -- Josselin Mouette <joss@debian.org>  Fri, 28 Nov 2014 09:29:02 +0100
 
