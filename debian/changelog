@@ -1,3 +1,9 @@
+evolution-data-server (3.12.9~git20141128.5242b0-2) unstable; urgency=medium
+
+  * Fix brown paper bug in libcamel1.2-dev dependencies.
+
+ -- Josselin Mouette <joss@debian.org>  Sun, 30 Nov 2014 23:59:50 +0100
+
 evolution-data-server (3.12.9~git20141128.5242b0-1) unstable; urgency=medium
 
   * Fix dependencies for development packages. Closes: #724595.

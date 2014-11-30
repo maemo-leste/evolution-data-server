@@ -204,10 +204,9 @@ Depends: libcamel-1.2-49 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libglib2.0-dev,
-         libsecret-1-dev,
-         libxml2-dev,
-         libsoup2.4-dev,
-         libsqlite3-dev (>= 3.5)
+         libsqlite3-dev (>= 3.5),
+         libnss3-dev,
+         libnspr4-dev
 Description: Development files for libcamel
  This package contains header files and static library for libcamel.
  .
