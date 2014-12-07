@@ -1,3 +1,10 @@
+evolution-data-server (3.12.9~git20141128.5242b0-3) UNRELEASED; urgency=medium
+
+  * Replace hardcoded list of libphonenumber architectures with just
+    [linux-any], so arm64 can also get this support.
+
+ -- Josselin Mouette <joss@debian.org>  Sun, 07 Dec 2014 11:52:25 +0100
+
 evolution-data-server (3.12.9~git20141128.5242b0-2) unstable; urgency=medium
 
   * Fix brown paper bug in libcamel1.2-dev dependencies.
