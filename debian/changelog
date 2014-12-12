@@ -20,6 +20,19 @@ evolution-data-server (3.12.9~git20141128.5242b0-1) unstable; urgency=medium
 
  -- Josselin Mouette <joss@debian.org>  Sun, 30 Nov 2014 09:55:18 +0100
 
+evolution-data-server (3.12.7.1-2) unstable; urgency=medium
+
+  * Replace hardcoded list of libphonenumber architectures with just
+    [!kfreebsd-any !hurd-any], so arm64 can also get this support.
+  * Add sqlite3_xfetch_crash.patch: Add upstream fix for crashes with
+    new sqlite3 (closes: #765812).
+  * Add imapx_no_connect_when_offline.patch: avoid server connections while
+    in offline mode.
+  * Add imapx_reconnect_after_socket_io_timeout.patch: Fix connection
+    problems after network state changes.
+
+ -- Jordi Mallach <jordi@debian.org>  Thu, 06 Nov 2014 21:10:18 +0100
+
 evolution-data-server (3.12.7.1-1) unstable; urgency=medium
 
   * New upstream release 3.12.7.1
