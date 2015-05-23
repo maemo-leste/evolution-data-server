@@ -25,6 +25,9 @@ evolution-data-server (3.16.2-1) UNRELEASED; urgency=medium
   * New upstream release 3.16.2.
   * debian/control:
     + Update (build-)dependencies.
+  * debian/patches/01_Adapt-to-new-Google-HTTP-restriction.patch,
+    debian/patches/02_Only-export-symbols-starting-with-e.patch:
+    + Removed, merged upstream.
 
  -- Jean Schurger <jean@schurger.org>  Mon, 15 Sep 2014 09:46:40 -0400
 
