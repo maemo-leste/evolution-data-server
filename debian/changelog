@@ -23,6 +23,8 @@ evolution-data-server (3.16.2-1) UNRELEASED; urgency=medium
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release 3.16.2.
+  * debian/control:
+    + Update (build-)dependencies.
 
  -- Jean Schurger <jean@schurger.org>  Mon, 15 Sep 2014 09:46:40 -0400
 
