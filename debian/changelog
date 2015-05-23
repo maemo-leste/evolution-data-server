@@ -1,4 +1,4 @@
-evolution-data-server (3.13.5-1) UNRELEASED; urgency=medium
+evolution-data-server (3.16.2-1) UNRELEASED; urgency=medium
 
   [ Laurent Bigonville ]
   * Add d/p/01_Adapt-to-new-Google-HTTP-restriction.patch: Adapt to new Google
@@ -11,7 +11,7 @@ evolution-data-server (3.13.5-1) UNRELEASED; urgency=medium
     be exported.
 
   [ Jean Schurger ]
-  * New upstream release.
+  * New upstream release 3.13.5.
   * debian/control, lib*.symbols, lib*.install:
     - Bump soname for libcamel-1.2 from 49 to 50
     - Bump soname for libebackend-1.2 from 7 to 9
@@ -20,6 +20,9 @@ evolution-data-server (3.13.5-1) UNRELEASED; urgency=medium
     - Bump soname for libedata-book-1.2 from 20 to 24
     - Bump soname for libedata-cal-1.2 from 23 to 26
     - Bump soname for libedataserver-1.2 from 18 to 19  
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream release 3.16.2.
 
  -- Jean Schurger <jean@schurger.org>  Mon, 15 Sep 2014 09:46:40 -0400
 
