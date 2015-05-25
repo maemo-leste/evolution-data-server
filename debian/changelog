@@ -1,4 +1,4 @@
-evolution-data-server (3.16.2-1) UNRELEASED; urgency=medium
+evolution-data-server (3.16.2-1) experimental; urgency=medium
 
   [ Laurent Bigonville ]
   * Add d/p/01_Adapt-to-new-Google-HTTP-restriction.patch: Adapt to new Google
@@ -32,7 +32,7 @@ evolution-data-server (3.16.2-1) UNRELEASED; urgency=medium
     debian/control:
     + Update for new sonames.
 
- -- Jean Schurger <jean@schurger.org>  Mon, 15 Sep 2014 09:46:40 -0400
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 25 May 2015 14:22:31 +0200
 
 evolution-data-server (3.12.5-1) unstable; urgency=medium
 
