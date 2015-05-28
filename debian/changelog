@@ -1,4 +1,4 @@
-evolution-data-server (3.16.2-2) UNRELEASED; urgency=medium
+evolution-data-server (3.16.2-2) experimental; urgency=medium
 
   * debian/evolution-data-server.install:
     + Add missing files from the new version.
@@ -7,7 +7,7 @@ evolution-data-server (3.16.2-2) UNRELEASED; urgency=medium
     debian/libedataserverui1.2-dev.install:
     + Add new packages for libedataserverui-1.2.so.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 28 May 2015 19:34:41 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 28 May 2015 19:41:03 +0200
 
 evolution-data-server (3.16.2-1) experimental; urgency=medium
 
