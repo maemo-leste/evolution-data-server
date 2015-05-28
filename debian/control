@@ -112,8 +112,7 @@ Package: evolution-data-server-doc
 Section: doc
 Architecture: all
 Depends: ${misc:Depends}
-Breaks: libedataserverui1.2-dev,
-        libcamel1.2-dev (<< 3.4.2),
+Breaks: libcamel1.2-dev (<< 3.4.2),
         libebackend1.2-dev (<< 3.4.2),
         libebook1.2-dev (<< 3.4.2),
         libecal1.2-dev (<< 3.4.2),
@@ -121,8 +120,7 @@ Breaks: libedataserverui1.2-dev,
         libedata-cal1.2-dev (<< 3.4.2),
         libedataserver1.2-dev (<< 3.4.2),
         libedataserverui-3.0-dev (<< 3.4.2)
-Replaces: libedataserverui1.2-dev,
-          libcamel1.2-dev (<< 3.4.2),
+Replaces: libcamel1.2-dev (<< 3.4.2),
           libebackend1.2-dev (<< 3.4.2),
           libebook1.2-dev (<< 3.4.2),
           libecal1.2-dev (<< 3.4.2),
@@ -182,6 +180,38 @@ Description: GObject introspection for the EDataServer library
  This package contains introspection data for the libedataserver 
  library. It can be used by packages using the GIRepository format to 
  generate dynamic bindings.
+
+Package: libedataserverui-1.2-1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         evolution-data-server-common (>= ${gnome:Version})
+Description: Utility library for evolution data servers
+ The data server, called "Evolution Data Server" is responsible for managing
+ calendar and addressbook information.
+ .
+ This package is a UI utility library for evolution-data-server.
+
+Package: libedataserverui1.2-dev
+Section: libdevel
+Architecture: any
+Depends: libedataserverui-1.2-1 (= ${binary:Version}),
+         ${shlibs:Depends},
+         ${misc:Depends},
+         libedata-book1.2-dev,
+         libcamel1.2-dev (= ${binary:Version}),
+         libedataserver1.2-dev (= ${binary:Version}),
+         libxml2-dev,
+         libglib2.0-dev (>= 2.40),
+         libgtk-3-dev,
+         libsoup2.4-dev,
+         libsecret-1-dev
+Description: Utility library for evolution data servers (development files)
+ The data server, called "Evolution Data Server" is responsible for managing
+ calendar and addressbook information.
+ .
+ This package contains development files for libedataserverui.
 
 Package: libcamel-1.2-52
 Section: libs
