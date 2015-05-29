@@ -1,9 +1,11 @@
-evolution-data-server (3.12.9~git20141128.5242b0-3) UNRELEASED; urgency=medium
+evolution-data-server (3.12.11-1) unstable; urgency=medium
 
   * Replace hardcoded list of libphonenumber architectures with just
     [linux-any], so arm64 can also get this support.
+  * New upstream bugfix release.
+  * Bump valac build-dependency.
 
- -- Josselin Mouette <joss@debian.org>  Sun, 07 Dec 2014 11:52:25 +0100
+ -- Josselin Mouette <joss@debian.org>  Fri, 29 May 2015 17:25:33 +0200
 
 evolution-data-server (3.12.9~git20141128.5242b0-2) unstable; urgency=medium
 

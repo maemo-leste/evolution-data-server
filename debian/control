@@ -54,7 +54,7 @@ Build-Depends: debhelper (>= 9),
                gperf,
                gnome-pkg-tools,
                pkg-config (>= 0.16),
-               valac (>= 0.20),
+               valac (>= 0.22),
                gnome-common (>= 3.6.0)
 XS-Testsuite: autopkgtest
 
