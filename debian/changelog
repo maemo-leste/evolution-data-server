@@ -1,9 +1,10 @@
 evolution-data-server (3.16.2-3) UNRELEASED; urgency=medium
 
-  * debian/patches/01-noinst-libedbus-private.patch:
+  * debian/patches/01-noinst-libedbus-private.patch,
+    debian/evolution-data-server.install:
     + Revert installation of libedbus-private.so. This library wasn't
       installed in 3.12 and earlier versions. Instead, the other libraries
-      embedded whatever it. Keep doing that, as installing it brings a whole
+      embedded it. Keep doing that, as installing it brings a whole
       lot of problems. See the patch for a longer explanation.
   * debian/*.symbols:
     + Add the libedbus-private symbols as the libraries now embed them.
