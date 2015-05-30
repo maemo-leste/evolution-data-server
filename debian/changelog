@@ -8,6 +8,9 @@ evolution-data-server (3.16.2-3) UNRELEASED; urgency=medium
       lot of problems. See the patch for a longer explanation.
   * debian/*.symbols:
     + Add the libedbus-private symbols as the libraries now embed them.
+  * debian/control:
+    + Drop libedataserver1.2-dev dependency on libedata-book1.2-dev. That
+      isn't necessary and was causing a circular dependency loop.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 29 May 2015 18:03:51 +0200
 
