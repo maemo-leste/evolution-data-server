@@ -1,4 +1,4 @@
-evolution-data-server (3.16.2-3) UNRELEASED; urgency=medium
+evolution-data-server (3.16.2-3) experimental; urgency=medium
 
   * debian/patches/01-noinst-libedbus-private.patch,
     debian/evolution-data-server.install:
@@ -12,7 +12,7 @@ evolution-data-server (3.16.2-3) UNRELEASED; urgency=medium
     + Drop libedataserver1.2-dev dependency on libedata-book1.2-dev. That
       isn't necessary and was causing a circular dependency loop.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 29 May 2015 18:03:51 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 30 May 2015 22:02:32 +0200
 
 evolution-data-server (3.16.2-2) experimental; urgency=medium
 
