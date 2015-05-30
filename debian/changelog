@@ -5,6 +5,8 @@ evolution-data-server (3.16.2-3) UNRELEASED; urgency=medium
       installed in 3.12 and earlier versions. Instead, the other libraries
       embedded whatever it. Keep doing that, as installing it brings a whole
       lot of problems. See the patch for a longer explanation.
+  * debian/*.symbols:
+    + Add the libedbus-private symbols as the libraries now embed them.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 29 May 2015 18:03:51 +0200
 
