@@ -307,7 +307,7 @@ Architecture: any
 Depends: libedata-book-1.2-25 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
-         libedataserver1.2-dev (= ${binary:Version}),
+         libebook-contacts1.2-dev (= ${binary:Version}),
          libebackend1.2-dev (= ${binary:Version}),
          libebook1.2-dev (= ${binary:Version}),
          libglib2.0-dev (>= 2.40),
