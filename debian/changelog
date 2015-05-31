@@ -1,4 +1,4 @@
-evolution-data-server (3.16.2-4) UNRELEASED; urgency=medium
+evolution-data-server (3.16.2-4) experimental; urgency=medium
 
   * debian/control:
     + Let libebook1.2-dev depend on libedata-book1.2-dev.
@@ -10,7 +10,7 @@ evolution-data-server (3.16.2-4) UNRELEASED; urgency=medium
     + Let libebackend1.2-dev depend on libedataserver1.2-dev.
   * Merge changes from 3.12.5-2 through 3.12.11-1.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 31 May 2015 12:35:54 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 31 May 2015 15:41:04 +0200
 
 evolution-data-server (3.16.2-3) experimental; urgency=medium
 
