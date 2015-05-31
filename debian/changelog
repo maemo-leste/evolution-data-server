@@ -8,6 +8,7 @@ evolution-data-server (3.16.2-4) UNRELEASED; urgency=medium
       its dependency on libedataserver1.2-dev and libebook1.2-dev.
     + Drop libedata-cal1.2-dev dependency on libedataserver1.2-dev.
     + Let libebackend1.2-dev depend on libedataserver1.2-dev.
+  * Merge changes from 3.12.5-2 through 3.12.11-1.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 31 May 2015 12:35:54 +0200
 
