@@ -427,6 +427,7 @@ Section: libdevel
 Architecture: any
 Depends: libebackend-1.2-10 (= ${binary:Version}),
          ${misc:Depends},
+         libedataserver1.2-dev (= ${binary:Version}),
          libglib2.0-dev (>= 2.40),
 Description: Utility library for evolution data servers (development files)
  This package contains header files and static library for libebackend.
