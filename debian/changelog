@@ -5,7 +5,7 @@ evolution-data-server (3.16.2-4) UNRELEASED; urgency=medium
     + Drop libcamel1.2-dev dependency on libedataserver1.2-dev. It isn't
       needed and breaks another dependency loop.
     + Let libedata-book1.2-dev depend on libebook-contacts1.2-dev and drop
-      its dependency on libedataserver1.2-dev.
+      its dependency on libedataserver1.2-dev and libebook1.2-dev.
     + Drop libedata-cal1.2-dev dependency on libedataserver1.2-dev.
     + Let libebackend1.2-dev depend on libedataserver1.2-dev.
 
