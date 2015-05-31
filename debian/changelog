@@ -6,6 +6,7 @@ evolution-data-server (3.16.2-4) UNRELEASED; urgency=medium
       needed and breaks another dependency loop.
     + Let libedata-book1.2-dev depend on libebook-contacts1.2-dev and drop
       its dependency on libedataserver1.2-dev.
+    + Drop libedata-cal1.2-dev dependency on libedataserver1.2-dev.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 31 May 2015 12:35:54 +0200
 
