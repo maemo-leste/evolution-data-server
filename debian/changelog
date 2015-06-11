@@ -1,3 +1,9 @@
+evolution-data-server (3.16.3-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 11 Jun 2015 20:29:28 +0200
+
 evolution-data-server (3.16.2-4) experimental; urgency=medium
 
   * debian/control:
