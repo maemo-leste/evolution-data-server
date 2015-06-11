@@ -1,1 +1,1 @@
-02_Only-export-symbols-starting-with-e.patch
+01-noinst-libedbus-private.patch

@@ -25,7 +25,7 @@ export DEB_LDFLAGS_MAINT_APPEND=-Wl,-z,defs -Wl,--as-needed -Wl,-O1
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 include /usr/share/dpkg/buildflags.mk
 
-ifeq (,$(findstring $(DEB_HOST_ARCH_OS),kfreebsd hurd))
+ifeq ($(DEB_HOST_ARCH_OS),linux)
 	DEB_CONFIGURE_EXTRA_FLAGS += --with-phonenumber=/usr
 endif
 

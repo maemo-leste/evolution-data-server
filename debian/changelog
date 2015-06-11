@@ -1,3 +1,80 @@
+evolution-data-server (3.16.2-4) experimental; urgency=medium
+
+  * debian/control:
+    + Let libebook1.2-dev depend on libedata-book1.2-dev.
+    + Drop libcamel1.2-dev dependency on libedataserver1.2-dev. It isn't
+      needed and breaks another dependency loop.
+    + Let libedata-book1.2-dev depend on libebook-contacts1.2-dev and drop
+      its dependency on libedataserver1.2-dev and libebook1.2-dev.
+    + Drop libedata-cal1.2-dev dependency on libedataserver1.2-dev.
+    + Let libebackend1.2-dev depend on libedataserver1.2-dev.
+  * Merge changes from 3.12.5-2 through 3.12.11-1.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 31 May 2015 15:41:04 +0200
+
+evolution-data-server (3.16.2-3) experimental; urgency=medium
+
+  * debian/patches/01-noinst-libedbus-private.patch,
+    debian/evolution-data-server.install:
+    + Revert installation of libedbus-private.so. This library wasn't
+      installed in 3.12 and earlier versions. Instead, the other libraries
+      embedded it. Keep doing that, as installing it brings a whole
+      lot of problems. See the patch for a longer explanation.
+  * debian/*.symbols:
+    + Add the libedbus-private symbols as the libraries now embed them.
+  * debian/control:
+    + Drop libedataserver1.2-dev dependency on libedata-book1.2-dev. That
+      isn't necessary and was causing a circular dependency loop.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 30 May 2015 22:02:32 +0200
+
+evolution-data-server (3.16.2-2) experimental; urgency=medium
+
+  * debian/evolution-data-server.install:
+    + Add missing files from the new version.
+  * debian/control,
+    debian/libedataserverui-1.2-1.install,
+    debian/libedataserverui1.2-dev.install:
+    + Add new packages for libedataserverui-1.2.so.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 28 May 2015 19:41:03 +0200
+
+evolution-data-server (3.16.2-1) experimental; urgency=medium
+
+  [ Laurent Bigonville ]
+  * Add d/p/01_Adapt-to-new-Google-HTTP-restriction.patch: Adapt to new Google
+    HTTP restriction, this fixes authentication issue when updating the
+    calendar
+  * debian/rules, debian/control: Enable libphonenumber on linux architectures
+    (Closes: #758653)
+  * Add debian/patches/02_Only-export-symbols-starting-with-e.patch: Hide
+    symbols not starting with 'e_.*' to avoid some libphonenumber symbols to
+    be exported.
+
+  [ Jean Schurger ]
+  * New upstream release 3.13.5.
+  * debian/control, lib*.symbols, lib*.install:
+    - Bump soname for libcamel-1.2 from 49 to 50
+    - Bump soname for libebackend-1.2 from 7 to 9
+    - Bump soname for libebook-1.2 from 14 to 15
+    - Bump soname for libecal-1.2 from 16 to 17
+    - Bump soname for libedata-book-1.2 from 20 to 24
+    - Bump soname for libedata-cal-1.2 from 23 to 26
+    - Bump soname for libedataserver-1.2 from 18 to 19  
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream release 3.16.2.
+  * debian/control:
+    + Update (build-)dependencies.
+  * debian/patches/01_Adapt-to-new-Google-HTTP-restriction.patch,
+    debian/patches/02_Only-export-symbols-starting-with-e.patch:
+    + Removed, merged upstream.
+  * debian/lib*.{install,symbols},
+    debian/control:
+    + Update for new sonames.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 25 May 2015 14:22:31 +0200
+
 evolution-data-server (3.12.11-1) unstable; urgency=medium
 
   * Replace hardcoded list of libphonenumber architectures with just
@@ -34,6 +111,14 @@ evolution-data-server (3.12.7.1-2) unstable; urgency=medium
     problems after network state changes.
 
  -- Jordi Mallach <jordi@debian.org>  Thu, 06 Nov 2014 21:10:18 +0100
+
+evolution-data-server (3.12.7.1-1) unstable; urgency=medium
+
+  * New upstream release 3.12.7.1
+    + Fixes failure to send message in some situations (when the SASL
+      challenge returned NULL)
+
+ -- Iain Lane <laney@debian.org>  Tue, 14 Oct 2014 17:28:58 +0100
 
 evolution-data-server (3.12.7.1-1) unstable; urgency=medium
 

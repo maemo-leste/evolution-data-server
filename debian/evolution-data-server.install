@@ -2,4 +2,5 @@ usr/lib/evolution
 usr/lib/evolution-data-server/*-backends/*.so
 usr/lib/evolution-data-server/camel-providers/*.urls
 usr/lib/evolution-data-server/camel-providers/*.so
+usr/lib/evolution-data-server/credential-modules/*.so
 usr/lib/evolution-data-server/registry-modules/*.so
