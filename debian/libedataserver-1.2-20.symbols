@@ -821,8 +821,11 @@ libedataserver-1.2.so.20 libedataserver-1.2-20 #MINVER#
  e_module_new@Base 3.16.2
  e_named_parameters_assign@Base 3.16.2
  e_named_parameters_clear@Base 3.16.2
+ e_named_parameters_count@Base 3.16.3
+ e_named_parameters_exists@Base 3.16.3
  e_named_parameters_free@Base 3.16.2
  e_named_parameters_get@Base 3.16.2
+ e_named_parameters_get_name@Base 3.16.3
  e_named_parameters_get_type@Base 3.16.2
  e_named_parameters_new@Base 3.16.2
  e_named_parameters_new_clone@Base 3.16.2

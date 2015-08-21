@@ -1,4 +1,13 @@
-evolution-data-server (3.16.2-4) UNRELEASED; urgency=medium
+evolution-data-server (3.16.3-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/libedataserver-1.2-20.symbols:
+    + Add a few new symbols.
+  * Upload to unstable.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 11 Jun 2015 21:28:24 +0200
+
+evolution-data-server (3.16.2-4) experimental; urgency=medium
 
   * debian/control:
     + Let libebook1.2-dev depend on libedata-book1.2-dev.
@@ -8,8 +17,9 @@ evolution-data-server (3.16.2-4) UNRELEASED; urgency=medium
       its dependency on libedataserver1.2-dev and libebook1.2-dev.
     + Drop libedata-cal1.2-dev dependency on libedataserver1.2-dev.
     + Let libebackend1.2-dev depend on libedataserver1.2-dev.
+  * Merge changes from 3.12.5-2 through 3.12.11-1.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 31 May 2015 12:35:54 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 31 May 2015 15:41:04 +0200
 
 evolution-data-server (3.16.2-3) experimental; urgency=medium
 
@@ -73,6 +83,99 @@ evolution-data-server (3.16.2-1) experimental; urgency=medium
     + Update for new sonames.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 25 May 2015 14:22:31 +0200
+
+evolution-data-server (3.12.11-1) unstable; urgency=medium
+
+  * Replace hardcoded list of libphonenumber architectures with just
+    [linux-any], so arm64 can also get this support.
+  * New upstream bugfix release.
+  * Bump valac build-dependency.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 29 May 2015 17:25:33 +0200
+
+evolution-data-server (3.12.9~git20141128.5242b0-2) unstable; urgency=medium
+
+  * Fix brown paper bug in libcamel1.2-dev dependencies.
+
+ -- Josselin Mouette <joss@debian.org>  Sun, 30 Nov 2014 23:59:50 +0100
+
+evolution-data-server (3.12.9~git20141128.5242b0-1) unstable; urgency=medium
+
+  * Fix dependencies for development packages. Closes: #724595.
+  * Depend on gnome-keyring. Closes: #739324, #753478.
+  * New upstream git snapshot from stable branch, includes only bugfixes 
+    and translations.
+
+ -- Josselin Mouette <joss@debian.org>  Sun, 30 Nov 2014 09:55:18 +0100
+
+evolution-data-server (3.12.7.1-2) unstable; urgency=medium
+
+  * Replace hardcoded list of libphonenumber architectures with just
+    [!kfreebsd-any !hurd-any], so arm64 can also get this support.
+  * Add sqlite3_xfetch_crash.patch: Add upstream fix for crashes with
+    new sqlite3 (closes: #765812).
+  * Add imapx_no_connect_when_offline.patch: avoid server connections while
+    in offline mode.
+  * Add imapx_reconnect_after_socket_io_timeout.patch: Fix connection
+    problems after network state changes.
+
+ -- Jordi Mallach <jordi@debian.org>  Thu, 06 Nov 2014 21:10:18 +0100
+
+evolution-data-server (3.12.7.1-1) unstable; urgency=medium
+
+  * New upstream release 3.12.7.1
+    + Fixes failure to send message in some situations (when the SASL
+      challenge returned NULL)
+
+ -- Iain Lane <laney@debian.org>  Tue, 14 Oct 2014 17:28:58 +0100
+
+evolution-data-server (3.12.7.1-1) unstable; urgency=medium
+
+  * New upstream release 3.12.7.1
+    + Fixes failure to send message in some situations (when the SASL
+      challenge returned NULL)
+
+ -- Iain Lane <laney@debian.org>  Tue, 14 Oct 2014 17:28:58 +0100
+
+evolution-data-server (3.12.7-1) unstable; urgency=medium
+
+  * New upstream release 3.12.7
+  * debian/control: Standards-Version → 3.9.6, no changes required
+
+ -- Iain Lane <iain@orangesquash.org.uk>  Mon, 13 Oct 2014 14:58:20 +0100
+
+evolution-data-server (3.12.6-1.1) unstable; urgency=medium
+
+  * Non-Maintainer Upload
+  * Restrict use of libphonenumber to architectures where it is confirmed to
+    be available. (Closes: 762129)
+
+ -- Peter Michael Green <plugwash@debian.org>  Wed, 17 Sep 2014 19:10:52 +0000
+
+evolution-data-server (3.12.6-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Drop d/p/01_Adapt-to-new-Google-HTTP-restriction.patch,
+      d/p/03_CamelNetworkService-fails-to-connect-to-localhost.patch: Merged
+      upstream
+    - Adjust debian/libcamel-1.2-49.symbols file: New symbols added
+
+ -- Laurent Bigonville <bigon@debian.org>  Mon, 15 Sep 2014 15:28:33 +0200
+
+evolution-data-server (3.12.5-2) unstable; urgency=medium
+
+  * Add d/p/01_Adapt-to-new-Google-HTTP-restriction.patch: Adapt to new Google
+    HTTP restriction, this fixes authentication issue when updating the
+    calendar (Closes: #756959)
+  * debian/rules, debian/control: Enable libphonenumber on linux architectures
+    (Closes: #758653)
+  * Add debian/patches/02_Only-export-symbols-starting-with-e.patch: Hide
+    symbols not starting with 'e_.*' to avoid some libphonenumber symbols to
+    be exported.
+  * d/p/03_CamelNetworkService-fails-to-connect-to-localhost.patch: Fix
+    sending mails to "localhost"
+
+ -- Laurent Bigonville <bigon@debian.org>  Mon, 08 Sep 2014 17:20:20 +0200
 
 evolution-data-server (3.12.5-1) unstable; urgency=medium
 
