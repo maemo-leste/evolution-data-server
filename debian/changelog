@@ -1,3 +1,16 @@
+evolution-data-server (3.17.90-1) UNRELEASED; urgency=medium
+
+  * Team upload.
+  * New upstream beta release.
+  * Update build-dependencies according to configure.ac changes:
+    - bump libgtk-3-dev to >= 3.10
+    - bump libgweather-3-dev to >= 3.10
+    - bump libsqlite3-dev to >= 3.7.17
+  * Rename packages according to upstream SONAME bumps
+  * Update symbols files
+
+ -- Andreas Henriksson <andreas@fatal.se>  Fri, 21 Aug 2015 16:37:37 +0200
+
 evolution-data-server (3.16.3-1) unstable; urgency=medium
 
   * New upstream release.
