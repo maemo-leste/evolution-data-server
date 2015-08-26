@@ -1,11 +1,5 @@
 libedataserver-1.2.so.20 libedataserver-1.2-20 #MINVER#
- _ZN6icu_5214StringByteSinkISsE6AppendEPKci@Base 3.16.2
- _ZN6icu_5214StringByteSinkISsED0Ev@Base 3.16.2
- _ZN6icu_5214StringByteSinkISsED1Ev@Base 3.16.2
- _ZN6icu_5214StringByteSinkISsED2Ev@Base 3.16.2
- _ZTIN6icu_5214StringByteSinkISsEE@Base 3.16.2
- _ZTSN6icu_5214StringByteSinkISsEE@Base 3.16.2
- _ZTVN6icu_5214StringByteSinkISsEE@Base 3.16.2
+ (c++|regex|optional=template)"icu_[0-9]+::StringByteSink<.*@Base" 3.16.2
  __e_source_private_replace_dbus_object@Base 3.16.2
  e_async_closure_callback@Base 3.16.2
  e_async_closure_free@Base 3.16.2
