@@ -1234,9 +1234,6 @@ libcamel-1.2.so.52 libcamel-1.2-52 #MINVER#
  camel_yencode_close@Base 3.16.2
  camel_yencode_step@Base 3.16.2
  g_string_append_u@Base 3.16.2
- generators_count@Base 3.16.2
  known_iconv_charsets@Base 3.16.2
  nss_initialized@Base 3.16.2
  nss_initlock@Base 3.16.2
- operators_count@Base 3.16.2
- time_functions@Base 3.16.2

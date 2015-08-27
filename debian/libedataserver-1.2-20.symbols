@@ -1321,6 +1321,3 @@ libedataserver-1.2.so.20 libedataserver-1.2-20 #MINVER#
  eds_major_version@Base 3.16.2
  eds_micro_version@Base 3.16.2
  eds_minor_version@Base 3.16.2
- generators_count@Base 3.16.2
- operators_count@Base 3.16.2
- time_functions@Base 3.16.2
