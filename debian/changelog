@@ -11,6 +11,15 @@ evolution-data-server (3.17.90-1) UNRELEASED; urgency=medium
 
  -- Andreas Henriksson <andreas@fatal.se>  Fri, 21 Aug 2015 16:37:37 +0200
 
+evolution-data-server (3.16.5-1) unstable; urgency=medium
+
+  * New upstream release 3.16.5 and 3.16.4
+  * Remove accidentally leaked symbols from the symbols file; they aren't used
+    elsewhere.
+  * debian/*.symbols: Add new ones.
+
+ -- Iain Lane <laney@debian.org>  Thu, 27 Aug 2015 12:39:50 +0100
+
 evolution-data-server (3.16.3-1) unstable; urgency=medium
 
   * New upstream release.
