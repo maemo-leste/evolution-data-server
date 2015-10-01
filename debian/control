@@ -41,7 +41,6 @@ Build-Depends: debhelper (>= 9),
                libkrb5-dev,
                libldap2-dev,
                liboauth-dev (>= 0.9.4),
-               libphonenumber6-dev [linux-any],
                libjson-glib-dev,
                librest-dev (>= 0.7),
                libnss3-dev,
@@ -57,6 +56,7 @@ Build-Depends: debhelper (>= 9),
                pkg-config (>= 0.16),
                valac (>= 0.22),
                gnome-common (>= 3.6.0)
+#               libphonenumber6-dev [linux-any],
 XS-Testsuite: autopkgtest
 
 Package: evolution-data-server
