@@ -851,6 +851,9 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_proxy_require_proxy_for_uri@Base 3.17
  e_proxy_setup_proxy@Base 3.17
  e_queue_transfer@Base 3.17
+ e_secret_store_delete_sync@Base 3.18.0
+ e_secret_store_lookup_sync@Base 3.18.0
+ e_secret_store_store_sync@Base 3.18.0
  e_sexp_add_function@Base 3.17
  e_sexp_add_ifunction@Base 3.17
  e_sexp_add_variable@Base 3.17

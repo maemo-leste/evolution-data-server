@@ -796,8 +796,10 @@ libcamel-1.2.so.54 libcamel-1.2-54 #MINVER#
  camel_offline_folder_get_type@Base 3.17
  camel_offline_folder_set_offline_sync@Base 3.17
  camel_offline_settings_get_stay_synchronized@Base 3.17
+ camel_offline_settings_get_store_changes_interval@Base 3.18.0
  camel_offline_settings_get_type@Base 3.17
  camel_offline_settings_set_stay_synchronized@Base 3.17
+ camel_offline_settings_set_store_changes_interval@Base 3.18.0
  camel_offline_store_get_online@Base 3.17
  camel_offline_store_get_type@Base 3.17
  camel_offline_store_prepare_for_offline_sync@Base 3.17
