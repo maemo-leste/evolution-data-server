@@ -1,3 +1,14 @@
+evolution-data-server (3.16.5-2) UNRELEASED; urgency=medium
+
+  * Cherry-pick some patches which were applied upstream
+    - d/p/0001-Bug-755075-Recent-glib-2.45.8-change-breaks-account-.patch: Fix
+      account settings with new glib (≥ 2.45.8) (Closes: #800474)
+    - d/p/0001-source_registry_server_process_file_monitor_event-Co.patch: Fix
+      an invalid unref which can lead to a crash at worst and runtime warnings
+      at best.
+
+ -- Iain Lane <laney@debian.org>  Thu, 01 Oct 2015 09:36:08 +0100
+
 evolution-data-server (3.16.5-1) unstable; urgency=medium
 
   * New upstream release 3.16.5 and 3.16.4
