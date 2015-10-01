@@ -1,3 +1,10 @@
+evolution-data-server (3.18.0-2) experimental; urgency=medium
+
+  * Import and update 3.16.3-1.1 NMU
+    - temporarily disables libphonenumber (build-)dep
+
+ -- Andreas Henriksson <andreas@fatal.se>  Thu, 01 Oct 2015 18:47:53 +0200
+
 evolution-data-server (3.18.0-1) experimental; urgency=medium
 
   * New upstream release.
@@ -34,6 +41,17 @@ evolution-data-server (3.16.5-1) unstable; urgency=medium
   * debian/*.symbols: Add new ones.
 
  -- Iain Lane <laney@debian.org>  Thu, 27 Aug 2015 12:39:50 +0100
+
+evolution-data-server (3.16.3-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Disable libphonenumber support for now, to disentangle e-d-s from
+    that part of the libstdc++ transition (which it appears is going
+    to involve a new upstream release).
+  * debian/libedataserver-1.2-20.symbols: mark ICU template instantiations
+    as optional since they are not intended to be ABI (Closes: #792494)
+
+ -- Simon McVittie <smcv@debian.org>  Thu, 06 Aug 2015 19:56:33 +0100
 
 evolution-data-server (3.16.3-1) unstable; urgency=medium
 
