@@ -1,3 +1,13 @@
+evolution-data-server (3.18.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update debian/libedataserver-1.2-21.symbols with three additions.
+  * Update debian/libcamel-1.2-54.symbols with two additions.
+  * Update debian/libebackend-1.2-10.symbols with one addition.
+  * Add myself to uploaders
+
+ -- Andreas Henriksson <andreas@fatal.se>  Thu, 01 Oct 2015 13:41:37 +0200
+
 evolution-data-server (3.17.90-1) experimental; urgency=medium
 
   * Team upload.

@@ -3,6 +3,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_backend_credentials_required@Base 3.17
  e_backend_credentials_required_finish@Base 3.17
  e_backend_credentials_required_sync@Base 3.17
+ e_backend_ensure_online_state_updated@Base 3.18.0
  e_backend_ensure_source_status_connected@Base 3.17.90
  e_backend_factory_get_hash_key@Base 3.17
  e_backend_factory_get_module_filename@Base 3.17
