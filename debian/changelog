@@ -1,3 +1,9 @@
+evolution-data-server (3.18.0-3) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sun, 04 Oct 2015 20:32:39 +0200
+
 evolution-data-server (3.18.0-2) experimental; urgency=medium
 
   * Import and update 3.16.3-1.1 NMU
