@@ -12,7 +12,8 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Josselin Mouette <joss@debian.org>,
            David Weinehall <tao@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
-           Laurent Bigonville <bigon@debian.org>
+           Laurent Bigonville <bigon@debian.org>,
+           Andreas Henriksson <andreas@fatal.se>
 Standards-Version: 3.9.6
 Homepage: https://wiki.gnome.org/Apps/Evolution
 Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
@@ -33,8 +34,8 @@ Build-Depends: debhelper (>= 9),
                libsecret-1-dev (>= 0.5),
                libgcr-3-dev (>= 3.4),
                libgoa-1.0-dev (>= 3.8),
-               libgtk-3-dev (>= 3.6),
-               libgweather-3-dev (>= 3.8),
+               libgtk-3-dev (>= 3.10),
+               libgweather-3-dev (>= 3.10),
                libical-dev (>= 0.43),
                libicu-dev,
                libkrb5-dev,
@@ -55,6 +56,7 @@ Build-Depends: debhelper (>= 9),
                pkg-config (>= 0.16),
                valac (>= 0.22),
                gnome-common (>= 3.6.0)
+#               libphonenumber6-dev [linux-any],
 XS-Testsuite: autopkgtest
 
 Package: evolution-data-server
@@ -62,7 +64,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (= ${source:Version}),
-         libcamel-1.2-52 (= ${binary:Version}),
+         libcamel-1.2-54 (= ${binary:Version}),
          gnome-keyring,
 Suggests: evolution,
           evolution-data-server-dbg (= ${binary:Version})
@@ -136,7 +138,7 @@ Description: Documentation files for the Evolution Data Server libraries
  This package contains the API documentation for all the individual
  Evolution Data Server libraries.
 
-Package: libedataserver-1.2-20
+Package: libedataserver-1.2-21
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -151,7 +153,7 @@ Description: Utility library for evolution data servers
 Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libedataserver-1.2-20 (= ${binary:Version}),
+Depends: libedataserver-1.2-21 (= ${binary:Version}),
          gir1.2-edataserver-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
@@ -212,7 +214,7 @@ Description: Utility library for evolution data servers (development files)
  .
  This package contains development files for libedataserverui.
 
-Package: libcamel-1.2-52
+Package: libcamel-1.2-54
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -229,11 +231,11 @@ Description: Evolution MIME message handling library
 Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libcamel-1.2-52 (= ${binary:Version}),
+Depends: libcamel-1.2-54 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libglib2.0-dev (>= 2.40),
-         libsqlite3-dev (>= 3.7.17),
+         libsqlite3-dev (>= 3.5),
          libnss3-dev,
          libnspr4-dev
 Description: Development files for libcamel
@@ -330,7 +332,7 @@ Description: GObject introspection for the EBook Contacts library
  library. It can be used by packages using the GIRepository format to 
  generate dynamic bindings.
 
-Package: libebook-contacts-1.2-1
+Package: libebook-contacts-1.2-2
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -344,7 +346,7 @@ Description: Client library for evolution contacts books
 Package: libebook-contacts1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libebook-contacts-1.2-1 (= ${binary:Version}),
+Depends: libebook-contacts-1.2-2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libedataserver1.2-dev (= ${binary:Version}),
@@ -356,7 +358,7 @@ Description: Client library for evolution contacts books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
 
-Package: libecal-1.2-18
+Package: libecal-1.2-19
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -370,7 +372,7 @@ Description: Client library for evolution calendars
 Package: libecal1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libecal-1.2-18 (= ${binary:Version}),
+Depends: libecal-1.2-19 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libical-dev (>= 0.43),
@@ -382,7 +384,7 @@ Description: Client library for evolution calendars (development files)
  .
  This package contains header files and static library for libecal.
 
-Package: libedata-cal-1.2-27
+Package: libedata-cal-1.2-28
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends},
@@ -396,7 +398,7 @@ Description: Backend library for evolution calendars
 Package: libedata-cal1.2-dev
 Section: libdevel
 Architecture: any
-Depends: libedata-cal-1.2-27 (= ${binary:Version}),
+Depends: libedata-cal-1.2-28 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libical-dev (>= 0.43),
