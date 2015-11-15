@@ -1,11 +1,11 @@
-evolution-data-server (3.18.2-1) UNRELEASED; urgency=medium
+evolution-data-server (3.18.2-1) unstable; urgency=medium
 
   * Team upload.
   * New upstream release.
   * Drop XS-Testsuite header, no longer required with recent dpkg versions.
   * Drop obsolete Breaks and Replaces for versions pre-wheezy.
 
- -- Michael Biebl <biebl@debian.org>  Sun, 15 Nov 2015 06:08:31 +0100
+ -- Michael Biebl <biebl@debian.org>  Sun, 15 Nov 2015 06:39:34 +0100
 
 evolution-data-server (3.18.1-1) unstable; urgency=medium
 
