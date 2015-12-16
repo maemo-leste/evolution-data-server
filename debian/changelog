@@ -1,3 +1,9 @@
+evolution-data-server (3.18.3-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Iain Lane <laney@debian.org>  Wed, 16 Dec 2015 12:45:58 +0000
+
 evolution-data-server (3.18.2-1) unstable; urgency=medium
 
   * Team upload.
