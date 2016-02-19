@@ -46,6 +46,16 @@ DEB_CONFIGURE_EXTRA_FLAGS += \
 DEB_DH_MAKESHLIBS_ARGS_evolution-data-server += -Xusr/lib/evolution-data-server/
 DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
 
+# don't configure with --libdir, but move the files manually, because
+# /usr/lib/evolution-data-server must not change.
+common-install-impl::
+	mkdir -p debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
+	mv debian/tmp/usr/lib/*.so debian/tmp/usr/lib/*.so.* debian/tmp/usr/lib/girepository-1.0 \
+		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
+	mv debian/tmp/usr/lib/pkgconfig/lib* debian/tmp/usr/lib/pkgconfig/camel* \
+		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
+	
+
 binary-install/evolution-data-server::
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*

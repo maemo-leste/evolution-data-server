@@ -118,6 +118,8 @@ Description: Documentation files for the Evolution Data Server libraries
 Package: libedataserver-1.2-21
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (>= ${gnome:Version})
@@ -130,6 +132,7 @@ Description: Utility library for evolution data servers
 Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libedataserver-1.2-21 (= ${binary:Version}),
          gir1.2-edataserver-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
@@ -148,6 +151,7 @@ Description: Utility library for evolution data servers (development files)
 Package: gir1.2-edataserver-1.2
 Section: introspection
 Architecture: any
+Multi-Arch: same
 Depends: ${gir:Depends},
          ${shlibs:Depends},
          ${misc:Depends}
@@ -162,6 +166,8 @@ Description: GObject introspection for the EDataServer library
 Package: libedataserverui-1.2-1
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (>= ${gnome:Version})
@@ -174,6 +180,7 @@ Description: Utility library for evolution data servers
 Package: libedataserverui1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libedataserverui-1.2-1 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
@@ -194,6 +201,8 @@ Description: Utility library for evolution data servers (development files)
 Package: libcamel-1.2-54
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Evolution MIME message handling library
@@ -207,6 +216,7 @@ Description: Evolution MIME message handling library
 Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libcamel-1.2-54 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -227,6 +237,8 @@ Description: Development files for libcamel
 Package: libebook-1.2-16
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Client library for evolution address books
@@ -238,6 +250,7 @@ Description: Client library for evolution address books
 Package: libebook1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libebook-1.2-16 (= ${binary:Version}),
          gir1.2-ebook-1.2 (= ${binary:Version}),
          ${misc:Depends},
@@ -257,6 +270,7 @@ Description: Client library for evolution address books (development files)
 Package: gir1.2-ebook-1.2
 Section: introspection
 Architecture: any
+Multi-Arch: same
 Depends: ${gir:Depends},
          ${shlibs:Depends},
          ${misc:Depends}
@@ -271,6 +285,8 @@ Description: GObject introspection for the EBook library
 Package: libedata-book-1.2-25
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Backend library for evolution address books
@@ -282,6 +298,7 @@ Description: Backend library for evolution address books
 Package: libedata-book1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libedata-book-1.2-25 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -297,6 +314,7 @@ Description: Backend library for evolution address books (development files)
 Package: gir1.2-ebookcontacts-1.2
 Section: introspection
 Architecture: any
+Multi-Arch: same
 Depends: ${gir:Depends},
          ${shlibs:Depends},
          ${misc:Depends}
@@ -311,6 +329,8 @@ Description: GObject introspection for the EBook Contacts library
 Package: libebook-contacts-1.2-2
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Client library for evolution contacts books
@@ -322,6 +342,7 @@ Description: Client library for evolution contacts books
 Package: libebook-contacts1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libebook-contacts-1.2-2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -337,6 +358,8 @@ Description: Client library for evolution contacts books (development files)
 Package: libecal-1.2-19
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Client library for evolution calendars
@@ -348,6 +371,7 @@ Description: Client library for evolution calendars
 Package: libecal1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libecal-1.2-19 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -363,6 +387,8 @@ Description: Client library for evolution calendars (development files)
 Package: libedata-cal-1.2-28
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Backend library for evolution calendars
@@ -374,6 +400,7 @@ Description: Backend library for evolution calendars
 Package: libedata-cal1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libedata-cal-1.2-28 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -390,6 +417,8 @@ Description: Backend library for evolution calendars (development files)
 Package: libebackend-1.2-10
 Section: libs
 Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Utility library for evolution data servers
@@ -402,6 +431,7 @@ Description: Utility library for evolution data servers
 Package: libebackend1.2-dev
 Section: libdevel
 Architecture: any
+Multi-Arch: same
 Depends: libebackend-1.2-10 (= ${binary:Version}),
          ${misc:Depends},
          libedataserver1.2-dev (= ${binary:Version}),

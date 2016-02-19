@@ -1,1 +1,1 @@
-usr/lib/libcamel-*.so.*
+usr/lib/*/libcamel-*.so.*
