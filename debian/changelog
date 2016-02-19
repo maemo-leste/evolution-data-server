@@ -3,6 +3,7 @@ evolution-data-server (3.18.5-1) UNRELEASED; urgency=medium
   * Multiarchify the library packages. (Closes: #812938)
   * debian/rules: Strip -Bsymbolic-functions from LDFLAGS - this breaks e-d-s
     at runtime.
+  * debian/rules: Build with --fail-missing
   * New upstream release 3.18.5
 
  -- Iain Lane <laney@debian.org>  Wed, 16 Dec 2015 13:44:04 +0000
