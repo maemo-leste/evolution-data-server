@@ -14,7 +14,7 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Laurent Bigonville <bigon@debian.org>,
            Andreas Henriksson <andreas@fatal.se>
-Standards-Version: 3.9.6
+Standards-Version: 3.9.7
 Homepage: https://wiki.gnome.org/Apps/Evolution
 Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
@@ -36,8 +36,9 @@ Build-Depends: debhelper (>= 9),
                libgoa-1.0-dev (>= 3.8),
                libgtk-3-dev (>= 3.10),
                libgweather-3-dev (>= 3.10),
-               libical-dev (>= 0.43),
+               libical-dev (>= 2.0),
                libicu-dev,
+               libjson-glib-dev (>= 1.0.4),
                libkrb5-dev,
                libldap2-dev,
                liboauth-dev (>= 0.9.4),
@@ -47,6 +48,7 @@ Build-Depends: debhelper (>= 9),
                libnspr4-dev,
                libsoup2.4-dev (>= 2.42),
                libsqlite3-dev (>= 3.7.17),
+               libwebkitgtk-3.0-dev (>= 2.4.9),
                libxml2-dev (>= 2.0.0),
                gtk-doc-tools (>= 1.14),
                chrpath,
@@ -63,7 +65,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (= ${source:Version}),
-         libcamel-1.2-54 (= ${binary:Version}),
+         libcamel-1.2-57 (= ${binary:Version}),
          gnome-keyring,
 Suggests: evolution,
           evolution-data-server-dbg (= ${binary:Version})
@@ -198,7 +200,7 @@ Description: Utility library for evolution data servers (development files)
  .
  This package contains development files for libedataserverui.
 
-Package: libcamel-1.2-54
+Package: libcamel-1.2-57
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -217,7 +219,7 @@ Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libcamel-1.2-54 (= ${binary:Version}),
+Depends: libcamel-1.2-57 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libglib2.0-dev (>= 2.40),
@@ -375,7 +377,7 @@ Multi-Arch: same
 Depends: libecal-1.2-19 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
-         libical-dev (>= 0.43),
+         libical-dev (>= 2.0),
          libedataserver1.2-dev (= ${binary:Version}),
          libglib2.0-dev (>= 2.40),
 Description: Client library for evolution calendars (development files)
@@ -404,7 +406,7 @@ Multi-Arch: same
 Depends: libedata-cal-1.2-28 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
-         libical-dev (>= 0.43),
+         libical-dev (>= 2.0),
          libecal1.2-dev (= ${binary:Version}),
          libebackend1.2-dev (= ${binary:Version}),
          libglib2.0-dev (>= 2.40),

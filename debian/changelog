@@ -1,3 +1,21 @@
+evolution-data-server (3.19.92-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * Update (build-)dependencies according to configure.ac changes:
+    - Bump libical-dev to (>= 2.0)
+    - Add libjson-glib-dev (>= 1.0.4), libwebkitgtk-3.0-dev (>= 2.4.9)
+      (used for google auth)
+  * Bump Standards-Version to 3.9.7
+  * Ship systemd user units for dbus-activated services
+  * Ship libcamel1.2 vapi, deps and gir in libcamel1.2-dev
+  * Update symbols files with many additions:
+    - libedataserver-1.2-21.symbols
+    - libecal-1.2-19.symbols
+  * Rename libcamel-1.2-54 -> libcamel-1.2-57
+    - update symbols file.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Fri, 18 Mar 2016 22:10:43 +0100
+
 evolution-data-server (3.18.5-1) unstable; urgency=medium
 
   * Multiarchify the library packages. (Closes: #812938)
