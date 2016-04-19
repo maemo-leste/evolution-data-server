@@ -1,4 +1,4 @@
-evolution-data-server (3.19.92-1) UNRELEASED; urgency=medium
+evolution-data-server (3.20.1-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Update (build-)dependencies according to configure.ac changes:
@@ -14,7 +14,7 @@ evolution-data-server (3.19.92-1) UNRELEASED; urgency=medium
   * Rename libcamel-1.2-54 -> libcamel-1.2-57
     - update symbols file.
 
- -- Andreas Henriksson <andreas@fatal.se>  Fri, 18 Mar 2016 22:10:43 +0100
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 19 Apr 2016 12:36:00 +0200
 
 evolution-data-server (3.18.5-1) unstable; urgency=medium
 
