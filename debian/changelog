@@ -1,4 +1,4 @@
-evolution-data-server (3.20.1-1) UNRELEASED; urgency=medium
+evolution-data-server (3.20.2-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Update (build-)dependencies according to configure.ac changes:
