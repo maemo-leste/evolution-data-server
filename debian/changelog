@@ -5,7 +5,7 @@ evolution-data-server (3.20.1-1) UNRELEASED; urgency=medium
     - Bump libical-dev to (>= 2.0)
     - Add libjson-glib-dev (>= 1.0.4), libwebkitgtk-3.0-dev (>= 2.4.9)
       (used for google auth)
-  * Bump Standards-Version to 3.9.7
+  * Bump Standards-Version to 3.9.8
   * Ship systemd user units for dbus-activated services
   * Ship libcamel1.2 vapi, deps and gir in libcamel1.2-dev
   * Update symbols files with many additions:
