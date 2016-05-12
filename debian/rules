@@ -30,9 +30,9 @@ export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 DEB_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/buildflags.mk
 
-#ifeq ($(DEB_HOST_ARCH_OS),linux)
-#	DEB_CONFIGURE_EXTRA_FLAGS += --with-phonenumber=/usr
-#endif
+ifeq ($(DEB_HOST_ARCH_OS),$(filter $(DEB_HOST_ARCH_OS),linux kfreebsd))
+	DEB_CONFIGURE_EXTRA_FLAGS += --with-phonenumber=/usr
+endif
 
 DEB_CONFIGURE_EXTRA_FLAGS += \
 	--sysconfdir=/etc \
@@ -50,6 +50,8 @@ DEB_CONFIGURE_EXTRA_FLAGS += \
 
 DEB_DH_MAKESHLIBS_ARGS_evolution-data-server += -Xusr/lib/evolution-data-server/
 DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
+
+DEB_DH_STRIP_ARGS_ALL = --dbgsym-migration='evolution-data-server-dbg (<< 3.20.2-2~)'
 
 # don't configure with --libdir, but move the files manually, because
 # /usr/lib/evolution-data-server must not change.

@@ -17,8 +17,8 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
 Standards-Version: 3.9.8
 Homepage: https://wiki.gnome.org/Apps/Evolution
 Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
-Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
-Build-Depends: debhelper (>= 9),
+Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
+Build-Depends: debhelper (>= 9.20160114~),
                cdbs (>= 0.4.90),
                dh-autoreconf,
                dpkg-dev (>= 1.16.1),
@@ -57,8 +57,8 @@ Build-Depends: debhelper (>= 9),
                gnome-pkg-tools,
                pkg-config (>= 0.16),
                valac (>= 0.22),
-               gnome-common (>= 3.6.0)
-#               libphonenumber6-dev [linux-any],
+               gnome-common (>= 3.6.0),
+               libphonenumber-dev [linux-any kfreebsd-any],
 
 Package: evolution-data-server
 Architecture: any
@@ -67,8 +67,7 @@ Depends: ${shlibs:Depends},
          evolution-data-server-common (= ${source:Version}),
          libcamel-1.2-57 (= ${binary:Version}),
          gnome-keyring,
-Suggests: evolution,
-          evolution-data-server-dbg (= ${binary:Version})
+Suggests: evolution
 Breaks: libebook-1.2-13 (<< 3.6),
         libedataserverui-3.0-5
 Description: evolution database backend server
@@ -78,6 +77,7 @@ Description: evolution database backend server
 Package: evolution-data-server-common
 Architecture: all
 Depends: ${misc:Depends}
+Multi-arch: foreign
 Description: architecture independent files for Evolution Data Server
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -95,15 +95,6 @@ Depends: ${misc:Depends},
 Breaks: libedataserverui-3.0-dev
 Description: Development files for evolution-data-server (metapackage)
  This package contains header files and static library of evolution-data-server.
-
-Package: evolution-data-server-dbg
-Section: debug
-Priority: extra
-Architecture: any
-Depends: evolution-data-server (= ${binary:Version}),
-         ${misc:Depends}
-Description: evolution database backend server with debugging symbols
- This package contains unstripped binaries used for debugging.
 
 Package: evolution-data-server-doc
 Section: doc
