@@ -3,14 +3,7 @@ Section: gnome
 Priority: optional
 Maintainer: Debian Evolution Maintainers <pkg-evolution-maintainers@lists.alioth.debian.org>
 Uploaders: Jordi Mallach <jordi@debian.org>,
-           Margarita Manterola <debian@marga.com.ar>,
-           Loic Minier <lool@dooz.org>,
-           Heikki Henriksen <heikkih@gmail.com>,
-           Oystein Gisnas <oystein@gisnas.net>,
-           Riccardo Setti <giskard@debian.org>,
-           Pedro Fragoso <ember@ubuntu.com>,
            Josselin Mouette <joss@debian.org>,
-           David Weinehall <tao@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Laurent Bigonville <bigon@debian.org>,
            Andreas Henriksson <andreas@fatal.se>
