@@ -66,7 +66,5 @@ common-install-impl::
 binary-install/evolution-data-server::
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
-	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server/*/*.so \
-		$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
 	rm $(CURDIR)/debian/tmp/usr/lib/evolution-data-server/*/*.la
 	rm $(CURDIR)/debian/tmp/usr/lib/*.la
