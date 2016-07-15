@@ -13,7 +13,7 @@ Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
 Build-Depends: debhelper (>= 9.20160114~),
                dh-autoreconf,
-               dpkg-dev (>= 1.16.1),
+               dpkg-dev (>= 1.17.14),
                libtool,
                intltool (>= 0.35.5),
                libdb-dev,
@@ -47,6 +47,7 @@ Build-Depends: debhelper (>= 9.20160114~),
                valac (>= 0.22),
                gnome-common (>= 3.6.0),
                libphonenumber-dev [linux-any kfreebsd-any],
+               dbus <!nocheck>,
 
 Package: evolution-data-server
 Architecture: any
