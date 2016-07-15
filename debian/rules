@@ -58,5 +58,5 @@ override_dh_strip:
 
 override_dh_auto_test:
 ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
-	$(MAKE) check || ( find . -name test-suite.log -exec cat {} \;; exit 0; )
+	$(MAKE) -k check || ( find . -name test-suite.log -exec cat {} \;; exit 0; )
 endif
