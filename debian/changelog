@@ -2,6 +2,7 @@ evolution-data-server (3.20.4-2) unstable; urgency=medium
 
   * Move chmod/chgrp calls for camel-lock-helper to override_dh_fixperms.
   * Run override_dh_fixperms only for arch-any build.
+  * Add myself to Uploaders.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 15 Jul 2016 22:50:53 +0200
 
