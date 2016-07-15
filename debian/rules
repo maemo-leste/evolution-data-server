@@ -44,10 +44,10 @@ override_dh_install:
 	mv debian/tmp/usr/lib/pkgconfig/lib* debian/tmp/usr/lib/pkgconfig/camel* \
 		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
 	dh_install --fail-missing -X.la
-	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
-	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 
 override_dh_fixperms:
+	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
+	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	dh_fixperms -X/usr/lib/evolution/camel-lock-helper*
 
 override_dh_makeshlibs:
