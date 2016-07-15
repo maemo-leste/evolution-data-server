@@ -22,7 +22,7 @@ endif
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-		--libdir=\$${prefix}/lib/ \
+		--libdir=\$${prefix}/lib \
 		--libexecdir=\$${prefix}/lib/evolution \
 		--with-openldap \
 		--with-krb5=/usr \
@@ -45,10 +45,10 @@ override_dh_install:
 		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
 	dh_install --fail-missing -X.la
 
-override_dh_fixperms:
+override_dh_fixperms-arch:
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
-	dh_fixperms -X/usr/lib/evolution/camel-lock-helper*
+	dh_fixperms -a -X/usr/lib/evolution/camel-lock-helper*
 
 override_dh_makeshlibs:
 	dh_makeshlibs -V -X/usr/lib/evolution-data-server/ -- -c4
