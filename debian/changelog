@@ -1,3 +1,10 @@
+evolution-data-server (3.20.5-1) UNRELEASED; urgency=medium
+
+  * Team upload
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 08 Aug 2016 12:02:29 -0400
+
 evolution-data-server (3.20.4-2) unstable; urgency=medium
 
   * Move chmod/chgrp calls for camel-lock-helper to override_dh_fixperms.
