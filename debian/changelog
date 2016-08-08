@@ -2,6 +2,7 @@ evolution-data-server (3.20.5-1) UNRELEASED; urgency=medium
 
   * Team upload
   * New upstream release
+  * Add missing libedataserverui-1.2-1.symbols (from Ubuntu)
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 08 Aug 2016 12:02:29 -0400
 
