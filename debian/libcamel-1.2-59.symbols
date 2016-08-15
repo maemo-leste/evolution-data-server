@@ -1,4 +1,4 @@
-libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
+libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  bdata_extract_digit@Base 3.19.92
  bdata_extract_string@Base 3.19.92
  camel_address_cat@Base 3.19.92
@@ -58,7 +58,10 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_charset_init@Base 3.19.92
  camel_charset_iso_to_windows@Base 3.19.92
  camel_charset_step@Base 3.19.92
+ camel_cipher_can_load_photos@Base 3.21.90
  camel_cipher_canonical_to_stream@Base 3.19.92
+ camel_cipher_certinfo_get_property@Base 3.21.90
+ camel_cipher_certinfo_set_property@Base 3.21.90
  camel_cipher_context_decrypt@Base 3.19.92
  camel_cipher_context_decrypt_finish@Base 3.19.92
  camel_cipher_context_decrypt_sync@Base 3.19.92
@@ -82,11 +85,13 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_cipher_validity_clone@Base 3.19.92
  camel_cipher_validity_envelope@Base 3.19.92
  camel_cipher_validity_free@Base 3.19.92
+ camel_cipher_validity_get_certinfo_property@Base 3.21.90
  camel_cipher_validity_get_description@Base 3.19.92
  camel_cipher_validity_get_type@Base 3.19.92
  camel_cipher_validity_get_valid@Base 3.19.92
  camel_cipher_validity_init@Base 3.19.92
  camel_cipher_validity_new@Base 3.19.92
+ camel_cipher_validity_set_certinfo_property@Base 3.21.90
  camel_cipher_validity_set_description@Base 3.19.92
  camel_cipher_validity_set_valid@Base 3.19.92
  camel_content_disposition_decode@Base 3.19.92
@@ -312,6 +317,7 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_folder_info_new@Base 3.19.92
  camel_folder_is_frozen@Base 3.19.92
  camel_folder_lock@Base 3.19.92
+ camel_folder_prepare_content_refresh@Base 3.21.90
  camel_folder_purge_message_cache@Base 3.19.92
  camel_folder_purge_message_cache_finish@Base 3.19.92
  camel_folder_purge_message_cache_sync@Base 3.19.92
@@ -566,19 +572,36 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_mempool_strdup@Base 3.19.92
  camel_message_info_clone@Base 3.19.92
  camel_message_info_dump@Base 3.19.92
+ camel_message_info_get_cc@Base 3.21.90
+ camel_message_info_get_content@Base 3.21.90
+ camel_message_info_get_date_received@Base 3.21.90
+ camel_message_info_get_date_sent@Base 3.21.90
+ camel_message_info_get_flags@Base 3.21.90
+ camel_message_info_get_from@Base 3.21.90
+ camel_message_info_get_headers@Base 3.21.90
+ camel_message_info_get_message_id@Base 3.21.90
+ camel_message_info_get_mlist@Base 3.21.90
+ camel_message_info_get_preview@Base 3.21.90
+ camel_message_info_get_ptr@Base 3.21.90
+ camel_message_info_get_references@Base 3.21.90
+ camel_message_info_get_size@Base 3.21.90
+ camel_message_info_get_subject@Base 3.21.90
+ camel_message_info_get_time@Base 3.21.90
+ camel_message_info_get_to@Base 3.21.90
  camel_message_info_get_type@Base 3.19.92
+ camel_message_info_get_uid@Base 3.21.90
+ camel_message_info_get_uint32@Base 3.21.90
+ camel_message_info_get_user_flag@Base 3.21.90
+ camel_message_info_get_user_flags@Base 3.21.90
+ camel_message_info_get_user_tag@Base 3.21.90
+ camel_message_info_get_user_tags@Base 3.21.90
  camel_message_info_new@Base 3.19.92
  camel_message_info_new_from_header@Base 3.19.92
- camel_message_info_ptr@Base 3.19.92
  camel_message_info_ref@Base 3.19.92
  camel_message_info_set_flags@Base 3.19.92
  camel_message_info_set_user_flag@Base 3.19.92
  camel_message_info_set_user_tag@Base 3.19.92
- camel_message_info_time@Base 3.19.92
- camel_message_info_uint32@Base 3.19.92
  camel_message_info_unref@Base 3.19.92
- camel_message_info_user_flag@Base 3.19.92
- camel_message_info_user_tag@Base 3.19.92
  camel_mime_filter_backup@Base 3.19.92
  camel_mime_filter_basic_get_type@Base 3.19.92
  camel_mime_filter_basic_new@Base 3.19.92
@@ -796,6 +819,7 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_object_set_state_filename@Base 3.19.92
  camel_object_state_read@Base 3.19.92
  camel_object_state_write@Base 3.19.92
+ camel_offline_folder_can_downsync@Base 3.21.90
  camel_offline_folder_downsync@Base 3.19.92
  camel_offline_folder_downsync_finish@Base 3.19.92
  camel_offline_folder_downsync_sync@Base 3.19.92
@@ -837,6 +861,7 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_provider_register@Base 3.19.92
  camel_provider_type_get_type@Base 3.19.92
  camel_pstring_add@Base 3.19.92
+ camel_pstring_contains@Base 3.21.90
  camel_pstring_dump_stat@Base 3.19.92
  camel_pstring_free@Base 3.19.92
  camel_pstring_peek@Base 3.19.92
@@ -876,6 +901,10 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_sasl_try_empty_password_finish@Base 3.19.92
  camel_sasl_try_empty_password_sync@Base 3.19.92
  camel_search_build_match_regex@Base 3.19.92
+ camel_search_get_all_headers_decoded@Base 3.21.90
+ camel_search_get_default_charset_from_message@Base 3.21.90
+ camel_search_get_header_decoded@Base 3.21.90
+ camel_search_header_is_address@Base 3.21.90
  camel_search_header_match@Base 3.19.92
  camel_search_message_body_contains@Base 3.19.92
  camel_search_words_free@Base 3.19.92
@@ -937,12 +966,14 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_session_list_services@Base 3.19.92
  camel_session_lookup_addressbook@Base 3.19.92
  camel_session_ref_main_context@Base 3.19.92
+ camel_session_ref_network_monitor@Base 3.21.90
  camel_session_ref_service@Base 3.19.92
  camel_session_ref_service_by_url@Base 3.19.92
  camel_session_remove_service@Base 3.19.92
  camel_session_remove_services@Base 3.19.92
  camel_session_set_junk_filter@Base 3.19.92
  camel_session_set_junk_headers@Base 3.19.92
+ camel_session_set_network_monitor@Base 3.21.90
  camel_session_set_online@Base 3.19.92
  camel_session_submit_job@Base 3.19.92
  camel_session_trust_prompt@Base 3.19.92
@@ -1121,6 +1152,7 @@ libcamel-1.2.so.57 libcamel-1.2-57 #MINVER#
  camel_text_index_rename@Base 3.19.92
  camel_text_index_validate@Base 3.19.92
  camel_text_to_html@Base 3.19.92
+ camel_three_state_get_type@Base 3.21.90
  camel_transfer_encoding_from_string@Base 3.19.92
  camel_transfer_encoding_get_type@Base 3.19.92
  camel_transfer_encoding_to_string@Base 3.19.92
