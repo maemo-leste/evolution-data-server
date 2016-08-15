@@ -85,6 +85,7 @@ libecal-1.2.so.19 libecal-1.2-19 #MINVER#
  e_cal_client_remove_objects_finish@Base 3.17
  e_cal_client_remove_objects_sync@Base 3.17
  e_cal_client_resolve_tzid_cb@Base 3.17
+ e_cal_client_resolve_tzid_sync@Base 3.19.92
  e_cal_client_send_objects@Base 3.17
  e_cal_client_send_objects_finish@Base 3.17
  e_cal_client_send_objects_sync@Base 3.17
@@ -113,6 +114,7 @@ libecal-1.2.so.19 libecal-1.2-19 #MINVER#
  e_cal_component_alarm_get_icalcomponent@Base 3.17
  e_cal_component_alarm_get_repeat@Base 3.17
  e_cal_component_alarm_get_trigger@Base 3.17
+ e_cal_component_alarm_get_type@Base 3.19.92
  e_cal_component_alarm_get_uid@Base 3.17
  e_cal_component_alarm_has_attendees@Base 3.17
  e_cal_component_alarm_new@Base 3.17
@@ -197,6 +199,7 @@ libecal-1.2.so.19 libecal-1.2-19 #MINVER#
  e_cal_component_has_simple_recurrence@Base 3.17
  e_cal_component_id_copy@Base 3.17
  e_cal_component_id_equal@Base 3.17
+ e_cal_component_id_get_type@Base 3.19.92
  e_cal_component_id_hash@Base 3.17
  e_cal_component_id_new@Base 3.17
  e_cal_component_is_instance@Base 3.17
@@ -287,6 +290,7 @@ libecal-1.2.so.19 libecal-1.2-19 #MINVER#
  e_cal_receive_objects@Base 3.17
  e_cal_recur_ensure_end_dates@Base 3.17
  e_cal_recur_generate_instances@Base 3.17
+ e_cal_recur_generate_instances_sync@Base 3.19.92
  e_cal_recur_nth@Base 3.17
  e_cal_recur_obtain_enddate@Base 3.17
  e_cal_refresh@Base 3.17

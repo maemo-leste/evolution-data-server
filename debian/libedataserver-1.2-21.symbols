@@ -934,6 +934,11 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_source_contacts_get_include_me@Base 3.17.90
  e_source_contacts_get_type@Base 3.17.90
  e_source_contacts_set_include_me@Base 3.17.90
+ e_source_credentials_google_is_supported@Base 3.19.92
+ e_source_credentials_google_util_decode_from_secret@Base 3.19.92
+ e_source_credentials_google_util_encode_to_secret@Base 3.19.92
+ e_source_credentials_google_util_extract_from_credentials@Base 3.19.92
+ e_source_credentials_google_util_generate_secret_uid@Base 3.19.92
  e_source_credentials_provider_can_prompt@Base 3.17
  e_source_credentials_provider_can_store@Base 3.17
  e_source_credentials_provider_delete@Base 3.17
@@ -946,6 +951,7 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_source_credentials_provider_impl_delete_sync@Base 3.17
  e_source_credentials_provider_impl_get_provider@Base 3.17
  e_source_credentials_provider_impl_get_type@Base 3.17
+ e_source_credentials_provider_impl_google_get_type@Base 3.19.92
  e_source_credentials_provider_impl_lookup_sync@Base 3.17
  e_source_credentials_provider_impl_password_get_type@Base 3.17
  e_source_credentials_provider_impl_store_sync@Base 3.17
@@ -1042,9 +1048,11 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_source_mail_account_dup_identity_uid@Base 3.17
  e_source_mail_account_get_archive_folder@Base 3.17
  e_source_mail_account_get_identity_uid@Base 3.17
+ e_source_mail_account_get_needs_initial_setup@Base 3.19.92
  e_source_mail_account_get_type@Base 3.17
  e_source_mail_account_set_archive_folder@Base 3.17
  e_source_mail_account_set_identity_uid@Base 3.17
+ e_source_mail_account_set_needs_initial_setup@Base 3.19.92
  e_source_mail_composition_dup_bcc@Base 3.17
  e_source_mail_composition_dup_cc@Base 3.17
  e_source_mail_composition_dup_drafts_folder@Base 3.17
@@ -1052,12 +1060,15 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_source_mail_composition_get_bcc@Base 3.17
  e_source_mail_composition_get_cc@Base 3.17
  e_source_mail_composition_get_drafts_folder@Base 3.17
+ e_source_mail_composition_get_reply_style@Base 3.19.92
  e_source_mail_composition_get_sign_imip@Base 3.17
  e_source_mail_composition_get_templates_folder@Base 3.17
  e_source_mail_composition_get_type@Base 3.17
+ e_source_mail_composition_reply_style_get_type@Base 3.19.92
  e_source_mail_composition_set_bcc@Base 3.17
  e_source_mail_composition_set_cc@Base 3.17
  e_source_mail_composition_set_drafts_folder@Base 3.17
+ e_source_mail_composition_set_reply_style@Base 3.19.92
  e_source_mail_composition_set_sign_imip@Base 3.17
  e_source_mail_composition_set_templates_folder@Base 3.17
  e_source_mail_identity_dup_address@Base 3.17
@@ -1115,6 +1126,7 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_source_openpgp_get_encrypt_by_default@Base 3.17.90
  e_source_openpgp_get_encrypt_to_self@Base 3.17
  e_source_openpgp_get_key_id@Base 3.17
+ e_source_openpgp_get_prefer_inline@Base 3.19.92
  e_source_openpgp_get_sign_by_default@Base 3.17
  e_source_openpgp_get_signing_algorithm@Base 3.17
  e_source_openpgp_get_type@Base 3.17
@@ -1122,6 +1134,7 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_source_openpgp_set_encrypt_by_default@Base 3.17.90
  e_source_openpgp_set_encrypt_to_self@Base 3.17
  e_source_openpgp_set_key_id@Base 3.17
+ e_source_openpgp_set_prefer_inline@Base 3.19.92
  e_source_openpgp_set_sign_by_default@Base 3.17
  e_source_openpgp_set_signing_algorithm@Base 3.17
  e_source_parameter_to_key@Base 3.17
@@ -1340,6 +1353,7 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_util_free_object_slist@Base 3.17
  e_util_free_string_slist@Base 3.17
  e_util_get_source_full_name@Base 3.17.90
+ e_util_get_source_oauth2_access_token_sync@Base 3.19.92
  e_util_gthread_id@Base 3.17
  e_util_safe_free_string@Base 3.17
  e_util_slist_to_strv@Base 3.17

@@ -1,57 +1,62 @@
 #!/usr/bin/make -f
 
-include /usr/share/cdbs/1/rules/buildvars.mk
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/autotools.mk
-include /usr/share/cdbs/1/class/gnome.mk
-include /usr/share/cdbs/1/rules/utils.mk
-include /usr/share/cdbs/1/rules/autoreconf.mk
 include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
-include /usr/share/gnome-pkg-tools/1/rules/gnome-version.mk
 
-DEB_SHLIBDEPS_INCLUDE += debian/tmp/usr/lib
-DEB_DH_AUTORECONF_ARGS = --as-needed
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,defs -Wl,--as-needed -Wl,-O1
+# see https://bugzilla.gnome.org/show_bug.cgi?id=594473 for details
+export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
-LIBCAMEL := $(shell grep '^Package: libcamel-' debian/control | awk '{ print $$2 }')
+%:
+	dh $@ --with autoreconf,gir,gnome
 
-DEB_DH_MAKESHLIBS_ARGS_ALL += -V
-DEB_DH_MAKESHLIBS_ARGS_$(LIBCAMEL) = -V'$(LIBCAMEL) (>= $(DEB_GNOME_VERSION)), $(LIBCAMEL) (<< $(DEB_GNOME_NEXTVERSION))'
+override_dh_gnome_clean:
+	dh_gnome_clean --no-control
 
-# We can't add -- -c4 above as libcamel will get "-V -- -c4 -V'...'" because
-# it gets $(_ALL) first and then $(_libcamel). So use the env variable.
-export DPKG_GENSYMBOLS_CHECK_LEVEL=4
+override_dh_autoreconf:
+	dh_autoreconf --as-needed
 
-export DEB_LDFLAGS_MAINT_APPEND=-Wl,-z,defs -Wl,--as-needed -Wl,-O1
-export DEB_BUILD_MAINT_OPTIONS=hardening=+all
-include /usr/share/dpkg/buildflags.mk
+ifeq ($(DEB_HOST_ARCH_OS),$(filter $(DEB_HOST_ARCH_OS),linux kfreebsd))
+CONFFLAGS = --with-phonenumber=/usr
+endif
 
-#ifeq ($(DEB_HOST_ARCH_OS),linux)
-#	DEB_CONFIGURE_EXTRA_FLAGS += --with-phonenumber=/usr
-#endif
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		--libdir=\$${prefix}/lib \
+		--libexecdir=\$${prefix}/lib/evolution \
+		--with-openldap \
+		--with-krb5=/usr \
+		--with-libdb=/usr \
+		--enable-gtk \
+		--enable-gtk-doc \
+		--enable-goa \
+		--enable-google \
+		--enable-vala-bindings \
+		--disable-uoa \
+		$(CONFFLAGS)
 
-DEB_CONFIGURE_EXTRA_FLAGS += \
-	--sysconfdir=/etc \
-	--libexecdir=\$${prefix}/lib/evolution \
-	--with-openldap \
-	--with-krb5=/usr \
-	--with-libdb=/usr \
-	--enable-gtk \
-	--enable-gtk-doc \
-	--enable-goa \
-	--enable-google \
-	--enable-vala-bindings \
-	--disable-uoa \
-	$(NULL)
+# don't configure with --libdir, but move the files manually, because
+# /usr/lib/evolution-data-server must not change.
+override_dh_install:
+	mkdir -p debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
+	mv debian/tmp/usr/lib/*.so debian/tmp/usr/lib/*.so.* debian/tmp/usr/lib/girepository-1.0 \
+		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
+	mv debian/tmp/usr/lib/pkgconfig/lib* debian/tmp/usr/lib/pkgconfig/camel* \
+		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
+	dh_install --fail-missing -X.la
 
-DEB_DH_MAKESHLIBS_ARGS_evolution-data-server += -Xusr/lib/evolution-data-server/
-DEB_FIXPERMS_EXCLUDE_evolution-data-server += usr/lib/evolution/camel-lock-helper*
-
-binary-install/evolution-data-server::
+override_dh_fixperms-arch:
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
-	chrpath -d -k $(CURDIR)/debian/evolution-data-server/usr/lib/evolution-data-server/*/*.so \
-		$(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel*1.2
-	rm $(CURDIR)/debian/tmp/usr/lib/evolution-data-server/*/*.la
-	rm $(CURDIR)/debian/tmp/usr/lib/*.la
+	dh_fixperms -a -X/usr/lib/evolution/camel-lock-helper*
 
-common-binary-post-install-arch:: list-missing
+override_dh_makeshlibs:
+	dh_makeshlibs -V -X/usr/lib/evolution-data-server/ -- -c4
+
+override_dh_strip:
+	dh_strip --dbgsym-migration='evolution-data-server-dbg (<< 3.20.2-2~)'
+
+override_dh_auto_test:
+ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
+	dbus-run-session -- $(MAKE) -k check || ( find . -name test-suite.log -exec cat {} \;; exit 0; )
+endif
