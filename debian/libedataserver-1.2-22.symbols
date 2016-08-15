@@ -1,4 +1,4 @@
-libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
+libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  (c++|regex|optional=template)"icu_[0-9]+::StringByteSink<.*@Base" 3.17.90
  __e_source_private_replace_dbus_object@Base 3.17
  e_async_closure_callback@Base 3.17
@@ -833,6 +833,11 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_named_parameters_test@Base 3.17
  e_named_parameters_to_string@Base 3.17.90
  e_named_parameters_to_strv@Base 3.17
+ e_network_monitor_dup_gio_name@Base 3.21.90
+ e_network_monitor_get_default@Base 3.21.90
+ e_network_monitor_get_type@Base 3.21.90
+ e_network_monitor_list_gio_names@Base 3.21.90
+ e_network_monitor_set_gio_name@Base 3.21.90
  e_operation_pool_free@Base 3.17
  e_operation_pool_new@Base 3.17
  e_operation_pool_push@Base 3.17
@@ -853,23 +858,22 @@ libedataserver-1.2.so.21 libedataserver-1.2-21 #MINVER#
  e_sexp_add_variable@Base 3.17
  e_sexp_encode_bool@Base 3.17
  e_sexp_encode_string@Base 3.17
- e_sexp_error@Base 3.17
  e_sexp_eval@Base 3.17
  e_sexp_evaluate_occur_times@Base 3.17
  e_sexp_fatal_error@Base 3.17
+ e_sexp_get_error@Base 3.21.90
+ e_sexp_get_type@Base 3.21.90
  e_sexp_input_file@Base 3.17
  e_sexp_input_text@Base 3.17
  e_sexp_new@Base 3.17
  e_sexp_parse@Base 3.17
  e_sexp_parse_value@Base 3.17
- e_sexp_ref@Base 3.17
  e_sexp_remove_symbol@Base 3.17
  e_sexp_result_free@Base 3.17
  e_sexp_result_new@Base 3.17
  e_sexp_resultv_free@Base 3.17
  e_sexp_set_scope@Base 3.17
  e_sexp_term_eval@Base 3.17
- e_sexp_unref@Base 3.17
  e_soup_auth_bearer_get_type@Base 3.17.90
  e_soup_auth_bearer_set_access_token@Base 3.17.90
  e_soup_ssl_trust_connect@Base 3.17.90
