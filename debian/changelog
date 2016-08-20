@@ -1,10 +1,12 @@
-evolution-data-server (3.20.5-1) UNRELEASED; urgency=medium
+evolution-data-server (3.20.5-1) unstable; urgency=medium
 
   * Team upload
+
+  [ Jeremy Bicha ]
   * New upstream release
   * Add missing libedataserverui-1.2-1.symbols (from Ubuntu)
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 08 Aug 2016 12:02:29 -0400
+ -- Andreas Henriksson <andreas@fatal.se>  Sat, 20 Aug 2016 10:57:43 +0200
 
 evolution-data-server (3.20.4-2) unstable; urgency=medium
 
