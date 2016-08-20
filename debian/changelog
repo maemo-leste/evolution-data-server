@@ -2,13 +2,22 @@ evolution-data-server (3.21.90-1) UNRELEASED; urgency=medium
 
   * Team upload
   * New upstream release
-  * Add missing libedataserverui-1.2-1.symbols (from Ubuntu)
   * Rename libcamel-1.2-57 -> libcamel-1.2-59
   * Rename libedataserver-1.2-21 -> libedataserver-1.2-22
   * Update symbols
   * Build-depend on libwebkit2 gtk-4.0-dev instead of libwebkitgtk-3.0-dev
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 15 Aug 2016 10:21:21 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Sat, 20 Aug 2016 10:12:21 -0400
+
+evolution-data-server (3.20.5-1) unstable; urgency=medium
+
+  * Team upload
+
+  [ Jeremy Bicha ]
+  * New upstream release
+  * Add missing libedataserverui-1.2-1.symbols (from Ubuntu)
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sat, 20 Aug 2016 10:57:43 +0200
 
 evolution-data-server (3.20.4-2) unstable; urgency=medium
 
