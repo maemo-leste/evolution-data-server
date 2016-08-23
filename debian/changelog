@@ -6,6 +6,7 @@ evolution-data-server (3.21.90-1) UNRELEASED; urgency=medium
   * Rename libedataserver-1.2-21 -> libedataserver-1.2-22
   * Update symbols
   * Build-depend on libwebkit2 gtk-4.0-dev instead of libwebkitgtk-3.0-dev
+  * Bump dh compat to 10
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Sat, 20 Aug 2016 10:12:21 -0400
 
