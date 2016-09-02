@@ -1,0 +1,26 @@
+From 9b276d8c8e857951ecbc958ed8c458dba866f3e7 Mon Sep 17 00:00:00 2001
+From: Michael Biebl <biebl@debian.org>
+Date: Fri, 2 Sep 2016 13:47:13 +0200
+Subject: [PATCH] Bug 770746 - [csv2vcard] Ensure @PERL@ is properly
+ substituted
+
+---
+ configure.ac | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index f6bf0c1..56c60c3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -282,6 +282,8 @@ AM_PROG_CC_C_O
+ AC_PROG_INSTALL
+ AC_PROG_LN_S
+ AC_PROG_MAKE_SET
++AC_PATH_PROG([PERL], [perl])
++AC_SUBST(PERL)
+ 
+ dnl For gen-western-table.py
+ AM_PATH_PYTHON
+-- 
+2.9.3
+
