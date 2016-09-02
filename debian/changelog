@@ -1,7 +1,6 @@
-evolution-data-server (3.21.91-1) UNRELEASED; urgency=medium
+evolution-data-server (3.21.91-1) experimental; urgency=medium
 
   [ Jeremy Bicha ]
-  * Team upload
   * New upstream release
   * Rename libcamel-1.2-57 -> libcamel-1.2-59
   * Rename libedataserver-1.2-21 -> libedataserver-1.2-22
@@ -14,7 +13,7 @@ evolution-data-server (3.21.91-1) UNRELEASED; urgency=medium
   * Fix @PERL@ substitution in csv2vcard, which was moved from evolution to
     evolution-data-server.
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Sat, 20 Aug 2016 10:12:21 -0400
+ -- Michael Biebl <biebl@debian.org>  Fri, 02 Sep 2016 14:16:37 +0200
 
 evolution-data-server (3.20.5-1) unstable; urgency=medium
 
