@@ -1,5 +1,6 @@
 evolution-data-server (3.21.91-1) UNRELEASED; urgency=medium
 
+  [ Jeremy Bicha ]
   * Team upload
   * New upstream release
   * Rename libcamel-1.2-57 -> libcamel-1.2-59
@@ -8,6 +9,10 @@ evolution-data-server (3.21.91-1) UNRELEASED; urgency=medium
   * Build-depend on libwebkit2 gtk-4.0-dev instead of libwebkitgtk-3.0-dev
   * Bump dh compat to 10
   * Minor update to autopkgtest
+
+  [ Michael Biebl ]
+  * Fix @PERL@ substitution in csv2vcard, which was moved from evolution to
+    evolution-data-server.
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Sat, 20 Aug 2016 10:12:21 -0400
 
