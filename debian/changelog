@@ -1,10 +1,10 @@
-evolution-data-server (3.21.92-1) UNRELEASED; urgency=medium
+evolution-data-server (3.21.92-1) experimental; urgency=medium
 
   * New upstream development release.
   * Drop debian/patches/02-csv2vcard-Ensure-PERL-is-properly-substit.patch,
     merged upstream.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 12 Sep 2016 17:17:58 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 12 Sep 2016 17:25:23 +0200
 
 evolution-data-server (3.21.91-1) experimental; urgency=medium
 
