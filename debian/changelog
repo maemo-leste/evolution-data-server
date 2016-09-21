@@ -1,10 +1,10 @@
-evolution-data-server (3.22.0-1) UNRELEASED; urgency=medium
+evolution-data-server (3.22.0-1) experimental; urgency=medium
 
   * New upstream release.
   * Update debian/libedataserver-1.2-22.symbols.
   * Simplify dh_auto_test override by using VERBOSE=1.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 21 Sep 2016 22:00:54 +0200
+ -- Michael Biebl <biebl@debian.org>  Wed, 21 Sep 2016 23:20:37 +0200
 
 evolution-data-server (3.21.92-1) experimental; urgency=medium
 
