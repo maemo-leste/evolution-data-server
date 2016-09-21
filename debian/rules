@@ -58,5 +58,5 @@ override_dh_strip:
 
 override_dh_auto_test:
 ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
-	dbus-run-session -- $(MAKE) -k check || ( find . -name test-suite.log -exec cat {} \;; exit 0; )
+	dbus-run-session -- $(MAKE) -k check VERBOSE=1 || true
 endif
