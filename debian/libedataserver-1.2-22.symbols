@@ -875,6 +875,7 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_sexp_set_scope@Base 3.17
  e_sexp_term_eval@Base 3.17
  e_soup_auth_bearer_get_type@Base 3.17.90
+ e_soup_auth_bearer_is_expired@Base 3.21.92
  e_soup_auth_bearer_set_access_token@Base 3.17.90
  e_soup_ssl_trust_connect@Base 3.17.90
  e_source_address_book_get_type@Base 3.17
