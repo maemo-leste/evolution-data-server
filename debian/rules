@@ -8,7 +8,7 @@ export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@ --with autoreconf,gir,gnome
+	dh $@ --with gir,gnome
 
 override_dh_gnome_clean:
 	dh_gnome_clean --no-control
@@ -58,5 +58,5 @@ override_dh_strip:
 
 override_dh_auto_test:
 ifeq (, $(filter nocheck, $(DEB_BUILD_OPTIONS)))
-	dbus-run-session -- $(MAKE) -k check || ( find . -name test-suite.log -exec cat {} \;; exit 0; )
+	dbus-run-session -- $(MAKE) -k check VERBOSE=1 || true
 endif

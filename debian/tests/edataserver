@@ -5,6 +5,8 @@ import subprocess
 import sys
 import os
 
+import gi
+gi.require_version('EDataServer', '1.2')
 from gi.repository import EDataServer
 
 class TestEDataServer(unittest.TestCase):

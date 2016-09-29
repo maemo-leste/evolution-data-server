@@ -1,3 +1,36 @@
+evolution-data-server (3.22.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update debian/libedataserver-1.2-22.symbols.
+  * Simplify dh_auto_test override by using VERBOSE=1.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 21 Sep 2016 23:20:37 +0200
+
+evolution-data-server (3.21.92-1) experimental; urgency=medium
+
+  * New upstream development release.
+  * Drop debian/patches/02-csv2vcard-Ensure-PERL-is-properly-substit.patch,
+    merged upstream.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 12 Sep 2016 17:25:23 +0200
+
+evolution-data-server (3.21.91-1) experimental; urgency=medium
+
+  [ Jeremy Bicha ]
+  * New upstream release
+  * Rename libcamel-1.2-57 -> libcamel-1.2-59
+  * Rename libedataserver-1.2-21 -> libedataserver-1.2-22
+  * Update symbols
+  * Build-depend on libwebkit2 gtk-4.0-dev instead of libwebkitgtk-3.0-dev
+  * Bump dh compat to 10
+  * Minor update to autopkgtest
+
+  [ Michael Biebl ]
+  * Fix @PERL@ substitution in csv2vcard, which was moved from evolution to
+    evolution-data-server.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 02 Sep 2016 14:16:37 +0200
+
 evolution-data-server (3.20.5-1) unstable; urgency=medium
 
   * Team upload
