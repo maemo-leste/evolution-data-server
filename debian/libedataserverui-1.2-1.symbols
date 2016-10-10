@@ -1,4 +1,5 @@
 libedataserverui-1.2.so.1 libedataserverui-1.2-1 #MINVER#
+* Build-Depends-Package: libedataserverui1.2-dev
  e_cell_renderer_color_get_type@Base 3.18.1
  e_cell_renderer_color_new@Base 3.18.1
  e_credentials_prompter_complete_prompt_call@Base 3.16.2

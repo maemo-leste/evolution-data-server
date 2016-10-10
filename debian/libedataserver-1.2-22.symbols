@@ -1,4 +1,5 @@
 libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
+* Build-Depends-Package: libedataserver1.2-dev
  (c++|regex|optional=template)"icu_[0-9]+::StringByteSink<.*@Base" 3.17.90
  __e_source_private_replace_dbus_object@Base 3.17
  e_async_closure_callback@Base 3.17

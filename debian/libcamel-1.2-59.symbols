@@ -1,4 +1,5 @@
 libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
+* Build-Depends-Package: libcamel1.2-dev
  bdata_extract_digit@Base 3.19.92
  bdata_extract_string@Base 3.19.92
  camel_address_cat@Base 3.19.92

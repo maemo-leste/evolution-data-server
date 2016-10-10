@@ -1,4 +1,5 @@
 libebook-1.2.so.16 libebook-1.2-16 #MINVER#
+* Build-Depends-Package: libebook1.2-dev
  _e_book_view_new@Base 3.17
  book_client_delete_direct_cursor@Base 3.17
  e_book_add_contact@Base 3.17
