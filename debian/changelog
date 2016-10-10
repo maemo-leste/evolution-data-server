@@ -3,6 +3,7 @@ evolution-data-server (3.22.1-2) UNRELEASED; urgency=medium
   * Add a Build-Depends-Package line to all symbols files to get proper
     dependencies when a package build-depends on a higher version of a
     dev package than what it gets from the used symbols.
+  * Remove a few obsolete Breaks.
 
  -- Michael Biebl <biebl@debian.org>  Mon, 10 Oct 2016 18:10:27 +0200
 
