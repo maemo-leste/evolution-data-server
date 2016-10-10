@@ -1,9 +1,9 @@
-evolution-data-server (3.22.1-1) UNRELEASED; urgency=medium
+evolution-data-server (3.22.1-1) unstable; urgency=medium
 
   * New upstream release.
   * Update debian/libedataserver-1.2-22.symbols.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 10 Oct 2016 16:40:03 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 10 Oct 2016 18:06:22 +0200
 
 evolution-data-server (3.22.0-2) unstable; urgency=medium
 
