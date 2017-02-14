@@ -292,6 +292,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_get_frozen_count@Base 3.19.92
  camel_folder_get_full_name@Base 3.19.92
  camel_folder_get_message@Base 3.19.92
+ camel_folder_get_message_cached@Base 3.22.5
  camel_folder_get_message_count@Base 3.19.92
  camel_folder_get_message_finish@Base 3.19.92
  camel_folder_get_message_flags@Base 3.19.92
@@ -336,11 +337,13 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_search_count@Base 3.19.92
  camel_folder_search_free@Base 3.19.92
  camel_folder_search_free_result@Base 3.19.92
+ camel_folder_search_get_only_cached_messages@Base 3.22.5
  camel_folder_search_get_type@Base 3.19.92
  camel_folder_search_new@Base 3.19.92
  camel_folder_search_search@Base 3.19.92
  camel_folder_search_set_body_index@Base 3.19.92
  camel_folder_search_set_folder@Base 3.19.92
+ camel_folder_search_set_only_cached_messages@Base 3.22.5
  camel_folder_search_set_summary@Base 3.19.92
  camel_folder_search_util_add_months@Base 3.19.92
  camel_folder_set_description@Base 3.19.92

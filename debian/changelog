@@ -1,6 +1,7 @@
 evolution-data-server (3.22.5-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Update debian/libcamel-1.2-59.symbols.
 
  -- Michael Biebl <biebl@debian.org>  Tue, 14 Feb 2017 21:33:14 +0100
 
