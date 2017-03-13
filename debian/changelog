@@ -1,3 +1,9 @@
+evolution-data-server (3.22.6-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 13 Mar 2017 23:47:58 +0100
+
 evolution-data-server (3.22.5-1) unstable; urgency=medium
 
   * New upstream release.
