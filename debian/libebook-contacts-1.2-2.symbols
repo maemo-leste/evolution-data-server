@@ -1,4 +1,5 @@
 libebook-contacts-1.2.so.2 libebook-contacts-1.2-2 #MINVER#
+* Build-Depends-Package: libebook-contacts1.2-dev
  e_address_western_free@Base 3.16.2
  e_address_western_parse@Base 3.16.2
  e_book_change_type_get_type@Base 3.16.2

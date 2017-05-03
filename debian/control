@@ -57,8 +57,6 @@ Depends: ${shlibs:Depends},
          libcamel-1.2-59 (= ${binary:Version}),
          gnome-keyring,
 Suggests: evolution
-Breaks: libebook-1.2-13 (<< 3.6),
-        libedataserverui-3.0-5
 Description: evolution database backend server
  The data server, called "Evolution Data Server" is responsible for managing
  mail, calendar, addressbook, tasks and memo information.
@@ -81,7 +79,6 @@ Depends: ${misc:Depends},
          libglib2.0-dev (>= 2.40),
          libnss3-dev,
          libnspr4-dev
-Breaks: libedataserverui-3.0-dev
 Description: Development files for evolution-data-server (metapackage)
  This package contains header files and static library of evolution-data-server.
 

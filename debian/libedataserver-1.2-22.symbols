@@ -1,4 +1,5 @@
 libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
+* Build-Depends-Package: libedataserver1.2-dev
  (c++|regex|optional=template)"icu_[0-9]+::StringByteSink<.*@Base" 3.17.90
  __e_source_private_replace_dbus_object@Base 3.17
  e_async_closure_callback@Base 3.17
@@ -939,6 +940,7 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_contacts_get_include_me@Base 3.17.90
  e_source_contacts_get_type@Base 3.17.90
  e_source_contacts_set_include_me@Base 3.17.90
+ e_source_credentials_google_get_access_token_sync@Base 3.22.1
  e_source_credentials_google_is_supported@Base 3.19.92
  e_source_credentials_google_util_decode_from_secret@Base 3.19.92
  e_source_credentials_google_util_encode_to_secret@Base 3.19.92

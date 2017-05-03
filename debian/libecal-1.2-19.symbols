@@ -1,4 +1,5 @@
 libecal-1.2.so.19 libecal-1.2-19 #MINVER#
+* Build-Depends-Package: libecal1.2-dev
  _e_cal_view_new@Base 3.17
  cal_mode_enum_get_type@Base 3.17
  cal_obj_instance_list_free@Base 3.17
