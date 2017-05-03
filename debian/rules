@@ -17,22 +17,26 @@ override_dh_autoreconf:
 	dh_autoreconf --as-needed
 
 ifeq ($(DEB_HOST_ARCH_OS),$(filter $(DEB_HOST_ARCH_OS),linux kfreebsd))
-CONFFLAGS = --with-phonenumber=/usr
+CONFFLAGS = -DWITH_PHONENUMBER=ON
 endif
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-		--libdir=\$${prefix}/lib \
-		--libexecdir=\$${prefix}/lib/evolution \
-		--with-openldap \
-		--with-krb5=/usr \
-		--with-libdb=/usr \
-		--enable-gtk \
-		--enable-gtk-doc \
-		--enable-goa \
-		--enable-google \
-		--enable-vala-bindings \
-		--disable-uoa \
+		-DLIBEXEC_INSTALL_DIR=/usr/lib/evolution \
+		-DSYSCONF_INSTALL_DIR=/etc \
+		-DWITH_LIBDB=/usr \
+		-DWITH_OPENLDAP=ON \
+		-DWITH_KRB5=ON \
+		-DENABLE_GTK=ON \
+		-DENABLE_GTK_DOC=ON \
+		-DENABLE_GOOGLE_AUTH=ON \
+		-DENABLE_GOA=ON \
+		-DENABLE_UOA=OFF \
+		-DENABLE_EXAMPLES=ON \
+		-DENABLE_WEATHER=ON \
+		-DENABLE_INSTALLED_TESTS=ON \
+		-DENABLE_INTROSPECTION=ON \
+		-DENABLE_VALA_BINDINGS=ON \
 		$(CONFFLAGS)
 
 # don't configure with --libdir, but move the files manually, because
