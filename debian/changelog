@@ -1,3 +1,62 @@
+evolution-data-server (3.22.7-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 24 Mar 2017 02:20:03 +0100
+
+evolution-data-server (3.22.6-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 14 Mar 2017 00:02:39 +0100
+
+evolution-data-server (3.22.5-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Update debian/libcamel-1.2-59.symbols.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 14 Feb 2017 23:08:09 +0100
+
+evolution-data-server (3.22.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 17 Jan 2017 07:14:17 +0100
+
+evolution-data-server (3.22.3-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 13 Dec 2016 02:19:21 +0100
+
+evolution-data-server (3.22.2-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 07 Nov 2016 14:37:52 +0100
+
+evolution-data-server (3.22.1-2) unstable; urgency=medium
+
+  * Add a Build-Depends-Package line to all symbols files to get proper
+    dependencies when a package build-depends on a higher version of a
+    dev package than what it gets from the used symbols.
+  * Remove a few obsolete Breaks.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 11 Oct 2016 01:48:09 +0200
+
+evolution-data-server (3.22.1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Update debian/libedataserver-1.2-22.symbols.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 10 Oct 2016 18:06:22 +0200
+
+evolution-data-server (3.22.0-2) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 29 Sep 2016 23:49:36 +0200
+
 evolution-data-server (3.22.0-1) experimental; urgency=medium
 
   * New upstream release.
