@@ -11,6 +11,7 @@ evolution-data-server (3.24.1-1) UNRELEASED; urgency=medium
   * Rename libebook-1.2-16 -> libebook-1.2-19
   * Drop 01-noinst-libedbus-private.patch and the extra e_dbus_* symbols
     from the libraries. Have the libraries just depend on libedbus-private0.
+  * Add additional autopkgtest to run installed-tests
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 02 May 2017 21:34:17 -0400
 
