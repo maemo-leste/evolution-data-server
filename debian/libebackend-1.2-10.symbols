@@ -72,6 +72,65 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_dbus_server_quit@Base 3.17
  e_dbus_server_release@Base 3.17
  e_dbus_server_run@Base 3.17
+ e_dbus_subprocess_backend_call_close@Base 3.17
+ e_dbus_subprocess_backend_call_close_finish@Base 3.17
+ e_dbus_subprocess_backend_call_close_sync@Base 3.17
+ e_dbus_subprocess_backend_call_create@Base 3.17
+ e_dbus_subprocess_backend_call_create_finish@Base 3.17
+ e_dbus_subprocess_backend_call_create_sync@Base 3.17
+ e_dbus_subprocess_backend_complete_close@Base 3.17
+ e_dbus_subprocess_backend_complete_create@Base 3.17
+ e_dbus_subprocess_backend_emit_backend_closed@Base 3.17
+ e_dbus_subprocess_backend_get_type@Base 3.17
+ e_dbus_subprocess_backend_interface_info@Base 3.17
+ e_dbus_subprocess_backend_override_properties@Base 3.17
+ e_dbus_subprocess_backend_proxy_get_type@Base 3.17
+ e_dbus_subprocess_backend_proxy_new@Base 3.17
+ e_dbus_subprocess_backend_proxy_new_finish@Base 3.17
+ e_dbus_subprocess_backend_proxy_new_for_bus@Base 3.17
+ e_dbus_subprocess_backend_proxy_new_for_bus_finish@Base 3.17
+ e_dbus_subprocess_backend_proxy_new_for_bus_sync@Base 3.17
+ e_dbus_subprocess_backend_proxy_new_sync@Base 3.17
+ e_dbus_subprocess_backend_skeleton_get_type@Base 3.17
+ e_dbus_subprocess_backend_skeleton_new@Base 3.17
+ e_dbus_subprocess_object_get_backend@Base 3.17
+ e_dbus_subprocess_object_get_type@Base 3.17
+ e_dbus_subprocess_object_manager_client_get_proxy_type@Base 3.17
+ e_dbus_subprocess_object_manager_client_get_type@Base 3.17
+ e_dbus_subprocess_object_manager_client_new@Base 3.17
+ e_dbus_subprocess_object_manager_client_new_finish@Base 3.17
+ e_dbus_subprocess_object_manager_client_new_for_bus@Base 3.17
+ e_dbus_subprocess_object_manager_client_new_for_bus_finish@Base 3.17
+ e_dbus_subprocess_object_manager_client_new_for_bus_sync@Base 3.17
+ e_dbus_subprocess_object_manager_client_new_sync@Base 3.17
+ e_dbus_subprocess_object_peek_backend@Base 3.17
+ e_dbus_subprocess_object_proxy_get_type@Base 3.17
+ e_dbus_subprocess_object_proxy_new@Base 3.17
+ e_dbus_subprocess_object_skeleton_get_type@Base 3.17
+ e_dbus_subprocess_object_skeleton_new@Base 3.17
+ e_dbus_subprocess_object_skeleton_set_backend@Base 3.17
+ e_dbus_user_prompter_call_extension_prompt@Base 3.17
+ e_dbus_user_prompter_call_extension_prompt_finish@Base 3.17
+ e_dbus_user_prompter_call_extension_prompt_sync@Base 3.17
+ e_dbus_user_prompter_call_prompt@Base 3.17
+ e_dbus_user_prompter_call_prompt_finish@Base 3.17
+ e_dbus_user_prompter_call_prompt_sync@Base 3.17
+ e_dbus_user_prompter_complete_extension_prompt@Base 3.17
+ e_dbus_user_prompter_complete_prompt@Base 3.17
+ e_dbus_user_prompter_emit_extension_response@Base 3.17
+ e_dbus_user_prompter_emit_response@Base 3.17
+ e_dbus_user_prompter_get_type@Base 3.17
+ e_dbus_user_prompter_interface_info@Base 3.17
+ e_dbus_user_prompter_override_properties@Base 3.17
+ e_dbus_user_prompter_proxy_get_type@Base 3.17
+ e_dbus_user_prompter_proxy_new@Base 3.17
+ e_dbus_user_prompter_proxy_new_finish@Base 3.17
+ e_dbus_user_prompter_proxy_new_for_bus@Base 3.17
+ e_dbus_user_prompter_proxy_new_for_bus_finish@Base 3.17
+ e_dbus_user_prompter_proxy_new_for_bus_sync@Base 3.17
+ e_dbus_user_prompter_proxy_new_sync@Base 3.17
+ e_dbus_user_prompter_skeleton_get_type@Base 3.17
+ e_dbus_user_prompter_skeleton_new@Base 3.17
  e_file_cache_add_object@Base 3.17
  e_file_cache_clean@Base 3.17
  e_file_cache_freeze_changes@Base 3.17

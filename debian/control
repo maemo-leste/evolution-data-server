@@ -10,8 +10,8 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Michael Biebl <biebl@debian.org>
 Standards-Version: 3.9.8
 Homepage: https://wiki.gnome.org/Apps/Evolution
-Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
-Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
+Vcs-Bzr: lp:~ubuntu-desktop/evolution-data-server/ubuntu
+Vcs-Browser: https://code.launchpad.net/~ubuntu-desktop/evolution-data-server/ubuntu
 Build-Depends: cmake,
                debhelper (>= 10),
                dpkg-dev (>= 1.17.14),
@@ -106,19 +106,6 @@ Description: Documentation files for the Evolution Data Server libraries
  This package contains the API documentation for all the individual
  Evolution Data Server libraries.
 
-Package: libedbus-private0
-Section: libs
-Architecture: any
-Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-Description: Private D-Bus library for evolution data servers
- The data server, called "Evolution Data Server" is responsible for managing
- calendar and addressbook information.
- .
- This package is a private D-Bus library for evolution-data-server.
-
 Package: libedataserver-1.2-22
 Section: libs
 Architecture: any
@@ -126,8 +113,7 @@ Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= ${gnome:Version}),
-         libedbus-private0 (= ${binary:Version})
+         evolution-data-server-common (>= ${gnome:Version})
 Description: Utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -175,8 +161,7 @@ Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= ${gnome:Version}),
-         libedbus-private0 (= ${binary:Version})
+         evolution-data-server-common (>= ${gnome:Version})
 Description: Utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -226,8 +211,7 @@ Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         libedbus-private0 (= ${binary:Version})
+         ${misc:Depends}
 Description: Evolution MIME message handling library
  Camel is a generic messaging library. It supports the standard
  messaging system for receiving and sending messages. It is the
@@ -283,8 +267,7 @@ Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         libedbus-private0 (= ${binary:Version})
+         ${misc:Depends}
 Description: Client library for evolution address books
  This package is a client library for evolution addressbooks.
  .
@@ -332,8 +315,7 @@ Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         libedbus-private0 (= ${binary:Version})
+         ${misc:Depends}
 Description: Backend library for evolution address books
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -377,8 +359,7 @@ Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         libedbus-private0 (= ${binary:Version})
+         ${misc:Depends}
 Description: Client library for evolution contacts books
  This package is a client library for evolution addressbooks.
  .
@@ -407,8 +388,7 @@ Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         libedbus-private0 (= ${binary:Version})
+         ${misc:Depends}
 Description: Client library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -437,8 +417,7 @@ Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         libedbus-private0 (= ${binary:Version})
+         ${misc:Depends}
 Description: Backend library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -468,8 +447,7 @@ Architecture: any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         libedbus-private0 (= ${binary:Version})
+         ${misc:Depends}
 Description: Utility library for evolution data servers
  This package is a utility library for evolution-data-servers providing
  backend functions to access data.
