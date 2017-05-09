@@ -48,6 +48,7 @@ Build-Depends: cmake,
                valac (>= 0.22),
                gnome-common (>= 3.6.0),
                libphonenumber-dev [linux-any kfreebsd-any],
+               db-util <!nocheck>,
                dbus <!nocheck>,
 
 Package: evolution-data-server
