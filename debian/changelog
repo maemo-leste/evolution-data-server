@@ -8,6 +8,8 @@ evolution-data-server (3.24.1-1) UNRELEASED; urgency=medium
     - gir1.2-edataserverui-1.2
   * Rename libcamel-1.2-59 -> libcamel-1.2-60
   * Rename libebook-1.2-16 -> libebook-1.2-19
+  * debian/control:
+    - Build-depend on db-util to silence test warning
   * Update 01-noinst-libedbus-private.patch
   * Add avoid-rpath.patch:
     - Set -DCMAKE_SKIP_RPATH=ON
