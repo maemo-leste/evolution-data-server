@@ -6,11 +6,9 @@ evolution-data-server (3.24.1-1) UNRELEASED; urgency=medium
     - evolution-data-server-tests
     - gir1.2-camel-1.2
     - gir1.2-edataserverui-1.2
-    - libedbus-private0
   * Rename libcamel-1.2-59 -> libcamel-1.2-60
   * Rename libebook-1.2-16 -> libebook-1.2-19
-  * Drop 01-noinst-libedbus-private.patch and the extra e_dbus_* symbols
-    from the libraries. Have the libraries just depend on libedbus-private0.
+  * Update 01-noinst-libedbus-private.patch
   * Add additional autopkgtest to run installed-tests
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 02 May 2017 21:34:17 -0400
