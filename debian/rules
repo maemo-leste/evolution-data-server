@@ -27,6 +27,7 @@ override_dh_auto_configure:
 		-DWITH_LIBDB=/usr \
 		-DWITH_OPENLDAP=ON \
 		-DWITH_KRB5=ON \
+		-DCMAKE_SKIP_RPATH=ON \
 		-DENABLE_GTK=ON \
 		-DENABLE_GTK_DOC=ON \
 		-DENABLE_GOOGLE_AUTH=ON \
