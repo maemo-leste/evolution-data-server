@@ -1,5 +1,6 @@
 libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
 * Build-Depends-Package: libcamel1.2-dev
+ _camel_message_info_unset_summary@Base 3.24.3
  camel_address_cat@Base 3.19.92
  camel_address_copy@Base 3.19.92
  camel_address_decode@Base 3.19.92

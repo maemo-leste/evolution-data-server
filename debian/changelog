@@ -1,4 +1,4 @@
-evolution-data-server (3.24.2-1) UNRELEASED; urgency=medium
+evolution-data-server (3.24.3-1) UNRELEASED; urgency=medium
 
   * New upstream release (LP: #1685683)
     - Switch from autotools to cmake
@@ -10,14 +10,13 @@ evolution-data-server (3.24.2-1) UNRELEASED; urgency=medium
   * Rename libebook-1.2-16 -> libebook-1.2-19
   * debian/control:
     - Build-depend on db-util to silence test warning
-  * Update 01-noinst-libedbus-private.patch
-  * Add avoid-rpath.patch:
+  * debian/rules:
     - Set -DCMAKE_SKIP_RPATH=ON
   * Add additional autopkgtest to run installed-tests
   * Add evolution-data-server.postinst to recommend restarting
     after updating.
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 02 May 2017 21:34:17 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 19 Jun 2017 12:34:17 -0400
 
 evolution-data-server (3.22.7-1) unstable; urgency=medium
 
