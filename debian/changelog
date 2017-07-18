@@ -12,6 +12,7 @@ evolution-data-server (3.24.4-1) UNRELEASED; urgency=medium
     - Build-depend on db-util to silence test warning
   * debian/rules:
     - Set -DCMAKE_SKIP_RPATH=ON
+    - Explicitly set SENDMAIL_PATH to avoid a build warning
   * Add additional autopkgtest to run installed-tests
   * Add evolution-data-server.postinst to recommend restarting
     after updating.

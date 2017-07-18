@@ -7,6 +7,8 @@ export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,defs -Wl,--as-needed -Wl,-O1
 export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+export SENDMAIL_PATH = /usr/sbin/sendmail
+
 %:
 	dh $@ --with gir,gnome
 
