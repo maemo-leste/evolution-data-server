@@ -10,6 +10,7 @@ evolution-data-server (3.24.4-1) UNRELEASED; urgency=medium
   * Rename libebook-1.2-16 -> libebook-1.2-19
   * debian/control:
     - Build-depend on db-util to silence test warning
+    - Have libebook-contacts1.2-dev depend on its gir package
   * debian/rules:
     - Set -DCMAKE_SKIP_RPATH=ON
     - Explicitly set SENDMAIL_PATH to avoid a build warning
