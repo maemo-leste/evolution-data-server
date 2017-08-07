@@ -1,4 +1,4 @@
-evolution-data-server (3.24.4-1) UNRELEASED; urgency=medium
+evolution-data-server (3.24.5-1) UNRELEASED; urgency=medium
 
   * New upstream release (LP: #1685683)
     - Switch from autotools to cmake
