@@ -118,6 +118,7 @@ libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
  camel_content_type_unref@Base 3.19.92
  camel_data_cache_add@Base 3.19.92
  camel_data_cache_clear@Base 3.19.92
+ camel_data_cache_foreach_remove@Base 3.25.90
  camel_data_cache_get@Base 3.19.92
  camel_data_cache_get_expire_enabled@Base 3.24.1
  camel_data_cache_get_filename@Base 3.19.92
@@ -929,6 +930,8 @@ libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
  camel_offline_store_get_type@Base 3.19.92
  camel_offline_store_prepare_for_offline_sync@Base 3.19.92
  camel_offline_store_requires_downsync@Base 3.19.92
+ camel_offline_store_set_online@Base 3.25.90
+ camel_offline_store_set_online_finish@Base 3.25.90
  camel_offline_store_set_online_sync@Base 3.19.92
  camel_operation_cancel_all@Base 3.19.92
  camel_operation_get_type@Base 3.19.92

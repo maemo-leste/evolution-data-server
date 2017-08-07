@@ -491,6 +491,20 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_soup_auth_bearer_get_type@Base 3.17.90
  e_soup_auth_bearer_is_expired@Base 3.21.92
  e_soup_auth_bearer_set_access_token@Base 3.17.90
+ e_soup_session_check_result@Base 3.25.90
+ e_soup_session_dup_credentials@Base 3.25.90
+ e_soup_session_get_log_level@Base 3.25.90
+ e_soup_session_get_source@Base 3.25.90
+ e_soup_session_get_ssl_error_details@Base 3.25.90
+ e_soup_session_get_type@Base 3.25.90
+ e_soup_session_new@Base 3.25.90
+ e_soup_session_new_request@Base 3.25.90
+ e_soup_session_new_request_uri@Base 3.25.90
+ e_soup_session_send_request_simple_sync@Base 3.25.90
+ e_soup_session_send_request_sync@Base 3.25.90
+ e_soup_session_set_credentials@Base 3.25.90
+ e_soup_session_setup_logging@Base 3.25.90
+ e_soup_session_util_status_to_string@Base 3.25.90
  e_soup_ssl_trust_connect@Base 3.17.90
  e_source_address_book_get_type@Base 3.17
  e_source_alarms_dup_last_notified@Base 3.17
@@ -542,14 +556,20 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_camel_get_type_name@Base 3.17
  e_source_camel_register_types@Base 3.17
  e_source_changed@Base 3.17
+ e_source_collection_dup_calendar_url@Base 3.25.90
+ e_source_collection_dup_contacts_url@Base 3.25.90
  e_source_collection_dup_identity@Base 3.17
  e_source_collection_get_calendar_enabled@Base 3.17
+ e_source_collection_get_calendar_url@Base 3.25.90
  e_source_collection_get_contacts_enabled@Base 3.17
+ e_source_collection_get_contacts_url@Base 3.25.90
  e_source_collection_get_identity@Base 3.17
  e_source_collection_get_mail_enabled@Base 3.17
  e_source_collection_get_type@Base 3.17
  e_source_collection_set_calendar_enabled@Base 3.17
+ e_source_collection_set_calendar_url@Base 3.25.90
  e_source_collection_set_contacts_enabled@Base 3.17
+ e_source_collection_set_contacts_url@Base 3.25.90
  e_source_collection_set_identity@Base 3.17
  e_source_collection_set_mail_enabled@Base 3.17
  e_source_compare_by_display_name@Base 3.17
@@ -692,7 +712,9 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_mail_composition_get_drafts_folder@Base 3.17
  e_source_mail_composition_get_reply_style@Base 3.19.92
  e_source_mail_composition_get_sign_imip@Base 3.17
+ e_source_mail_composition_get_start_bottom@Base 3.25.90
  e_source_mail_composition_get_templates_folder@Base 3.17
+ e_source_mail_composition_get_top_signature@Base 3.25.90
  e_source_mail_composition_get_type@Base 3.17
  e_source_mail_composition_reply_style_get_type@Base 3.19.92
  e_source_mail_composition_set_bcc@Base 3.17
@@ -700,7 +722,9 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_mail_composition_set_drafts_folder@Base 3.17
  e_source_mail_composition_set_reply_style@Base 3.19.92
  e_source_mail_composition_set_sign_imip@Base 3.17
+ e_source_mail_composition_set_start_bottom@Base 3.25.90
  e_source_mail_composition_set_templates_folder@Base 3.17
+ e_source_mail_composition_set_top_signature@Base 3.25.90
  e_source_mail_identity_dup_address@Base 3.17
  e_source_mail_identity_dup_aliases@Base 3.24.1
  e_source_mail_identity_dup_name@Base 3.17
@@ -741,9 +765,11 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_mail_submission_get_sent_folder@Base 3.17
  e_source_mail_submission_get_transport_uid@Base 3.17
  e_source_mail_submission_get_type@Base 3.17
+ e_source_mail_submission_get_use_sent_folder@Base 3.25.90
  e_source_mail_submission_set_replies_to_origin_folder@Base 3.17
  e_source_mail_submission_set_sent_folder@Base 3.17
  e_source_mail_submission_set_transport_uid@Base 3.17
+ e_source_mail_submission_set_use_sent_folder@Base 3.25.90
  e_source_mail_transport_get_type@Base 3.17
  e_source_mdn_get_response_policy@Base 3.17
  e_source_mdn_get_type@Base 3.17
@@ -864,6 +890,11 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_registry_set_default_mail_identity@Base 3.17
  e_source_registry_set_default_memo_list@Base 3.17
  e_source_registry_set_default_task_list@Base 3.17
+ e_source_registry_watcher_get_extension_name@Base 3.25.90
+ e_source_registry_watcher_get_registry@Base 3.25.90
+ e_source_registry_watcher_get_type@Base 3.25.90
+ e_source_registry_watcher_new@Base 3.25.90
+ e_source_registry_watcher_reclaim@Base 3.25.90
  e_source_remote_create@Base 3.17
  e_source_remote_create_finish@Base 3.17
  e_source_remote_create_sync@Base 3.17
@@ -959,6 +990,7 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_write_finish@Base 3.17
  e_source_write_sync@Base 3.17
  e_strftime@Base 3.17
+ e_three_state_get_type@Base 3.25.90
  e_time_format_date_and_time@Base 3.17
  e_time_format_time@Base 3.17
  e_time_get_d_fmt_with_4digit_year@Base 3.17
@@ -986,9 +1018,11 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_util_free_nullable_object_slist@Base 3.17
  e_util_free_object_slist@Base 3.17
  e_util_free_string_slist@Base 3.17
+ e_util_generate_uid@Base 3.25.90
  e_util_get_source_full_name@Base 3.17.90
  e_util_get_source_oauth2_access_token_sync@Base 3.19.92
  e_util_gthread_id@Base 3.17
+ e_util_identity_can_send@Base 3.25.90
  e_util_safe_free_string@Base 3.17
  e_util_slist_to_strv@Base 3.17
  e_util_strdup_strip@Base 3.17
@@ -996,7 +1030,9 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_util_strv_equal@Base 3.17
  e_util_strv_to_slist@Base 3.17
  e_util_unicode_get_utf8@Base 3.17
+ e_util_unref_in_thread@Base 3.25.90
  e_util_utf8_data_make_valid@Base 3.17
+ e_util_utf8_decompose@Base 3.25.90
  e_util_utf8_make_valid@Base 3.17
  e_util_utf8_normalize@Base 3.17
  e_util_utf8_remove_accents@Base 3.17
@@ -1005,16 +1041,100 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_util_utf8_strstrcasedecomp@Base 3.17
  e_weak_ref_free@Base 3.17
  e_weak_ref_new@Base 3.17
+ e_webdav_access_control_entry_append_privilege@Base 3.25.90
+ e_webdav_access_control_entry_copy@Base 3.25.90
+ e_webdav_access_control_entry_free@Base 3.25.90
+ e_webdav_access_control_entry_get_privileges@Base 3.25.90
+ e_webdav_access_control_entry_get_type@Base 3.25.90
+ e_webdav_access_control_entry_new@Base 3.25.90
  e_webdav_discover_free_discovered_sources@Base 3.17.90
  e_webdav_discover_sources@Base 3.17.90
  e_webdav_discover_sources_finish@Base 3.17.90
  e_webdav_discover_sources_sync@Base 3.17.90
+ e_webdav_privilege_copy@Base 3.25.90
+ e_webdav_privilege_free@Base 3.25.90
+ e_webdav_privilege_get_type@Base 3.25.90
+ e_webdav_privilege_new@Base 3.25.90
+ e_webdav_property_change_copy@Base 3.25.90
+ e_webdav_property_change_free@Base 3.25.90
+ e_webdav_property_change_get_type@Base 3.25.90
+ e_webdav_property_change_new_remove@Base 3.25.90
+ e_webdav_property_change_new_set@Base 3.25.90
+ e_webdav_resource_copy@Base 3.25.90
+ e_webdav_resource_free@Base 3.25.90
+ e_webdav_resource_get_type@Base 3.25.90
+ e_webdav_resource_new@Base 3.25.90
+ e_webdav_session_acl_sync@Base 3.25.90
+ e_webdav_session_copy_sync@Base 3.25.90
+ e_webdav_session_delete_sync@Base 3.25.90
+ e_webdav_session_ensure_full_uri@Base 3.25.90
+ e_webdav_session_get_acl_restrictions_sync@Base 3.25.90
+ e_webdav_session_get_acl_sync@Base 3.25.90
+ e_webdav_session_get_current_user_privilege_set_sync@Base 3.25.90
+ e_webdav_session_get_data_sync@Base 3.25.90
+ e_webdav_session_get_principal_collection_set_sync@Base 3.25.90
+ e_webdav_session_get_supported_privilege_set_sync@Base 3.25.90
+ e_webdav_session_get_sync@Base 3.25.90
+ e_webdav_session_get_type@Base 3.25.90
+ e_webdav_session_getctag_sync@Base 3.25.90
+ e_webdav_session_list_sync@Base 3.25.90
+ e_webdav_session_lock_resource_sync@Base 3.25.90
+ e_webdav_session_lock_sync@Base 3.25.90
+ e_webdav_session_mkcalendar_sync@Base 3.25.90
+ e_webdav_session_mkcol_addressbook_sync@Base 3.25.90
+ e_webdav_session_mkcol_sync@Base 3.25.90
+ e_webdav_session_move_sync@Base 3.25.90
+ e_webdav_session_new@Base 3.25.90
+ e_webdav_session_new_request@Base 3.25.90
+ e_webdav_session_options_sync@Base 3.25.90
+ e_webdav_session_post_sync@Base 3.25.90
+ e_webdav_session_principal_property_search_sync@Base 3.25.90
+ e_webdav_session_propfind_sync@Base 3.25.90
+ e_webdav_session_proppatch_sync@Base 3.25.90
+ e_webdav_session_put_data_sync@Base 3.25.90
+ e_webdav_session_put_sync@Base 3.25.90
+ e_webdav_session_refresh_lock_sync@Base 3.25.90
+ e_webdav_session_replace_with_detailed_error@Base 3.25.90
+ e_webdav_session_report_sync@Base 3.25.90
+ e_webdav_session_set_acl_sync@Base 3.25.90
+ e_webdav_session_traverse_mkcalendar_response@Base 3.25.90
+ e_webdav_session_traverse_mkcol_response@Base 3.25.90
+ e_webdav_session_traverse_multistatus_response@Base 3.25.90
+ e_webdav_session_unlock_sync@Base 3.25.90
+ e_webdav_session_update_properties_sync@Base 3.25.90
+ e_webdav_session_util_free_privileges@Base 3.25.90
+ e_webdav_session_util_maybe_dequote@Base 3.25.90
  e_xml_destroy_hash@Base 3.17
+ e_xml_document_add_attribute@Base 3.25.90
+ e_xml_document_add_attribute_double@Base 3.25.90
+ e_xml_document_add_attribute_int@Base 3.25.90
+ e_xml_document_add_attribute_time@Base 3.25.90
+ e_xml_document_add_empty_element@Base 3.25.90
+ e_xml_document_add_namespaces@Base 3.25.90
+ e_xml_document_end_element@Base 3.25.90
+ e_xml_document_get_content@Base 3.25.90
+ e_xml_document_get_type@Base 3.25.90
+ e_xml_document_get_xmldoc@Base 3.25.90
+ e_xml_document_new@Base 3.25.90
+ e_xml_document_start_element@Base 3.25.90
+ e_xml_document_start_text_element@Base 3.25.90
+ e_xml_document_write_base64@Base 3.25.90
+ e_xml_document_write_buffer@Base 3.25.90
+ e_xml_document_write_double@Base 3.25.90
+ e_xml_document_write_int@Base 3.25.90
+ e_xml_document_write_string@Base 3.25.90
+ e_xml_document_write_time@Base 3.25.90
  e_xml_from_hash@Base 3.17
  e_xml_get_child_by_name@Base 3.17
+ e_xml_new_xpath_context_with_namespaces@Base 3.25.90
+ e_xml_parse_data@Base 3.25.90
  e_xml_parse_file@Base 3.17
  e_xml_save_file@Base 3.17
  e_xml_to_hash@Base 3.17
+ e_xml_xpath_context_register_namespaces@Base 3.25.90
+ e_xml_xpath_eval@Base 3.25.90
+ e_xml_xpath_eval_as_string@Base 3.25.90
+ e_xml_xpath_eval_exists@Base 3.25.90
  e_xmlhash_add@Base 3.17
  e_xmlhash_compare@Base 3.17
  e_xmlhash_destroy@Base 3.17
