@@ -27,10 +27,71 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_backend_trust_prompt@Base 3.17
  e_backend_trust_prompt_finish@Base 3.17
  e_backend_trust_prompt_sync@Base 3.17
+ e_cache_change_revision@Base 3.25.90
+ e_cache_clear_offline_changes@Base 3.25.90
+ e_cache_column_info_copy@Base 3.25.90
+ e_cache_column_info_free@Base 3.25.90
+ e_cache_column_info_get_type@Base 3.25.90
+ e_cache_column_info_new@Base 3.25.90
+ e_cache_column_values_contains@Base 3.25.90
+ e_cache_column_values_copy@Base 3.25.90
+ e_cache_column_values_free@Base 3.25.90
+ e_cache_column_values_get_size@Base 3.25.90
+ e_cache_column_values_get_type@Base 3.25.90
+ e_cache_column_values_init_iter@Base 3.25.90
+ e_cache_column_values_lookup@Base 3.25.90
+ e_cache_column_values_new@Base 3.25.90
+ e_cache_column_values_put@Base 3.25.90
+ e_cache_column_values_remove@Base 3.25.90
+ e_cache_column_values_remove_all@Base 3.25.90
+ e_cache_column_values_take@Base 3.25.90
+ e_cache_column_values_take_value@Base 3.25.90
+ e_cache_contains@Base 3.25.90
+ e_cache_dup_key@Base 3.25.90
+ e_cache_dup_revision@Base 3.25.90
+ e_cache_erase@Base 3.25.90
+ e_cache_error_quark@Base 3.25.90
+ e_cache_foreach@Base 3.25.90
+ e_cache_foreach_update@Base 3.25.90
+ e_cache_freeze_revision_change@Base 3.25.90
+ e_cache_get@Base 3.25.90
+ e_cache_get_count@Base 3.25.90
+ e_cache_get_filename@Base 3.25.90
+ e_cache_get_key_int@Base 3.25.90
+ e_cache_get_objects@Base 3.25.90
+ e_cache_get_offline_changes@Base 3.25.90
+ e_cache_get_offline_state@Base 3.25.90
+ e_cache_get_sqlitedb@Base 3.25.90
+ e_cache_get_type@Base 3.25.90
+ e_cache_get_uids@Base 3.25.90
+ e_cache_get_version@Base 3.25.90
+ e_cache_initialize_sync@Base 3.25.90
+ e_cache_is_revision_change_frozen@Base 3.25.90
+ e_cache_lock@Base 3.25.90
+ e_cache_offline_change_copy@Base 3.25.90
+ e_cache_offline_change_free@Base 3.25.90
+ e_cache_offline_change_get_type@Base 3.25.90
+ e_cache_offline_change_new@Base 3.25.90
+ e_cache_put@Base 3.25.90
  e_cache_reaper_add_private_directory@Base 3.17.90
  e_cache_reaper_get_type@Base 3.17.90
  e_cache_reaper_remove_private_directory@Base 3.17.90
  e_cache_reaper_type_register@Base 3.17.90
+ e_cache_remove@Base 3.25.90
+ e_cache_remove_all@Base 3.25.90
+ e_cache_set_key@Base 3.25.90
+ e_cache_set_key_int@Base 3.25.90
+ e_cache_set_offline_state@Base 3.25.90
+ e_cache_set_revision@Base 3.25.90
+ e_cache_set_version@Base 3.25.90
+ e_cache_sqlite_exec@Base 3.25.90
+ e_cache_sqlite_maybe_vacuum@Base 3.25.90
+ e_cache_sqlite_select@Base 3.25.90
+ e_cache_sqlite_stmt_append_printf@Base 3.25.90
+ e_cache_sqlite_stmt_free@Base 3.25.90
+ e_cache_sqlite_stmt_printf@Base 3.25.90
+ e_cache_thaw_revision_change@Base 3.25.90
+ e_cache_unlock@Base 3.25.90
  e_collection_backend_authenticate_children@Base 3.17
  e_collection_backend_claim_all_resources@Base 3.17
  e_collection_backend_create_resource@Base 3.17
@@ -50,6 +111,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_collection_backend_new_child@Base 3.17
  e_collection_backend_ref_proxy_resolver@Base 3.17
  e_collection_backend_ref_server@Base 3.17
+ e_conflict_resolution_get_type@Base 3.25.90
  e_data_factory_construct_path@Base 3.17
  e_data_factory_get_registry@Base 3.17
  e_data_factory_get_reload_supported@Base 3.17.90
@@ -151,6 +213,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_offline_listener_get_state@Base 3.17
  e_offline_listener_get_type@Base 3.17
  e_offline_listener_new@Base 3.17
+ e_offline_state_get_type@Base 3.25.90
  e_reap_trash_directory@Base 3.17.90
  e_reap_trash_directory_finish@Base 3.17.90
  e_reap_trash_directory_sync@Base 3.17.90
@@ -218,3 +281,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_user_prompter_server_new@Base 3.17
  e_user_prompter_server_register@Base 3.17
  e_user_prompter_server_response@Base 3.17
+ e_webdav_collection_backend_discover_sync@Base 3.25.90
+ e_webdav_collection_backend_get_resource_id@Base 3.25.90
+ e_webdav_collection_backend_get_type@Base 3.25.90
+ e_webdav_collection_backend_is_custom_source@Base 3.25.90
