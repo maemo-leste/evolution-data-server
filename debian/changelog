@@ -1,4 +1,4 @@
-evolution-data-server (3.25.90-1) UNRELEASED; urgency=medium
+evolution-data-server (3.24.4-1) UNRELEASED; urgency=medium
 
   * New upstream release (LP: #1685683)
     - Switch from autotools to cmake
@@ -14,14 +14,11 @@ evolution-data-server (3.25.90-1) UNRELEASED; urgency=medium
   * debian/rules:
     - Set -DCMAKE_SKIP_RPATH=ON
     - Explicitly set SENDMAIL_PATH to avoid a build warning
-  * debian/evolution-data-server.install:
-    - Install new list-sources tool
-    - owncloud backend has been renamed to webdav
   * Add additional autopkgtest to run installed-tests
   * Add evolution-data-server.postinst to recommend restarting
     after updating.
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 07 Aug 2017 16:43:31 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 18 Jul 2017 12:34:17 -0400
 
 evolution-data-server (3.22.7-1) unstable; urgency=medium
 

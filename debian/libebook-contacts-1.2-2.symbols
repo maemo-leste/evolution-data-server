@@ -178,6 +178,3 @@ libebook-contacts-1.2.so.2 libebook-contacts-1.2-2 #MINVER#
  e_vcard_remove_attributes@Base 3.16.2
  e_vcard_to_string@Base 3.16.2
  e_vcard_unescape_string@Base 3.16.2
- e_vcard_util_dup_x_attribute@Base 3.25.90
- e_vcard_util_set_x_attribute@Base 3.25.90
-
