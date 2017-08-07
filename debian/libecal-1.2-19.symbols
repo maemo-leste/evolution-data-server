@@ -317,15 +317,12 @@ libecal-1.2.so.19 libecal-1.2-19 #MINVER#
  e_cal_util_component_has_rrules@Base 3.17
  e_cal_util_component_is_instance@Base 3.17
  e_cal_util_construct_instance@Base 3.17
- e_cal_util_dup_x_property@Base 3.25.90
  e_cal_util_event_dates_match@Base 3.17
- e_cal_util_find_x_property@Base 3.25.90
  e_cal_util_generate_alarms_for_comp@Base 3.17
  e_cal_util_generate_alarms_for_list@Base 3.17
  e_cal_util_get_component_occur_times@Base 3.17
  e_cal_util_get_system_timezone@Base 3.17
  e_cal_util_get_system_timezone_location@Base 3.17
- e_cal_util_get_x_property@Base 3.25.90
  e_cal_util_is_first_instance@Base 3.17
  e_cal_util_new_component@Base 3.17
  e_cal_util_new_top_level@Base 3.17
@@ -334,8 +331,6 @@ libecal-1.2.so.19 libecal-1.2-19 #MINVER#
  e_cal_util_priority_from_string@Base 3.17
  e_cal_util_priority_to_string@Base 3.17
  e_cal_util_remove_instances@Base 3.17
- e_cal_util_remove_x_property@Base 3.25.90
- e_cal_util_set_x_property@Base 3.25.90
  e_cal_util_split_at_instance@Base 3.17
  e_cal_view_get_client@Base 3.17
  e_cal_view_get_type@Base 3.17
