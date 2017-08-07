@@ -16,6 +16,7 @@ evolution-data-server (3.25.90-1) UNRELEASED; urgency=medium
     - Explicitly set SENDMAIL_PATH to avoid a build warning
   * debian/evolution-data-server.install:
     - Install new list-sources tool
+    - owncloud backend has been renamed to webdav
   * Add additional autopkgtest to run installed-tests
   * Add evolution-data-server.postinst to recommend restarting
     after updating.
