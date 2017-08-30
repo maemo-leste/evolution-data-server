@@ -1,7 +1,6 @@
-libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
+libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
 * Build-Depends-Package: libcamel1.2-dev
- bdata_extract_digit@Base 3.19.92
- bdata_extract_string@Base 3.19.92
+ _camel_message_info_unset_summary@Base 3.24.3
  camel_address_cat@Base 3.19.92
  camel_address_copy@Base 3.19.92
  camel_address_decode@Base 3.19.92
@@ -27,10 +26,14 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_block_file_detach_block@Base 3.19.92
  camel_block_file_free_block@Base 3.19.92
  camel_block_file_get_block@Base 3.19.92
+ camel_block_file_get_cache_limit@Base 3.24.1
+ camel_block_file_get_root@Base 3.24.1
+ camel_block_file_get_root_block@Base 3.24.1
  camel_block_file_get_type@Base 3.19.92
  camel_block_file_new@Base 3.19.92
  camel_block_file_new_block@Base 3.19.92
  camel_block_file_rename@Base 3.19.92
+ camel_block_file_set_cache_limit@Base 3.24.1
  camel_block_file_sync@Base 3.19.92
  camel_block_file_sync_block@Base 3.19.92
  camel_block_file_touch_block@Base 3.19.92
@@ -95,12 +98,12 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_cipher_validity_set_certinfo_property@Base 3.21.90
  camel_cipher_validity_set_description@Base 3.19.92
  camel_cipher_validity_set_valid@Base 3.19.92
+ camel_compare_type_get_type@Base 3.24.1
  camel_content_disposition_decode@Base 3.19.92
  camel_content_disposition_format@Base 3.19.92
  camel_content_disposition_get_type@Base 3.19.92
  camel_content_disposition_ref@Base 3.19.92
  camel_content_disposition_unref@Base 3.19.92
- camel_content_info_dump@Base 3.19.92
  camel_content_transfer_encoding_decode@Base 3.19.92
  camel_content_type_decode@Base 3.19.92
  camel_content_type_dump@Base 3.19.92
@@ -116,6 +119,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_data_cache_add@Base 3.19.92
  camel_data_cache_clear@Base 3.19.92
  camel_data_cache_get@Base 3.19.92
+ camel_data_cache_get_expire_enabled@Base 3.24.1
  camel_data_cache_get_filename@Base 3.19.92
  camel_data_cache_get_path@Base 3.19.92
  camel_data_cache_get_type@Base 3.19.92
@@ -123,7 +127,10 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_data_cache_remove@Base 3.19.92
  camel_data_cache_set_expire_access@Base 3.19.92
  camel_data_cache_set_expire_age@Base 3.19.92
+ camel_data_cache_set_expire_enabled@Base 3.24.1
  camel_data_cache_set_path@Base 3.19.92
+ camel_data_wrapper_calculate_decoded_size_sync@Base 3.24.1
+ camel_data_wrapper_calculate_size_sync@Base 3.24.1
  camel_data_wrapper_construct_from_input_stream@Base 3.19.92
  camel_data_wrapper_construct_from_input_stream_finish@Base 3.19.92
  camel_data_wrapper_construct_from_input_stream_sync@Base 3.19.92
@@ -137,13 +144,17 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_data_wrapper_decode_to_stream_finish@Base 3.19.92
  camel_data_wrapper_decode_to_stream_sync@Base 3.19.92
  camel_data_wrapper_get_byte_array@Base 3.19.92
+ camel_data_wrapper_get_encoding@Base 3.24.1
  camel_data_wrapper_get_mime_type@Base 3.19.92
  camel_data_wrapper_get_mime_type_field@Base 3.19.92
  camel_data_wrapper_get_type@Base 3.19.92
  camel_data_wrapper_is_offline@Base 3.19.92
  camel_data_wrapper_new@Base 3.19.92
+ camel_data_wrapper_set_encoding@Base 3.24.1
  camel_data_wrapper_set_mime_type@Base 3.19.92
  camel_data_wrapper_set_mime_type_field@Base 3.19.92
+ camel_data_wrapper_set_offline@Base 3.24.1
+ camel_data_wrapper_take_mime_type_field@Base 3.24.1
  camel_data_wrapper_write_to_output_stream@Base 3.19.92
  camel_data_wrapper_write_to_output_stream_finish@Base 3.19.92
  camel_data_wrapper_write_to_output_stream_sync@Base 3.19.92
@@ -155,8 +166,6 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_db_begin_transaction@Base 3.19.92
  camel_db_camel_mir_free@Base 3.19.92
  camel_db_clear_folder_summary@Base 3.19.92
- camel_db_clone@Base 3.19.92
- camel_db_close@Base 3.19.92
  camel_db_command@Base 3.19.92
  camel_db_count_deleted_message_info@Base 3.19.92
  camel_db_count_junk_message_info@Base 3.19.92
@@ -175,16 +184,18 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_db_free_sqlized_string@Base 3.19.92
  camel_db_get_column_ident@Base 3.19.92
  camel_db_get_column_name@Base 3.19.92
+ camel_db_get_filename@Base 3.24.1
  camel_db_get_folder_deleted_uids@Base 3.19.92
  camel_db_get_folder_junk_uids@Base 3.19.92
- camel_db_get_folder_preview@Base 3.19.92
  camel_db_get_folder_uids@Base 3.19.92
+ camel_db_get_type@Base 3.24.1
  camel_db_maybe_run_maintenance@Base 3.19.92
- camel_db_open@Base 3.19.92
+ camel_db_new@Base 3.24.1
  camel_db_prepare_message_info_table@Base 3.19.92
  camel_db_read_folder_info_record@Base 3.19.92
  camel_db_read_message_info_record_with_uid@Base 3.19.92
  camel_db_read_message_info_records@Base 3.19.92
+ camel_db_release_cache_memory@Base 3.24.1
  camel_db_rename_folder@Base 3.19.92
  camel_db_reset_folder_version@Base 3.19.92
  camel_db_select@Base 3.19.92
@@ -193,9 +204,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_db_start_in_memory_transactions@Base 3.19.92
  camel_db_transaction_command@Base 3.19.92
  camel_db_write_folder_info_record@Base 3.19.92
- camel_db_write_fresh_message_info_record@Base 3.19.92
  camel_db_write_message_info_record@Base 3.19.92
- camel_db_write_preview_record@Base 3.19.92
  camel_debug@Base 3.19.92
  camel_debug_end@Base 3.19.92
  camel_debug_get_backtrace@Base 3.19.92
@@ -229,6 +238,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_filter_driver_filter_message@Base 3.19.92
  camel_filter_driver_flush@Base 3.19.92
  camel_filter_driver_get_type@Base 3.19.92
+ camel_filter_driver_log_info@Base 3.24.1
  camel_filter_driver_new@Base 3.19.92
  camel_filter_driver_remove_rule_by_name@Base 3.19.92
  camel_filter_driver_set_default_folder@Base 3.19.92
@@ -245,11 +255,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_filter_output_stream_get_type@Base 3.19.92
  camel_filter_output_stream_new@Base 3.19.92
  camel_filter_search_match@Base 3.19.92
- camel_flag_get@Base 3.19.92
- camel_flag_list_copy@Base 3.19.92
- camel_flag_list_free@Base 3.19.92
- camel_flag_list_size@Base 3.19.92
- camel_flag_set@Base 3.19.92
+ camel_filter_search_match_with_log@Base 3.24.1
  camel_folder_append_message@Base 3.19.92
  camel_folder_append_message_finish@Base 3.19.92
  camel_folder_append_message_sync@Base 3.19.92
@@ -263,7 +269,13 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_change_info_change_uid@Base 3.19.92
  camel_folder_change_info_changed@Base 3.19.92
  camel_folder_change_info_clear@Base 3.19.92
+ camel_folder_change_info_copy@Base 3.24.1
  camel_folder_change_info_free@Base 3.19.92
+ camel_folder_change_info_get_added_uids@Base 3.24.1
+ camel_folder_change_info_get_changed_uids@Base 3.24.1
+ camel_folder_change_info_get_recent_uids@Base 3.24.1
+ camel_folder_change_info_get_removed_uids@Base 3.24.1
+ camel_folder_change_info_get_type@Base 3.24.1
  camel_folder_change_info_new@Base 3.19.92
  camel_folder_change_info_recent_uid@Base 3.19.92
  camel_folder_change_info_remove_uid@Base 3.19.92
@@ -280,7 +292,6 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_expunge_sync@Base 3.19.92
  camel_folder_flags_get_type@Base 3.19.92
  camel_folder_free_deep@Base 3.19.92
- camel_folder_free_nop@Base 3.19.92
  camel_folder_free_shallow@Base 3.19.92
  camel_folder_free_summary@Base 3.19.92
  camel_folder_free_uids@Base 3.19.92
@@ -289,6 +300,8 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_get_description@Base 3.19.92
  camel_folder_get_display_name@Base 3.19.92
  camel_folder_get_filename@Base 3.19.92
+ camel_folder_get_flags@Base 3.24.1
+ camel_folder_get_folder_summary@Base 3.24.1
  camel_folder_get_frozen_count@Base 3.19.92
  camel_folder_get_full_name@Base 3.19.92
  camel_folder_get_message@Base 3.19.92
@@ -333,21 +346,28 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_rename@Base 3.19.92
  camel_folder_search_by_expression@Base 3.19.92
  camel_folder_search_by_uids@Base 3.19.92
- camel_folder_search_construct@Base 3.19.92
  camel_folder_search_count@Base 3.19.92
  camel_folder_search_free@Base 3.19.92
  camel_folder_search_free_result@Base 3.19.92
+ camel_folder_search_get_current_message_info@Base 3.24.1
+ camel_folder_search_get_current_summary@Base 3.24.1
+ camel_folder_search_get_folder@Base 3.24.1
  camel_folder_search_get_only_cached_messages@Base 3.22.5
+ camel_folder_search_get_summary@Base 3.24.1
+ camel_folder_search_get_summary_empty@Base 3.24.1
  camel_folder_search_get_type@Base 3.19.92
  camel_folder_search_new@Base 3.19.92
  camel_folder_search_search@Base 3.19.92
  camel_folder_search_set_body_index@Base 3.19.92
+ camel_folder_search_set_current_message_info@Base 3.24.1
  camel_folder_search_set_folder@Base 3.19.92
  camel_folder_search_set_only_cached_messages@Base 3.22.5
  camel_folder_search_set_summary@Base 3.19.92
+ camel_folder_search_take_current_message_info@Base 3.24.1
  camel_folder_search_util_add_months@Base 3.19.92
  camel_folder_set_description@Base 3.19.92
  camel_folder_set_display_name@Base 3.19.92
+ camel_folder_set_flags@Base 3.24.1
  camel_folder_set_full_name@Base 3.19.92
  camel_folder_set_lock_async@Base 3.19.92
  camel_folder_set_message_flags@Base 3.19.92
@@ -355,37 +375,34 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_set_message_user_tag@Base 3.19.92
  camel_folder_sort_uids@Base 3.19.92
  camel_folder_summary_add@Base 3.19.92
- camel_folder_summary_add_preview@Base 3.19.92
  camel_folder_summary_check_uid@Base 3.19.92
  camel_folder_summary_clear@Base 3.19.92
- camel_folder_summary_content_info_free@Base 3.19.92
- camel_folder_summary_content_info_new@Base 3.19.92
  camel_folder_summary_count@Base 3.19.92
  camel_folder_summary_free_array@Base 3.19.92
  camel_folder_summary_get@Base 3.19.92
  camel_folder_summary_get_array@Base 3.19.92
- camel_folder_summary_get_build_content@Base 3.19.92
  camel_folder_summary_get_changed@Base 3.19.92
  camel_folder_summary_get_deleted_count@Base 3.19.92
+ camel_folder_summary_get_flags@Base 3.24.1
  camel_folder_summary_get_folder@Base 3.19.92
  camel_folder_summary_get_hash@Base 3.19.92
  camel_folder_summary_get_index@Base 3.19.92
  camel_folder_summary_get_info_flags@Base 3.19.92
  camel_folder_summary_get_junk_count@Base 3.19.92
  camel_folder_summary_get_junk_not_deleted_count@Base 3.19.92
- camel_folder_summary_get_need_preview@Base 3.19.92
  camel_folder_summary_get_next_uid@Base 3.19.92
  camel_folder_summary_get_saved_count@Base 3.19.92
+ camel_folder_summary_get_timestamp@Base 3.24.1
  camel_folder_summary_get_type@Base 3.19.92
  camel_folder_summary_get_unread_count@Base 3.19.92
+ camel_folder_summary_get_version@Base 3.24.1
  camel_folder_summary_get_visible_count@Base 3.19.92
- camel_folder_summary_header_load_from_db@Base 3.19.92
- camel_folder_summary_header_save_to_db@Base 3.19.92
- camel_folder_summary_info_new_from_header@Base 3.19.92
+ camel_folder_summary_header_load@Base 3.24.1
+ camel_folder_summary_header_save@Base 3.24.1
+ camel_folder_summary_info_new_from_headers@Base 3.24.1
  camel_folder_summary_info_new_from_message@Base 3.19.92
  camel_folder_summary_info_new_from_parser@Base 3.19.92
- camel_folder_summary_insert@Base 3.19.92
- camel_folder_summary_load_from_db@Base 3.19.92
+ camel_folder_summary_load@Base 3.24.1
  camel_folder_summary_lock@Base 3.19.92
  camel_folder_summary_new@Base 3.19.92
  camel_folder_summary_next_uid@Base 3.19.92
@@ -396,11 +413,12 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_summary_remove_uid@Base 3.19.92
  camel_folder_summary_remove_uids@Base 3.19.92
  camel_folder_summary_replace_flags@Base 3.19.92
- camel_folder_summary_save_to_db@Base 3.19.92
- camel_folder_summary_set_build_content@Base 3.19.92
+ camel_folder_summary_save@Base 3.24.1
+ camel_folder_summary_set_flags@Base 3.24.1
  camel_folder_summary_set_index@Base 3.19.92
- camel_folder_summary_set_need_preview@Base 3.19.92
  camel_folder_summary_set_next_uid@Base 3.19.92
+ camel_folder_summary_set_timestamp@Base 3.24.1
+ camel_folder_summary_set_version@Base 3.24.1
  camel_folder_summary_touch@Base 3.19.92
  camel_folder_summary_unlock@Base 3.19.92
  camel_folder_synchronize@Base 3.19.92
@@ -409,8 +427,10 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_folder_synchronize_message_finish@Base 3.19.92
  camel_folder_synchronize_message_sync@Base 3.19.92
  camel_folder_synchronize_sync@Base 3.19.92
+ camel_folder_take_folder_summary@Base 3.24.1
  camel_folder_thaw@Base 3.19.92
  camel_folder_thread_messages_apply@Base 3.19.92
+ camel_folder_thread_messages_get_type@Base 3.24.1
  camel_folder_thread_messages_new@Base 3.19.92
  camel_folder_thread_messages_ref@Base 3.19.92
  camel_folder_thread_messages_unref@Base 3.19.92
@@ -465,18 +485,11 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_header_param_list_format@Base 3.19.92
  camel_header_param_list_format_append@Base 3.19.92
  camel_header_param_list_free@Base 3.19.92
- camel_header_raw_append@Base 3.19.92
- camel_header_raw_append_parse@Base 3.19.92
- camel_header_raw_check_mailing_list@Base 3.19.92
- camel_header_raw_clear@Base 3.19.92
- camel_header_raw_find@Base 3.19.92
- camel_header_raw_find_next@Base 3.19.92
- camel_header_raw_remove@Base 3.19.92
- camel_header_raw_replace@Base 3.19.92
  camel_header_references_decode@Base 3.19.92
  camel_header_set_param@Base 3.19.92
  camel_header_token_decode@Base 3.19.92
  camel_header_unfold@Base 3.19.92
+ camel_headers_dup_mailing_list@Base 3.24.1
  camel_host_idna_to_ascii@Base 3.19.92
  camel_html_parser_attr@Base 3.19.92
  camel_html_parser_attr_list@Base 3.19.92
@@ -543,8 +556,12 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_key_table_set_flags@Base 3.19.92
  camel_key_table_sync@Base 3.19.92
  camel_local_settings_dup_path@Base 3.19.92
+ camel_local_settings_get_filter_all@Base 3.24.1
+ camel_local_settings_get_filter_junk@Base 3.24.1
  camel_local_settings_get_path@Base 3.19.92
  camel_local_settings_get_type@Base 3.19.92
+ camel_local_settings_set_filter_all@Base 3.24.1
+ camel_local_settings_set_filter_junk@Base 3.24.1
  camel_local_settings_set_path@Base 3.19.92
  camel_localtime_with_offset@Base 3.19.92
  camel_lock_dot@Base 3.19.92
@@ -554,7 +571,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_lock_helper_lock@Base 3.19.92
  camel_lock_helper_unlock@Base 3.19.92
  camel_medium_add_header@Base 3.19.92
- camel_medium_free_headers@Base 3.19.92
+ camel_medium_dup_headers@Base 3.24.1
  camel_medium_get_content@Base 3.19.92
  camel_medium_get_header@Base 3.19.92
  camel_medium_get_headers@Base 3.19.92
@@ -574,38 +591,75 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_mempool_flush@Base 3.19.92
  camel_mempool_new@Base 3.19.92
  camel_mempool_strdup@Base 3.19.92
+ camel_message_content_info_copy@Base 3.24.1
+ camel_message_content_info_dump@Base 3.24.1
+ camel_message_content_info_free@Base 3.24.1
+ camel_message_content_info_get_type@Base 3.24.1
+ camel_message_content_info_new@Base 3.24.1
+ camel_message_content_info_new_from_headers@Base 3.24.1
+ camel_message_content_info_new_from_message@Base 3.24.1
+ camel_message_content_info_new_from_parser@Base 3.24.1
+ camel_message_info_base_get_type@Base 3.24.1
  camel_message_info_clone@Base 3.19.92
  camel_message_info_dump@Base 3.19.92
+ camel_message_info_dup_headers@Base 3.24.1
+ camel_message_info_dup_references@Base 3.24.1
+ camel_message_info_dup_user_flags@Base 3.24.1
+ camel_message_info_dup_user_tag@Base 3.24.1
+ camel_message_info_dup_user_tags@Base 3.24.1
+ camel_message_info_freeze_notifications@Base 3.24.1
+ camel_message_info_get_abort_notifications@Base 3.24.1
  camel_message_info_get_cc@Base 3.21.90
- camel_message_info_get_content@Base 3.21.90
  camel_message_info_get_date_received@Base 3.21.90
  camel_message_info_get_date_sent@Base 3.21.90
+ camel_message_info_get_dirty@Base 3.24.1
  camel_message_info_get_flags@Base 3.21.90
+ camel_message_info_get_folder_flagged@Base 3.24.1
+ camel_message_info_get_folder_flagged_stamp@Base 3.24.1
  camel_message_info_get_from@Base 3.21.90
  camel_message_info_get_headers@Base 3.21.90
  camel_message_info_get_message_id@Base 3.21.90
  camel_message_info_get_mlist@Base 3.21.90
- camel_message_info_get_preview@Base 3.21.90
- camel_message_info_get_ptr@Base 3.21.90
+ camel_message_info_get_notifications_frozen@Base 3.24.1
  camel_message_info_get_references@Base 3.21.90
  camel_message_info_get_size@Base 3.21.90
  camel_message_info_get_subject@Base 3.21.90
- camel_message_info_get_time@Base 3.21.90
  camel_message_info_get_to@Base 3.21.90
  camel_message_info_get_type@Base 3.19.92
  camel_message_info_get_uid@Base 3.21.90
- camel_message_info_get_uint32@Base 3.21.90
  camel_message_info_get_user_flag@Base 3.21.90
  camel_message_info_get_user_flags@Base 3.21.90
  camel_message_info_get_user_tag@Base 3.21.90
  camel_message_info_get_user_tags@Base 3.21.90
+ camel_message_info_load@Base 3.24.1
  camel_message_info_new@Base 3.19.92
- camel_message_info_new_from_header@Base 3.19.92
- camel_message_info_ref@Base 3.19.92
+ camel_message_info_new_from_headers@Base 3.24.1
+ camel_message_info_pooldup_uid@Base 3.24.1
+ camel_message_info_property_lock@Base 3.24.1
+ camel_message_info_property_unlock@Base 3.24.1
+ camel_message_info_ref_summary@Base 3.24.1
+ camel_message_info_save@Base 3.24.1
+ camel_message_info_set_abort_notifications@Base 3.24.1
+ camel_message_info_set_cc@Base 3.24.1
+ camel_message_info_set_date_received@Base 3.24.1
+ camel_message_info_set_date_sent@Base 3.24.1
+ camel_message_info_set_dirty@Base 3.24.1
  camel_message_info_set_flags@Base 3.19.92
+ camel_message_info_set_folder_flagged@Base 3.24.1
+ camel_message_info_set_from@Base 3.24.1
+ camel_message_info_set_message_id@Base 3.24.1
+ camel_message_info_set_mlist@Base 3.24.1
+ camel_message_info_set_size@Base 3.24.1
+ camel_message_info_set_subject@Base 3.24.1
+ camel_message_info_set_to@Base 3.24.1
+ camel_message_info_set_uid@Base 3.24.1
  camel_message_info_set_user_flag@Base 3.19.92
  camel_message_info_set_user_tag@Base 3.19.92
- camel_message_info_unref@Base 3.19.92
+ camel_message_info_take_headers@Base 3.24.1
+ camel_message_info_take_references@Base 3.24.1
+ camel_message_info_take_user_flags@Base 3.24.1
+ camel_message_info_take_user_tags@Base 3.24.1
+ camel_message_info_thaw_notifications@Base 3.24.1
  camel_mime_filter_backup@Base 3.19.92
  camel_mime_filter_basic_get_type@Base 3.19.92
  camel_mime_filter_basic_new@Base 3.19.92
@@ -663,7 +717,6 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_mime_filter_yenc_set_crc@Base 3.19.92
  camel_mime_filter_yenc_set_state@Base 3.19.92
  camel_mime_message_build_mbox_from@Base 3.19.92
- camel_mime_message_build_preview@Base 3.19.92
  camel_mime_message_dump@Base 3.19.92
  camel_mime_message_encode_8bit_parts@Base 3.19.92
  camel_mime_message_get_date@Base 3.19.92
@@ -689,13 +742,13 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_mime_message_set_subject@Base 3.19.92
  camel_mime_parser_content_type@Base 3.19.92
  camel_mime_parser_drop_step@Base 3.19.92
+ camel_mime_parser_dup_headers@Base 3.24.1
  camel_mime_parser_errno@Base 3.19.92
  camel_mime_parser_filter_add@Base 3.19.92
  camel_mime_parser_filter_remove@Base 3.19.92
  camel_mime_parser_from_line@Base 3.19.92
  camel_mime_parser_get_type@Base 3.19.92
  camel_mime_parser_header@Base 3.19.92
- camel_mime_parser_headers_raw@Base 3.19.92
  camel_mime_parser_init_with_bytes@Base 3.19.92
  camel_mime_parser_init_with_fd@Base 3.19.92
  camel_mime_parser_init_with_input_stream@Base 3.19.92
@@ -773,6 +826,37 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_multipart_signed_new@Base 3.19.92
  camel_multipart_signed_set_content_stream@Base 3.19.92
  camel_multipart_signed_set_signature@Base 3.19.92
+ camel_name_value_array_append@Base 3.24.1
+ camel_name_value_array_clear@Base 3.24.1
+ camel_name_value_array_copy@Base 3.24.1
+ camel_name_value_array_equal@Base 3.24.1
+ camel_name_value_array_free@Base 3.24.1
+ camel_name_value_array_get@Base 3.24.1
+ camel_name_value_array_get_length@Base 3.24.1
+ camel_name_value_array_get_name@Base 3.24.1
+ camel_name_value_array_get_named@Base 3.24.1
+ camel_name_value_array_get_type@Base 3.24.1
+ camel_name_value_array_get_value@Base 3.24.1
+ camel_name_value_array_new@Base 3.24.1
+ camel_name_value_array_new_sized@Base 3.24.1
+ camel_name_value_array_remove@Base 3.24.1
+ camel_name_value_array_remove_named@Base 3.24.1
+ camel_name_value_array_set@Base 3.24.1
+ camel_name_value_array_set_name@Base 3.24.1
+ camel_name_value_array_set_named@Base 3.24.1
+ camel_name_value_array_set_value@Base 3.24.1
+ camel_named_flags_clear@Base 3.24.1
+ camel_named_flags_contains@Base 3.24.1
+ camel_named_flags_copy@Base 3.24.1
+ camel_named_flags_equal@Base 3.24.1
+ camel_named_flags_free@Base 3.24.1
+ camel_named_flags_get@Base 3.24.1
+ camel_named_flags_get_length@Base 3.24.1
+ camel_named_flags_get_type@Base 3.24.1
+ camel_named_flags_insert@Base 3.24.1
+ camel_named_flags_new@Base 3.24.1
+ camel_named_flags_new_sized@Base 3.24.1
+ camel_named_flags_remove@Base 3.24.1
  camel_network_security_method_get_type@Base 3.19.92
  camel_network_service_can_reach@Base 3.19.92
  camel_network_service_can_reach_finish@Base 3.19.92
@@ -830,9 +914,15 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_offline_folder_get_offline_sync@Base 3.19.92
  camel_offline_folder_get_type@Base 3.19.92
  camel_offline_folder_set_offline_sync@Base 3.19.92
+ camel_offline_settings_get_limit_by_age@Base 3.24.1
+ camel_offline_settings_get_limit_unit@Base 3.24.1
+ camel_offline_settings_get_limit_value@Base 3.24.1
  camel_offline_settings_get_stay_synchronized@Base 3.19.92
  camel_offline_settings_get_store_changes_interval@Base 3.19.92
  camel_offline_settings_get_type@Base 3.19.92
+ camel_offline_settings_set_limit_by_age@Base 3.24.1
+ camel_offline_settings_set_limit_unit@Base 3.24.1
+ camel_offline_settings_set_limit_value@Base 3.24.1
  camel_offline_settings_set_stay_synchronized@Base 3.19.92
  camel_offline_settings_set_store_changes_interval@Base 3.19.92
  camel_offline_store_get_online@Base 3.19.92
@@ -843,6 +933,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_operation_cancel_all@Base 3.19.92
  camel_operation_get_type@Base 3.19.92
  camel_operation_new@Base 3.19.92
+ camel_operation_new_proxy@Base 3.24.1
  camel_operation_pop_message@Base 3.19.92
  camel_operation_progress@Base 3.19.92
  camel_operation_push_message@Base 3.19.92
@@ -857,8 +948,11 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_pointer_tracker_untrack@Base 3.19.92
  camel_provider_auto_detect@Base 3.19.92
  camel_provider_conf_type_get_type@Base 3.19.92
+ camel_provider_copy@Base 3.24.1
  camel_provider_flags_get_type@Base 3.19.92
+ camel_provider_free@Base 3.24.1
  camel_provider_get@Base 3.19.92
+ camel_provider_get_type@Base 3.24.1
  camel_provider_init@Base 3.19.92
  camel_provider_list@Base 3.19.92
  camel_provider_load@Base 3.19.92
@@ -914,6 +1008,9 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_search_words_free@Base 3.19.92
  camel_search_words_simple@Base 3.19.92
  camel_search_words_split@Base 3.19.92
+ camel_service_auth_type_copy@Base 3.24.1
+ camel_service_auth_type_free@Base 3.24.1
+ camel_service_auth_type_get_type@Base 3.24.1
  camel_service_authenticate@Base 3.19.92
  camel_service_authenticate_finish@Base 3.19.92
  camel_service_authenticate_sync@Base 3.19.92
@@ -1019,9 +1116,11 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_store_create_folder@Base 3.19.92
  camel_store_create_folder_finish@Base 3.19.92
  camel_store_create_folder_sync@Base 3.19.92
+ camel_store_delete_cached_folder@Base 3.24.1
  camel_store_delete_folder@Base 3.19.92
  camel_store_delete_folder_finish@Base 3.19.92
  camel_store_delete_folder_sync@Base 3.19.92
+ camel_store_dup_opened_folders@Base 3.24.1
  camel_store_error_quark@Base 3.19.92
  camel_store_flags_get_type@Base 3.19.92
  camel_store_folder_created@Base 3.19.92
@@ -1029,6 +1128,8 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_store_folder_info_stale@Base 3.19.92
  camel_store_folder_opened@Base 3.19.92
  camel_store_folder_renamed@Base 3.19.92
+ camel_store_get_db@Base 3.24.1
+ camel_store_get_flags@Base 3.24.1
  camel_store_get_folder@Base 3.19.92
  camel_store_get_folder_finish@Base 3.19.92
  camel_store_get_folder_info@Base 3.19.92
@@ -1036,12 +1137,14 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_store_get_folder_info_flags_get_type@Base 3.19.92
  camel_store_get_folder_info_sync@Base 3.19.92
  camel_store_get_folder_sync@Base 3.19.92
+ camel_store_get_folders_bag@Base 3.24.1
  camel_store_get_inbox_folder@Base 3.19.92
  camel_store_get_inbox_folder_finish@Base 3.19.92
  camel_store_get_inbox_folder_sync@Base 3.19.92
  camel_store_get_junk_folder@Base 3.19.92
  camel_store_get_junk_folder_finish@Base 3.19.92
  camel_store_get_junk_folder_sync@Base 3.19.92
+ camel_store_get_permissions@Base 3.24.1
  camel_store_get_trash_folder@Base 3.19.92
  camel_store_get_trash_folder_finish@Base 3.19.92
  camel_store_get_trash_folder_sync@Base 3.19.92
@@ -1058,6 +1161,8 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_store_rename_folder@Base 3.19.92
  camel_store_rename_folder_finish@Base 3.19.92
  camel_store_rename_folder_sync@Base 3.19.92
+ camel_store_set_flags@Base 3.24.1
+ camel_store_set_permissions@Base 3.24.1
  camel_store_settings_get_filter_inbox@Base 3.19.92
  camel_store_settings_get_type@Base 3.19.92
  camel_store_settings_set_filter_inbox@Base 3.19.92
@@ -1079,6 +1184,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_store_summary_remove_path@Base 3.19.92
  camel_store_summary_save@Base 3.19.92
  camel_store_summary_set_filename@Base 3.19.92
+ camel_store_summary_sort@Base 3.24.1
  camel_store_summary_touch@Base 3.19.92
  camel_store_synchronize@Base 3.19.92
  camel_store_synchronize_finish@Base 3.19.92
@@ -1112,6 +1218,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_stream_mem_set_byte_array@Base 3.19.92
  camel_stream_mem_set_secure@Base 3.19.92
  camel_stream_new@Base 3.19.92
+ camel_stream_null_get_bytes_written@Base 3.24.1
  camel_stream_null_get_type@Base 3.19.92
  camel_stream_null_new@Base 3.19.92
  camel_stream_process_connect@Base 3.19.92
@@ -1136,11 +1243,6 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_subscribable_unsubscribe_folder_sync@Base 3.19.92
  camel_system_flag@Base 3.19.92
  camel_system_flag_get@Base 3.19.92
- camel_tag_get@Base 3.19.92
- camel_tag_list_copy@Base 3.19.92
- camel_tag_list_free@Base 3.19.92
- camel_tag_list_size@Base 3.19.92
- camel_tag_set@Base 3.19.92
  camel_text_index_check@Base 3.19.92
  camel_text_index_cursor_get_type@Base 3.19.92
  camel_text_index_cursor_new@Base 3.19.92
@@ -1157,6 +1259,8 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_text_index_validate@Base 3.19.92
  camel_text_to_html@Base 3.19.92
  camel_three_state_get_type@Base 3.21.90
+ camel_time_unit_get_type@Base 3.24.1
+ camel_time_value_apply@Base 3.24.1
  camel_transfer_encoding_from_string@Base 3.19.92
  camel_transfer_encoding_get_type@Base 3.19.92
  camel_transfer_encoding_to_string@Base 3.19.92
@@ -1218,6 +1322,10 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_utf8_putc@Base 3.19.92
  camel_utf8_ucs2@Base 3.19.92
  camel_utf8_utf7@Base 3.19.92
+ camel_util_bdata_get_number@Base 3.24.1
+ camel_util_bdata_get_string@Base 3.24.1
+ camel_util_bdata_put_number@Base 3.24.1
+ camel_util_bdata_put_string@Base 3.24.1
  camel_uudecode_step@Base 3.19.92
  camel_uuencode_close@Base 3.19.92
  camel_uuencode_step@Base 3.19.92
@@ -1236,6 +1344,7 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_vee_folder_construct@Base 3.19.92
  camel_vee_folder_get_auto_update@Base 3.19.92
  camel_vee_folder_get_expression@Base 3.19.92
+ camel_vee_folder_get_flags@Base 3.24.1
  camel_vee_folder_get_location@Base 3.19.92
  camel_vee_folder_get_type@Base 3.19.92
  camel_vee_folder_get_vee_uid_folder@Base 3.19.92
@@ -1253,6 +1362,10 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_vee_message_info_data_get_type@Base 3.19.92
  camel_vee_message_info_data_get_vee_message_uid@Base 3.19.92
  camel_vee_message_info_data_new@Base 3.19.92
+ camel_vee_message_info_get_original_folder@Base 3.24.1
+ camel_vee_message_info_get_original_summary@Base 3.24.1
+ camel_vee_message_info_get_type@Base 3.24.1
+ camel_vee_message_info_new@Base 3.24.1
  camel_vee_store_get_type@Base 3.19.92
  camel_vee_store_get_unmatched_enabled@Base 3.19.92
  camel_vee_store_get_unmatched_folder@Base 3.19.92
@@ -1275,13 +1388,19 @@ libcamel-1.2.so.59 libcamel-1.2-59 #MINVER#
  camel_vee_summary_remove@Base 3.19.92
  camel_vee_summary_replace_flags@Base 3.19.92
  camel_verbose_debug@Base 3.19.92
+ camel_vtrash_folder_get_folder_type@Base 3.24.1
  camel_vtrash_folder_get_type@Base 3.19.92
  camel_vtrash_folder_new@Base 3.19.92
+ camel_weak_ref_group_get@Base 3.24.1
+ camel_weak_ref_group_get_type@Base 3.24.1
+ camel_weak_ref_group_new@Base 3.24.1
+ camel_weak_ref_group_ref@Base 3.24.1
+ camel_weak_ref_group_set@Base 3.24.1
+ camel_weak_ref_group_unref@Base 3.24.1
  camel_write@Base 3.19.92
  camel_ydecode_step@Base 3.19.92
  camel_yencode_close@Base 3.19.92
  camel_yencode_step@Base 3.19.92
- g_string_append_u@Base 3.19.92
  known_iconv_charsets@Base 3.19.92
  nss_initialized@Base 3.19.92
  nss_initlock@Base 3.19.92

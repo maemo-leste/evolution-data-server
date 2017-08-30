@@ -7,6 +7,8 @@ export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,defs -Wl,--as-needed -Wl,-O1
 export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+export SENDMAIL_PATH = /usr/sbin/sendmail
+
 %:
 	dh $@ --with gir,gnome
 
@@ -17,22 +19,27 @@ override_dh_autoreconf:
 	dh_autoreconf --as-needed
 
 ifeq ($(DEB_HOST_ARCH_OS),$(filter $(DEB_HOST_ARCH_OS),linux kfreebsd))
-CONFFLAGS = --with-phonenumber=/usr
+CONFFLAGS = -DWITH_PHONENUMBER=ON
 endif
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-		--libdir=\$${prefix}/lib \
-		--libexecdir=\$${prefix}/lib/evolution \
-		--with-openldap \
-		--with-krb5=/usr \
-		--with-libdb=/usr \
-		--enable-gtk \
-		--enable-gtk-doc \
-		--enable-goa \
-		--enable-google \
-		--enable-vala-bindings \
-		--disable-uoa \
+		-DLIBEXEC_INSTALL_DIR=/usr/lib/evolution \
+		-DSYSCONF_INSTALL_DIR=/etc \
+		-DWITH_LIBDB=/usr \
+		-DWITH_OPENLDAP=ON \
+		-DWITH_KRB5=ON \
+		-DCMAKE_SKIP_RPATH=ON \
+		-DENABLE_GTK=ON \
+		-DENABLE_GTK_DOC=ON \
+		-DENABLE_GOOGLE_AUTH=ON \
+		-DENABLE_GOA=ON \
+		-DENABLE_UOA=OFF \
+		-DENABLE_EXAMPLES=ON \
+		-DENABLE_WEATHER=ON \
+		-DENABLE_INSTALLED_TESTS=ON \
+		-DENABLE_INTROSPECTION=ON \
+		-DENABLE_VALA_BINDINGS=ON \
 		$(CONFFLAGS)
 
 # don't configure with --libdir, but move the files manually, because
@@ -43,7 +50,9 @@ override_dh_install:
 		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
 	mv debian/tmp/usr/lib/pkgconfig/lib* debian/tmp/usr/lib/pkgconfig/camel* \
 		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
-	dh_install --fail-missing -X.la
+	find debian/tmp/usr/lib -name '*.a' -delete
+	find debian/tmp/usr/lib -name '*.la' -delete
+	dh_install --fail-missing
 
 override_dh_fixperms-arch:
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*

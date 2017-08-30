@@ -1,3 +1,25 @@
+evolution-data-server (3.24.5-1) experimental; urgency=medium
+
+  * New upstream release (LP: #1685683)
+    - Switch from autotools to cmake
+  * Add new packages:
+    - evolution-data-server-tests
+    - gir1.2-camel-1.2
+    - gir1.2-edataserverui-1.2
+  * Rename libcamel-1.2-59 -> libcamel-1.2-60
+  * Rename libebook-1.2-16 -> libebook-1.2-19
+  * debian/control:
+    - Build-depend on db-util to silence test warning
+    - Have libebook-contacts1.2-dev depend on its gir package
+  * debian/rules:
+    - Set -DCMAKE_SKIP_RPATH=ON
+    - Explicitly set SENDMAIL_PATH to avoid a build warning
+  * Add additional autopkgtest to run installed-tests
+  * Add evolution-data-server.postinst to recommend restarting
+    after updating.
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 08 Aug 2017 01:26:02 -0400
+
 evolution-data-server (3.22.7-1) unstable; urgency=medium
 
   * New upstream release.
