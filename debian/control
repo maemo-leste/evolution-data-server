@@ -7,8 +7,9 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Laurent Bigonville <bigon@debian.org>,
            Andreas Henriksson <andreas@fatal.se>,
-           Michael Biebl <biebl@debian.org>
-Standards-Version: 3.9.8
+           Michael Biebl <biebl@debian.org>,
+           Jeremy Bicha <jbicha@debian.org>
+Standards-Version: 4.1.0
 Homepage: https://wiki.gnome.org/Apps/Evolution
 Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
