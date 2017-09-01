@@ -1,9 +1,3 @@
-evolution-data-server (3.24.5-5) UNRELEASED; urgency=medium
-
-  * Add ubuntu_gettext_domain.patch to work around Ubuntu translations issue
-
- -- Jeremy Bicha <jbicha@debian.org>  Fri, 01 Sep 2017 11:58:09 -0400
-
 evolution-data-server (3.24.5-4) unstable; urgency=medium
 
   * Don't build with libphonenumber on hppa
