@@ -1,0 +1,16 @@
+Description: Ubuntu's dh-translations can't handle variables
+ for GETTEXT_PACKAGE
+Bug: https://bugzilla.gnome.org/784877
+Index: evolution-data-server-3.24.3/CMakeLists.txt
+===================================================================
+--- evolution-data-server-3.24.3.orig/CMakeLists.txt
++++ evolution-data-server-3.24.3/CMakeLists.txt
+@@ -18,7 +18,7 @@ set(BASE_VERSION 3.24)
+ set(API_VERSION 1.2)
+ 
+ # Required for FindIntltool module
+-set(GETTEXT_PACKAGE ${PROJECT_NAME})
++set(GETTEXT_PACKAGE "evolution-data-server")
+ set(GETTEXT_PO_DIR ${CMAKE_SOURCE_DIR}/po)
+ 
+ # Required for 'disttest' and 'ditcheck' of DistTarget module
