@@ -1,3 +1,9 @@
+evolution-data-server (3.24.5-4) UNRELEASED; urgency=medium
+
+  * Don't build with libphonenumber on hppa
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 01 Sep 2017 11:51:55 -0400
+
 evolution-data-server (3.24.5-3) unstable; urgency=medium
 
   * Build with libphonenumber on Linux only
