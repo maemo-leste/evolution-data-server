@@ -48,7 +48,7 @@ Build-Depends: cmake,
                pkg-config (>= 0.16),
                valac (>= 0.22),
                gnome-common (>= 3.6.0),
-               libphonenumber-dev [linux-any kfreebsd-any],
+               libphonenumber-dev [linux-any],
                db-util <!nocheck>,
                dbus <!nocheck>,
 
