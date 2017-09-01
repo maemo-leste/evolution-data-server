@@ -1,3 +1,9 @@
+evolution-data-server (3.24.5-5) UNRELEASED; urgency=medium
+
+  * debian/libebook-contacts-1.2-2.symbols: Fix for !hppa
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 01 Sep 2017 13:55:55 -0400
+
 evolution-data-server (3.24.5-4) unstable; urgency=medium
 
   * Don't build with libphonenumber on hppa
