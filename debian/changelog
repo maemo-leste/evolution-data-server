@@ -1,6 +1,8 @@
 evolution-data-server (3.25.92-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * Add ubuntu_gettext_domain.patch:
+    Work around Ubuntu translations issue
 
  -- Jeremy Bicha <jbicha@debian.org>  Mon, 04 Sep 2017 07:47:47 -0400
 
