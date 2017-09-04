@@ -1,5 +1,6 @@
 Description: Ubuntu's dh-translations can't handle variables
  for GETTEXT_PACKAGE
+Author: Sebastien Bacher <seb128@ubuntu.com>
 Bug: https://bugzilla.gnome.org/784877
 Index: evolution-data-server-3.24.3/CMakeLists.txt
 ===================================================================
