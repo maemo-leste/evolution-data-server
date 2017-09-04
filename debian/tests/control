@@ -3,5 +3,5 @@ Depends: python3, python3-gi, dbus-test-runner, evolution-data-server, gir1.2-ed
 
 Tests: installed-tests
 Restrictions: needs-root, allow-stderr
-Depends: evolution-data-server-tests, evolution-data-server, locales-all, dbus (>= 1.8), xauth, xvfb, gnome-desktop-testing
+Depends: evolution-data-server-tests, locales-all, dbus (>= 1.8), xauth, xvfb, gnome-desktop-testing
 

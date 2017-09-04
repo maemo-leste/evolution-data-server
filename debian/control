@@ -79,6 +79,8 @@ Package: evolution-data-server-tests
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
+         evolution-common,
+         evolution-data-server
 Description: Installed tests for the evolution database backend server
  The data server, called "Evolution Data Server" is responsible for managing
  mail, calendar, addressbook, tasks and memo information.
