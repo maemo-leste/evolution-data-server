@@ -5,6 +5,9 @@ evolution-data-server (3.26.0-1) UNRELEASED; urgency=medium
   * debian/control:
     - Have evolution-data-server-tests depend on evolution-common and
       evolution-data-server since they're needed by the tests.
+  * debian/tests/control:
+    - Disable installed-tests autopkgtest since it's too unreliable
+      to be useful
 
  -- Jeremy Bicha <jbicha@debian.org>  Mon, 04 Sep 2017 11:29:21 -0400
 
