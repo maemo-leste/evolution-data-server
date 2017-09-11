@@ -1,4 +1,4 @@
-evolution-data-server (3.26.0-1) UNRELEASED; urgency=medium
+evolution-data-server (3.26.0-1) unstable; urgency=medium
 
   * New upstream release
   * Upload to unstable
@@ -9,7 +9,7 @@ evolution-data-server (3.26.0-1) UNRELEASED; urgency=medium
     - Disable installed-tests autopkgtest since it's too unreliable
       to be useful
 
- -- Jeremy Bicha <jbicha@debian.org>  Mon, 04 Sep 2017 11:29:21 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 11 Sep 2017 19:41:55 -0400
 
 evolution-data-server (3.25.92-1) experimental; urgency=medium
 
