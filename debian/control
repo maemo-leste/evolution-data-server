@@ -6,7 +6,6 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Josselin Mouette <joss@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Laurent Bigonville <bigon@debian.org>,
-           Andreas Henriksson <andreas@fatal.se>,
            Michael Biebl <biebl@debian.org>,
            Jeremy Bicha <jbicha@debian.org>
 Standards-Version: 4.1.0
