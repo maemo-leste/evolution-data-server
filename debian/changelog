@@ -1,4 +1,4 @@
-evolution-data-server (3.26.1-1) UNRELEASED; urgency=medium
+evolution-data-server (3.26.1-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
   * New upstream release
@@ -7,7 +7,7 @@ evolution-data-server (3.26.1-1) UNRELEASED; urgency=medium
   [ Andreas Henriksson ]
   * Remove myself from uploaders
 
- -- Jeremy Bicha <jbicha@debian.org>  Mon, 02 Oct 2017 09:15:11 -0400
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 02 Oct 2017 09:33:00 -0400
 
 evolution-data-server (3.26.0-1) unstable; urgency=medium
 
