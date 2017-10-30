@@ -1,6 +1,7 @@
 evolution-data-server (3.26.2-1) UNRELEASED; urgency=medium
 
-  * New upstream release
+  * New upstream release (LP: #1728653)
+  * Add new symbols
 
  -- Jeremy Bicha <jbicha@debian.org>  Mon, 30 Oct 2017 12:20:15 -0400
 

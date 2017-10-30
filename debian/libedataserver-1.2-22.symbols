@@ -1126,6 +1126,7 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_xml_document_write_time@Base 3.25.90
  e_xml_from_hash@Base 3.17
  e_xml_get_child_by_name@Base 3.17
+ e_xml_initialize_in_main@Base 3.26.2
  e_xml_new_xpath_context_with_namespaces@Base 3.25.90
  e_xml_parse_data@Base 3.25.90
  e_xml_parse_file@Base 3.17

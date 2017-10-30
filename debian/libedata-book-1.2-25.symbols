@@ -180,12 +180,14 @@ libedata-book-1.2.so.25 libedata-book-1.2-25 #MINVER#
  e_book_cache_set_locale@Base 3.25.90
  e_book_meta_backend_connect_sync@Base 3.25.90
  e_book_meta_backend_disconnect_sync@Base 3.25.90
+ e_book_meta_backend_dup_sync_tag@Base 3.26.2
  e_book_meta_backend_empty_cache_sync@Base 3.25.90
  e_book_meta_backend_ensure_connected_sync@Base 3.25.90
  e_book_meta_backend_get_capabilities@Base 3.25.90
  e_book_meta_backend_get_changes_sync@Base 3.25.90
  e_book_meta_backend_get_connected_writable@Base 3.25.90
  e_book_meta_backend_get_ever_connected@Base 3.25.90
+ e_book_meta_backend_get_ssl_error_details@Base 3.26.2
  e_book_meta_backend_get_type@Base 3.25.90
  e_book_meta_backend_info_copy@Base 3.25.90
  e_book_meta_backend_info_free@Base 3.25.90

@@ -1003,8 +1003,10 @@ libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
  camel_sasl_try_empty_password_sync@Base 3.19.92
  camel_search_build_match_regex@Base 3.19.92
  camel_search_get_all_headers_decoded@Base 3.21.90
+ camel_search_get_default_charset_from_headers@Base 3.26.2
  camel_search_get_default_charset_from_message@Base 3.21.90
  camel_search_get_header_decoded@Base 3.21.90
+ camel_search_get_headers_decoded@Base 3.26.2
  camel_search_header_is_address@Base 3.21.90
  camel_search_header_match@Base 3.19.92
  camel_search_message_body_contains@Base 3.19.92
