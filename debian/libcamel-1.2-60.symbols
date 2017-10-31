@@ -926,6 +926,7 @@ libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
  camel_offline_settings_set_limit_value@Base 3.24.1
  camel_offline_settings_set_stay_synchronized@Base 3.19.92
  camel_offline_settings_set_store_changes_interval@Base 3.19.92
+ camel_offline_store_dup_downsync_folders@Base 3.26.2.1
  camel_offline_store_get_online@Base 3.19.92
  camel_offline_store_get_type@Base 3.19.92
  camel_offline_store_prepare_for_offline_sync@Base 3.19.92
