@@ -1,5 +1,6 @@
-evolution-data-server (3.26.2.1-2) UNRELEASED; urgency=medium
+evolution-data-server (3.26.3-1) UNRELEASED; urgency=medium
 
+  * New upstream release
   * Revert unnecessary NMU
 
  -- Jeremy Bicha <jbicha@debian.org>  Sat, 09 Dec 2017 14:23:33 -0500
