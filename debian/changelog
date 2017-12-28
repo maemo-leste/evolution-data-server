@@ -1,11 +1,11 @@
-evolution-data-server (3.26.3-3) UNRELEASED; urgency=high
+evolution-data-server (3.26.3-3) unstable; urgency=high
 
   * Replace Conflicts against libcal2 with versioned Conflicts against the
-    packages that depend on both libical2 and libecal-1.2-19 or
+    packages that depend on both libical2 and either libecal-1.2-19 or
     libedata-cal-1.2-28
   * Set urgency to high since many of these packages are already in Testing
 
- -- Jeremy Bicha <jbicha@debian.org>  Sat, 23 Dec 2017 09:46:22 -0500
+ -- Jeremy Bicha <jbicha@debian.org>  Thu, 28 Dec 2017 15:58:04 -0500
 
 evolution-data-server (3.26.3-2) unstable; urgency=medium
 
