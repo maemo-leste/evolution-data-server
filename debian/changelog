@@ -1,11 +1,11 @@
-evolution-data-server (3.27.90-1) UNRELEASED; urgency=medium
+evolution-data-server (3.27.90-1) experimental; urgency=medium
 
   * New upstream development release
   * Update library names for soname bumps
   * Add Rules-Requires-Root: binary-targets for file owned by root:mail
   * Bump debhelper compat to 11
 
- -- Jeremy Bicha <jbicha@debian.org>  Sat, 10 Feb 2018 17:14:18 -0500
+ -- Jeremy Bicha <jbicha@debian.org>  Sat, 10 Feb 2018 18:00:25 -0500
 
 evolution-data-server (3.26.5-1) unstable; urgency=medium
 
