@@ -1,8 +1,8 @@
-evolution-data-server (3.26.5-1) UNRELEASED; urgency=medium
+evolution-data-server (3.26.5-1) unstable; urgency=medium
 
   * New upstream release
 
- -- Jeremy Bicha <jbicha@debian.org>  Sat, 10 Feb 2018 16:56:45 -0500
+ -- Jeremy Bicha <jbicha@debian.org>  Sat, 10 Feb 2018 17:08:42 -0500
 
 evolution-data-server (3.26.3-4) unstable; urgency=high
 
