@@ -8,10 +8,6 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Laurent Bigonville <bigon@debian.org>,
            Michael Biebl <biebl@debian.org>,
            Jeremy Bicha <jbicha@debian.org>
-Standards-Version: 4.1.1
-Homepage: https://wiki.gnome.org/Apps/Evolution
-Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
-Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
 Build-Depends: cmake,
                debhelper (>= 10),
                dpkg-dev (>= 1.17.14),
@@ -50,6 +46,11 @@ Build-Depends: cmake,
                libphonenumber-dev [!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386],
                db-util <!nocheck>,
                dbus <!nocheck>,
+Rules-Requires-Root: binary-targets
+Standards-Version: 4.1.1
+Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
+Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
+Homepage: https://wiki.gnome.org/Apps/Evolution
 
 Package: evolution-data-server
 Architecture: any
