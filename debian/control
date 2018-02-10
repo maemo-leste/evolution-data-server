@@ -9,8 +9,7 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Michael Biebl <biebl@debian.org>,
            Jeremy Bicha <jbicha@debian.org>
 Build-Depends: cmake,
-               debhelper (>= 10),
-               dpkg-dev (>= 1.17.14),
+               debhelper (>= 11),
                libtool,
                intltool (>= 0.35.5),
                libdb-dev,
@@ -56,7 +55,7 @@ Package: evolution-data-server
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (= ${source:Version}),
+         evolution-data-server-common (>= ${source:Version}),
          libcamel-1.2-61 (= ${binary:Version}),
          gnome-keyring,
 Suggests: evolution
@@ -114,7 +113,6 @@ Package: libedataserver-1.2-23
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (>= ${gnome:Version})
@@ -162,7 +160,6 @@ Package: libedataserverui-1.2-2
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (>= ${gnome:Version})
@@ -213,7 +210,6 @@ Package: libcamel-1.2-61
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Evolution MIME message handling library
@@ -269,7 +265,6 @@ Package: libebook-1.2-19
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Client library for evolution address books
@@ -317,7 +312,6 @@ Package: libedata-book-1.2-25
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Backend library for evolution address books
@@ -361,7 +355,6 @@ Package: libebook-contacts-1.2-2
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Client library for evolution contacts books
@@ -391,7 +384,6 @@ Package: libecal-1.2-19
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Conflicts: almanah (<< 0.11.1-1+b9),
@@ -438,7 +430,6 @@ Package: libedata-cal-1.2-28
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Conflicts: evolution-data-server (<< 3.26.3),
@@ -471,7 +462,6 @@ Package: libebackend-1.2-10
 Section: libs
 Architecture: any
 Multi-Arch: same
-Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Utility library for evolution data servers
