@@ -1,11 +1,10 @@
 #!/usr/bin/make -f
+-include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
-include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
-
-export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,defs -Wl,--as-needed -Wl,-O1
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,defs -Wl,--as-needed
 # see https://bugzilla.gnome.org/show_bug.cgi?id=594473 for details
 export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
-export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 export SENDMAIL_PATH = /usr/sbin/sendmail
 
@@ -18,7 +17,7 @@ override_dh_gnome_clean:
 override_dh_autoreconf:
 	dh_autoreconf --as-needed
 
-ifeq ($(DEB_HOST_ARCH_OS),$(filter $(DEB_HOST_ARCH_OS),linux kfreebsd))
+ifeq (,$(filter $(DEB_HOST_ARCH), hppa hurd-i386 kfreebsd-i386 kfreebsd-amd64))
 CONFFLAGS = -DWITH_PHONENUMBER=ON
 endif
 

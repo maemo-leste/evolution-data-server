@@ -1,5 +1,6 @@
 libedata-cal-1.2.so.28 libedata-cal-1.2-28 #MINVER#
 * Build-Depends-Package: libedata-cal1.2-dev
+ _e_cal_cache_remove_loaded_timezones@Base 3.25.90
  e_cal_backend_add_timezone@Base 3.17
  e_cal_backend_add_timezone_finish@Base 3.17
  e_cal_backend_add_timezone_sync@Base 3.17
@@ -83,6 +84,7 @@ libedata-cal-1.2.so.28 libedata-cal-1.2-28 #MINVER#
  e_cal_backend_remove_objects_finish@Base 3.17
  e_cal_backend_remove_objects_sync@Base 3.17
  e_cal_backend_remove_view@Base 3.17
+ e_cal_backend_schedule_custom_operation@Base 3.25.90
  e_cal_backend_send_objects@Base 3.17
  e_cal_backend_send_objects_finish@Base 3.17
  e_cal_backend_send_objects_sync@Base 3.17
@@ -141,6 +143,78 @@ libedata-cal-1.2.so.28 libedata-cal-1.2-28 #MINVER#
  e_cal_backend_sync_remove_objects@Base 3.17
  e_cal_backend_sync_send_objects@Base 3.17
  e_cal_backend_user_declined@Base 3.17
+ e_cal_cache_contains@Base 3.25.90
+ e_cal_cache_delete_attachments@Base 3.25.90
+ e_cal_cache_dup_component_revision@Base 3.25.90
+ e_cal_cache_dup_timezone_as_string@Base 3.25.90
+ e_cal_cache_get_component@Base 3.25.90
+ e_cal_cache_get_component_as_string@Base 3.25.90
+ e_cal_cache_get_component_extra@Base 3.25.90
+ e_cal_cache_get_components_by_uid@Base 3.25.90
+ e_cal_cache_get_components_by_uid_as_string@Base 3.25.90
+ e_cal_cache_get_components_in_range@Base 3.25.90
+ e_cal_cache_get_components_in_range_as_strings@Base 3.25.90
+ e_cal_cache_get_ids_with_extra@Base 3.25.90
+ e_cal_cache_get_offline_changes@Base 3.25.90
+ e_cal_cache_get_timezone@Base 3.25.90
+ e_cal_cache_get_type@Base 3.25.90
+ e_cal_cache_list_timezones@Base 3.25.90
+ e_cal_cache_new@Base 3.25.90
+ e_cal_cache_offline_change_copy@Base 3.25.90
+ e_cal_cache_offline_change_free@Base 3.25.90
+ e_cal_cache_offline_change_get_type@Base 3.25.90
+ e_cal_cache_offline_change_new@Base 3.25.90
+ e_cal_cache_put_component@Base 3.25.90
+ e_cal_cache_put_components@Base 3.25.90
+ e_cal_cache_put_timezone@Base 3.25.90
+ e_cal_cache_remove_component@Base 3.25.90
+ e_cal_cache_remove_components@Base 3.25.90
+ e_cal_cache_remove_timezones@Base 3.25.90
+ e_cal_cache_resolve_timezone_cb@Base 3.25.90
+ e_cal_cache_resolve_timezone_simple_cb@Base 3.25.90
+ e_cal_cache_search@Base 3.25.90
+ e_cal_cache_search_components@Base 3.25.90
+ e_cal_cache_search_data_copy@Base 3.25.90
+ e_cal_cache_search_data_free@Base 3.25.90
+ e_cal_cache_search_data_get_type@Base 3.25.90
+ e_cal_cache_search_data_new@Base 3.25.90
+ e_cal_cache_search_ids@Base 3.25.90
+ e_cal_cache_search_with_callback@Base 3.25.90
+ e_cal_cache_set_component_extra@Base 3.25.90
+ e_cal_meta_backend_connect_sync@Base 3.25.90
+ e_cal_meta_backend_disconnect_sync@Base 3.25.90
+ e_cal_meta_backend_dup_sync_tag@Base 3.26.2
+ e_cal_meta_backend_empty_cache_sync@Base 3.25.90
+ e_cal_meta_backend_ensure_connected_sync@Base 3.25.90
+ e_cal_meta_backend_gather_timezones_sync@Base 3.25.90
+ e_cal_meta_backend_get_capabilities@Base 3.25.90
+ e_cal_meta_backend_get_changes_sync@Base 3.25.90
+ e_cal_meta_backend_get_connected_writable@Base 3.25.90
+ e_cal_meta_backend_get_ever_connected@Base 3.25.90
+ e_cal_meta_backend_get_ssl_error_details@Base 3.26.2
+ e_cal_meta_backend_get_type@Base 3.25.90
+ e_cal_meta_backend_info_copy@Base 3.25.90
+ e_cal_meta_backend_info_free@Base 3.25.90
+ e_cal_meta_backend_info_get_type@Base 3.25.90
+ e_cal_meta_backend_info_new@Base 3.25.90
+ e_cal_meta_backend_inline_local_attachments_sync@Base 3.25.90
+ e_cal_meta_backend_list_existing_sync@Base 3.25.90
+ e_cal_meta_backend_load_component_sync@Base 3.25.90
+ e_cal_meta_backend_merge_instances@Base 3.25.90
+ e_cal_meta_backend_process_changes_sync@Base 3.25.90
+ e_cal_meta_backend_ref_cache@Base 3.25.90
+ e_cal_meta_backend_refresh_sync@Base 3.25.90
+ e_cal_meta_backend_remove_component_sync@Base 3.25.90
+ e_cal_meta_backend_requires_reconnect@Base 3.25.90
+ e_cal_meta_backend_save_component_sync@Base 3.25.90
+ e_cal_meta_backend_schedule_refresh@Base 3.25.90
+ e_cal_meta_backend_search_components_sync@Base 3.25.90
+ e_cal_meta_backend_search_sync@Base 3.25.90
+ e_cal_meta_backend_set_cache@Base 3.25.90
+ e_cal_meta_backend_set_connected_writable@Base 3.25.90
+ e_cal_meta_backend_set_ever_connected@Base 3.25.90
+ e_cal_meta_backend_split_changes_sync@Base 3.25.90
+ e_cal_meta_backend_store_inline_attachments_sync@Base 3.25.90
  e_data_cal_create_error@Base 3.17
  e_data_cal_create_error_fmt@Base 3.17
  e_data_cal_error_quark@Base 3.17

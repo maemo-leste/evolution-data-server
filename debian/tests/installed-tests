@@ -7,4 +7,4 @@ set -e
 export XDG_RUNTIME_DIR=$ADTTMP
 
 # dbus outputs activation messages to stderr which fails the test
-dbus-run-session -- xvfb-run -a gnome-desktop-testing-runner evolution-data-server 2> >(grep -vE '^(Activating|Successfully activated)')>&2
+dbus-run-session -- xvfb-run -a gnome-desktop-testing-runner --parallel=1 evolution-data-server 2> >(grep -vE '^(Activating|Successfully activated)')>&2

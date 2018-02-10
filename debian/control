@@ -6,9 +6,9 @@ Uploaders: Jordi Mallach <jordi@debian.org>,
            Josselin Mouette <joss@debian.org>,
            Sjoerd Simons <sjoerd@debian.org>,
            Laurent Bigonville <bigon@debian.org>,
-           Andreas Henriksson <andreas@fatal.se>,
-           Michael Biebl <biebl@debian.org>
-Standards-Version: 3.9.8
+           Michael Biebl <biebl@debian.org>,
+           Jeremy Bicha <jbicha@debian.org>
+Standards-Version: 4.1.1
 Homepage: https://wiki.gnome.org/Apps/Evolution
 Vcs-Svn: svn://anonscm.debian.org/pkg-evolution/unstable/evolution-data-server
 Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-evolution/unstable/evolution-data-server
@@ -47,7 +47,7 @@ Build-Depends: cmake,
                pkg-config (>= 0.16),
                valac (>= 0.22),
                gnome-common (>= 3.6.0),
-               libphonenumber-dev [linux-any kfreebsd-any],
+               libphonenumber-dev [!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386],
                db-util <!nocheck>,
                dbus <!nocheck>,
 
@@ -78,6 +78,8 @@ Package: evolution-data-server-tests
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
+         evolution-common,
+         evolution-data-server
 Description: Installed tests for the evolution database backend server
  The data server, called "Evolution Data Server" is responsible for managing
  mail, calendar, addressbook, tasks and memo information.
@@ -391,6 +393,24 @@ Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
+Conflicts: almanah (<< 0.11.1-1+b9),
+           bijiben (<< 3.26.0-0.1+b1),
+           evolution (<< 3.26.3),
+           evolution-data-server (<< 3.26.3),
+           evolution-data-server-tests (<< 3.26.3),
+           evolution-ews (<< 3.26.3),
+           evolution-plugin-pstimport (<< 3.26.3),
+           evolution-plugins (<< 3.26.3),
+           gnome-calendar (<< 3.26.2-3),
+           gnome-panel (<< 3.26.0-1+b1),
+           gnome-shell (<< 3.26.2-1+b1),
+           gnome-todo (<< 3.26.2-2),
+           libabiword-3.0 (<< 3.0.2-5),
+           libedata-cal-1.2-28 (<< 3.26.3),
+           libevolution (<< 3.26.3),
+           libjana-ecal0 (<< 0.0.0+git20091215.9ec1da8a-4+b1),
+           libjana-test (<< 0.0.0+git20091215.9ec1da8a-4+b1),
+           syncevolution-libs-gnome (<< 1.5.2-2+b2)
 Description: Client library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -420,6 +440,9 @@ Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends}
+Conflicts: evolution-data-server (<< 3.26.3),
+           evolution-data-server-tests (<< 3.26.3),
+           evolution-ews (<< 3.26.3),
 Description: Backend library for evolution calendars
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.

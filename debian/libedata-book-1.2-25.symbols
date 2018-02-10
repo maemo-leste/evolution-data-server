@@ -74,6 +74,7 @@ libedata-book-1.2.so.25 libedata-book-1.2-25 #MINVER#
  e_book_backend_remove_contacts_finish@Base 3.17
  e_book_backend_remove_contacts_sync@Base 3.17
  e_book_backend_remove_view@Base 3.17
+ e_book_backend_schedule_custom_operation@Base 3.25.90
  e_book_backend_set_cache_dir@Base 3.17
  e_book_backend_set_data_book@Base 3.17
  e_book_backend_set_locale@Base 3.17
@@ -146,6 +147,69 @@ libedata-book-1.2.so.25 libedata-book-1.2-25 #MINVER#
  e_book_backend_summary_search@Base 3.17
  e_book_backend_summary_touch@Base 3.17
  e_book_backend_sync@Base 3.17
+ e_book_cache_cursor_calculate@Base 3.25.90
+ e_book_cache_cursor_compare_contact@Base 3.25.90
+ e_book_cache_cursor_free@Base 3.25.90
+ e_book_cache_cursor_new@Base 3.25.90
+ e_book_cache_cursor_set_sexp@Base 3.25.90
+ e_book_cache_cursor_set_target_alphabetic_index@Base 3.25.90
+ e_book_cache_cursor_step@Base 3.25.90
+ e_book_cache_dup_contact_revision@Base 3.25.90
+ e_book_cache_dup_locale@Base 3.25.90
+ e_book_cache_get_contact@Base 3.25.90
+ e_book_cache_get_contact_extra@Base 3.25.90
+ e_book_cache_get_type@Base 3.25.90
+ e_book_cache_get_uids_with_extra@Base 3.25.90
+ e_book_cache_get_vcard@Base 3.25.90
+ e_book_cache_new@Base 3.25.90
+ e_book_cache_new_full@Base 3.25.90
+ e_book_cache_put_contact@Base 3.25.90
+ e_book_cache_put_contacts@Base 3.25.90
+ e_book_cache_ref_collator@Base 3.25.90
+ e_book_cache_ref_source@Base 3.25.90
+ e_book_cache_remove_contact@Base 3.25.90
+ e_book_cache_remove_contacts@Base 3.25.90
+ e_book_cache_search@Base 3.25.90
+ e_book_cache_search_data_copy@Base 3.25.90
+ e_book_cache_search_data_free@Base 3.25.90
+ e_book_cache_search_data_get_type@Base 3.25.90
+ e_book_cache_search_data_new@Base 3.25.90
+ e_book_cache_search_uids@Base 3.25.90
+ e_book_cache_search_with_callback@Base 3.25.90
+ e_book_cache_set_contact_extra@Base 3.25.90
+ e_book_cache_set_locale@Base 3.25.90
+ e_book_meta_backend_connect_sync@Base 3.25.90
+ e_book_meta_backend_disconnect_sync@Base 3.25.90
+ e_book_meta_backend_dup_sync_tag@Base 3.26.2
+ e_book_meta_backend_empty_cache_sync@Base 3.25.90
+ e_book_meta_backend_ensure_connected_sync@Base 3.25.90
+ e_book_meta_backend_get_capabilities@Base 3.25.90
+ e_book_meta_backend_get_changes_sync@Base 3.25.90
+ e_book_meta_backend_get_connected_writable@Base 3.25.90
+ e_book_meta_backend_get_ever_connected@Base 3.25.90
+ e_book_meta_backend_get_ssl_error_details@Base 3.26.2
+ e_book_meta_backend_get_type@Base 3.25.90
+ e_book_meta_backend_info_copy@Base 3.25.90
+ e_book_meta_backend_info_free@Base 3.25.90
+ e_book_meta_backend_info_get_type@Base 3.25.90
+ e_book_meta_backend_info_new@Base 3.25.90
+ e_book_meta_backend_inline_local_photos_sync@Base 3.25.90
+ e_book_meta_backend_list_existing_sync@Base 3.25.90
+ e_book_meta_backend_load_contact_sync@Base 3.25.90
+ e_book_meta_backend_process_changes_sync@Base 3.25.90
+ e_book_meta_backend_ref_cache@Base 3.25.90
+ e_book_meta_backend_refresh_sync@Base 3.25.90
+ e_book_meta_backend_remove_contact_sync@Base 3.25.90
+ e_book_meta_backend_requires_reconnect@Base 3.25.90
+ e_book_meta_backend_save_contact_sync@Base 3.25.90
+ e_book_meta_backend_schedule_refresh@Base 3.25.90
+ e_book_meta_backend_search_sync@Base 3.25.90
+ e_book_meta_backend_search_uids_sync@Base 3.25.90
+ e_book_meta_backend_set_cache@Base 3.25.90
+ e_book_meta_backend_set_connected_writable@Base 3.25.90
+ e_book_meta_backend_set_ever_connected@Base 3.25.90
+ e_book_meta_backend_split_changes_sync@Base 3.25.90
+ e_book_meta_backend_store_inline_photos_sync@Base 3.25.90
  e_book_sqlite_add_contact@Base 3.17
  e_book_sqlite_add_contacts@Base 3.17
  e_book_sqlite_cursor_calculate@Base 3.17
@@ -181,6 +245,8 @@ libedata-book-1.2.so.25 libedata-book-1.2-25 #MINVER#
  e_book_sqlite_unlock@Base 3.17
  e_data_book_create_error@Base 3.17
  e_data_book_create_error_fmt@Base 3.17
+ e_data_book_cursor_cache_get_type@Base 3.25.90
+ e_data_book_cursor_cache_new@Base 3.25.90
  e_data_book_cursor_contact_added@Base 3.17
  e_data_book_cursor_contact_removed@Base 3.17
  e_data_book_cursor_get_backend@Base 3.17

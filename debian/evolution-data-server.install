@@ -3,6 +3,7 @@ usr/lib/evolution/evolution-addressbook-*
 usr/lib/evolution/evolution-calendar-*
 usr/lib/evolution/evolution-data-server/addressbook-export
 usr/lib/evolution/evolution-data-server/csv2vcard
+usr/lib/evolution/evolution-data-server/list-sources
 usr/lib/evolution/evolution-scan-gconf-tree-xml
 usr/lib/evolution/evolution-source-registry
 usr/lib/evolution/evolution-user-prompter
@@ -14,8 +15,8 @@ usr/lib/evolution-data-server/registry-modules/*.so
 usr/lib/evolution-data-server/registry-modules/module-yahoo-backend.so
 usr/lib/evolution-data-server/registry-modules/module-google-backend.so
 usr/lib/evolution-data-server/registry-modules/module-cache-reaper.so
-usr/lib/evolution-data-server/registry-modules/module-owncloud-backend.so
 usr/lib/evolution-data-server/registry-modules/module-outlook-backend.so
 usr/lib/evolution-data-server/registry-modules/module-secret-monitor.so
 usr/lib/evolution-data-server/registry-modules/module-trust-prompt.so
+usr/lib/evolution-data-server/registry-modules/module-webdav-backend.so
 usr/lib/systemd/user/*.service

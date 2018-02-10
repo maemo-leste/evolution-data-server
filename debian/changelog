@@ -1,3 +1,129 @@
+evolution-data-server (3.26.5-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Sat, 10 Feb 2018 17:08:42 -0500
+
+evolution-data-server (3.26.3-4) unstable; urgency=high
+
+  * Add missing comma to Conflicts list
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 29 Dec 2017 10:06:09 -0500
+
+evolution-data-server (3.26.3-3) unstable; urgency=high
+
+  * Replace Conflicts against libcal2 with versioned Conflicts against the
+    packages that depend on both libical2 and either libecal-1.2-19 or
+    libedata-cal-1.2-28
+  * Set urgency to high since many of these packages are already in Testing
+
+ -- Jeremy Bicha <jbicha@debian.org>  Thu, 28 Dec 2017 15:58:04 -0500
+
+evolution-data-server (3.26.3-2) unstable; urgency=medium
+
+  * Add Conflicts against libical2 to libecal-1.2-19 and libedata-cal-1.2-28.
+    This avoids that applications that link against libecal/libedata-cal and
+    libical end up with both libical2 and libical3 being loaded into their
+    address space. This is not supported and leads to a crash.
+    (Closes: #884012)
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 16 Dec 2017 16:45:07 +0100
+
+evolution-data-server (3.26.3-1) unstable; urgency=medium
+
+  * New upstream release
+  * Revert unnecessary NMU
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 11 Dec 2017 09:03:03 -0500
+
+evolution-data-server (3.26.2.1-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Update (build) dependencies for libical3. Closes: #883922.
+
+ -- Matthias Klose <doko@debian.org>  Sat, 09 Dec 2017 13:52:27 +0100
+
+evolution-data-server (3.26.2.1-1) unstable; urgency=medium
+
+  * New upstream release
+  * Add new symbol
+
+ -- Jeremy Bicha <jbicha@debian.org>  Tue, 31 Oct 2017 07:48:07 -0400
+
+evolution-data-server (3.26.2-1) unstable; urgency=medium
+
+  * New upstream release (LP: #1728653)
+  * Add new symbols
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 30 Oct 2017 12:44:31 -0400
+
+evolution-data-server (3.26.1-1) unstable; urgency=medium
+
+  [ Jeremy Bicha ]
+  * New upstream release
+  * Bump Standards-Version to 4.1.1
+
+  [ Andreas Henriksson ]
+  * Remove myself from uploaders
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 02 Oct 2017 09:33:00 -0400
+
+evolution-data-server (3.26.0-1) unstable; urgency=medium
+
+  * New upstream release
+  * Upload to unstable
+  * debian/control:
+    - Have evolution-data-server-tests depend on evolution-common and
+      evolution-data-server since they're needed by the tests.
+  * debian/tests/control:
+    - Disable installed-tests autopkgtest since it's too unreliable
+      to be useful
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 11 Sep 2017 19:41:55 -0400
+
+evolution-data-server (3.25.92-1) experimental; urgency=medium
+
+  * New upstream release
+  * Add new symbols
+  * debian/evolution-data-server.install:
+    - Install new list-sources tool
+    - owncloud backend has been renamed to webdav
+  * Add ubuntu_gettext_domain.patch:
+    Work around Ubuntu translations issue
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 04 Sep 2017 08:38:50 -0400
+
+evolution-data-server (3.24.5-6) unstable; urgency=medium
+
+  * debian/rules: Fix arch-conditional filter rule
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 01 Sep 2017 15:29:35 -0400
+
+evolution-data-server (3.24.5-5) unstable; urgency=medium
+
+  * debian/libebook-contacts-1.2-2.symbols: Fix for !hppa
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 01 Sep 2017 13:59:26 -0400
+
+evolution-data-server (3.24.5-4) unstable; urgency=medium
+
+  * Don't build with libphonenumber on hppa
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 01 Sep 2017 11:53:20 -0400
+
+evolution-data-server (3.24.5-3) unstable; urgency=medium
+
+  * Build with libphonenumber on Linux only
+
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 01 Sep 2017 08:54:46 -0400
+
+evolution-data-server (3.24.5-2) unstable; urgency=medium
+
+  * Upload to unstable.
+  * Bump Standards-Version to 4.1.0
+
+ -- Jeremy Bicha <jbicha@debian.org>  Wed, 30 Aug 2017 14:35:21 -0400
+
 evolution-data-server (3.24.5-1) experimental; urgency=medium
 
   * New upstream release (LP: #1685683)
