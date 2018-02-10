@@ -1,6 +1,7 @@
 evolution-data-server (3.27.90-1) UNRELEASED; urgency=medium
 
   * New upstream development release
+  * Update library names for soname bumps
 
  -- Jeremy Bicha <jbicha@debian.org>  Sat, 10 Feb 2018 17:14:18 -0500
 

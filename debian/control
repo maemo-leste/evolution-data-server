@@ -56,7 +56,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (= ${source:Version}),
-         libcamel-1.2-60 (= ${binary:Version}),
+         libcamel-1.2-61 (= ${binary:Version}),
          gnome-keyring,
 Suggests: evolution
 Description: evolution database backend server
@@ -109,7 +109,7 @@ Description: Documentation files for the Evolution Data Server libraries
  This package contains the API documentation for all the individual
  Evolution Data Server libraries.
 
-Package: libedataserver-1.2-22
+Package: libedataserver-1.2-23
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -127,7 +127,7 @@ Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedataserver-1.2-22 (= ${binary:Version}),
+Depends: libedataserver-1.2-23 (= ${binary:Version}),
          gir1.2-edataserver-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
@@ -157,7 +157,7 @@ Description: GObject introspection for the EDataServer library
  library. It can be used by packages using the GIRepository format to 
  generate dynamic bindings.
 
-Package: libedataserverui-1.2-1
+Package: libedataserverui-1.2-2
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -175,7 +175,7 @@ Package: libedataserverui1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedataserverui-1.2-1 (= ${binary:Version}),
+Depends: libedataserverui-1.2-2 (= ${binary:Version}),
          gir1.2-edataserverui-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
@@ -208,7 +208,7 @@ Description: GObject introspection for the EDataServerUI library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libcamel-1.2-60
+Package: libcamel-1.2-61
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -227,7 +227,7 @@ Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libcamel-1.2-60 (= ${binary:Version}),
+Depends: libcamel-1.2-61 (= ${binary:Version}),
          gir1.2-camel-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},

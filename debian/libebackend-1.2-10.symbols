@@ -113,6 +113,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_collection_backend_ref_server@Base 3.17
  e_conflict_resolution_get_type@Base 3.25.90
  e_data_factory_construct_path@Base 3.17
+ e_data_factory_get_backend_per_process@Base 3.27.90
  e_data_factory_get_registry@Base 3.17
  e_data_factory_get_reload_supported@Base 3.17.90
  e_data_factory_get_type@Base 3.17
@@ -244,6 +245,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_source_permission_flags_get_type@Base 3.17
  e_source_registry_server_add_source@Base 3.17
  e_source_registry_server_find_extension@Base 3.17
+ e_source_registry_server_get_oauth2_services@Base 3.27.90
  e_source_registry_server_get_type@Base 3.17
  e_source_registry_server_list_sources@Base 3.17
  e_source_registry_server_load_all@Base 3.17

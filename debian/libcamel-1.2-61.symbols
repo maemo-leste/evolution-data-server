@@ -1,4 +1,4 @@
-libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
+libcamel-1.2.so.61 libcamel-1.2-61 #MINVER#
 * Build-Depends-Package: libcamel1.2-dev
  _camel_message_info_unset_summary@Base 3.24.3
  camel_address_cat@Base 3.19.92
@@ -993,6 +993,7 @@ libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
  camel_sasl_gssapi_get_type@Base 3.19.92
  camel_sasl_gssapi_is_available@Base 3.19.92
  camel_sasl_gssapi_override_host_and_user@Base 3.19.92
+ camel_sasl_is_xoauth2_alias@Base 3.27.90
  camel_sasl_login_get_type@Base 3.19.92
  camel_sasl_new@Base 3.19.92
  camel_sasl_ntlm_get_type@Base 3.19.92
@@ -1002,6 +1003,9 @@ libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
  camel_sasl_try_empty_password@Base 3.19.92
  camel_sasl_try_empty_password_finish@Base 3.19.92
  camel_sasl_try_empty_password_sync@Base 3.19.92
+ camel_sasl_xoauth2_get_type@Base 3.27.90
+ camel_sasl_xoauth2_google_get_type@Base 3.27.90
+ camel_sasl_xoauth2_outlook_get_type@Base 3.27.90
  camel_search_build_match_regex@Base 3.19.92
  camel_search_get_all_headers_decoded@Base 3.21.90
  camel_search_get_default_charset_from_headers@Base 3.26.2
@@ -1064,6 +1068,7 @@ libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
  camel_session_get_filter_driver@Base 3.19.92
  camel_session_get_junk_filter@Base 3.19.92
  camel_session_get_junk_headers@Base 3.19.92
+ camel_session_get_oauth2_access_token_sync@Base 3.27.90
  camel_session_get_online@Base 3.19.92
  camel_session_get_password@Base 3.19.92
  camel_session_get_type@Base 3.19.92
@@ -1357,6 +1362,7 @@ libcamel-1.2.so.60 libcamel-1.2-60 #MINVER#
  camel_vee_folder_ignore_next_changed_event@Base 3.19.92
  camel_vee_folder_new@Base 3.19.92
  camel_vee_folder_rebuild_folder@Base 3.19.92
+ camel_vee_folder_ref_folders@Base 3.27.90
  camel_vee_folder_remove_folder@Base 3.19.92
  camel_vee_folder_remove_from_ignore_changed_event@Base 3.19.92
  camel_vee_folder_remove_vuid@Base 3.19.92
