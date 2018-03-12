@@ -152,8 +152,8 @@ Description: GObject introspection for the EDataServer library
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
- This package contains introspection data for the libedataserver 
- library. It can be used by packages using the GIRepository format to 
+ This package contains introspection data for the libedataserver
+ library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
 Package: libedataserverui-1.2-2
@@ -304,8 +304,8 @@ Description: GObject introspection for the EBook library
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
- This package contains introspection data for the libeebook 
- library. It can be used by packages using the GIRepository format to 
+ This package contains introspection data for the libeebook
+ library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
 Package: libedata-book-1.2-25
@@ -347,8 +347,8 @@ Description: GObject introspection for the EBook Contacts library
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
  .
- This package contains introspection data for the libeebook 
- library. It can be used by packages using the GIRepository format to 
+ This package contains introspection data for the libeebook
+ library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
 Package: libebook-contacts-1.2-2
