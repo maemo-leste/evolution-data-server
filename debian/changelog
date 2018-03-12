@@ -7,6 +7,12 @@ evolution-data-server (3.27.90-1) experimental; urgency=medium
 
  -- Jeremy Bicha <jbicha@debian.org>  Sat, 10 Feb 2018 18:00:25 -0500
 
+evolution-data-server (3.26.5-2) unstable; urgency=medium
+
+  * Cherry-pick gweather-3-27.patch to build against latest libgweather
+
+ -- Jeremy Bicha <jbicha@debian.org>  Sun, 11 Mar 2018 13:23:29 -0400
+
 evolution-data-server (3.26.5-1) unstable; urgency=medium
 
   * New upstream release
