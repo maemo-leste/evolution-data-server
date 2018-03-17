@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -84,11 +82,14 @@ sasl_cram_md5_challenge_sync (CamelSasl *sasl,
 
 	service = camel_sasl_get_service (sasl);
 
-	settings = camel_service_get_settings (service);
+	settings = camel_service_ref_settings (service);
 	g_return_val_if_fail (CAMEL_IS_NETWORK_SETTINGS (settings), NULL);
 
 	network_settings = CAMEL_NETWORK_SETTINGS (settings);
 	user = camel_network_settings_dup_user (network_settings);
+
+	g_object_unref (settings);
+
 	g_return_val_if_fail (user != NULL, NULL);
 
 	password = camel_service_get_password (service);

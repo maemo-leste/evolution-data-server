@@ -8,19 +8,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /* FIXME: Shouldn't we add a version number to providers ? */
@@ -47,10 +45,10 @@
 static GHashTable *module_table;
 /* table of CamelProvider's */
 static GHashTable *provider_table;
-static GStaticRecMutex provider_lock = G_STATIC_REC_MUTEX_INIT;
+static GRecMutex provider_lock;
 
-#define LOCK()		(g_static_rec_mutex_lock(&provider_lock))
-#define UNLOCK()	(g_static_rec_mutex_unlock(&provider_lock))
+#define LOCK()		(g_rec_mutex_lock(&provider_lock))
+#define UNLOCK()	(g_rec_mutex_unlock(&provider_lock))
 
 /* The vfolder provider is always available */
 static CamelProvider vee_provider = {
@@ -73,16 +71,79 @@ static CamelProvider vee_provider = {
 
 static GOnce setup_once = G_ONCE_INIT;
 
+static void
+provider_register_internal (CamelProvider *provider)
+{
+	CamelProviderConfEntry *conf;
+	CamelProviderPortEntry *port;
+	GList *link;
+	gint ii;
+
+	g_return_if_fail (provider != NULL);
+	g_return_if_fail (provider->protocol != NULL);
+
+	LOCK ();
+
+	if (g_hash_table_lookup (provider_table, provider->protocol) != NULL) {
+		g_warning (
+			"Trying to re-register CamelProvider for protocol '%s'",
+			provider->protocol);
+		UNLOCK ();
+		return;
+	}
+
+	/* Translate all strings here */
+#define P_(string) dgettext (provider->translation_domain, string)
+
+	provider->name = P_(provider->name);
+	provider->description = P_(provider->description);
+
+	conf = provider->extra_conf;
+	if (conf != NULL) {
+		for (ii = 0; conf[ii].type != CAMEL_PROVIDER_CONF_END; ii++) {
+			if (conf[ii].text != NULL)
+				conf[ii].text = P_(conf[ii].text);
+		}
+	}
+
+	for (link = provider->authtypes; link != NULL; link = link->next) {
+		CamelServiceAuthType *auth = link->data;
+
+		auth->name = P_(auth->name);
+		auth->description = P_(auth->description);
+	}
+
+	if (provider->port_entries != NULL) {
+		provider->url_flags |= CAMEL_URL_NEED_PORT;
+		port = provider->port_entries;
+		for (ii = 0; port[ii].port != 0; ii++)
+			if (port[ii].desc != NULL)
+				port[ii].desc = P_(port[ii].desc);
+	} else {
+		provider->url_flags &= ~CAMEL_URL_NEED_PORT;
+	}
+
+	g_hash_table_insert (
+		provider_table,
+		(gpointer) provider->protocol, provider);
+
+	UNLOCK ();
+}
+
 static gpointer
 provider_setup (gpointer param)
 {
-	module_table = g_hash_table_new (camel_strcase_hash, camel_strcase_equal);
-	provider_table = g_hash_table_new (camel_strcase_hash, camel_strcase_equal);
+	module_table = g_hash_table_new (
+		(GHashFunc) camel_strcase_hash,
+		(GEqualFunc) camel_strcase_equal);
+	provider_table = g_hash_table_new (
+		(GHashFunc) camel_strcase_hash,
+		(GEqualFunc) camel_strcase_equal);
 
-	vee_provider.object_types[CAMEL_PROVIDER_STORE] = camel_vee_store_get_type ();
+	vee_provider.object_types[CAMEL_PROVIDER_STORE] = CAMEL_TYPE_VEE_STORE;
 	vee_provider.url_hash = camel_url_hash;
 	vee_provider.url_equal = camel_url_equal;
-	camel_provider_register (&vee_provider);
+	provider_register_internal (&vee_provider);
 
 	return NULL;
 }
@@ -109,6 +170,11 @@ camel_provider_init (void)
 	gchar *p, *name, buf[80];
 	CamelProviderModule *m;
 	static gint loaded = 0;
+	const gchar *provider_dir;
+
+	provider_dir = g_getenv (EDS_CAMEL_PROVIDER_DIR);
+	if (!provider_dir)
+		provider_dir = CAMEL_PROVIDERDIR;
 
 	g_once (&setup_once, provider_setup, NULL);
 
@@ -117,10 +183,11 @@ camel_provider_init (void)
 
 	loaded = 1;
 
-	dir = g_dir_open (CAMEL_PROVIDERDIR, 0, NULL);
+	dir = g_dir_open (provider_dir, 0, NULL);
 	if (!dir) {
-		g_warning("Could not open camel provider directory (%s): %s",
-			  CAMEL_PROVIDERDIR, g_strerror (errno));
+		g_warning (
+			"Could not open camel provider directory (%s): %s",
+			provider_dir, g_strerror (errno));
 		return;
 	}
 
@@ -131,11 +198,12 @@ camel_provider_init (void)
 		if (!p || strcmp (p, ".urls") != 0)
 			continue;
 
-		name = g_strdup_printf ("%s/%s", CAMEL_PROVIDERDIR, entry);
+		name = g_strdup_printf ("%s/%s", provider_dir, entry);
 		fp = g_fopen (name, "r");
 		if (!fp) {
-			g_warning ("Could not read provider info file %s: %s",
-				   name, g_strerror (errno));
+			g_warning (
+				"Could not read provider info file %s: %s",
+				name, g_strerror (errno));
 			g_free (name);
 			continue;
 		}
@@ -191,7 +259,7 @@ camel_provider_load (const gchar *path,
 		g_set_error (
 			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
 			_("Could not load %s: Module loading "
-			  "not supported on this system."), path);
+			"not supported on this system."), path);
 		return FALSE;
 	}
 
@@ -209,7 +277,7 @@ camel_provider_load (const gchar *path,
 		g_set_error (
 			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
 			_("Could not load %s: No initialization "
-			  "code in module."), path);
+			"code in module."), path);
 		g_module_close (module);
 		return FALSE;
 	}
@@ -228,60 +296,9 @@ camel_provider_load (const gchar *path,
 void
 camel_provider_register (CamelProvider *provider)
 {
-	gint i;
-	CamelProviderConfEntry *conf;
-	CamelProviderPortEntry *port;
-	GList *l;
+	g_once (&setup_once, provider_setup, NULL);
 
-	g_return_if_fail (provider != NULL);
-
-	g_assert (provider_table);
-
-	LOCK ();
-
-	if (g_hash_table_lookup (provider_table, provider->protocol) != NULL) {
-		g_warning("Trying to re-register camel provider for protocol '%s'", provider->protocol);
-		UNLOCK ();
-		return;
-	}
-
-	/* Translate all strings here */
-#define P_(string) dgettext (provider->translation_domain, string)
-
-	provider->name = P_(provider->name);
-	provider->description = P_(provider->description);
-	conf = provider->extra_conf;
-	if (conf) {
-		for (i = 0; conf[i].type != CAMEL_PROVIDER_CONF_END; i++) {
-			if (conf[i].text)
-				conf[i].text = P_(conf[i].text);
-		}
-	}
-
-	l = provider->authtypes;
-	while (l) {
-		CamelServiceAuthType *auth = l->data;
-
-		auth->name = P_(auth->name);
-		auth->description = P_(auth->description);
-		l = l->next;
-	}
-
-	if (provider->port_entries) {
-		provider->url_flags |= CAMEL_URL_NEED_PORT;
-		port = provider->port_entries;
-		for (i = 0; port[i].port != 0; i++)
-			if (port[i].desc)
-				port[i].desc = P_(port[i].desc);
-	}
-	else
-		provider->url_flags &= ~CAMEL_URL_NEED_PORT;
-
-	g_hash_table_insert (
-		provider_table,
-		(gpointer) provider->protocol, provider);
-
-	UNLOCK ();
+	provider_register_internal (provider);
 }
 
 static gint
@@ -337,10 +354,18 @@ camel_provider_list (gboolean load)
 		g_hash_table_foreach (module_table, add_to_list, &list);
 		for (w = list; w; w = w->next) {
 			CamelProviderModule *m = w->data;
+			GError *error = NULL;
 
 			if (!m->loaded) {
-				camel_provider_load (m->path, NULL);
+				camel_provider_load (m->path, &error);
 				m->loaded = 1;
+			}
+
+			if (error != NULL) {
+				g_critical (
+					"%s: %s", G_STRFUNC,
+					error->message);
+				g_error_free (error);
 			}
 		}
 		g_list_free (list);

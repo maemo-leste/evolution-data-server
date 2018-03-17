@@ -1,23 +1,21 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *           Jeffrey Stedfast <fejj@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -240,13 +238,13 @@ gsize camel_quoted_encode_close (guchar *in, gsize len, guchar *out, gint *state
 
 /* camel ctype type functions for rfc822/rfc2047/other, which are non-locale specific */
 enum {
-	CAMEL_MIME_IS_CTRL		= 1 << 0,
-	CAMEL_MIME_IS_LWSP		= 1 << 1,
-	CAMEL_MIME_IS_TSPECIAL	= 1 << 2,
-	CAMEL_MIME_IS_SPECIAL	= 1 << 3,
-	CAMEL_MIME_IS_SPACE	= 1 << 4,
-	CAMEL_MIME_IS_DSPECIAL	= 1 << 5,
-	CAMEL_MIME_IS_QPSAFE	= 1 << 6,
+	CAMEL_MIME_IS_CTRL = 1 << 0,
+	CAMEL_MIME_IS_LWSP = 1 << 1,
+	CAMEL_MIME_IS_TSPECIAL = 1 << 2,
+	CAMEL_MIME_IS_SPECIAL = 1 << 3,
+	CAMEL_MIME_IS_SPACE = 1 << 4,
+	CAMEL_MIME_IS_DSPECIAL = 1 << 5,
+	CAMEL_MIME_IS_QPSAFE = 1 << 6,
 	CAMEL_MIME_IS_ESAFE	= 1 << 7,	/* encoded word safe */
 	CAMEL_MIME_IS_PSAFE	= 1 << 8,	/* encoded word in phrase safe */
 	CAMEL_MIME_IS_ATTRCHAR  = 1 << 9	/* attribute-char safe (rfc2184) */

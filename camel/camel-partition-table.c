@@ -4,19 +4,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,19 +41,19 @@
 #define k(x) /*(printf ("%s (%d):%s: ",  __FILE__, __LINE__, __PRETTY_FUNCTION__),(x))*/
 
 #define CAMEL_PARTITION_TABLE_LOCK(kf, lock) \
-	(g_static_mutex_lock (&(kf)->priv->lock))
+	(g_mutex_lock (&(kf)->priv->lock))
 #define CAMEL_PARTITION_TABLE_UNLOCK(kf, lock) \
-	(g_static_mutex_unlock (&(kf)->priv->lock))
+	(g_mutex_unlock (&(kf)->priv->lock))
 
 #define CAMEL_PARTITION_TABLE_GET_PRIVATE(obj) \
 	(G_TYPE_INSTANCE_GET_PRIVATE \
 	((obj), CAMEL_TYPE_PARTITION_TABLE, CamelPartitionTablePrivate))
 
 struct _CamelPartitionTablePrivate {
-	GStaticMutex lock;	/* for locking partition */
+	GMutex lock;	/* for locking partition */
 };
 
-G_DEFINE_TYPE (CamelPartitionTable, camel_partition_table, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelPartitionTable, camel_partition_table, G_TYPE_OBJECT)
 
 static void
 partition_table_finalize (GObject *object)
@@ -73,7 +71,7 @@ partition_table_finalize (GObject *object)
 		g_object_unref (table->blocks);
 	}
 
-	g_static_mutex_free (&table->priv->lock);
+	g_mutex_clear (&table->priv->lock);
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (camel_partition_table_parent_class)->finalize (object);
@@ -96,7 +94,7 @@ camel_partition_table_init (CamelPartitionTable *cpi)
 	cpi->priv = CAMEL_PARTITION_TABLE_GET_PRIVATE (cpi);
 
 	g_queue_init (&cpi->partition);
-	g_static_mutex_init (&cpi->priv->lock);
+	g_mutex_init (&cpi->priv->lock);
 }
 
 /* ********************************************************************** */
@@ -622,15 +620,15 @@ fail:
 	((obj), CAMEL_TYPE_KEY_TABLE, CamelKeyTablePrivate))
 
 #define CAMEL_KEY_TABLE_LOCK(kf, lock) \
-	(g_static_mutex_lock (&(kf)->priv->lock))
+	(g_mutex_lock (&(kf)->priv->lock))
 #define CAMEL_KEY_TABLE_UNLOCK(kf, lock) \
-	(g_static_mutex_unlock (&(kf)->priv->lock))
+	(g_mutex_unlock (&(kf)->priv->lock))
 
 struct _CamelKeyTablePrivate {
-	GStaticMutex lock;	/* for locking key */
+	GMutex lock;	/* for locking key */
 };
 
-G_DEFINE_TYPE (CamelKeyTable, camel_key_table, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelKeyTable, camel_key_table, G_TYPE_OBJECT)
 
 static void
 key_table_finalize (GObject *object)
@@ -646,7 +644,7 @@ key_table_finalize (GObject *object)
 		g_object_unref (table->blocks);
 	}
 
-	g_static_mutex_free (&table->priv->lock);
+	g_mutex_clear (&table->priv->lock);
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (camel_key_table_parent_class)->finalize (object);
@@ -667,7 +665,7 @@ static void
 camel_key_table_init (CamelKeyTable *table)
 {
 	table->priv = CAMEL_KEY_TABLE_GET_PRIVATE (table);
-	g_static_mutex_init (&table->priv->lock);
+	g_mutex_init (&table->priv->lock);
 }
 
 CamelKeyTable *
@@ -754,10 +752,11 @@ camel_key_table_add (CamelKeyTable *ki,
 	if (kblast->used > 0) {
 		/*left = &kblast->u.keydata[kblast->u.keys[kblast->used-1].offset] - (gchar *)(&kblast->u.keys[kblast->used+1]);*/
 		left = kblast->u.keys[kblast->used - 1].offset - sizeof (kblast->u.keys[0]) * (kblast->used + 1);
-		d (printf ("key '%s' used = %d (%d), filled = %d, left = %d  len = %d?\n",
-			 key, kblast->used, kblast->used * sizeof (kblast->u.keys[0]),
-			 sizeof (kblast->u.keydata) - kblast->u.keys[kblast->used - 1].offset,
-			 left, len));
+		d (printf (
+			"key '%s' used = %d (%d), filled = %d, left = %d  len = %d?\n",
+			key, kblast->used, kblast->used * sizeof (kblast->u.keys[0]),
+			sizeof (kblast->u.keydata) - kblast->u.keys[kblast->used - 1].offset,
+			left, len));
 		if (left < len) {
 			next = camel_block_file_new_block (ki->blocks);
 			if (next == NULL) {
@@ -824,7 +823,7 @@ camel_key_table_set_data (CamelKeyTable *ki,
 	g_return_val_if_fail (CAMEL_IS_KEY_TABLE (ki), FALSE);
 	g_return_val_if_fail (keyid != 0, FALSE);
 
-	blockid =  keyid & (~(CAMEL_BLOCK_SIZE - 1));
+	blockid = keyid & (~(CAMEL_BLOCK_SIZE - 1));
 	index = keyid & (CAMEL_BLOCK_SIZE - 1);
 
 	bl = camel_block_file_get_block (ki->blocks, blockid);
@@ -861,7 +860,7 @@ camel_key_table_set_flags (CamelKeyTable *ki,
 	g_return_val_if_fail (CAMEL_IS_KEY_TABLE (ki), FALSE);
 	g_return_val_if_fail (keyid != 0, FALSE);
 
-	blockid =  keyid & (~(CAMEL_BLOCK_SIZE - 1));
+	blockid = keyid & (~(CAMEL_BLOCK_SIZE - 1));
 	index = keyid & (CAMEL_BLOCK_SIZE - 1);
 
 	bl = camel_block_file_get_block (ki->blocks, blockid);
@@ -870,7 +869,7 @@ camel_key_table_set_flags (CamelKeyTable *ki,
 	kb = (CamelKeyBlock *) &bl->data;
 
 	if (kb->used >=127 || index >= kb->used) {
-		g_warning("Block %x: Invalid index or content: index %d used %d\n", blockid, index, kb->used);
+		g_warning ("Block %x: Invalid index or content: index %d used %d\n", blockid, index, kb->used);
 		return FALSE;
 	}
 
@@ -909,7 +908,7 @@ camel_key_table_lookup (CamelKeyTable *ki,
 	if (flags)
 		*flags = 0;
 
-	blockid =  keyid & (~(CAMEL_BLOCK_SIZE - 1));
+	blockid = keyid & (~(CAMEL_BLOCK_SIZE - 1));
 	index = keyid & (CAMEL_BLOCK_SIZE - 1);
 
 	bl = camel_block_file_get_block (ki->blocks, blockid);
@@ -919,7 +918,7 @@ camel_key_table_lookup (CamelKeyTable *ki,
 	kb = (CamelKeyBlock *) &bl->data;
 
 	if (kb->used >=127 || index >= kb->used) {
-		g_warning("Block %x: Invalid index or content: index %d used %d\n", blockid, index, kb->used);
+		g_warning ("Block %x: Invalid index or content: index %d used %d\n", blockid, index, kb->used);
 		return 0;
 	}
 
@@ -981,7 +980,7 @@ camel_key_table_next (CamelKeyTable *ki,
 		next++;
 
 	do {
-		blockid =  next & (~(CAMEL_BLOCK_SIZE - 1));
+		blockid = next & (~(CAMEL_BLOCK_SIZE - 1));
 		index = next & (CAMEL_BLOCK_SIZE - 1);
 
 		bl = camel_block_file_get_block (ki->blocks, blockid);

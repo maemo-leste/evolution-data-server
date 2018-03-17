@@ -1,18 +1,17 @@
 /*
  * camel-network-settings.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -20,6 +19,7 @@
 
 #include <camel/camel-enumtypes.h>
 #include <camel/camel-settings.h>
+#include <camel/camel-net-utils.h>
 
 #define AUTH_MECHANISM_KEY  "CamelNetworkSettings:auth-mechanism"
 #define HOST_KEY            "CamelNetworkSettings:host"
@@ -38,10 +38,10 @@ G_DEFINE_INTERFACE (
 	CAMEL_TYPE_SETTINGS)
 
 static void
-camel_network_settings_default_init (CamelNetworkSettingsInterface *interface)
+camel_network_settings_default_init (CamelNetworkSettingsInterface *iface)
 {
 	g_object_interface_install_property (
-		interface,
+		iface,
 		g_param_spec_string (
 			"auth-mechanism",
 			"Auth Mechanism",
@@ -52,18 +52,18 @@ camel_network_settings_default_init (CamelNetworkSettingsInterface *interface)
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_interface_install_property (
-		interface,
+		iface,
 		g_param_spec_string (
 			"host",
 			"Host",
 			"Host name for the network service",
-			"localhost",
+			"",
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_interface_install_property (
-		interface,
+		iface,
 		g_param_spec_uint (
 			"port",
 			"Port",
@@ -74,7 +74,7 @@ camel_network_settings_default_init (CamelNetworkSettingsInterface *interface)
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_interface_install_property (
-		interface,
+		iface,
 		g_param_spec_enum (
 			"security-method",
 			"Security Method",
@@ -86,7 +86,7 @@ camel_network_settings_default_init (CamelNetworkSettingsInterface *interface)
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_interface_install_property (
-		interface,
+		iface,
 		g_param_spec_string (
 			"user",
 			"User",
@@ -121,7 +121,7 @@ camel_network_settings_get_auth_mechanism (CamelNetworkSettings *settings)
  * @settings: a #CamelNetworkSettings
  *
  * Thread-safe variation of camel_network_settings_get_auth_mechanism().
- * Use this function when accessing @settings from a worker thread.
+ * Use this function when accessing @settings from multiple threads.
  *
  * The returned string should be freed with g_free() when no longer needed.
  *
@@ -208,7 +208,7 @@ camel_network_settings_get_host (CamelNetworkSettings *settings)
  * @settings: a #CamelNetworkSettings
  *
  * Thread-safe variation of camel_network_settings_get_host().
- * Use this function when accessing @settings from a worker thread.
+ * Use this function when accessing @settings from multiple threads.
  *
  * The returned string should be freed with g_free() when no longer needed.
  *
@@ -228,6 +228,40 @@ camel_network_settings_dup_host (CamelNetworkSettings *settings)
 
 	protected = camel_network_settings_get_host (settings);
 	duplicate = g_strdup (protected);
+
+	G_UNLOCK (property_lock);
+
+	return duplicate;
+}
+
+/**
+ * camel_network_settings_dup_host_ensure_ascii:
+ * @settings: a #CamelNetworkSettings
+ *
+ * Just like camel_network_settings_dup_host(), only makes sure that
+ * the returned host name will be converted into its ASCII form in case
+ * of IDNA value.
+ *
+ * Returns: a newly-allocated copy of #CamelNetworkSettings:host with
+ *    only ASCII letters.
+ *
+ * Since: 3.12.6
+ **/
+gchar *
+camel_network_settings_dup_host_ensure_ascii (CamelNetworkSettings *settings)
+{
+	const gchar *protected;
+	gchar *duplicate;
+
+	g_return_val_if_fail (CAMEL_IS_NETWORK_SETTINGS (settings), NULL);
+
+	G_LOCK (property_lock);
+
+	protected = camel_network_settings_get_host (settings);
+	if (protected && *protected)
+		duplicate = camel_host_idna_to_ascii (protected);
+	else
+		duplicate = g_strdup (protected);
 
 	G_UNLOCK (property_lock);
 
@@ -389,7 +423,7 @@ camel_network_settings_get_user (CamelNetworkSettings *settings)
  * @settings: a #CamelNetworkSettings
  *
  * Thread-safe variation of camel_network_settings_get_user().
- * Use this function when accessing @settings from a worker thread.
+ * Use this function when accessing @settings from multiple threads.
  *
  * The returned string should be freed with g_free() when no longer needed.
  *

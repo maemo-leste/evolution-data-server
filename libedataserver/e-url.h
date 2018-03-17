@@ -10,20 +10,27 @@
  */
 
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
+#if !defined (__LIBEDATASERVER_H_INSIDE__) && !defined (LIBEDATASERVER_COMPILATION)
+#error "Only <libedataserver/libedataserver.h> should be included directly."
+#endif
+
+#ifndef EDS_DISABLE_DEPRECATED
+
+/* Do not generate bindings. */
+#ifndef __GI_SCANNER__
 
 #ifndef E_URL_H
 #define E_URL_H
@@ -76,4 +83,8 @@ gboolean	e_url_equal			(const gchar *url1,
 G_END_DECLS
 
 #endif /* E_URL_H */
+
+#endif /* __GI_SCANNER__ */
+
+#endif /* EDS_DISABLE_DEPRECATED */
 

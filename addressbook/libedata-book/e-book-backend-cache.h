@@ -6,25 +6,30 @@
  *
  * Authors: Sivaiah Nallagatla <snallagatla@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
+#if !defined (__LIBEDATA_BOOK_H_INSIDE__) && !defined (LIBEDATA_BOOK_COMPILATION)
+#error "Only <libedata-book/libedata-book.h> should be included directly."
+#endif
 
 #ifndef E_BOOK_BACKEND_CACHE_H
 #define E_BOOK_BACKEND_CACHE_H
 
-#include "libebackend/e-file-cache.h"
-#include <libebook/e-contact.h>
+#ifndef EDS_DISABLE_DEPRECATED
+
+#include <libebook-contacts/libebook-contacts.h>
+#include <libebackend/libebackend.h>
 
 /* Standard GObject macros */
 #define E_TYPE_BOOK_BACKEND_CACHE \
@@ -51,12 +56,29 @@ typedef struct _EBookBackendCache EBookBackendCache;
 typedef struct _EBookBackendCacheClass EBookBackendCacheClass;
 typedef struct _EBookBackendCachePrivate EBookBackendCachePrivate;
 
+/**
+ * EBookBackendCache:
+ *
+ * Contains only private data that should be read and manipulated using the
+ * functions below.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
+ */
 struct _EBookBackendCache {
+	/*< private >*/
 	EFileCache parent;
 	EBookBackendCachePrivate *priv;
 };
 
+/**
+ * EBookBackendCacheClass:
+ *
+ * Class structure for the #EBookBackendCache class.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
+ */
 struct _EBookBackendCacheClass {
+	/*< private >*/
 	EFileCacheClass parent_class;
 };
 
@@ -87,5 +109,7 @@ GPtrArray *	e_book_backend_cache_search	(EBookBackendCache *cache,
 						 const gchar *query);
 
 G_END_DECLS
+
+#endif /* EDS_DISABLE_DEPRECATED */
 
 #endif /* E_BOOK_BACKEND_CACHE_H */

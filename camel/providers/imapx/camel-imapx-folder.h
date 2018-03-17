@@ -6,25 +6,25 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_IMAPX_FOLDER_H
 #define CAMEL_IMAPX_FOLDER_H
 
 #include <camel/camel.h>
+
+#include "camel-imapx-mailbox.h"
 
 /* Standard GObject macros */
 #define CAMEL_TYPE_IMAPX_FOLDER \
@@ -49,25 +49,17 @@ G_BEGIN_DECLS
 
 typedef struct _CamelIMAPXFolder CamelIMAPXFolder;
 typedef struct _CamelIMAPXFolderClass CamelIMAPXFolderClass;
+typedef struct _CamelIMAPXFolderPrivate CamelIMAPXFolderPrivate;
 
 struct _CamelIMAPXFolder {
 	CamelOfflineFolder parent;
+	CamelIMAPXFolderPrivate *priv;
 
-	gchar *raw_name;
 	CamelDataCache *cache;
 	CamelFolderSearch *search;
 
-	guint32 exists_on_server;
-	guint32 unread_on_server;
-	guint64 modseq_on_server;
-	guint64 uidvalidity_on_server;
-	guint32 uidnext_on_server;
-
-	/* hash table of UIDs to ignore as recent when updating folder */
-	GHashTable *ignore_recent;
-
-	GMutex *search_lock;
-	GMutex *stream_lock;
+	GMutex search_lock;
+	GMutex stream_lock;
 
 	gboolean apply_filters;		/* persistent property */
 };
@@ -81,9 +73,25 @@ CamelFolder *	camel_imapx_folder_new		(CamelStore *parent,
 						 const gchar *path,
 						 const gchar *raw,
 						 GError **error);
-gchar *		imapx_get_filename		(CamelFolder *folder,
-						 const gchar *uid,
+CamelIMAPXMailbox *
+		camel_imapx_folder_ref_mailbox	(CamelIMAPXFolder *folder);
+void		camel_imapx_folder_set_mailbox	(CamelIMAPXFolder *folder,
+						 CamelIMAPXMailbox *mailbox);
+CamelIMAPXMailbox *
+		camel_imapx_folder_list_mailbox	(CamelIMAPXFolder *folder,
+						 GCancellable *cancellable,
 						 GError **error);
+GSequence *	camel_imapx_folder_copy_message_map
+						(CamelIMAPXFolder *folder);
+void		camel_imapx_folder_add_move_to_real_junk
+						(CamelIMAPXFolder *folder,
+						 const gchar *message_uid);
+void		camel_imapx_folder_add_move_to_real_trash
+						(CamelIMAPXFolder *folder,
+						 const gchar *message_uid);
+void		camel_imapx_folder_invalidate_local_cache
+						(CamelIMAPXFolder *folder,
+						 guint64 new_uidvalidity);
 
 G_END_DECLS
 

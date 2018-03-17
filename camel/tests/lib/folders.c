@@ -38,7 +38,7 @@ test_folder_counts (CamelFolder *folder,
 		info = camel_folder_get_message_info (folder, s->pdata[i]);
 		if (camel_message_info_flags (info) & CAMEL_MESSAGE_SEEN)
 			myunread--;
-		camel_folder_free_message_info (folder, info);
+		camel_message_info_unref (info);
 	}
 	check (unread == myunread);
 	camel_folder_free_uids (folder, s);
@@ -63,8 +63,9 @@ void
 test_message_info (CamelMimeMessage *msg,
                    const CamelMessageInfo *info)
 {
-	check_msg (safe_strcmp (camel_message_info_subject (info), camel_mime_message_get_subject (msg)) == 0,
-		  "info->subject = '%s', get_subject () = '%s'", camel_message_info_subject (info), camel_mime_message_get_subject (msg));
+	check_msg (
+		safe_strcmp (camel_message_info_subject (info), camel_mime_message_get_subject (msg)) == 0,
+		"info->subject = '%s', get_subject () = '%s'", camel_message_info_subject (info), camel_mime_message_get_subject (msg));
 
 	/* FIXME: testing from/cc/to, etc is more tricky */
 
@@ -94,7 +95,7 @@ test_folder_message (CamelFolder *folder,
 	info = camel_folder_get_message_info (folder, uid);
 	check (info != NULL);
 	check (strcmp (camel_message_info_uid (info), uid) == 0);
-	camel_folder_free_message_info (folder, info);
+	camel_message_info_unref (info);
 
 	/* then, getting message */
 	msg = camel_folder_get_message_sync (folder, uid, NULL, &error);
@@ -355,7 +356,7 @@ test_folder_message_ops (CamelSession *session,
 	max = local ? 2 : 1;
 
 	for (indexed = 0; indexed < max; indexed++) {
-		gchar *what = g_strdup_printf ("folder ops: %s %s", name, local?(indexed?"indexed":"non-indexed"):"");
+		gchar *what = g_strdup_printf ("folder ops: %s %s", name, local ? (indexed?"indexed":"non-indexed"):"");
 		gint flags;
 
 		camel_test_start (what);
@@ -402,7 +403,8 @@ test_folder_message_ops (CamelSession *session,
 			push ("creating test message");
 			msg = test_message_create_simple ();
 			content = g_strdup_printf ("Test message %d contents\n\n", j);
-			test_message_set_content_simple ((CamelMimePart *)msg, 0, "text/plain",
+			test_message_set_content_simple (
+				(CamelMimePart *) msg, 0, "text/plain",
 							content, strlen (content));
 			test_free (content);
 			subject = g_strdup_printf ("Test message %d", j);
@@ -443,9 +445,10 @@ test_folder_message_ops (CamelSession *session,
 			if (uids->len > j) {
 				info = camel_folder_get_message_info (folder, uids->pdata[j]);
 				check (info != NULL);
-				check_msg (strcmp (camel_message_info_subject (info), subject) == 0,
-					  "info->subject %s", camel_message_info_subject (info));
-				camel_folder_free_message_info (folder, info);
+				check_msg (
+					strcmp (camel_message_info_subject (info), subject) == 0,
+					"info->subject %s", camel_message_info_subject (info));
+				camel_message_info_unref (info);
 			}
 			camel_folder_free_uids (folder, uids);
 			pull ();
@@ -494,10 +497,11 @@ test_folder_message_ops (CamelSession *session,
 			test_folder_message (folder, uids->pdata[j]);
 
 			info = camel_folder_get_message_info (folder, uids->pdata[j]);
-			check_msg (strcmp (camel_message_info_subject (info), subject) == 0,
-				  "info->subject %s", camel_message_info_subject (info));
+			check_msg (
+				strcmp (camel_message_info_subject (info), subject) == 0,
+				"info->subject %s", camel_message_info_subject (info));
 			test_free (subject);
-			camel_folder_free_message_info (folder, info);
+			camel_message_info_unref (info);
 			pull ();
 		}
 
@@ -516,16 +520,17 @@ test_folder_message_ops (CamelSession *session,
 		check (uids != NULL);
 		check (uids->len == 9);
 		for (j = 0; j < 9; j++) {
-			gchar *subject = g_strdup_printf ("Test message %d", j+1);
+			gchar *subject = g_strdup_printf ("Test message %d", j + 1);
 
 			push ("verify after expunge of %s", subject);
 			test_folder_message (folder, uids->pdata[j]);
 
 			info = camel_folder_get_message_info (folder, uids->pdata[j]);
-			check_msg (strcmp (camel_message_info_subject (info), subject) == 0,
-				  "info->subject %s", camel_message_info_subject (info));
+			check_msg (
+				strcmp (camel_message_info_subject (info), subject) == 0,
+				"info->subject %s", camel_message_info_subject (info));
 			test_free (subject);
-			camel_folder_free_message_info (folder, info);
+			camel_message_info_unref (info);
 			pull ();
 		}
 		pull ();
@@ -546,16 +551,17 @@ test_folder_message_ops (CamelSession *session,
 		check (uids != NULL);
 		check (uids->len == 8);
 		for (j = 0; j < 8; j++) {
-			gchar *subject = g_strdup_printf ("Test message %d", j+1);
+			gchar *subject = g_strdup_printf ("Test message %d", j + 1);
 
 			push ("verify after expunge of %s", subject);
 			test_folder_message (folder, uids->pdata[j]);
 
 			info = camel_folder_get_message_info (folder, uids->pdata[j]);
-			check_msg (strcmp (camel_message_info_subject (info), subject) == 0,
-				  "info->subject %s", camel_message_info_subject (info));
+			check_msg (
+				strcmp (camel_message_info_subject (info), subject) == 0,
+				"info->subject %s", camel_message_info_subject (info));
 			test_free (subject);
-			camel_folder_free_message_info (folder, info);
+			camel_message_info_unref (info);
 			pull ();
 		}
 		pull ();
@@ -595,7 +601,7 @@ test_folder_message_ops (CamelSession *session,
 		if (!local) {
 			push ("disconneect service");
 			camel_service_disconnect_sync (
-				CAMEL_SERVICE (store), TRUE, &error);
+				CAMEL_SERVICE (store), TRUE, NULL, &error);
 			check_msg (error == NULL, "%s", error->message);
 			g_clear_error (&error);
 			pull ();

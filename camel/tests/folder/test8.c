@@ -31,7 +31,8 @@ test_add_message (CamelFolder *folder,
 	push ("creating message %d\n", j);
 	msg = test_message_create_simple ();
 	content = g_strdup_printf ("Test message %08x contents\n\n", j);
-	test_message_set_content_simple ((CamelMimePart *)msg, 0, "text/plain",
+	test_message_set_content_simple (
+		(CamelMimePart *) msg, 0, "text/plain",
 							content, strlen (content));
 	test_free (content);
 	subject = g_strdup_printf ("Test message %08x subject", j);
@@ -68,10 +69,10 @@ worker (gpointer d)
 	for (i = 0; i < MAX_MESSAGES; i++) {
 		test_add_message (info->folder, id + i);
 
-		sub = g_strdup_printf ("(match-all (header-contains \"subject\" \"message %08x subject\"))", id+i);
+		sub = g_strdup_printf ("(match-all (header-contains \"subject\" \"message %08x subject\"))", id + i);
 
-		push ("searching for message %d\n\tusing: %s", id+i, sub);
-		res = camel_folder_search_by_expression (info->folder, sub, &error);
+		push ("searching for message %d\n\tusing: %s", id + i, sub);
+		res = camel_folder_search_by_expression (info->folder, sub, NULL, &error);
 		check_msg (error == NULL, "%s", error->message);
 		check_msg (res->len == 1, "res->len = %d", res->len);
 		g_clear_error (&error);
@@ -84,7 +85,7 @@ worker (gpointer d)
 		g_clear_error (&error);
 		pull ();
 
-		content = g_strdup_printf ("Test message %08x contents\n\n", id+i);
+		content = g_strdup_printf ("Test message %08x contents\n\n", id + i);
 		push ("comparing content '%s': '%s'", res->pdata[0], content);
 		test_message_compare_content (camel_medium_get_content ((CamelMedium *) msg), content, strlen (content));
 		test_free (content);
@@ -178,11 +179,7 @@ gint main (gint argc, gchar **argv)
 				info->id = i * MAX_MESSAGES;
 				info->folder = folder;
 
-				threads[i] = g_thread_create (worker, info, TRUE, &error);
-				if (error) {
-					fprintf (stderr, "%s: Failed to create a thread: %s\n", G_STRFUNC, error->message);
-					g_error_free (error);
-				}
+				threads[i] = g_thread_new (NULL, worker, info);
 			}
 
 			for (i = 0; i < MAX_THREADS; i++) {

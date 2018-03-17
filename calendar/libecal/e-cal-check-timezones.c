@@ -3,18 +3,17 @@
  *
  * Authors: Patrick Ohly <patrick.ohly@gmx.de>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -29,7 +28,7 @@
 #include <string.h>
 #include <ctype.h>
 
-/**
+/*
  * Matches a location to a system timezone definition via a fuzzy
  * search and returns the matching TZID, or NULL if none found.
  *
@@ -129,8 +128,8 @@ e_cal_match_tzid (const gchar *tzid)
 	/* TODO: lookup table for Exchange TZIDs */
 
  done:
-	if (systzid && !strcmp(systzid, "UTC")) {
-		/**
+	if (systzid && !strcmp (systzid, "UTC")) {
+		/*
 		 * UTC is special: it doesn't have a real VTIMEZONE in
 		 * EDS. Matching some pseudo VTTIMEZONE with UTC in the TZID
 		 * to our internal UTC "timezone" breaks
@@ -210,13 +209,13 @@ addsystemtz (gpointer key,
  *            VTIMEZONE and arbitrary other components, in
  *            arbitrary order: these other components are
  *            modified by this call
- * @comps:    a list of icalcomponent instances which
- *            also have to be patched; may be NULL
- * @tzlookup: a callback function which is called to retrieve
+ * @comps: (element-type icalcomponent) (allow-none): a list of #icalcomponent
+ * instances which also have to be patched; may be %NULL
+ * @tzlookup: (allow-none): a callback function which is called to retrieve
  *            a calendar's VTIMEZONE definition; the returned
  *            definition is *not* freed by e_cal_check_timezones()
  *            (to be compatible with e_cal_get_timezone());
- *            NULL indicates that no such timezone exists
+ *            %NULL indicates that no such timezone exists
  *            or an error occurred
  * @custom:   an arbitrary pointer which is passed through to
  *            the tzlookup function
@@ -238,7 +237,7 @@ addsystemtz (gpointer key,
  * Some programs generate broken meeting invitations with TZID, but
  * without including the corresponding VTIMEZONE. Importing such
  * invitations unchanged causes problems later on (meeting displayed
- * incorrectly, #e_cal_get_component_as_string fails). The situation
+ * incorrectly, e_cal_get_component_as_string() fails). The situation
  * where this occurred in the past (found by a SyncEvolution user) is
  * now handled via the location based mapping.
  *
@@ -330,7 +329,7 @@ e_cal_check_timezones (icalcomponent *comp,
 
 						if (counter) {
 							g_free (value);
-							value = g_strdup_printf("%s %d", tzid, counter);
+							value = g_strdup_printf ("%s %d", tzid, counter);
 						}
 						existing_zone = tzlookup (
 							counter ? value : tzid,
@@ -346,8 +345,8 @@ e_cal_check_timezones (icalcomponent *comp,
 						buffer = icalcomponent_as_ical_string_r (icaltimezone_get_component (existing_zone));
 
 						if (counter) {
-							gchar *fulltzid = g_strdup_printf("TZID:%s", value);
-							gsize baselen = strlen("TZID:") + strlen(tzid);
+							gchar *fulltzid = g_strdup_printf ("TZID:%s", value);
+							gsize baselen = strlen ("TZID:") + strlen (tzid);
 							gsize fulllen = strlen (fulltzid);
 							gchar *tzidprop;
 							/*
@@ -385,7 +384,7 @@ e_cal_check_timezones (icalcomponent *comp,
 						icalproperty *prop = icalcomponent_get_first_property (
 							subcomp, ICAL_TZID_PROPERTY);
 						while (prop) {
-							icalproperty_set_value_from_string(prop, value, "NO");
+							icalproperty_set_value_from_string (prop, value, "NO");
 							prop = icalcomponent_get_next_property (
 								subcomp, ICAL_ANY_PROPERTY);
 						}
@@ -437,7 +436,7 @@ e_cal_check_timezones (icalcomponent *comp,
 	/* set gerror for "out of memory" if possible, otherwise abort via g_error() */
 	*error = g_error_new(E_CALENDAR_ERROR, E_CALENDAR_STATUS_OTHER_ERROR, "out of memory");
 	if (!*error) {
-		g_error("e_cal_check_timezones(): out of memory, cannot proceed - sorry!");
+		g_error ("e_cal_check_timezones(): out of memory, cannot proceed - sorry!");
 	}
  failed:
 	/* gerror should have been set already */
@@ -531,8 +530,8 @@ e_cal_tzlookup_icomp (const gchar *tzid,
  *            VTIMEZONE and arbitrary other components, in
  *            arbitrary order: these other components are
  *            modified by this call
- * @comps:    a list of icalcomponent instances which
- *            also have to be patched; may be NULL
+ * @comps: (element-type icalcomponent) (allow-none): a list of #icalcomponent
+ * instances which also have to be patched; may be %NULL
  * @tzlookup: a callback function which is called to retrieve
  *            a calendar's VTIMEZONE definition; the returned
  *            definition is *not* freed by e_cal_client_check_timezones()
@@ -576,7 +575,7 @@ e_cal_tzlookup_icomp (const gchar *tzid,
  * the TZID. All items referencing the renamed TZID are adapted
  * accordingly.
  *
- * Returns: TRUE if successful, FALSE otherwise.
+ * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
  **/
@@ -650,7 +649,7 @@ e_cal_client_check_timezones (icalcomponent *comp,
 
 						if (counter) {
 							g_free (value);
-							value = g_strdup_printf("%s %d", tzid, counter);
+							value = g_strdup_printf ("%s %d", tzid, counter);
 						}
 						existing_zone = tzlookup (counter ? value : tzid, ecalclient, cancellable, error);
 						if (!existing_zone) {
@@ -664,8 +663,8 @@ e_cal_client_check_timezones (icalcomponent *comp,
 						buffer = icalcomponent_as_ical_string_r (icaltimezone_get_component (existing_zone));
 
 						if (counter) {
-							gchar *fulltzid = g_strdup_printf("TZID:%s", value);
-							gsize baselen = strlen("TZID:") + strlen(tzid);
+							gchar *fulltzid = g_strdup_printf ("TZID:%s", value);
+							gsize baselen = strlen ("TZID:") + strlen (tzid);
 							gsize fulllen = strlen (fulltzid);
 							gchar *tzidprop;
 							/*
@@ -673,9 +672,10 @@ e_cal_client_check_timezones (icalcomponent *comp,
 							 */
 							tzidprop = strstr (buffer, fulltzid);
 							if (tzidprop) {
-								memmove (tzidprop + baselen,
-									 tzidprop + fulllen,
-									 strlen (tzidprop + fulllen) + 1);
+								memmove (
+									tzidprop + baselen,
+									tzidprop + fulllen,
+									strlen (tzidprop + fulllen) + 1);
 							}
 							g_free (fulltzid);
 						}
@@ -701,7 +701,7 @@ e_cal_client_check_timezones (icalcomponent *comp,
 						/* timezone renamed */
 						icalproperty *prop = icalcomponent_get_first_property (subcomp, ICAL_TZID_PROPERTY);
 						while (prop) {
-							icalproperty_set_value_from_string(prop, value, "NO");
+							icalproperty_set_value_from_string (prop, value, "NO");
 							prop = icalcomponent_get_next_property (subcomp, ICAL_ANY_PROPERTY);
 						}
 						g_free (key);
@@ -749,7 +749,7 @@ e_cal_client_check_timezones (icalcomponent *comp,
 	/* set gerror for "out of memory" if possible, otherwise abort via g_error() */
 	*error = g_error_new (E_CLIENT_ERROR, E_CLIENT_ERROR_OTHER_ERROR, "out of memory");
 	if (!*error) {
-		g_error("e_cal_check_timezones(): out of memory, cannot proceed - sorry!");
+		g_error ("e_cal_check_timezones(): out of memory, cannot proceed - sorry!");
 	}
  failed:
 	/* gerror should have been set already */

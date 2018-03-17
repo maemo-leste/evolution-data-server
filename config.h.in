@@ -9,6 +9,9 @@
 /* Base version (Major.Minor) */
 #undef BASE_VERSION
 
+/* Define to 1 if the examples should be built. */
+#undef BUILD_EXAMPLES
+
 /* D-Bus service name for the calendar factory */
 #undef CALENDAR_DBUS_SERVICE_NAME
 
@@ -29,12 +32,8 @@
 /* Configured with enabled maintainer mode */
 #undef ENABLE_MAINTAINER_MODE
 
-/* Define to 1 if translation of program messages to the user's native
-   language is requested. */
-#undef ENABLE_NLS
-
-/* Build NNTP backend */
-#undef ENABLE_NNTP
+/* Enable phonenumber parsing */
+#undef ENABLE_PHONENUMBER
 
 /* Define if SMIME should be enabled */
 #undef ENABLE_SMIME
@@ -71,23 +70,11 @@
    Content-Length format */
 #undef HAVE_BROKEN_SPOOL
 
-/* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
-   CoreFoundation framework. */
-#undef HAVE_CFLOCALECOPYCURRENT
-
-/* Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in
-   the CoreFoundation framework. */
-#undef HAVE_CFPREFERENCESCOPYAPPVALUE
-
 /* Have nl_langinfo (CODESET) */
 #undef HAVE_CODESET
 
 /* Have <com_err.h> */
 #undef HAVE_COM_ERR_H
-
-/* Define if the GNU dcgettext() function is already present or preinstalled.
-   */
-#undef HAVE_DCGETTEXT
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
@@ -107,23 +94,23 @@
 /* Define to 1 if you have the `gethostbyname_r' function. */
 #undef HAVE_GETHOSTBYNAME_R
 
-/* Define if the GNU gettext() function is already present or preinstalled. */
-#undef HAVE_GETTEXT
-
 /* Define to 1 if you have the `gnu_get_libc_version' function. */
 #undef HAVE_GNU_GET_LIBC_VERSION
 
-/* Have goa-1.0 and libgdata >= 0.9.1 */
+/* Define to 1 if you have the goa-1.0 package. */
 #undef HAVE_GOA
+
+/* Define to 1 if you have the google-1.0 package. */
+#undef HAVE_GOOGLE
+
+/* Define to 1 if you have the gtk+-3.0 package. */
+#undef HAVE_GTK
 
 /* Define if you have Heimdal */
 #undef HAVE_HEIMDAL_KRB5
 
 /* libical provides ical_set_unknown_token_handling_setting function */
 #undef HAVE_ICAL_UNKNOWN_TOKEN_HANDLING
-
-/* Define if you have the iconv() function and it works. */
-#undef HAVE_ICONV
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -133,6 +120,9 @@
 
 /* Define if you have LDAP support */
 #undef HAVE_LDAP
+
+/* Have libdb */
+#undef HAVE_LIBDB
 
 /* strftime supports use of l and k */
 #undef HAVE_LKSTRFTIME
@@ -215,11 +205,20 @@
 /* Define if struct tm has a tm_gmtoff member */
 #undef HAVE_TM_GMTOFF
 
+/* Define to 1 if you have the <unicode/ucol.h> header file. */
+#undef HAVE_UNICODE_UCOL_H
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Have libaccounts-glib */
+#undef HAVE_UOA
+
 /* Have <wspiapi.h> */
 #undef HAVE_WSPIAPI_H
+
+/* Have nl_langinfo (_NL_ADDRESS_COUNTRY_AB2) */
+#undef HAVE__NL_ADDRESS_COUNTRY_AB2
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
@@ -227,9 +226,6 @@
 
 /* Enable getaddrinfo emulation */
 #undef NEED_ADDRINFO
-
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
 
 /* Define to 0 if your system does not have the O_LARGEFILE flag */
 #undef O_LARGEFILE
@@ -255,8 +251,15 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Whether Parse() or ParseAndKeepRawInput() must be used to get the
+   country-code source */
+#undef PHONENUMBER_RAW_INPUT_NEEDED
+
 /* Path to a sendmail binary, or equivalent */
 #undef SENDMAIL_PATH
+
+/* D-Bus service name for the source registry */
+#undef SOURCES_DBUS_SERVICE_NAME
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -275,6 +278,9 @@
 /* Directory local mail is delivered to */
 #undef SYSTEM_MAIL_DIR
 
+/* D-Bus service name for the user prompter */
+#undef USER_PROMPTER_DBUS_SERVICE_NAME
+
 /* Define to use dot locking for mbox files */
 #undef USE_DOT
 
@@ -287,10 +293,6 @@
 /* Version number of package */
 #undef VERSION
 
-/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
-   `char[]'. */
-#undef YYTEXT_POINTER
-
 /* Enable large inode numbers on Mac OS X 10.5.  */
 #ifndef _DARWIN_USE_64_BIT_INODE
 # define _DARWIN_USE_64_BIT_INODE 1
@@ -301,9 +303,6 @@
 
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
-
-/* To get getaddrinfo etc declarations */
-#undef _WIN32_WINNT
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */

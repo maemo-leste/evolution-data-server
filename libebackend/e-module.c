@@ -1,25 +1,24 @@
 /*
  * e-module.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /**
  * SECTION: e-module
- * @short_description: a module loader
- * @include: libebackend/e-module.h
+ * @include: libebackend/libebackend.h
+ * @short_description: A module loader
  **/
 
 #include "e-module.h"
@@ -159,7 +158,7 @@ module_load (GTypeModule *type_module)
 	return TRUE;
 
 fail:
-	g_warning ("%s", g_module_error ());
+	g_warning ("%s: %s", G_STRFUNC, g_module_error ());
 
 	if (priv->module != NULL)
 		g_module_close (priv->module);
@@ -289,7 +288,7 @@ e_module_load_all_in_directory (const gchar *dirname)
 
 	dir = g_dir_open (dirname, 0, &error);
 	if (dir == NULL) {
-		g_warning ("%s", error->message);
+		g_warning ("%s: %s", G_STRFUNC, error->message);
 		g_error_free (error);
 		return NULL;
 	}

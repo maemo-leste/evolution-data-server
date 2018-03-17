@@ -2,27 +2,28 @@
 /*
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#if HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+#include <errno.h>
 #include <string.h>
 #include <libxml/parser.h>
 #include <glib/gstdio.h>
 #include <glib/gi18n-lib.h>
-#include <gconf/gconf-client.h>
 #include "e-data-server-util.h"
 #include "e-categories.h"
 
@@ -97,14 +98,13 @@ static guint changed_listener_signals[LAST_SIGNAL];
 static void
 e_changed_listener_class_init (EChangedListenerClass *class)
 {
-	changed_listener_signals[CHANGED] =
-		g_signal_new ("changed",
-			      G_TYPE_FROM_CLASS (class),
-			      G_SIGNAL_RUN_FIRST,
-			      G_STRUCT_OFFSET (EChangedListenerClass, changed),
-			      NULL, NULL,
-			      g_cclosure_marshal_VOID__VOID,
-			      G_TYPE_NONE, 0);
+	changed_listener_signals[CHANGED] = g_signal_new (
+		"changed",
+		G_TYPE_FROM_CLASS (class),
+		G_SIGNAL_RUN_FIRST,
+		G_STRUCT_OFFSET (EChangedListenerClass, changed),
+		NULL, NULL, NULL,
+		G_TYPE_NONE, 0);
 }
 
 static void
@@ -138,7 +138,9 @@ build_categories_filename (void)
 		old_filename = g_build_filename (
 			g_get_home_dir (), ".evolution",
 			"categories.xml", NULL);
-		g_rename (old_filename, filename);
+		if (g_rename (old_filename, filename) == -1) {
+			g_warning ("%s: Failed to rename '%s' to '%s': %s", G_STRFUNC, old_filename, filename, g_strerror (errno));
+		}
 		g_free (old_filename);
 	}
 
@@ -231,7 +233,7 @@ idle_saver_cb (gpointer user_data)
 
 	filename = build_categories_filename ();
 
-	d(g_debug ("Saving categories to \"%s\"", filename));
+	d (g_debug ("Saving categories to \"%s\"", filename));
 
 	/* Build the file contents. */
 	buffer = g_string_new ("<categories>\n");
@@ -298,7 +300,8 @@ categories_add_full (const gchar *category,
 	cat_info = g_slice_new (CategoryInfo);
 	if (is_default) {
 		const gchar *display_name;
-		display_name = g_dpgettext2 (GETTEXT_PACKAGE, "CategoryName", category);
+		display_name = g_dpgettext2 (
+			GETTEXT_PACKAGE, "CategoryName", category);
 		cat_info->display_name = g_strdup (display_name);
 		cat_info->clocale_name = g_strdup (category);
 	} else {
@@ -392,7 +395,7 @@ load_categories (void)
 	if (!g_file_test (filename, G_FILE_TEST_EXISTS))
 		goto exit;
 
-	d(g_debug ("Loading categories from \"%s\"", filename));
+	d (g_debug ("Loading categories from \"%s\"", filename));
 
 	if (!g_file_get_contents (filename, &contents, &length, &error)) {
 		g_warning ("Unable to load categories: %s", error->message);
@@ -405,65 +408,6 @@ load_categories (void)
 exit:
 	g_free (contents);
 	g_free (filename);
-
-	return n_added;
-}
-
-static void
-migrate_old_icon_file (gpointer key,
-                       gpointer value,
-                       gpointer user_data)
-{
-	CategoryInfo *info = value;
-	gchar *basename;
-
-	if (info->icon_file == NULL)
-		return;
-
-	/* We can't be sure where the old icon files were stored, but
-	 * a good guess is (E_DATA_SERVER_IMAGESDIR "-2.x").  Convert
-	 * any such paths to just E_DATA_SERVER_IMAGESDIR. */
-	if (g_str_has_prefix (info->icon_file, E_DATA_SERVER_IMAGESDIR)) {
-		basename = g_path_get_basename (info->icon_file);
-		g_free (info->icon_file);
-		info->icon_file = g_build_filename (
-			E_DATA_SERVER_IMAGESDIR, basename, NULL);
-		g_free (basename);
-	}
-}
-
-static gboolean
-migrate_old_categories (void)
-{
-	/* Try migrating old category settings from GConf to the new
-	 * category XML file.  If successful, unset the old GConf key
-	 * so that this is a one-time-only operation. */
-
-	const gchar *key = "/apps/evolution/general/category_master_list";
-
-	GConfClient *client;
-	gchar *string;
-	gint n_added = 0;
-
-	client = gconf_client_get_default ();
-	string = gconf_client_get_string (client, key, NULL);
-	if (string == NULL || *string == '\0')
-		goto exit;
-
-	d(g_debug ("Loading categories from GConf key \"%s\"", key));
-
-	n_added = parse_categories (string, strlen (string));
-	if (n_added == 0)
-		goto exit;
-
-	/* Default icon files are now in an unversioned directory. */
-	g_hash_table_foreach (categories_table, migrate_old_icon_file, NULL);
-
-	gconf_client_unset (client, key, NULL);
-
-exit:
-	g_object_unref (client);
-	g_free (string);
 
 	return n_added;
 }
@@ -531,24 +475,17 @@ initialize_categories (void)
 
 	listeners = g_object_new (e_changed_listener_get_type (), NULL);
 
-	g_atexit (finalize_categories);
+	atexit (finalize_categories);
 
 	n_added = load_categories ();
 	if (n_added > 0) {
-		d(g_debug ("Loaded %d categories", n_added));
+		d (g_debug ("Loaded %d categories", n_added));
 		save_is_pending = FALSE;
 		return;
 	}
 
-	n_added = migrate_old_categories ();
-	if (n_added > 0) {
-		d(g_debug ("Loaded %d categories", n_added));
-		save_categories ();
-		return;
-	}
-
 	load_default_categories ();
-	d(g_debug ("Loaded default categories"));
+	d (g_debug ("Loaded default categories"));
 	save_categories ();
 }
 
@@ -557,9 +494,10 @@ initialize_categories (void)
  *
  * Returns a sorted list of all the category names currently configured.
  *
- * Returns: (transfer container): a sorted GList containing the names of the
- * categories.The list should be freed using g_list_free, but the names of
- * the categories should not be touched at all, they are internal strings.
+ * Returns: (transfer container) (element-type utf8): a sorted GList containing
+ * the names of the categories.The list should be freed using g_list_free(), but
+ * the names of the categories should not be touched at all, they are internal
+ * strings.
  */
 GList *
 e_categories_get_list (void)

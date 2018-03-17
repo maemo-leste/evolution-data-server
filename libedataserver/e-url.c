@@ -10,19 +10,17 @@
  */
 
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <config.h>
@@ -265,8 +263,9 @@ e_uri_new (const gchar *uri_string)
 					value = g_strdup ("");
 				}
 				uri_decode (name);
-				g_datalist_set_data_full (&uri->params, name,
-							  value, g_free);
+				g_datalist_set_data_full (
+					&uri->params, name,
+					value, g_free);
 				g_free (name);
 			}
 		}
@@ -400,18 +399,18 @@ e_uri_to_string (EUri *uri,
 			uri->query ? uri->query : "");
 	else
 		str_uri = g_strdup_printf (
-                        "%s://%s%s%s%s%s%s%s%s%s%s",
+			"%s://%s%s%s%s%s%s%s%s%s%s",
 			uri->protocol,
-                        uri->user ? uri->user : "",
-                        uri->authmech ? ";auth=" : "",
-                        uri->authmech ? uri->authmech : "",
-                        uri->passwd && show_password ? ":" : "",
-                        uri->passwd && show_password ? uri->passwd : "",
-                        uri->user ? "@" : "",
-                        uri->host ? uri->host : "",
-                        uri->path ? uri->path : "",
-                        uri->query ? "?" : "",
-                        uri->query ? uri->query : "");
+			uri->user ? uri->user : "",
+			uri->authmech ? ";auth=" : "",
+			uri->authmech ? uri->authmech : "",
+			uri->passwd && show_password ? ":" : "",
+			uri->passwd && show_password ? uri->passwd : "",
+			uri->user ? "@" : "",
+			uri->host ? uri->host : "",
+			uri->path ? uri->path : "",
+			uri->query ? "?" : "",
+			uri->query ? uri->query : "");
 
 	return str_uri;
 }

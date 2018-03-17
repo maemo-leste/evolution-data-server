@@ -5,11 +5,14 @@ includedir=@includedir@
 datarootdir=@datarootdir@
 datadir=@datadir@
 
+privlibdir=@privlibdir@
 privincludedir=@privincludedir@
+
+moduledir=@moduledir@
 
 Name: libebackend
 Description: Utility library for Evolution Data Server Backends
 Version: @VERSION@
-Requires: gio-2.0
+Requires: libedataserver-1.2
 Libs: -L${libdir} -lebackend-@API_VERSION@
 Cflags: -I${privincludedir}

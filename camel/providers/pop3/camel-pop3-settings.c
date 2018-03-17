@@ -1,18 +1,17 @@
 /*
  * camel-pop3-settings.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -28,8 +27,6 @@ struct _CamelPOP3SettingsPrivate {
 	gboolean disable_extensions;
 	gboolean keep_on_server;
 	gboolean auto_fetch;
-	gboolean mobile_mode;
-	gint batch_fetch_count;
 };
 
 enum {
@@ -43,9 +40,7 @@ enum {
 	PROP_PORT,
 	PROP_SECURITY_METHOD,
 	PROP_USER,
-	PROP_AUTO_FETCH,
-	PROP_USE_MOBILE_MODE,
-	PROP_BATCH_FETCH_COUNT
+	PROP_AUTO_FETCH
 };
 
 G_DEFINE_TYPE_WITH_CODE (
@@ -115,20 +110,11 @@ pop3_settings_set_property (GObject *object,
 				CAMEL_NETWORK_SETTINGS (object),
 				g_value_get_string (value));
 			return;
+
 		case PROP_AUTO_FETCH:
 			camel_pop3_settings_set_auto_fetch  (
 				CAMEL_POP3_SETTINGS (object),
 				g_value_get_boolean (value));
-			return;
-		case PROP_USE_MOBILE_MODE:
-			camel_pop3_settings_set_mobile_mode (
-				CAMEL_POP3_SETTINGS (object),
-				g_value_get_boolean (value));
-			return;
-		case PROP_BATCH_FETCH_COUNT:
-			camel_pop3_settings_set_batch_fetch_count (
-				CAMEL_POP3_SETTINGS (object),
-				g_value_get_int (value));
 			return;
 	}
 
@@ -204,25 +190,13 @@ pop3_settings_get_property (GObject *object,
 				camel_network_settings_dup_user (
 				CAMEL_NETWORK_SETTINGS (object)));
 			return;
+
 		case PROP_AUTO_FETCH:
 			g_value_set_boolean (
 				value,
 				camel_pop3_settings_get_auto_fetch (
 				CAMEL_POP3_SETTINGS (object)));
 			return;
-		case PROP_USE_MOBILE_MODE:
-			g_value_set_boolean (
-				value,
-				camel_pop3_settings_get_mobile_mode (
-				CAMEL_POP3_SETTINGS (object)));
-			return;
-		case PROP_BATCH_FETCH_COUNT:
-			g_value_set_int (
-				value,
-				camel_pop3_settings_get_batch_fetch_count (
-				CAMEL_POP3_SETTINGS (object)));
-			return;
-
 	}
 
 	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -315,32 +289,6 @@ camel_pop3_settings_class_init (CamelPOP3SettingsClass *class)
 			G_PARAM_CONSTRUCT |
 			G_PARAM_STATIC_STRINGS));
 
-	g_object_class_install_property (
-		object_class,
-		PROP_USE_MOBILE_MODE,
-		g_param_spec_boolean (
-			"mobile-mode",
-			"Enable mobile mode",
-			"Optimized POP3 provider for mobile clients.",
-			FALSE,
-			G_PARAM_READWRITE |
-			G_PARAM_CONSTRUCT |
-			G_PARAM_STATIC_STRINGS));
-
-	g_object_class_install_property (
-		object_class,
-		PROP_BATCH_FETCH_COUNT,
-		g_param_spec_int (
-			"batch-fetch-count",
-			"Batch fetch count",
-			"Number of messages to download in a batch.",
-			-1,
-			G_MAXINT,
-			-1,
-			G_PARAM_READWRITE |
-			G_PARAM_CONSTRUCT |
-			G_PARAM_STATIC_STRINGS));
-
 	/* Inherited from CamelNetworkSettings. */
 	g_object_class_override_property (
 		object_class,
@@ -407,6 +355,9 @@ camel_pop3_settings_set_delete_after_days (CamelPOP3Settings *settings,
 {
 	g_return_if_fail (CAMEL_IS_POP3_SETTINGS (settings));
 
+	if (settings->priv->delete_after_days == delete_after_days)
+		return;
+
 	settings->priv->delete_after_days = delete_after_days;
 
 	g_object_notify (G_OBJECT (settings), "delete-after-days");
@@ -453,6 +404,9 @@ camel_pop3_settings_set_delete_expunged (CamelPOP3Settings *settings,
 {
 	g_return_if_fail (CAMEL_IS_POP3_SETTINGS (settings));
 
+	if (settings->priv->delete_expunged == delete_expunged)
+		return;
+
 	settings->priv->delete_expunged = delete_expunged;
 
 	g_object_notify (G_OBJECT (settings), "delete-expunged");
@@ -495,6 +449,9 @@ camel_pop3_settings_set_disable_extensions (CamelPOP3Settings *settings,
 {
 	g_return_if_fail (CAMEL_IS_POP3_SETTINGS (settings));
 
+	if (settings->priv->disable_extensions == disable_extensions)
+		return;
+
 	settings->priv->disable_extensions = disable_extensions;
 
 	g_object_notify (G_OBJECT (settings), "disable-extensions");
@@ -535,6 +492,9 @@ camel_pop3_settings_set_keep_on_server (CamelPOP3Settings *settings,
 {
 	g_return_if_fail (CAMEL_IS_POP3_SETTINGS (settings));
 
+	if (settings->priv->keep_on_server == keep_on_server)
+		return;
+
 	settings->priv->keep_on_server = keep_on_server;
 
 	g_object_notify (G_OBJECT (settings), "keep-on-server");
@@ -561,7 +521,7 @@ camel_pop3_settings_get_auto_fetch (CamelPOP3Settings *settings)
 /**
  * camel_pop3_settings_set_auto_fetch :
  * @settings: a #CamelPOP3Settings
- * @keep_on_server: whether to download additional mails
+ * @auto_fetch: whether to download additional mails
  *
  * Sets whether to download additional mails that may be downloaded later on
  *
@@ -573,84 +533,11 @@ camel_pop3_settings_set_auto_fetch (CamelPOP3Settings *settings,
 {
 	g_return_if_fail (CAMEL_IS_POP3_SETTINGS (settings));
 
+	if (settings->priv->auto_fetch == auto_fetch)
+		return;
+
 	settings->priv->auto_fetch = auto_fetch;
 
 	g_object_notify (G_OBJECT (settings), "auto-fetch");
-}
-
-/**
- * camel_pop3_settings_get_mobile_mode:
- * @settings: a #CamelPOP3Settings
- *
- * Returns whether the provider is operating in mobile mode.
- *
- * Returns: Whether the provider is operating in mobile mode.
- *
- * Since: 3.4
- **/
-gboolean
-camel_pop3_settings_get_mobile_mode (CamelPOP3Settings *settings)
-{
-	g_return_val_if_fail (CAMEL_IS_POP3_SETTINGS (settings), FALSE);
-
-	return settings->priv->mobile_mode;
-}
-
-/**
- * camel_pop3_settings_set_mobile_mode:
- * @settings: a #CamelPOP3Settings
- * @mobile_mode: whether the backend should operate in mobile mode.
- *
- * Sets whether the provider should operate in mobile mode.
- *
- * Since: 3.4
- **/
-void
-camel_pop3_settings_set_mobile_mode (CamelPOP3Settings *settings,
-                                        gboolean mobile_mode)
-{
-	g_return_if_fail (CAMEL_IS_POP3_SETTINGS (settings));
-
-	settings->priv->mobile_mode = mobile_mode;
-
-	g_object_notify (G_OBJECT (settings), "mobile-mode");
-}
-
-/**
- * camel_pop3_settings_get_batch_fetch_count:
- * @settings: a #CamelPOP3Settings
- *
- * Returns the batch fetch count while fetching mails.
- *
- * Returns: the batch fetch count.
- *
- * Since: 3.4
- **/
-gint
-camel_pop3_settings_get_batch_fetch_count (CamelPOP3Settings *settings)
-{
-	g_return_val_if_fail (CAMEL_IS_POP3_SETTINGS (settings), FALSE);
-
-	return settings->priv->batch_fetch_count;
-}
-
-/**
- * camel_pop3_settings_set_batch_fetch_count:
- * @settings: a #CamelPOP3Settings
- * @batch_fetch_count: number of mails to download in a batch.
- *
- * Sets the number of mails to download in a batch.
- *
- * Since: 3.4
- **/
-void
-camel_pop3_settings_set_batch_fetch_count (CamelPOP3Settings *settings,
-                                           gboolean batch_fetch_count)
-{
-	g_return_if_fail (CAMEL_IS_POP3_SETTINGS (settings));
-
-	settings->priv->batch_fetch_count = batch_fetch_count;
-
-	g_object_notify (G_OBJECT (settings), "batch-fetch-count");
 }
 

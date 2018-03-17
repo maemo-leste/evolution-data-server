@@ -1,23 +1,21 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *	     Michael Zucchi <NotZed@Ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -171,15 +169,39 @@ check_header_in_message_info (CamelMessageInfo *info,
 	name = argv[0]->value.string;
 	g_return_val_if_fail (name != NULL, FALSE);
 
+	/* test against any header */
+	if (!*name) {
+		gint jj;
+
+		for (jj = 0; jj < G_N_ELEMENTS (known_headers); jj++) {
+			value = camel_message_info_ptr (info, known_headers[jj].info_key);
+			if (!value)
+				continue;
+
+			if (known_headers[jj].info_key == CAMEL_MESSAGE_INFO_SUBJECT)
+				type = CAMEL_SEARCH_TYPE_ENCODED;
+			else
+				type = CAMEL_SEARCH_TYPE_ADDRESS_ENCODED;
+
+			for (ii = 1; ii < argc && !*matched; ii++) {
+				if (argv[ii]->type == CAMEL_SEXP_RES_STRING)
+					*matched = camel_search_header_match (value, argv[ii]->value.string, how, type, NULL);
+			}
+
+			if (*matched)
+				return TRUE;
+		}
+
+		return FALSE;
+	}
+
 	value = NULL;
 
 	for (ii = 0; ii < G_N_ELEMENTS (known_headers); ii++) {
 		found = g_ascii_strcasecmp (name, known_headers[ii].header_name) == 0;
 		if (found) {
 			value = camel_message_info_ptr (info, known_headers[ii].info_key);
-			if (known_headers[ii].info_key == CAMEL_MESSAGE_INFO_FROM ||
-			    known_headers[ii].info_key == CAMEL_MESSAGE_INFO_TO ||
-			    known_headers[ii].info_key == CAMEL_MESSAGE_INFO_CC)
+			if (known_headers[ii].info_key != CAMEL_MESSAGE_INFO_SUBJECT)
 				type = CAMEL_SEARCH_TYPE_ADDRESS_ENCODED;
 			break;
 		}
@@ -214,7 +236,7 @@ check_header (struct _CamelSExp *f,
 		for (i = 1; i < argc && !matched; i++)
 			matched = argv[i]->type == CAMEL_SEXP_RES_STRING && argv[i]->value.string[0] == 0;
 
-		if (g_ascii_strcasecmp(name, "x-camel-mlist") == 0) {
+		if (g_ascii_strcasecmp (name, "x-camel-mlist") == 0) {
 			const gchar *list = camel_message_info_mlist (fms->info);
 
 			if (list) {
@@ -235,7 +257,7 @@ check_header (struct _CamelSExp *f,
 			mime_part = CAMEL_MIME_PART (message);
 
 			/* FIXME: what about Resent-To, Resent-Cc and Resent-From? */
-			if (g_ascii_strcasecmp("to", name) == 0 || g_ascii_strcasecmp("cc", name) == 0 || g_ascii_strcasecmp("from", name) == 0)
+			if (g_ascii_strcasecmp ("to", name) == 0 || g_ascii_strcasecmp ("cc", name) == 0 || g_ascii_strcasecmp ("from", name) == 0)
 				type = CAMEL_SEARCH_TYPE_ADDRESS_ENCODED;
 			else if (message) {
 				ct = camel_mime_part_get_content_type (mime_part);
@@ -246,7 +268,8 @@ check_header (struct _CamelSExp *f,
 			}
 
 			for (header = mime_part->headers; header && !matched; header = header->next) {
-				if (!g_ascii_strcasecmp (header->name, name)) {
+				/* empty name means any header */
+				if (!name || !*name || !g_ascii_strcasecmp (header->name, name)) {
 					for (i = 1; i < argc && !matched; i++) {
 						if (argv[i]->type == CAMEL_SEXP_RES_STRING)
 							matched = camel_search_header_match (header->value, argv[i]->value.string, how, type, charset);
@@ -509,7 +532,7 @@ system_flag (struct _CamelSExp *f,
 	CamelSExpResult *r;
 
 	if (argc != 1 || argv[0]->type != CAMEL_SEXP_RES_STRING)
-		camel_sexp_fatal_error(f, _("Invalid arguments to (system-flag)"));
+		camel_sexp_fatal_error (f, _("Invalid arguments to (system-flag)"));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_BOOL);
 	r->value.boolean = camel_system_flag_get (camel_message_info_flags (fms->info), argv[0]->value.string);
@@ -527,7 +550,7 @@ user_tag (struct _CamelSExp *f,
 	const gchar *tag;
 
 	if (argc != 1 || argv[0]->type != CAMEL_SEXP_RES_STRING)
-		camel_sexp_fatal_error(f, _("Invalid arguments to (user-tag)"));
+		camel_sexp_fatal_error (f, _("Invalid arguments to (user-tag)"));
 
 	tag = camel_message_info_user_tag (fms->info, argv[0]->value.string);
 
@@ -605,14 +628,14 @@ get_relative_months (struct _CamelSExp *f,
 }
 
 static CamelService *
-get_service_for_source (CamelSession *session,
+ref_service_for_source (CamelSession *session,
                         const gchar *src)
 {
 	CamelService *service = NULL;
 
 	/* Source strings are now CamelService UIDs. */
 	if (src != NULL)
-		service = camel_session_get_service (session, src);
+		service = camel_session_ref_service (session, src);
 
 	/* For backward-compability, also handle CamelService URLs. */
 	if (service == NULL && src != NULL) {
@@ -621,11 +644,11 @@ get_service_for_source (CamelSession *session,
 		url = camel_url_new (src, NULL);
 
 		if (service == NULL && url != NULL)
-			service = camel_session_get_service_by_url (
+			service = camel_session_ref_service_by_url (
 				session, url, CAMEL_PROVIDER_STORE);
 
 		if (service == NULL && url != NULL)
-			service = camel_session_get_service_by_url (
+			service = camel_session_ref_service_by_url (
 				session, url, CAMEL_PROVIDER_TRANSPORT);
 
 		if (url != NULL)
@@ -655,16 +678,26 @@ header_source (struct _CamelSExp *f,
 	}
 
 	if (src)
-		msg_source = get_service_for_source (fms->session, src);
+		msg_source = ref_service_for_source (fms->session, src);
 
-	if (msg_source) {
+	if (msg_source != NULL) {
 		gint ii;
 
 		for (ii = 0; ii < argc && !truth; ii++) {
 			if (argv[ii]->type == CAMEL_SEXP_RES_STRING) {
-				truth = msg_source == get_service_for_source (fms->session, argv[ii]->value.string);
+				CamelService *candidate;
+
+				candidate = ref_service_for_source (
+					fms->session,
+					argv[ii]->value.string);
+				if (candidate != NULL) {
+					truth = (msg_source == candidate);
+					g_object_unref (candidate);
+				}
 			}
 		}
+
+		g_object_unref (msg_source);
 	}
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_BOOL);
@@ -830,57 +863,158 @@ junk_test (struct _CamelSExp *f,
            FilterMessageSearch *fms)
 {
 	CamelSExpResult *r;
-	gboolean retval = FALSE;
 	CamelMessageInfo *info = fms->info;
 	CamelJunkFilter *junk_filter;
+	CamelMessageFlags flags;
+	CamelMimeMessage *message;
+	CamelJunkStatus status;
+	const GHashTable *ht;
+	const struct _camel_header_param *node;
+	gboolean sender_is_known;
+	gboolean message_is_junk = FALSE;
+	GError *error = NULL;
 
-	junk_filter = camel_session_get_junk_filter (fms->session);
+	/* Check if the message is already classified. */
 
-	d(printf("doing junk test for message from '%s'\n", camel_message_info_from (fms->info)));
-	if (junk_filter != NULL && (camel_message_info_flags (info) & (CAMEL_MESSAGE_JUNK | CAMEL_MESSAGE_NOTJUNK)) == 0) {
-		const GHashTable *ht = camel_session_get_junk_headers (fms->session);
-		const struct _camel_header_param *node = camel_message_info_headers (info);
+	flags = camel_message_info_flags (info);
 
-		while (node && !retval) {
-			if (node->name) {
-				gchar *value = (gchar *) g_hash_table_lookup ((GHashTable *) ht, node->name);
-				d(printf("JunkCheckMatch: %s %s %s\n", node->name, node->value, value));
-				if (value)
-					retval = camel_strstrcase (node->value, value) != NULL;
-
-			}
-			node = node->next;
-		}
+	if (flags & CAMEL_MESSAGE_JUNK) {
+		message_is_junk = TRUE;
 		if (camel_debug ("junk"))
-			printf("filtered based on junk header ? %d\n", retval);
-		if (!retval) {
-			retval = camel_session_lookup_addressbook (fms->session, camel_message_info_from (info)) != TRUE;
-			if (camel_debug ("junk"))
-				printf("Sender '%s' in book? %d\n", camel_message_info_from (info), !retval);
-
-			if (retval) /* Not in book. Could be spam. So check for it */ {
-				CamelMimeMessage *message;
-				CamelJunkStatus status;
-				gboolean success;
-
-				d(printf("filtering message\n"));
-				message = camel_filter_search_get_message (fms, f);
-				success = camel_junk_filter_classify (junk_filter, message, &status, NULL, NULL);
-				retval = success && (status == CAMEL_JUNK_STATUS_MESSAGE_IS_JUNK);
-			}
-		}
-
-		if (camel_debug ("junk"))
-			printf("junk filter => %s\n", retval ? "*JUNK*" : "clean");
-	} else if (junk_filter != NULL && camel_debug ("junk")) {
-		if (camel_message_info_flags (info) & CAMEL_MESSAGE_JUNK)
-			printf ("Message has a Junk flag set already, skipping junk test...\n");
-		else if (camel_message_info_flags (info) & CAMEL_MESSAGE_NOTJUNK)
-			printf ("Message has a NotJunk flag set already, skipping junk test...\n");
+			printf (
+				"Message has a Junk flag set already, "
+				"skipping junk test...\n");
+		goto done;
 	}
 
+	if (flags & CAMEL_MESSAGE_NOTJUNK) {
+		if (camel_debug ("junk"))
+			printf (
+				"Message has a NotJunk flag set already, "
+				"skipping junk test...\n");
+		goto done;
+	}
+
+	/* If the sender is known, the message is not junk.
+	   Do this before header test, to be able to override server-side set headers. */
+
+	sender_is_known = camel_session_lookup_addressbook (
+		fms->session, camel_message_info_from (info));
+	if (camel_debug ("junk"))
+		printf (
+			"Sender '%s' in book? %d\n",
+			camel_message_info_from (info),
+			sender_is_known);
+	if (sender_is_known)
+		goto done;
+
+	/* Check the headers for a junk designation. */
+
+	ht = camel_session_get_junk_headers (fms->session);
+	node = camel_message_info_headers (info);
+
+	while (node != NULL) {
+		const gchar *value = NULL;
+
+		if (node->name != NULL)
+			value = g_hash_table_lookup (
+				(GHashTable *) ht, node->name);
+
+		message_is_junk =
+			(value != NULL) &&
+			(camel_strstrcase (node->value, value) != NULL);
+
+		if (message_is_junk) {
+			if (camel_debug ("junk"))
+				printf (
+					"Message contains \"%s: %s\"",
+					node->name, value);
+			goto done;
+		}
+
+		node = node->next;
+	}
+
+	/* Not every message info has headers available, thus try headers of the message itself */
+	message = camel_filter_search_get_message (fms, f);
+	if (message) {
+		struct _camel_header_raw *h;
+
+		for (h = CAMEL_MIME_PART (message)->headers; h; h = h->next) {
+			const gchar *value;
+
+			if (!h->name)
+				continue;
+
+			value = g_hash_table_lookup ((GHashTable *) ht, h->name);
+			if (!value)
+				continue;
+
+			message_is_junk = camel_strstrcase (h->value, value) != NULL;
+
+			if (message_is_junk) {
+				if (camel_debug ("junk"))
+					printf (
+						"Message contains \"%s: %s\"",
+						h->name, value);
+				goto done;
+			}
+		}
+	} else {
+		goto done;
+	}
+
+	/* Consult 3rd party junk filtering software. */
+
+	junk_filter = camel_session_get_junk_filter (fms->session);
+	if (junk_filter == NULL)
+		goto done;
+
+	status = camel_junk_filter_classify (
+		junk_filter, message, NULL, &error);
+
+	if (error == NULL) {
+		const gchar *status_desc;
+
+		switch (status) {
+			case CAMEL_JUNK_STATUS_INCONCLUSIVE:
+				status_desc = "inconclusive";
+				message_is_junk = FALSE;
+				break;
+			case CAMEL_JUNK_STATUS_MESSAGE_IS_JUNK:
+				status_desc = "junk";
+				message_is_junk = TRUE;
+				break;
+			case CAMEL_JUNK_STATUS_MESSAGE_IS_NOT_JUNK:
+				status_desc = "not junk";
+				message_is_junk = FALSE;
+				break;
+			default:
+				g_warn_if_reached ();
+				status_desc = "invalid";
+				message_is_junk = FALSE;
+				break;
+		}
+
+		if (camel_debug ("junk"))
+			printf (
+				"Junk filter classification: %s\n",
+				status_desc);
+	} else {
+		g_warn_if_fail (status == CAMEL_JUNK_STATUS_ERROR);
+		g_warning ("%s: %s", G_STRFUNC, error->message);
+		g_error_free (error);
+		message_is_junk = FALSE;
+	}
+
+ done:
+	if (camel_debug ("junk"))
+		printf (
+			"Message is determined to be %s\n",
+			message_is_junk ? "*JUNK*" : "clean");
+
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_BOOL);
-	r->value.number = retval;
+	r->value.number = message_is_junk;
 
 	return r;
 }
@@ -911,6 +1045,7 @@ camel_filter_search_match (CamelSession *session,
 	CamelSExp *sexp;
 	CamelSExpResult *result;
 	gboolean retval;
+	GError *local_error = NULL;
 	gint i;
 
 	fms.session = session;
@@ -919,7 +1054,7 @@ camel_filter_search_match (CamelSession *session,
 	fms.message = NULL;
 	fms.info = info;
 	fms.source = source;
-	fms.error = error;
+	fms.error = &local_error;
 
 	sexp = camel_sexp_new ();
 
@@ -932,21 +1067,29 @@ camel_filter_search_match (CamelSession *session,
 
 	camel_sexp_input_text (sexp, expression, strlen (expression));
 	if (camel_sexp_parse (sexp) == -1) {
-		/* A filter search is a search through your filters,
-		 * ie. your filters is the corpus being searched thru. */
-		g_set_error (
-			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-			_("Error executing filter search: %s: %s"),
-			camel_sexp_error (sexp), expression);
+		if (!local_error) {
+			/* A filter search is a search through your filters,
+			 * ie. your filters is the corpus being searched thru. */
+			g_set_error (
+				&local_error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
+				_("Error executing filter search: %s: %s"),
+				camel_sexp_error (sexp), expression);
+		}
 		goto error;
 	}
 
 	result = camel_sexp_eval (sexp);
 	if (result == NULL) {
-		g_set_error (
-			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-			_("Error executing filter search: %s: %s"),
-			camel_sexp_error (sexp), expression);
+		if (!local_error)
+			g_set_error (
+				&local_error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
+				_("Error executing filter search: %s: %s"),
+				camel_sexp_error (sexp), expression);
+		goto error;
+	}
+
+	if (local_error) {
+		camel_sexp_result_free (sexp, result);
 		goto error;
 	}
 
@@ -968,6 +1111,9 @@ camel_filter_search_match (CamelSession *session,
 		g_object_unref (fms.message);
 
 	g_object_unref (sexp);
+
+	if (local_error)
+		g_propagate_error (error, local_error);
 
 	return CAMEL_SEARCH_ERROR;
 }

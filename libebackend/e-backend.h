@@ -1,25 +1,28 @@
 /*
  * e-backend.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+#if !defined (__LIBEBACKEND_H_INSIDE__) && !defined (LIBEBACKEND_COMPILATION)
+#error "Only <libebackend/libebackend.h> should be included directly."
+#endif
 
 #ifndef E_BACKEND_H
 #define E_BACKEND_H
 
-#include <libedataserver/e-source.h>
+#include <libedataserver/libedataserver.h>
 
 /* Standard GObject macros */
 #define E_TYPE_BACKEND \
@@ -42,6 +45,9 @@
 
 G_BEGIN_DECLS
 
+/* forward declaration */
+struct _EUserPrompter;
+
 typedef struct _EBackend EBackend;
 typedef struct _EBackendClass EBackendClass;
 typedef struct _EBackendPrivate EBackendPrivate;
@@ -55,17 +61,48 @@ typedef struct _EBackendPrivate EBackendPrivate;
  * Since: 3.4
  **/
 struct _EBackend {
+	/*< private >*/
 	GObject parent;
 	EBackendPrivate *priv;
 };
 
+/**
+ * EBackendClass:
+ * @authenticate_sync: Authenticate synchronously
+ * @authenticate: Initiate authentication
+ * @authenticate_finish: Complete authentication
+ * @get_destination_address: Fetch the destination address
+ *
+ * Base class structure for the #EBackend class
+ *
+ * Since: 3.4
+ **/
 struct _EBackendClass {
+	/*< private >*/
 	GObjectClass parent_class;
 
-	/* Signals */
-	void		(*last_client_gone)	(EBackend *backend);
+	/*< public >*/
+	/* Methods */
+	gboolean	(*authenticate_sync)	(EBackend *backend,
+						 ESourceAuthenticator *auth,
+						 GCancellable *cancellable,
+						 GError **error);
+	void		(*authenticate)		(EBackend *backend,
+						 ESourceAuthenticator *auth,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+	gboolean	(*authenticate_finish)	(EBackend *backend,
+						 GAsyncResult *result,
+						 GError **error);
 
-	gpointer reserved[16];
+	gboolean	(*get_destination_address)
+						(EBackend *backend,
+						 gchar **host,
+						 guint16 *port);
+
+	/*< private >*/
+	gpointer reserved[12];
 };
 
 GType		e_backend_get_type		(void) G_GNUC_CONST;
@@ -73,7 +110,48 @@ gboolean	e_backend_get_online		(EBackend *backend);
 void		e_backend_set_online		(EBackend *backend,
 						 gboolean online);
 ESource *	e_backend_get_source		(EBackend *backend);
-void		e_backend_last_client_gone	(EBackend *backend);
+GSocketConnectable *
+		e_backend_ref_connectable	(EBackend *backend);
+void		e_backend_set_connectable	(EBackend *backend,
+						 GSocketConnectable *connectable);
+GMainContext *	e_backend_ref_main_context	(EBackend *backend);
+gboolean	e_backend_authenticate_sync	(EBackend *backend,
+						 ESourceAuthenticator *auth,
+						 GCancellable *cancellable,
+						 GError **error);
+void		e_backend_authenticate		(EBackend *backend,
+						 ESourceAuthenticator *auth,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	e_backend_authenticate_finish	(EBackend *backend,
+						 GAsyncResult *result,
+						 GError **error);
+struct _EUserPrompter *
+		e_backend_get_user_prompter	(EBackend *backend);
+ETrustPromptResponse
+		e_backend_trust_prompt_sync	(EBackend *backend,
+						 const ENamedParameters *parameters,
+						 GCancellable *cancellable,
+						 GError **error);
+void		e_backend_trust_prompt		(EBackend *backend,
+						 const ENamedParameters *parameters,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+ETrustPromptResponse
+		e_backend_trust_prompt_finish	(EBackend *backend,
+						 GAsyncResult *result,
+						 GError **error);
+
+gboolean	e_backend_get_destination_address
+						(EBackend *backend,
+						 gchar **host,
+						 guint16 *port);
+gboolean	e_backend_is_destination_reachable
+						(EBackend *backend,
+						 GCancellable *cancellable,
+						 GError **error);
 
 G_END_DECLS
 

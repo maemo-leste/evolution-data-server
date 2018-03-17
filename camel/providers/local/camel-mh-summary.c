@@ -1,21 +1,19 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Not Zed <notzed@lostzed.mmc.com.au>
+ * Authors: Not Zed <notzed@lostzed.mmc.com.au>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -47,6 +45,7 @@
 
 static gint mh_summary_check (CamelLocalSummary *cls, CamelFolderChangeInfo *changeinfo, GCancellable *cancellable, GError **error);
 static gint mh_summary_sync (CamelLocalSummary *cls, gboolean expunge, CamelFolderChangeInfo *changeinfo, GCancellable *cancellable, GError **error);
+static gint mh_summary_decode_x_evolution (CamelLocalSummary *cls, const gchar *xev, CamelLocalMessageInfo *info);
 /*static gint mh_summary_add(CamelLocalSummary *cls, CamelMimeMessage *msg, CamelMessageInfo *info, CamelFolderChangeInfo *, GError **error);*/
 
 static gchar *mh_summary_next_uid_string (CamelFolderSummary *s);
@@ -71,6 +70,7 @@ camel_mh_summary_class_init (CamelMhSummaryClass *class)
 	local_summary_class = CAMEL_LOCAL_SUMMARY_CLASS (class);
 	local_summary_class->check = mh_summary_check;
 	local_summary_class->sync = mh_summary_sync;
+	local_summary_class->decode_x_evolution = mh_summary_decode_x_evolution;
 }
 
 static void
@@ -105,9 +105,9 @@ camel_mh_summary_new (CamelFolder *folder,
 		CamelStore *parent_store;
 
 		parent_store = camel_folder_get_parent_store (folder);
-		camel_db_set_collate (parent_store->cdb_r, "uid", "mh_uid_sort", (CamelDBCollate)camel_local_frompos_sort);
-		((CamelFolderSummary *)o)->sort_by = "uid";
-		((CamelFolderSummary *)o)->collate = "mh_uid_sort";
+		camel_db_set_collate (parent_store->cdb_r, "uid", "mh_uid_sort", (CamelDBCollate) camel_local_frompos_sort);
+		((CamelFolderSummary *) o)->sort_by = "uid";
+		((CamelFolderSummary *) o)->collate = "mh_uid_sort";
 	}
 
 	camel_local_summary_construct ((CamelLocalSummary *) o, mhdir, index);
@@ -133,7 +133,7 @@ mh_summary_next_uid_string (CamelFolderSummary *s)
 		/* else scan for one - and create it too, to make sure */
 		do {
 			uid = camel_folder_summary_next_uid (s);
-			name = g_strdup_printf("%s/%u", cls->folder_path, uid);
+			name = g_strdup_printf ("%s/%u", cls->folder_path, uid);
 			/* O_EXCL isn't guaranteed, sigh.  Oh well, bad luck, mh has problems anyway */
 			fd = open (name, O_WRONLY | O_CREAT | O_EXCL | O_LARGEFILE, 0600);
 			g_free (name);
@@ -142,7 +142,7 @@ mh_summary_next_uid_string (CamelFolderSummary *s)
 		if (fd != -1)
 			close (fd);
 
-		uidstr = g_strdup_printf("%u", uid);
+		uidstr = g_strdup_printf ("%u", uid);
 	}
 
 	return uidstr;
@@ -154,12 +154,16 @@ camel_mh_summary_add (CamelLocalSummary *cls,
                       gint forceindex,
                       GCancellable *cancellable)
 {
+	CamelMessageInfo *info;
+	CamelFolderSummary *summary;
 	CamelMhSummary *mhs = (CamelMhSummary *) cls;
-	gchar *filename = g_strdup_printf("%s/%s", cls->folder_path, name);
+	gchar *filename = g_strdup_printf ("%s/%s", cls->folder_path, name);
 	gint fd;
 	CamelMimeParser *mp;
 
-	d(printf("summarising: %s\n", name));
+	summary = CAMEL_FOLDER_SUMMARY (cls);
+
+	d (printf ("summarising: %s\n", name));
 
 	fd = open (filename, O_RDONLY | O_LARGEFILE);
 	if (fd == -1) {
@@ -171,16 +175,22 @@ camel_mh_summary_add (CamelLocalSummary *cls,
 	camel_mime_parser_scan_from (mp, FALSE);
 	camel_mime_parser_init_with_fd (mp, fd);
 	if (cls->index && (forceindex || !camel_index_has_name (cls->index, name))) {
-		d(printf("forcing indexing of message content\n"));
-		camel_folder_summary_set_index ((CamelFolderSummary *) mhs, cls->index);
+		d (printf ("forcing indexing of message content\n"));
+		cls->index_force = TRUE;
+		camel_folder_summary_set_index (summary, cls->index);
 	} else {
-		camel_folder_summary_set_index ((CamelFolderSummary *) mhs, NULL);
+		cls->index_force = FALSE;
+		camel_folder_summary_set_index (summary, NULL);
 	}
 	mhs->priv->current_uid = (gchar *) name;
-	camel_folder_summary_add_from_parser ((CamelFolderSummary *) mhs, mp);
+
+	info = camel_folder_summary_info_new_from_parser (summary, mp);
+	camel_folder_summary_add (summary, info);
+
 	g_object_unref (mp);
 	mhs->priv->current_uid = NULL;
-	camel_folder_summary_set_index ((CamelFolderSummary *) mhs, NULL);
+	camel_folder_summary_set_index (summary, NULL);
+	cls->index_force = FALSE;
 	g_free (filename);
 	return 0;
 }
@@ -190,11 +200,11 @@ remove_summary (gchar *key,
                 CamelMessageInfo *info,
                 CamelLocalSummary *cls)
 {
-	d(printf("removing message %s from summary\n", key));
+	d (printf ("removing message %s from summary\n", key));
 	if (cls->index)
 		camel_index_delete_name (cls->index, camel_message_info_uid (info));
 	camel_folder_summary_remove ((CamelFolderSummary *) cls, info);
-	camel_message_info_free (info);
+	camel_message_info_unref (info);
 }
 
 static gint
@@ -207,7 +217,6 @@ mh_summary_check (CamelLocalSummary *cls,
 	struct dirent *d;
 	gchar *p, c;
 	CamelMessageInfo *info;
-	CamelFolderSummary *s = (CamelFolderSummary *) cls;
 	GHashTable *left;
 	gint i;
 	gboolean forceindex;
@@ -215,7 +224,7 @@ mh_summary_check (CamelLocalSummary *cls,
 
 	/* FIXME: Handle changeinfo */
 
-	d(printf("checking summary ...\n"));
+	d (printf ("checking summary ...\n"));
 
 	/* scan the directory, check for mail files not in the index, or index entries that
 	 * no longer exist */
@@ -254,9 +263,15 @@ mh_summary_check (CamelLocalSummary *cls,
 			if (info == NULL || (cls->index && (!camel_index_has_name (cls->index, d->d_name)))) {
 				/* need to add this file to the summary */
 				if (info != NULL) {
-					g_hash_table_remove (left, camel_message_info_uid (info));
+					CamelMessageInfo *old = g_hash_table_lookup (left, camel_message_info_uid (info));
+
+					if (old) {
+						g_hash_table_remove (left, camel_message_info_uid (info));
+						camel_message_info_unref (old);
+					}
+
 					camel_folder_summary_remove ((CamelFolderSummary *) cls, info);
-					camel_message_info_free (info);
+					camel_message_info_unref (info);
 				}
 				camel_mh_summary_add (cls, d->d_name, forceindex, cancellable);
 			} else {
@@ -264,20 +279,16 @@ mh_summary_check (CamelLocalSummary *cls,
 				CamelMessageInfo *old = g_hash_table_lookup (left, uid);
 
 				if (old) {
-					camel_message_info_free (old);
 					g_hash_table_remove (left, uid);
+					camel_message_info_unref (old);
 				}
-				camel_message_info_free (info);
+				camel_message_info_unref (info);
 			}
 		}
 	}
 	closedir (dir);
 	g_hash_table_foreach (left, (GHFunc) remove_summary, cls);
 	g_hash_table_destroy (left);
-
-	/* sort the summary based on message number (uid), since the directory order is not useful */
-	camel_folder_summary_lock (s, CAMEL_FOLDER_SUMMARY_SUMMARY_LOCK);
-	camel_folder_summary_unlock (s, CAMEL_FOLDER_SUMMARY_SUMMARY_LOCK);
 
 	return 0;
 }
@@ -297,7 +308,7 @@ mh_summary_sync (CamelLocalSummary *cls,
 	gchar *name;
 	const gchar *uid;
 
-	d(printf("summary_sync(expunge=%s)\n", expunge?"true":"false"));
+	d (printf ("summary_sync(expunge=%s)\n", expunge?"true":"false"));
 
 	/* we could probably get away without this ... but why not use it, esp if we're going to
 	 * be doing any significant io already */
@@ -313,8 +324,8 @@ mh_summary_sync (CamelLocalSummary *cls,
 		g_assert (info);
 		if (expunge && (info->info.flags & CAMEL_MESSAGE_DELETED)) {
 			uid = camel_message_info_uid (info);
-			name = g_strdup_printf("%s/%s", cls->folder_path, uid);
-			d(printf("deleting %s\n", name));
+			name = g_strdup_printf ("%s/%s", cls->folder_path, uid);
+			d (printf ("deleting %s\n", name));
 			if (unlink (name) == 0 || errno == ENOENT) {
 
 				/* FIXME: put this in folder_summary::remove()? */
@@ -328,10 +339,37 @@ mh_summary_sync (CamelLocalSummary *cls,
 		} else if (info->info.flags & (CAMEL_MESSAGE_FOLDER_NOXEV | CAMEL_MESSAGE_FOLDER_FLAGGED)) {
 			info->info.flags &= 0xffff;
 		}
-		camel_message_info_free (info);
+		camel_message_info_unref (info);
 	}
+
+	camel_folder_summary_free_array (known_uids);
 
 	/* Chain up to parent's sync() method. */
 	local_summary_class = CAMEL_LOCAL_SUMMARY_CLASS (camel_mh_summary_parent_class);
 	return local_summary_class->sync (cls, expunge, changes, cancellable, error);
+}
+
+static gint
+mh_summary_decode_x_evolution (CamelLocalSummary *cls,
+                               const gchar *xev,
+                               CamelLocalMessageInfo *info)
+{
+	CamelLocalSummaryClass *local_summary_class;
+	CamelMhSummary *mh_summary;
+	gint ret;
+
+	local_summary_class = CAMEL_LOCAL_SUMMARY_CLASS (camel_mh_summary_parent_class);
+	ret = local_summary_class->decode_x_evolution (cls, xev, info);
+
+	if (ret == -1)
+		return ret;
+
+	/* do not use UID from the header, rather use the one provided, if any */
+	mh_summary = CAMEL_MH_SUMMARY (cls);
+	if (mh_summary->priv->current_uid) {
+		camel_pstring_free (info->info.uid);
+		info->info.uid = camel_pstring_strdup (mh_summary->priv->current_uid);
+	}
+
+	return ret;
 }

@@ -1,23 +1,21 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *           Bertrand Guiheneuf <bertrand@helixcode.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -31,6 +29,7 @@
 #include <prthread.h>
 #include "nss.h"      /* Don't use <> here or it will include the system nss.h instead */
 #include <ssl.h>
+#include <sslproto.h>
 #include <errno.h>
 
 #include <glib/gi18n-lib.h>
@@ -65,13 +64,13 @@ nss_has_system_db (void)
 	FILE *f;
 	gchar buf[80];
 
-	f = fopen(NSS_SYSTEM_DB "/pkcs11.txt", "r");
+	f = fopen (NSS_SYSTEM_DB "/pkcs11.txt", "r");
 	if (!f)
 		return FALSE;
 
 	/* Check whether the system NSS db is actually enabled */
 	while (fgets (buf, 80, f) && !found) {
-		if (!strcmp(buf, "library=libnsssysinit.so\n"))
+		if (!strcmp (buf, "library=libnsssysinit.so\n"))
 			found = TRUE;
 	}
 	fclose (f);
@@ -95,10 +94,22 @@ camel_init (const gchar *configdir,
 	camel_debug_init ();
 
 	if (nss_init) {
+		static gchar v2_enabled = -1, weak_ciphers = -1;
 		gchar *nss_configdir = NULL;
 		gchar *nss_sql_configdir = NULL;
 		SECStatus status = SECFailure;
-		PRUint16 indx;
+
+#if NSS_VMAJOR < 3 || (NSS_VMAJOR == 3 && NSS_VMINOR < 14)
+		/* NSS pre-3.14 has most of the ciphers disabled, thus enable
+		 * weak ciphers, if it's compiled against such */
+		weak_ciphers = 1;
+#endif
+
+		/* check camel-tcp-stream-ssl.c for the same "CAMEL_SSL_V2_ENABLE" */
+		if (v2_enabled == -1)
+			v2_enabled = g_strcmp0 (g_getenv ("CAMEL_SSL_V2_ENABLE"), "1") == 0 ? 1 : 0;
+		if (weak_ciphers == -1)
+			weak_ciphers = g_strcmp0 (g_getenv ("CAMEL_SSL_WEAK_CIPHERS"), "1") == 0 ? 1 : 0;
 
 		if (nss_initlock == NULL) {
 			PR_Init (PR_SYSTEM_THREAD, PR_PRIORITY_NORMAL, 10);
@@ -127,15 +138,19 @@ camel_init (const gchar *configdir,
 			 * to prevent camel from bailing out on first run. */
 #ifdef G_OS_WIN32
 			g_mkdir_with_parents (configdir, 0700);
-			nss_sql_configdir = g_strconcat ("sql:", nss_configdir, NULL);
+			nss_sql_configdir = g_strconcat (
+				"sql:", nss_configdir, NULL);
 #else
-			gchar *user_nss_dir = g_build_filename ( g_get_home_dir (),
-								 ".pki/nssdb", NULL );
+			gchar *user_nss_dir = g_build_filename (
+				g_get_home_dir (), ".pki/nssdb", NULL );
 			if (g_mkdir_with_parents (user_nss_dir, 0700))
-				g_warning("Failed to create SQL database directory %s: %s\n",
-					  user_nss_dir, strerror (errno));
+				g_warning (
+					"Failed to create SQL "
+					"database directory %s: %s\n",
+					user_nss_dir, strerror (errno));
 
-			nss_sql_configdir = g_strconcat ("sql:", user_nss_dir, NULL);
+			nss_sql_configdir = g_strconcat (
+				"sql:", user_nss_dir, NULL);
 			g_free (user_nss_dir);
 #endif
 		}
@@ -155,8 +170,9 @@ camel_init (const gchar *configdir,
 			0);			/* flags */
 
 		if (status == SECFailure) {
-			g_warning ("Failed to initialize NSS SQL database in %s: NSS error %d",
-				   nss_sql_configdir, PORT_GetError ());
+			g_warning (
+				"Failed to initialize NSS SQL database in %s: NSS error %d",
+				nss_sql_configdir, PORT_GetError ());
 			/* Fall back to opening the old DBM database */
 		}
 #endif
@@ -180,18 +196,24 @@ skip_nss_init:
 
 		NSS_SetDomesticPolicy ();
 
-		PR_Unlock (nss_initlock);
+		if (weak_ciphers) {
+			PRUint16 indx;
 
-		/* we must enable all ciphersuites */
-		for (indx = 0; indx < SSL_NumImplementedCiphers; indx++) {
-			if (!SSL_IS_SSL2_CIPHER (SSL_ImplementedCiphers[indx]))
-				SSL_CipherPrefSetDefault (SSL_ImplementedCiphers[indx], PR_TRUE);
+			/* enable SSL3/TLS cipher-suites */
+			for (indx = 0; indx < SSL_NumImplementedCiphers; indx++) {
+				if (!SSL_IS_SSL2_CIPHER (SSL_ImplementedCiphers[indx]) &&
+				    SSL_ImplementedCiphers[indx] != SSL_RSA_WITH_NULL_SHA &&
+				    SSL_ImplementedCiphers[indx] != SSL_RSA_WITH_NULL_MD5)
+					SSL_CipherPrefSetDefault (SSL_ImplementedCiphers[indx], PR_TRUE);
+			}
 		}
 
-		SSL_OptionSetDefault (SSL_ENABLE_SSL2, PR_TRUE);
+		SSL_OptionSetDefault (SSL_ENABLE_SSL2, v2_enabled ? PR_TRUE : PR_FALSE);
+		SSL_OptionSetDefault (SSL_V2_COMPATIBLE_HELLO, PR_FALSE);
 		SSL_OptionSetDefault (SSL_ENABLE_SSL3, PR_TRUE);
 		SSL_OptionSetDefault (SSL_ENABLE_TLS, PR_TRUE);
-		SSL_OptionSetDefault (SSL_V2_COMPATIBLE_HELLO, PR_TRUE /* maybe? */);
+
+		PR_Unlock (nss_initlock);
 
 		g_free (nss_configdir);
 		g_free (nss_sql_configdir);

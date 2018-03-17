@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -35,6 +33,7 @@
 
 #include <glib/gi18n-lib.h>
 
+#include "camel-sendmail-settings.h"
 #include "camel-sendmail-transport.h"
 
 G_DEFINE_TYPE (
@@ -51,6 +50,63 @@ sendmail_get_name (CamelService *service,
 		return g_strdup (_("Mail delivery via the sendmail program"));
 }
 
+static GPtrArray *
+parse_sendmail_args (const gchar *binary,
+                     const gchar *args,
+                     const gchar *from_addr,
+                     CamelAddress *recipients)
+{
+	GPtrArray *args_arr;
+	gint ii, len, argc = 0;
+	gchar **argv = NULL;
+
+	g_return_val_if_fail (binary != NULL, NULL);
+	g_return_val_if_fail (args != NULL, NULL);
+	g_return_val_if_fail (from_addr != NULL, NULL);
+
+	len = camel_address_length (recipients);
+
+	args_arr = g_ptr_array_new_full (5, g_free);
+	g_ptr_array_add (args_arr, g_strdup (binary));
+
+	if (args && g_shell_parse_argv (args, &argc, &argv, NULL) && argc > 0 && argv) {
+		for (ii = 0; ii < argc; ii++) {
+			const gchar *arg = argv[ii];
+
+			if (g_strcmp0 (arg, "%F") == 0) {
+				g_ptr_array_add (args_arr, g_strdup (from_addr));
+			} else if (g_strcmp0 (arg, "%R") == 0) {
+				gint jj;
+
+				for (jj = 0; jj < len; jj++) {
+					const gchar *addr = NULL;
+
+					if (!camel_internet_address_get (
+						CAMEL_INTERNET_ADDRESS (recipients), jj, NULL, &addr)) {
+
+						/* should not happen, as the array is checked beforehand */
+
+						g_ptr_array_free (args_arr, TRUE);
+						g_strfreev (argv);
+
+						return NULL;
+					}
+
+					g_ptr_array_add (args_arr, g_strdup (addr));
+				}
+			} else {
+				g_ptr_array_add (args_arr, g_strdup (arg));
+			}
+		}
+
+		g_strfreev (argv);
+	}
+
+	g_ptr_array_add (args_arr, NULL);
+
+	return args_arr;
+}
+
 static gboolean
 sendmail_send_to_sync (CamelTransport *transport,
                        CamelMimeMessage *message,
@@ -60,38 +116,94 @@ sendmail_send_to_sync (CamelTransport *transport,
                        GError **error)
 {
 	struct _camel_header_raw *header, *savedbcc, *n, *tail;
-	const gchar *from_addr, *addr, **argv;
+	const gchar *from_addr, *addr;
+	GPtrArray *argv_arr;
 	gint i, len, fd[2], nullfd, wstat;
 	CamelStream *filter;
 	CamelMimeFilter *crlf;
 	sigset_t mask, omask;
 	CamelStream *out;
+	CamelSendmailSettings *settings;
+	const gchar *binary = SENDMAIL_PATH;
+	gchar *custom_binary = NULL, *custom_args = NULL;
+	gboolean success;
 	pid_t pid;
 
-	if (!camel_internet_address_get (CAMEL_INTERNET_ADDRESS (from), 0, NULL, &from_addr))
+	success = camel_internet_address_get (
+		CAMEL_INTERNET_ADDRESS (from), 0, NULL, &from_addr);
+
+	if (!success) {
+		g_set_error (
+			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
+			_("Failed to read From address"));
 		return FALSE;
+	}
+
+	settings = CAMEL_SENDMAIL_SETTINGS (camel_service_ref_settings (CAMEL_SERVICE (transport)));
+
+	if (!camel_sendmail_settings_get_send_in_offline (settings)) {
+		CamelSession *session;
+		gboolean is_online;
+
+		session = camel_service_ref_session (CAMEL_SERVICE (transport));
+		is_online = camel_session_get_online (session);
+		g_object_unref (session);
+
+		if (!is_online) {
+			g_set_error (
+				error, CAMEL_SERVICE_ERROR, CAMEL_SERVICE_ERROR_UNAVAILABLE,
+				_("Message send in offline mode is disabled"));
+			return FALSE;
+		}
+	}
+
+	if (camel_sendmail_settings_get_use_custom_binary (settings)) {
+		custom_binary = camel_sendmail_settings_dup_custom_binary (settings);
+		if (custom_binary && *custom_binary)
+			binary = custom_binary;
+	}
+
+	if (camel_sendmail_settings_get_use_custom_args (settings)) {
+		custom_args = camel_sendmail_settings_dup_custom_args (settings);
+		/* means no arguments used */
+		if (!custom_args)
+			custom_args = g_strdup ("");
+	}
+
+	g_object_unref (settings);
 
 	len = camel_address_length (recipients);
-	argv = g_malloc ((len + 6) * sizeof (gchar *));
-	argv[0] = "sendmail";
-	argv[1] = "-i";
-	argv[2] = "-f";
-	argv[3] = from_addr;
-	argv[4] = "--";
-
 	for (i = 0; i < len; i++) {
-		if (!camel_internet_address_get (CAMEL_INTERNET_ADDRESS (recipients), i, NULL, &addr)) {
+		success = camel_internet_address_get (
+			CAMEL_INTERNET_ADDRESS (recipients), i, NULL, &addr);
+
+		if (!success) {
 			g_set_error (
 				error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
 				_("Could not parse recipient list"));
-			g_free (argv);
+			g_free (custom_binary);
+			g_free (custom_args);
+
 			return FALSE;
 		}
-
-		argv[i + 5] = addr;
 	}
 
-	argv[i + 5] = NULL;
+	argv_arr = parse_sendmail_args (
+		binary,
+		custom_args ? custom_args : "-i -f %F -- %R",
+		from_addr,
+		recipients);
+
+	if (!argv_arr) {
+		g_set_error (
+			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
+			_("Could not parse arguments"));
+
+		g_free (custom_binary);
+		g_free (custom_args);
+
+		return FALSE;
+	}
 
 	/* unlink the bcc headers */
 	savedbcc = NULL;
@@ -116,11 +228,14 @@ sendmail_send_to_sync (CamelTransport *transport,
 		g_set_error (
 			error, G_IO_ERROR,
 			g_io_error_from_errno (errno),
-			_("Could not create pipe to sendmail: %s: "
-			  "mail not sent"), g_strerror (errno));
+			_("Could not create pipe to '%s': %s: "
+			"mail not sent"), binary, g_strerror (errno));
 
 		/* restore the bcc headers */
 		header->next = savedbcc;
+		g_free (custom_binary);
+		g_free (custom_args);
+		g_ptr_array_free (argv_arr, TRUE);
 
 		return FALSE;
 	}
@@ -138,15 +253,17 @@ sendmail_send_to_sync (CamelTransport *transport,
 		g_set_error (
 			error, G_IO_ERROR,
 			g_io_error_from_errno (errno),
-			_("Could not fork sendmail: %s: "
-			  "mail not sent"), g_strerror (errno));
+			_("Could not fork '%s': %s: "
+			"mail not sent"), binary, g_strerror (errno));
 		close (fd[0]);
 		close (fd[1]);
 		sigprocmask (SIG_SETMASK, &omask, NULL);
-		g_free (argv);
 
 		/* restore the bcc headers */
 		header->next = savedbcc;
+		g_free (custom_binary);
+		g_free (custom_args);
+		g_ptr_array_free (argv_arr, TRUE);
 
 		return FALSE;
 	case 0:
@@ -160,18 +277,22 @@ sendmail_send_to_sync (CamelTransport *transport,
 		}
 		close (fd[1]);
 
-		execv (SENDMAIL_PATH, (gchar **) argv);
+		execv (binary, (gchar **) argv_arr->pdata);
 		_exit (255);
 	}
-	g_free (argv);
+
+	g_ptr_array_free (argv_arr, TRUE);
 
 	/* Parent process. Write the message out. */
 	close (fd[0]);
 	out = camel_stream_fs_new_with_fd (fd[1]);
 
-	/* workaround for lame sendmail implementations that can't handle CRLF eoln sequences */
+	/* XXX Workaround for lame sendmail implementations
+	 *     that can't handle CRLF eoln sequences. */
 	filter = camel_stream_filter_new (out);
-	crlf = camel_mime_filter_crlf_new (CAMEL_MIME_FILTER_CRLF_DECODE, CAMEL_MIME_FILTER_CRLF_MODE_CRLF_ONLY);
+	crlf = camel_mime_filter_crlf_new (
+		CAMEL_MIME_FILTER_CRLF_DECODE,
+		CAMEL_MIME_FILTER_CRLF_MODE_CRLF_ONLY);
 	camel_stream_filter_add (CAMEL_STREAM_FILTER (filter), crlf);
 	g_object_unref (crlf);
 	g_object_unref (out);
@@ -191,6 +312,8 @@ sendmail_send_to_sync (CamelTransport *transport,
 
 		/* restore the bcc headers */
 		header->next = savedbcc;
+		g_free (custom_binary);
+		g_free (custom_args);
 
 		return FALSE;
 	}
@@ -209,24 +332,33 @@ sendmail_send_to_sync (CamelTransport *transport,
 	if (!WIFEXITED (wstat)) {
 		g_set_error (
 			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-			_("sendmail exited with signal %s: mail not sent."),
-			g_strsignal (WTERMSIG (wstat)));
+			_("'%s' exited with signal %s: mail not sent."),
+			binary, g_strsignal (WTERMSIG (wstat)));
+		g_free (custom_binary);
+		g_free (custom_args);
+
 		return FALSE;
 	} else if (WEXITSTATUS (wstat) != 0) {
 		if (WEXITSTATUS (wstat) == 255) {
 			g_set_error (
 				error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-				_("Could not execute %s: mail not sent."),
-				SENDMAIL_PATH);
+				_("Could not execute '%s': mail not sent."),
+				binary);
 		} else {
 			g_set_error (
 				error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-				_("sendmail exited with status %d: "
-				  "mail not sent."),
-				WEXITSTATUS (wstat));
+				_("'%s' exited with status %d: "
+				"mail not sent."),
+				binary, WEXITSTATUS (wstat));
 		}
+		g_free (custom_binary);
+		g_free (custom_args);
+
 		return FALSE;
 	}
+
+	g_free (custom_binary);
+	g_free (custom_args);
 
 	return TRUE;
 }
@@ -239,6 +371,7 @@ camel_sendmail_transport_class_init (CamelSendmailTransportClass *class)
 
 	service_class = CAMEL_SERVICE_CLASS (class);
 	service_class->get_name = sendmail_get_name;
+	service_class->settings_type = CAMEL_TYPE_SENDMAIL_SETTINGS;
 
 	transport_class = CAMEL_TRANSPORT_CLASS (class);
 	transport_class->send_to_sync = sendmail_send_to_sync;

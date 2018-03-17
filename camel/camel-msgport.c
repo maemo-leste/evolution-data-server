@@ -2,19 +2,17 @@
 /*
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -48,7 +46,7 @@
 
 /* message flags */
 enum {
-	MSG_FLAG_SYNC_WITH_PIPE    = 1 << 0,
+	MSG_FLAG_SYNC_WITH_PIPE = 1 << 0,
 	MSG_FLAG_SYNC_WITH_PR_PIPE = 1 << 1
 };
 
@@ -214,7 +212,8 @@ msgport_sync_with_pipe (gint fd)
 		if (MP_READ (fd, buffer, 1) > 0)
 			break;
 		else if (!MP_IS_STATUS_INTR ()) {
-			g_warning ("%s: Failed to read from pipe: %s",
+			g_warning (
+				"%s: Failed to read from pipe: %s",
 				G_STRFUNC, g_strerror (errno));
 			break;
 		}
@@ -232,7 +231,8 @@ msgport_sync_with_prpipe (PRFileDesc *prfd)
 		else if (PR_GetError () != PR_PENDING_INTERRUPT_ERROR) {
 			gchar *text = g_alloca (PR_GetErrorTextLength ());
 			PR_GetErrorText (text);
-			g_warning ("%s: Failed to read from NSPR pipe: %s",
+			g_warning (
+				"%s: Failed to read from NSPR pipe: %s",
 				G_STRFUNC, text);
 			break;
 		}
@@ -349,7 +349,8 @@ camel_msgport_push (CamelMsgPort *msgport,
 			msg->flags |= MSG_FLAG_SYNC_WITH_PIPE;
 			break;
 		} else if (!MP_IS_STATUS_INTR ()) {
-			g_warning ("%s: Failed to write to pipe: %s",
+			g_warning (
+				"%s: Failed to write to pipe: %s",
 				G_STRFUNC, g_strerror (errno));
 			break;
 		}
@@ -363,7 +364,8 @@ camel_msgport_push (CamelMsgPort *msgport,
 		} else if (PR_GetError () != PR_PENDING_INTERRUPT_ERROR) {
 			gchar *text = g_alloca (PR_GetErrorTextLength ());
 			PR_GetErrorText (text);
-			g_warning ("%s: Failed to write to NSPR pipe: %s",
+			g_warning (
+				"%s: Failed to write to NSPR pipe: %s",
 				G_STRFUNC, text);
 			break;
 		}
@@ -428,15 +430,15 @@ camel_msgport_try_pop (CamelMsgPort *msgport)
 }
 
 /**
- * camel_msgport_timed_pop:
+ * camel_msgport_timeout_pop:
  * @msgport: a #CamelMsgPort
- * @end_time: a #GTimeVal
+ * @timeout: number of microseconds to wait
  *
- * Since: 2.30
+ * Since: 3.8
  **/
 CamelMsg *
-camel_msgport_timed_pop (CamelMsgPort *msgport,
-                         GTimeVal *end_time)
+camel_msgport_timeout_pop (CamelMsgPort *msgport,
+                           guint64 timeout)
 {
 	CamelMsg *msg;
 
@@ -444,7 +446,7 @@ camel_msgport_timed_pop (CamelMsgPort *msgport,
 
 	g_async_queue_lock (msgport->queue);
 
-	msg = g_async_queue_timed_pop_unlocked (msgport->queue, end_time);
+	msg = g_async_queue_timeout_pop_unlocked (msgport->queue, timeout);
 
 	if (msg != NULL && msg->flags & MSG_FLAG_SYNC_WITH_PIPE)
 		msgport_sync_with_pipe (msgport->pipe[0]);

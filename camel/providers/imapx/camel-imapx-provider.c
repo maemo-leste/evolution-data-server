@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,25 +41,19 @@ CamelProviderConfEntry imapx_conf_entries[] = {
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "check-subscribed", NULL,
 	  N_("Ch_eck for new messages in subscribed folders"), "0" },
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "use-qresync", NULL,
-	  N_("Use _Quick Resync if the server supports it"), "1" },
+	  N_("Use _Quick Resync if the server supports it"), "0" },
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "use-idle", NULL,
-	  N_("_Listen for server change notifications"), "1" },
+	  N_("_Listen for server change notifications"), "0" },
 	{ CAMEL_PROVIDER_CONF_SECTION_END },
-#ifndef G_OS_WIN32
 	{ CAMEL_PROVIDER_CONF_SECTION_START, "cmdsection", NULL,
 	  N_("Connection to Server") },
-	{ CAMEL_PROVIDER_CONF_CHECKBOX, "use-shell-command", NULL,
-	  N_("_Use custom command to connect to server"), "0" },
-	{ CAMEL_PROVIDER_CONF_ENTRY, "shell-command", "use-shell-command",
-	  N_("Command:"), "ssh -C -l %u %h exec /usr/sbin/dovecot --exec-mail imap" },
 	{ CAMEL_PROVIDER_CONF_CHECKSPIN, "concurrent-connections", NULL,
-	  N_("Numbe_r of cached connections to use"), "y:1:5:7" },
+	  N_("Numbe_r of concurrent connections to use"), "y:1:3:7" },
 	{ CAMEL_PROVIDER_CONF_SECTION_END },
-#endif
 	{ CAMEL_PROVIDER_CONF_SECTION_START, "folders", NULL,
 	  N_("Folders") },
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "use-subscriptions", NULL,
-	  N_("_Show only subscribed folders"), "1" },
+	  N_("_Show only subscribed folders"), "0" },
 #if 0
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "use-namespace", NULL,
 	  N_("O_verride server-supplied folder namespace"), "0" },
@@ -114,30 +106,21 @@ static CamelProvider imapx_provider = {
 	/* ... */
 };
 
-CamelServiceAuthType camel_imapx_password_authtype = {
-	N_("Password"),
-
-	N_("This option will connect to the IMAP server using a "
-	   "plaintext password."),
-
-	"",
-	TRUE
-};
+extern CamelServiceAuthType camel_imapx_password_authtype;
 
 void camel_imapx_module_init (void);
 
 void
 camel_imapx_module_init (void)
 {
-	imapx_provider.object_types[CAMEL_PROVIDER_STORE] = camel_imapx_store_get_type ();
+	imapx_provider.object_types[CAMEL_PROVIDER_STORE] =
+		CAMEL_TYPE_IMAPX_STORE;
 	imapx_provider.url_hash = imapx_url_hash;
 	imapx_provider.url_equal = imapx_url_equal;
 	imapx_provider.authtypes = camel_sasl_authtype_list (FALSE);
-	imapx_provider.authtypes = g_list_prepend (imapx_provider.authtypes, &camel_imapx_password_authtype);
+	imapx_provider.authtypes = g_list_prepend (
+		imapx_provider.authtypes, &camel_imapx_password_authtype);
 	imapx_provider.translation_domain = GETTEXT_PACKAGE;
-
-	/* TEMPORARY */
-	imapx_utils_init ();
 
 	camel_provider_register (&imapx_provider);
 }

@@ -5,19 +5,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -62,13 +60,24 @@ mbox_folder_cmp_uids (CamelFolder *folder,
 	a = (CamelMboxMessageInfo *) camel_folder_summary_get (folder->summary, uid1);
 	b = (CamelMboxMessageInfo *) camel_folder_summary_get (folder->summary, uid2);
 
-	g_return_val_if_fail (a != NULL, 0);
-	g_return_val_if_fail (b != NULL, 0);
+	if (!a || !b) {
+		/* It's not a problem when one of the messages is not in the summary */
+		if (a)
+			camel_message_info_unref (a);
+		if (b)
+			camel_message_info_unref (b);
+
+		if (a == b)
+			return 0;
+		if (!a)
+			return -1;
+		return 1;
+	}
 
 	res = a->frompos < b->frompos ? -1 : a->frompos == b->frompos ? 0 : 1;
 
-	camel_message_info_free ((CamelMessageInfo *) a);
-	camel_message_info_free ((CamelMessageInfo *) b);
+	camel_message_info_unref (a);
+	camel_message_info_unref (b);
 
 	return res;
 }
@@ -96,7 +105,7 @@ mbox_folder_get_filename (CamelFolder *folder,
 	goffset frompos;
 	gchar *filename = NULL;
 
-	d(printf("Getting message %s\n", uid));
+	d (printf ("Getting message %s\n", uid));
 
 	/* lock the folder first, burn if we can't, need write lock for summary check */
 	if (camel_local_folder_lock (lf, CAMEL_LOCK_WRITE, error) == -1)
@@ -119,12 +128,12 @@ mbox_folder_get_filename (CamelFolder *folder,
 	}
 
 	if (info->frompos == -1) {
-		camel_message_info_free ((CamelMessageInfo *) info);
+		camel_message_info_unref (info);
 		goto fail;
 	}
 
 	frompos = info->frompos;
-	camel_message_info_free ((CamelMessageInfo *) info);
+	camel_message_info_unref (info);
 
 	filename = g_strdup_printf ("%s%s!%" PRId64, lf->folder_path, G_DIR_SEPARATOR_S, (gint64) frompos);
 
@@ -159,7 +168,7 @@ mbox_folder_append_message_sync (CamelFolder *folder,
 	if (camel_local_folder_lock (lf, CAMEL_LOCK_WRITE, error) == -1)
 		return FALSE;
 
-	d(printf("Appending message\n"));
+	d (printf ("Appending message\n"));
 
 	/* first, check the summary is correct (updates folder_size too) */
 	retval = camel_local_summary_check ((CamelLocalSummary *) folder->summary, lf->changes, cancellable, error);
@@ -171,7 +180,7 @@ mbox_folder_append_message_sync (CamelFolder *folder,
 	if (mi == NULL)
 		goto fail;
 
-	d(printf("Appending message: uid is %s\n", camel_message_info_uid(mi)));
+	d (printf ("Appending message: uid is %s\n", camel_message_info_uid (mi)));
 
 	has_attachment = camel_mime_message_has_attachment (message);
 	if (((camel_message_info_flags (mi) & CAMEL_MESSAGE_ATTACHMENTS) && !has_attachment) ||
@@ -195,7 +204,7 @@ mbox_folder_append_message_sync (CamelFolder *folder,
 	xev = camel_local_summary_encode_x_evolution ((CamelLocalSummary *) folder->summary, mi);
 	if (xev) {
 		/* the x-ev header should match the 'current' flags, no problem, so store as much */
-		camel_medium_set_header((CamelMedium *)message, "X-Evolution", xev);
+		camel_medium_set_header ((CamelMedium *) message, "X-Evolution", xev);
 		mi->flags &= ~ CAMEL_MESSAGE_FOLDER_NOXEV | CAMEL_MESSAGE_FOLDER_FLAGGED;
 		g_free (xev);
 	}
@@ -257,11 +266,12 @@ fail_write:
 		gint fd;
 
 		fd = camel_stream_fs_get_fd (CAMEL_STREAM_FS (output_stream));
-
-		/* reset the file to original size */
-		do {
-			retval = ftruncate (fd, mbs->folder_size);
-		} while (retval == -1 && errno == EINTR);
+		if (fd != -1) {
+			/* reset the file to original size */
+			do {
+				retval = ftruncate (fd, mbs->folder_size);
+			} while (retval == -1 && errno == EINTR);
+		}
 
 		g_object_unref (output_stream);
 	}
@@ -307,7 +317,7 @@ mbox_folder_get_message_sync (CamelFolder *folder,
 	gint retried = FALSE;
 	goffset frompos;
 
-	d(printf("Getting message %s\n", uid));
+	d (printf ("Getting message %s\n", uid));
 
 	/* lock the folder first, burn if we can't, need write lock for summary check */
 	if (camel_local_folder_lock (lf, CAMEL_LOCK_WRITE, error) == -1)
@@ -331,12 +341,12 @@ retry:
 	}
 
 	if (info->frompos == -1) {
-		camel_message_info_free ((CamelMessageInfo *) info);
+		camel_message_info_unref (info);
 		goto fail;
 	}
 
 	frompos = info->frompos;
-	camel_message_info_free ((CamelMessageInfo *) info);
+	camel_message_info_unref (info);
 
 	/* we use an fd instead of a normal stream here - the reason is subtle, camel_mime_part will cache
 	 * the whole message in memory if the stream is non-seekable (which it is when built from a parser
@@ -360,10 +370,10 @@ retry:
 	if (camel_mime_parser_step (parser, NULL, NULL) != CAMEL_MIME_PARSER_STATE_FROM
 	    || camel_mime_parser_tell_start_from (parser) != frompos) {
 
-		g_warning("Summary doesn't match the folder contents!  eek!\n"
-			  "  expecting offset %ld got %ld, state = %d", (glong)frompos,
-			  (glong) camel_mime_parser_tell_start_from (parser),
-			  camel_mime_parser_state (parser));
+		g_warning ("Summary doesn't match the folder contents!  eek!\n"
+			"  expecting offset %ld got %ld, state = %d", (glong) frompos,
+			(glong) camel_mime_parser_tell_start_from (parser),
+			camel_mime_parser_state (parser));
 
 		g_object_unref (parser);
 		parser = NULL;
@@ -394,7 +404,7 @@ retry:
 		goto fail;
 	}
 
-	camel_medium_remove_header((CamelMedium *)message, "X-Evolution");
+	camel_medium_remove_header ((CamelMedium *) message, "X-Evolution");
 
 fail:
 	/* and unlock now we're finished with it */
@@ -457,8 +467,10 @@ mbox_folder_unlock (CamelLocalFolder *lf)
 	CamelMboxFolder *mf = (CamelMboxFolder *) lf;
 
 	g_assert (mf->lockfd != -1);
-	camel_unlock_folder (lf->folder_path, mf->lockfd);
-	close (mf->lockfd);
+	if (mf->lockfd != -1) {
+		camel_unlock_folder (lf->folder_path, mf->lockfd);
+		close (mf->lockfd);
+	}
 	mf->lockfd = -1;
 #endif
 }

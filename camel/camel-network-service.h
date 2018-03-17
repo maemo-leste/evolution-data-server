@@ -1,18 +1,17 @@
 /*
  * camel-network-service.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -66,11 +65,15 @@ struct _CamelNetworkServiceInterface {
 					(CamelNetworkService *service,
 					 CamelNetworkSecurityMethod method);
 
-	CamelStream *	(*connect_sync)	(CamelNetworkService *service,
+	GIOStream *	(*connect_sync)	(CamelNetworkService *service,
 					 GCancellable *cancellable,
 					 GError **error);
 
-	gpointer reserved[16];
+	GSocketConnectable *
+			(*new_connectable)
+					(CamelNetworkService *service);
+
+	gpointer reserved[15];
 };
 
 GType		camel_network_service_get_type	(void) G_GNUC_CONST;
@@ -80,9 +83,34 @@ const gchar *	camel_network_service_get_service_name
 guint16		camel_network_service_get_default_port
 					(CamelNetworkService *service,
 					 CamelNetworkSecurityMethod method);
-CamelStream *	camel_network_service_connect_sync
+GSocketConnectable *
+		camel_network_service_ref_connectable
+					(CamelNetworkService *service);
+void		camel_network_service_set_connectable
+					(CamelNetworkService *service,
+					 GSocketConnectable *connectable);
+gboolean	camel_network_service_get_host_reachable
+					(CamelNetworkService *service);
+GIOStream *	camel_network_service_connect_sync
 					(CamelNetworkService *service,
 					 GCancellable *cancellable,
+					 GError **error);
+GIOStream *	camel_network_service_starttls
+					(CamelNetworkService *service,
+					 GIOStream *base_stream,
+					 GError **error);
+gboolean	camel_network_service_can_reach_sync
+					(CamelNetworkService *service,
+					 GCancellable *cancellable,
+					 GError **error);
+void		camel_network_service_can_reach
+					(CamelNetworkService *service,
+					 GCancellable *cancellable,
+					 GAsyncReadyCallback callback,
+					 gpointer user_data);
+gboolean	camel_network_service_can_reach_finish
+					(CamelNetworkService *service,
+					 GAsyncResult *result,
 					 GError **error);
 
 G_END_DECLS

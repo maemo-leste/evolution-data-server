@@ -4,19 +4,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -49,7 +47,7 @@ mh_folder_get_filename (CamelFolder *folder,
 {
 	CamelLocalFolder *lf = (CamelLocalFolder *) folder;
 
-	return g_strdup_printf("%s/%s", lf->folder_path, uid);
+	return g_strdup_printf ("%s/%s", lf->folder_path, uid);
 }
 
 static gboolean
@@ -68,7 +66,7 @@ mh_folder_append_message_sync (CamelFolder *folder,
 
 	/* FIXME: probably needs additional locking (although mh doesn't appear do do it) */
 
-	d(printf("Appending message\n"));
+	d (printf ("Appending message\n"));
 
 	/* If we can't lock, don't do anything */
 	if (!lf || camel_local_folder_lock (lf, CAMEL_LOCK_WRITE, error) == -1)
@@ -85,10 +83,10 @@ mh_folder_append_message_sync (CamelFolder *folder,
 		camel_message_info_set_flags (mi, CAMEL_MESSAGE_ATTACHMENTS, has_attachment ? CAMEL_MESSAGE_ATTACHMENTS : 0);
 	}
 
-	d(printf("Appending message: uid is %s\n", camel_message_info_uid(mi)));
+	d (printf ("Appending message: uid is %s\n", camel_message_info_uid (mi)));
 
 	/* write it out, use the uid we got from the summary */
-	name = g_strdup_printf("%s/%s", lf->folder_path, camel_message_info_uid(mi));
+	name = g_strdup_printf ("%s/%s", lf->folder_path, camel_message_info_uid (mi));
 	output_stream = camel_stream_fs_new_with_name (
 		name, O_WRONLY | O_CREAT, 0600, error);
 	if (output_stream == NULL)
@@ -147,7 +145,7 @@ mh_folder_get_message_sync (CamelFolder *folder,
 	CamelMessageInfo *info;
 	gchar *name = NULL;
 
-	d(printf("getting message: %s\n", uid));
+	d (printf ("getting message: %s\n", uid));
 
 	if (!lf || camel_local_folder_lock (lf, CAMEL_LOCK_WRITE, error) == -1)
 		return NULL;
@@ -161,9 +159,9 @@ mh_folder_get_message_sync (CamelFolder *folder,
 	}
 
 	/* we only need it to check the message exists */
-	camel_message_info_free (info);
+	camel_message_info_unref (info);
 
-	name = g_strdup_printf("%s/%s", lf->folder_path, uid);
+	name = g_strdup_printf ("%s/%s", lf->folder_path, uid);
 	message_stream = camel_stream_fs_new_with_name (
 		name, O_RDONLY, 0, error);
 	if (message_stream == NULL) {
@@ -238,7 +236,7 @@ camel_mh_folder_new (CamelStore *parent_store,
 	CamelFolder *folder;
 	gchar *basename;
 
-	d(printf("Creating mh folder: %s\n", full_name));
+	d (printf ("Creating mh folder: %s\n", full_name));
 
 	basename = g_path_get_basename (full_name);
 

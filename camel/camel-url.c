@@ -8,19 +8,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -114,7 +112,7 @@ camel_url_new_with_base (CamelURL *base,
 		return url;
 
 #ifdef G_OS_WIN32
-	if (url->protocol && !strcmp(url->protocol, "file")) {
+	if (url->protocol && !strcmp (url->protocol, "file")) {
 		url->path = g_filename_from_uri (start, &url->host, NULL);
 		return url;
 	}
@@ -138,8 +136,8 @@ camel_url_new_with_base (CamelURL *base,
 			semi = strchr (url_string, ';');
 			if (semi && semi < colon &&
 			    !g_ascii_strncasecmp (semi, ";auth=", 6)) {
-				url->authmech = g_strndup (semi + 6,
-							   colon - semi - 6);
+				url->authmech = g_strndup (
+					semi + 6, colon - semi - 6);
 				camel_url_decode (url->authmech);
 			} else {
 				url->authmech = NULL;
@@ -170,8 +168,8 @@ camel_url_new_with_base (CamelURL *base,
 	question = memchr (url_string, '?', end - url_string);
 	if (question) {
 		if (question[1]) {
-			url->query = g_strndup (question + 1,
-						end - (question + 1));
+			url->query = g_strndup (
+				question + 1, end - (question + 1));
 			camel_url_decode (url->query);
 		}
 		end = question;
@@ -198,8 +196,8 @@ camel_url_new_with_base (CamelURL *base,
 					value = g_strdup ("");
 				}
 				camel_url_decode (name);
-				g_datalist_set_data_full (&url->params, name,
-							  value, g_free);
+				g_datalist_set_data_full (
+					&url->params, name, value, g_free);
 				g_free (name);
 			}
 		}
@@ -241,10 +239,11 @@ camel_url_new_with_base (CamelURL *base,
 			 * i.e. like "http://example.com" (this expected only "http://example.com/") */
 			last = base->path ? strrchr (base->path, '/') : NULL;
 			if (last) {
-				newpath = g_strdup_printf ("%.*s/%s",
-							   (gint)(last - base->path),
-							   base->path,
-							   url->path);
+				newpath = g_strdup_printf (
+					"%.*s/%s",
+					(gint)(last - base->path),
+					base->path,
+					url->path);
 			} else
 				newpath = g_strdup_printf ("/%s", url->path);
 
@@ -356,7 +355,7 @@ camel_url_to_string (CamelURL *url,
 	 */
 
 #ifdef G_OS_WIN32
-	if (url->protocol && !strcmp(url->protocol, "file"))
+	if (url->protocol && !strcmp (url->protocol, "file"))
 		return g_filename_to_uri (url->path, url->host, NULL);
 #endif /* G_OS_WIN32 */
 
@@ -647,7 +646,7 @@ append_url_encoded (GString *str,
 	while (*s) {
 		if (url_encoded_char[*s] ||
 		    (extra_enc_chars && strchr (extra_enc_chars, *s)))
-			g_string_append_printf (str, "%%%02x", (gint)*s++);
+			g_string_append_printf (str, "%%%02x", (gint) * s++);
 		else
 			g_string_append_c (str, *s++);
 	}

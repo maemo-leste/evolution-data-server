@@ -76,8 +76,8 @@ e_list_construct (EList *list,
                   EListFreeFunc free,
                   gpointer closure)
 {
-	list->copy    = copy;
-	list->free    = free;
+	list->copy = copy;
+	list->free = free;
 	list->closure = closure;
 }
 
@@ -92,10 +92,10 @@ e_list_duplicate (EList *list)
 {
 	EList *dupe = g_object_new (E_TYPE_LIST, NULL);
 
-	dupe->copy    = list->copy;
-	dupe->free    = list->free;
+	dupe->copy = list->copy;
+	dupe->free = list->free;
 	dupe->closure = list->closure;
-	dupe->list    = g_list_copy (list->list);
+	dupe->list = g_list_copy (list->list);
 	if (dupe->copy) {
 		GList *listlist;
 		for (listlist = dupe->list; listlist; listlist = listlist->next) {
@@ -134,7 +134,8 @@ e_list_append (EList *list,
 {
 	e_list_invalidate_iterators (list, NULL);
 	if (list->copy)
-		list->list = g_list_append (list->list, list->copy (data, list->closure));
+		list->list = g_list_append (
+			list->list, list->copy (data, list->closure));
 	else
 		list->list = g_list_append (list->list, (gpointer) data);
 }
@@ -164,6 +165,11 @@ e_list_invalidate_iterators (EList *list,
 /* FIXME: This doesn't work properly if the iterator is the first
  * iterator in the list.  Well, the iterator doesn't continue on after
  * the next time next is called, at least. */
+/**
+ * e_list_remove_link: (skip)
+ * @list:
+ * @link:
+ */
 void
 e_list_remove_link (EList *list,
                     GList *link)

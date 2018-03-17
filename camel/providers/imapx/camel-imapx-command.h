@@ -1,26 +1,24 @@
 /*
  * camel-imapx-command.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 #ifndef CAMEL_IMAPX_COMMAND_H
 #define CAMEL_IMAPX_COMMAND_H
 
-#include <camel/camel.h>
-
+#include "camel-imapx-mailbox.h"
 #include "camel-imapx-utils.h"
 
 #define CAMEL_IS_IMAPX_COMMAND(command) \
@@ -35,15 +33,12 @@ struct _CamelIMAPXServer;
 typedef struct _CamelIMAPXCommand CamelIMAPXCommand;
 typedef struct _CamelIMAPXCommandPart CamelIMAPXCommandPart;
 
-typedef gboolean
-		(*CamelIMAPXCommandFunc)	(struct _CamelIMAPXServer *is,
-						 CamelIMAPXCommand *ic,
-						 GError **error);
+typedef void	(*CamelIMAPXCommandFunc)	(struct _CamelIMAPXServer *is,
+						 CamelIMAPXCommand *ic);
 
 typedef enum {
 	CAMEL_IMAPX_COMMAND_SIMPLE = 0,
 	CAMEL_IMAPX_COMMAND_DATAWRAPPER,
-	CAMEL_IMAPX_COMMAND_STREAM,
 	CAMEL_IMAPX_COMMAND_AUTH,
 	CAMEL_IMAPX_COMMAND_FILE,
 	CAMEL_IMAPX_COMMAND_STRING,
@@ -74,9 +69,6 @@ struct _CamelIMAPXCommand {
 	/* Command name/type (e.g. FETCH) */
 	const gchar *name;
 
-	/* Folder to select */
-	CamelFolder *select;
-
 	/* Status for command, indicates it is complete if != NULL. */
 	struct _status_info *status;
 
@@ -92,7 +84,7 @@ struct _CamelIMAPXCommand {
 CamelIMAPXCommand *
 		camel_imapx_command_new		(struct _CamelIMAPXServer *is,
 						 const gchar *name,
-						 CamelFolder *select,
+						 CamelIMAPXMailbox *mailbox,
 						 const gchar *format,
 						 ...);
 CamelIMAPXCommand *
@@ -105,6 +97,8 @@ struct _CamelIMAPXJob *
 		camel_imapx_command_get_job	(CamelIMAPXCommand *ic);
 void		camel_imapx_command_set_job	(CamelIMAPXCommand *ic,
 						 struct _CamelIMAPXJob *job);
+CamelIMAPXMailbox *
+		camel_imapx_command_ref_mailbox	(CamelIMAPXCommand *ic);
 void		camel_imapx_command_add		(CamelIMAPXCommand *ic,
 						 const gchar *format,
 						 ...);
@@ -117,6 +111,8 @@ void		camel_imapx_command_add_part	(CamelIMAPXCommand *ic,
 void		camel_imapx_command_close	(CamelIMAPXCommand *ic);
 void		camel_imapx_command_wait	(CamelIMAPXCommand *ic);
 void		camel_imapx_command_done	(CamelIMAPXCommand *ic);
+void		camel_imapx_command_failed	(CamelIMAPXCommand *ic,
+						 const GError *error);
 gboolean	camel_imapx_command_set_error_if_failed
 						(CamelIMAPXCommand *ic,
 						 GError **error);
@@ -154,6 +150,10 @@ gboolean	camel_imapx_command_queue_remove
 void		camel_imapx_command_queue_delete_link
 						(CamelIMAPXCommandQueue *queue,
 						 GList *link);
+CamelIMAPXCommand *
+		camel_imapx_command_queue_ref_by_tag
+						(CamelIMAPXCommandQueue *queue,
+						 guint32 tag);
 
 G_END_DECLS
 

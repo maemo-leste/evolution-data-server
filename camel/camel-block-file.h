@@ -3,19 +3,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -25,9 +23,10 @@
 #ifndef CAMEL_BLOCK_FILE_H
 #define CAMEL_BLOCK_FILE_H
 
-#include <camel/camel-object.h>
 #include <stdio.h>
 #include <sys/types.h>
+
+#include <glib-object.h>
 
 /* Standard GObject macros */
 #define CAMEL_TYPE_BLOCK_FILE \
@@ -85,7 +84,7 @@ typedef enum {
 #define CAMEL_BLOCK_SIZE_BITS (10) /* # bits to contain block_size bytes */
 
 typedef enum {
-	CAMEL_BLOCK_DIRTY    = 1 << 0,
+	CAMEL_BLOCK_DIRTY = 1 << 0,
 	CAMEL_BLOCK_DETACHED = 1 << 1
 } CamelBlockFlags;
 
@@ -111,7 +110,7 @@ struct _CamelBlock {
 };
 
 struct _CamelBlockFile {
-	CamelObject parent;
+	GObject parent;
 	CamelBlockFilePrivate *priv;
 
 	gchar version[8];
@@ -132,7 +131,7 @@ struct _CamelBlockFile {
 };
 
 struct _CamelBlockFileClass {
-	CamelObjectClass parent;
+	GObjectClass parent_class;
 
 	gint (*validate_root)(CamelBlockFile *);
 	gint (*init_root)(CamelBlockFile *);
@@ -170,7 +169,7 @@ typedef struct _CamelKeyFileClass CamelKeyFileClass;
 typedef struct _CamelKeyFilePrivate CamelKeyFilePrivate;
 
 struct _CamelKeyFile {
-	CamelObject parent;
+	GObject parent;
 	CamelKeyFilePrivate *priv;
 
 	FILE *fp;
@@ -180,7 +179,7 @@ struct _CamelKeyFile {
 };
 
 struct _CamelKeyFileClass {
-	CamelObjectClass parent;
+	GObjectClass parent_class;
 };
 
 GType      camel_key_file_get_type (void);

@@ -9,18 +9,43 @@
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  */
 
+#if !defined (__LIBEBOOK_H_INSIDE__) && !defined (LIBEBOOK_COMPILATION)
+#error "Only <libebook/libebook.h> should be included directly."
+#endif
+
 #ifndef __E_BOOK_TYPES_H__
 #define __E_BOOK_TYPES_H__
 
-#include <libebook/e-contact.h>
+#include <libebook-contacts/libebook-contacts.h>
 
 G_BEGIN_DECLS
 
+#ifndef EDS_DISABLE_DEPRECATED
+
+/**
+ * E_BOOK_ERROR:
+ *
+ * Error domain for the deprecated #EBook
+ *
+ * Deprecated: 3.2: Use #EBookClient and it's error codes instead
+ */
 #define E_BOOK_ERROR e_book_error_quark()
 
 GQuark e_book_error_quark (void) G_GNUC_CONST;
 
+/**
+ * EBookStatus:
+ *
+ * Error codes for the #E_BOOK_ERROR error
+ *
+ * Deprecated: 3.2: Use #EBookClient and it's error codes instead
+ */
+
+/* Marked these all as private, since they are deprecated
+ * and we just avoid gtk-doc warnings this way
+ */
 typedef enum {
+	/*< private >*/
 	E_BOOK_ERROR_OK,
 	E_BOOK_ERROR_INVALID_ARG,
 	E_BOOK_ERROR_BUSY,
@@ -48,29 +73,16 @@ typedef enum {
 	E_BOOK_ERROR_NOT_SUPPORTED
 } EBookStatus;
 
-#ifndef E_BOOK_DISABLE_DEPRECATED
+/**
+ * E_BOOK_ERROR_CORBA_EXCEPTION:
+ *
+ * A deprecated #EBookStatus
+ *
+ * Deprecated
+ */
 #define E_BOOK_ERROR_CORBA_EXCEPTION E_BOOK_ERROR_DBUS_EXCEPTION
-#endif
 
-typedef enum {
-	E_BOOK_VIEW_STATUS_OK,
-	E_BOOK_VIEW_STATUS_TIME_LIMIT_EXCEEDED,
-	E_BOOK_VIEW_STATUS_SIZE_LIMIT_EXCEEDED,
-	E_BOOK_VIEW_ERROR_INVALID_QUERY,
-	E_BOOK_VIEW_ERROR_QUERY_REFUSED,
-	E_BOOK_VIEW_ERROR_OTHER_ERROR
-} EBookViewStatus;
-
-typedef enum {
-	E_BOOK_CHANGE_CARD_ADDED,
-	E_BOOK_CHANGE_CARD_DELETED,
-	E_BOOK_CHANGE_CARD_MODIFIED
-} EBookChangeType;
-
-typedef struct {
-	EBookChangeType  change_type;
-	EContact        *contact;
-} EBookChange;
+#endif /* EDS_DISABLE_DEPRECATED  */
 
 G_END_DECLS
 

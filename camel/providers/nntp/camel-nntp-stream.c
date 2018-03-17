@@ -1,23 +1,20 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8; fill-column: 160 -*-
- *
+/*
  * Author:
  *  Michael Zucchi <notzed@ximian.com>
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -96,7 +93,6 @@ nntp_stream_fill (CamelNNTPStream *is,
 					g_io_error_from_errno (errno),
 					"%s", g_strerror (errno));
 			}
-			dd (printf ("NNTP_STREAM_FILL (ERROR): %d - '%s'\n", left, g_strerror (errno)));
 			return -1;
 		}
 	}
@@ -142,7 +138,6 @@ nntp_stream_read (CamelStream *stream,
 				is->ptr = p + 3;
 				is->mode = CAMEL_NNTP_STREAM_EOD;
 				is->state = 0;
-				dd (printf ("NNTP_STREAM_READ (%d):\n%.*s\n", (gint)(o-buffer), (gint)(o-buffer), buffer));
 				return o - buffer;
 			}
 			p++;
@@ -174,8 +169,6 @@ nntp_stream_read (CamelStream *stream,
 
 	is->ptr = p;
 	is->state = state;
-
-	dd (printf ("NNTP_STREAM_READ (%d):\n%.*s\n", (gint)(o-buffer), (gint)(o-buffer), buffer));
 
 	return o - buffer;
 }
@@ -251,23 +244,15 @@ camel_nntp_stream_init (CamelNNTPStream *is)
 	is->mode = CAMEL_NNTP_STREAM_LINE;
 }
 
-/**
- * camel_nntp_stream_new:
- *
- * Returns a NULL stream.  A null stream is always at eof, and
- * always returns success for all reads and writes.
- *
- * Returns: the stream
- **/
-CamelStream *
+CamelNNTPStream *
 camel_nntp_stream_new (CamelStream *source)
 {
-	CamelNNTPStream *is;
+	CamelNNTPStream *nntp_stream;
 
-	is = g_object_new (CAMEL_TYPE_NNTP_STREAM, NULL);
-	is->source = g_object_ref (source);
+	nntp_stream = g_object_new (CAMEL_TYPE_NNTP_STREAM, NULL);
+	nntp_stream->source = g_object_ref (source);
 
-	return (CamelStream *) is;
+	return nntp_stream;
 }
 
 /* Get one line from the nntp stream */
@@ -297,7 +282,8 @@ camel_nntp_stream_line (CamelNNTPStream *is,
 	p = is->ptr;
 	e = is->end;
 
-	/* Data mode, convert leading '..' to '.', and stop when we reach a solitary '.' */
+	/* Data mode, convert leading '..' to '.',
+	 * and stop when we reach a solitary '.' */
 	if (is->mode == CAMEL_NNTP_STREAM_DATA) {
 		/* need at least 3 chars in buffer */
 		while (e - p < 3) {
@@ -393,8 +379,6 @@ camel_nntp_stream_gets (CamelNNTPStream *is,
 	*len = max;
 	is->ptr += max;
 
-	dd (printf ("NNTP_STREAM_GETS (%s,%d): '%.*s'\n", end==NULL?"more":"last", *len, (gint)*len, *start));
-
 	return end == NULL ? 1 : 0;
 }
 
@@ -458,12 +442,11 @@ camel_nntp_stream_getd (CamelNNTPStream *is,
 					is->mode = CAMEL_NNTP_STREAM_EOD;
 					is->state = 0;
 
-					dd (printf ("NNTP_STREAM_GETD (%s,%d): '%.*s'\n", "last", *len, (gint)*len, *start));
-
 					return 0;
 				}
 
-				/* If at start, just skip '.', else return data upto '.' but skip it */
+				/* If at start, just skip '.', else
+				 * return data upto '.' but skip it. */
 				if (p == s) {
 					s++;
 					p++;
@@ -473,12 +456,11 @@ camel_nntp_stream_getd (CamelNNTPStream *is,
 					*start = s;
 					is->state = 1;
 
-					dd (printf ("NNTP_STREAM_GETD (%s,%d): '%.*s'\n", "more", *len, (gint)*len, *start));
-
 					return 1;
 				}
 			}
 			state = 1;
+			break;
 		case 1:
 			/* Scan for sentinal */
 			while ((*p++) != '\n')
@@ -498,7 +480,6 @@ camel_nntp_stream_getd (CamelNNTPStream *is,
 	*len = p-s;
 	*start = s;
 
-	dd (printf ("NNTP_STREAM_GETD (%s,%d): '%.*s'\n", "more", *len, (gint)*len, *start));
 	return 1;
 }
 

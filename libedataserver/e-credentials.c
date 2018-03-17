@@ -1,18 +1,17 @@
 /*
  * e-credentials.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  *
  * Copyright (C) 2011 Red Hat, Inc. (www.redhat.com)
@@ -215,7 +214,7 @@ add_to_array_cb (gpointer key,
  * newly allocated string then this should be freed with g_strfreev() when no
  * longer needed.
  *
- * Returns: a %NULL-terminated array of key/value strings
+ * Returns: (transfer full): a %NULL-terminated array of key/value strings
  *
  * Since: 3.2
  **/
@@ -561,7 +560,8 @@ gather_key_names (gpointer key,
  * The key names are internal credentials values and should not be modified
  * or freed.  Free the list with g_slist_free() when no longer needed.
  *
- * Returns: a newly-allocated #GSList of key names
+ * Returns: (transfer container) (element-type utf8): a newly-allocated #GSList
+ * of key names
  *
  * Since: 3.2
  **/

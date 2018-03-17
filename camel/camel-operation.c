@@ -1,20 +1,17 @@
 /*
  * camel-operation.c
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <config.h>
@@ -25,7 +22,6 @@
 
 #include <nspr.h>
 
-#include "camel-marshal.h"
 #include "camel-msgport.h"
 #include "camel-operation.h"
 
@@ -35,7 +31,7 @@
 
 #define PROGRESS_DELAY		250  /* milliseconds */
 #define TRANSIENT_DELAY		250  /* milliseconds */
-#define POP_MESSAGE_DELAY	999  /* milliseconds */
+#define POP_MESSAGE_DELAY	1    /* seconds */
 
 typedef struct _StatusNode StatusNode;
 
@@ -56,9 +52,9 @@ enum {
 	LAST_SIGNAL
 };
 
-static GStaticRecMutex operation_lock = G_STATIC_REC_MUTEX_INIT;
-#define LOCK() g_static_rec_mutex_lock (&operation_lock)
-#define UNLOCK() g_static_rec_mutex_unlock (&operation_lock)
+static GRecMutex operation_lock;
+#define LOCK() g_rec_mutex_lock (&operation_lock)
+#define UNLOCK() g_rec_mutex_unlock (&operation_lock)
 
 static GQueue operation_list = G_QUEUE_INIT;
 
@@ -109,8 +105,9 @@ status_node_unref (StatusNode *node)
 }
 
 static gboolean
-operation_emit_status_cb (StatusNode *node)
+operation_emit_status_cb (gpointer user_data)
 {
+	StatusNode *node = user_data;
 	StatusNode *head_node;
 	gboolean emit_status;
 
@@ -172,8 +169,7 @@ camel_operation_class_init (CamelOperationClass *class)
 		G_TYPE_FROM_CLASS (class),
 		G_SIGNAL_RUN_LAST,
 		G_STRUCT_OFFSET (CamelOperationClass, status),
-		NULL, NULL,
-		camel_marshal_VOID__STRING_INT,
+		NULL, NULL, NULL,
 		G_TYPE_NONE, 2,
 		G_TYPE_STRING,
 		G_TYPE_INT);
@@ -273,18 +269,22 @@ camel_operation_push_message (GCancellable *cancellable,
 	node->message = g_strdup_vprintf (format, ap);
 	node->operation = g_object_ref (operation);
 
-	if (g_queue_is_empty (&operation->priv->status_stack))
+	if (g_queue_is_empty (&operation->priv->status_stack)) {
 		node->source_id = g_idle_add_full (
 			G_PRIORITY_DEFAULT_IDLE,
-			(GSourceFunc) operation_emit_status_cb,
+			operation_emit_status_cb,
 			status_node_ref (node),
 			(GDestroyNotify) status_node_unref);
-	else
+	} else {
 		node->source_id = g_timeout_add_full (
 			G_PRIORITY_DEFAULT, TRANSIENT_DELAY,
-			(GSourceFunc) operation_emit_status_cb,
+			operation_emit_status_cb,
 			status_node_ref (node),
 			(GDestroyNotify) status_node_unref);
+		g_source_set_name_by_id (
+			node->source_id,
+			"[camel] operation_emit_status_cb");
+	}
 
 	g_queue_push_head (&operation->priv->status_stack, node);
 
@@ -336,11 +336,14 @@ camel_operation_pop_message (GCancellable *cancellable)
 		if (node->source_id != 0)
 			g_source_remove (node->source_id);
 
-		node->source_id = g_timeout_add_full (
+		node->source_id = g_timeout_add_seconds_full (
 			G_PRIORITY_DEFAULT, POP_MESSAGE_DELAY,
-			(GSourceFunc) operation_emit_status_cb,
+			operation_emit_status_cb,
 			status_node_ref (node),
 			(GDestroyNotify) status_node_unref);
+		g_source_set_name_by_id (
+			node->source_id,
+			"[camel] operation_emit_status_cb");
 	}
 
 	UNLOCK ();
@@ -382,12 +385,16 @@ camel_operation_progress (GCancellable *cancellable,
 		node->percent = percent;
 
 		/* Rate limit progress updates. */
-		if (node->source_id == 0)
+		if (node->source_id == 0) {
 			node->source_id = g_timeout_add_full (
 				G_PRIORITY_DEFAULT, PROGRESS_DELAY,
-				(GSourceFunc) operation_emit_status_cb,
+				operation_emit_status_cb,
 				status_node_ref (node),
 				(GDestroyNotify) status_node_unref);
+			g_source_set_name_by_id (
+				node->source_id,
+				"[camel] operation_emit_status_cb");
+		}
 	}
 
 	UNLOCK ();

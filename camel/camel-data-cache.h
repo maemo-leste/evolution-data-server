@@ -5,19 +5,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -55,12 +53,12 @@ typedef struct _CamelDataCacheClass CamelDataCacheClass;
 typedef struct _CamelDataCachePrivate CamelDataCachePrivate;
 
 struct _CamelDataCache {
-	CamelObject parent;
+	GObject parent;
 	CamelDataCachePrivate *priv;
 };
 
 struct _CamelDataCacheClass {
-	CamelObjectClass parent_class;
+	GObjectClass parent_class;
 };
 
 GType		camel_data_cache_get_type	(void);
@@ -74,11 +72,11 @@ void		camel_data_cache_set_expire_age	(CamelDataCache *cdc,
 void		camel_data_cache_set_expire_access
 						(CamelDataCache *cdc,
 						 time_t when);
-CamelStream *	camel_data_cache_add		(CamelDataCache *cdc,
+GIOStream *	camel_data_cache_add		(CamelDataCache *cdc,
 						 const gchar *path,
 						 const gchar *key,
 						 GError **error);
-CamelStream *	camel_data_cache_get		(CamelDataCache *cdc,
+GIOStream *	camel_data_cache_get		(CamelDataCache *cdc,
 						 const gchar *path,
 						 const gchar *key,
 						 GError **error);
@@ -88,8 +86,7 @@ gint		camel_data_cache_remove		(CamelDataCache *cdc,
 						 GError **error);
 gchar *		camel_data_cache_get_filename	(CamelDataCache *cdc,
 						 const gchar *path,
-						 const gchar *key,
-						 GError **error);
+						 const gchar *key);
 void		camel_data_cache_clear		(CamelDataCache *cdc,
 						 const gchar *path);
 

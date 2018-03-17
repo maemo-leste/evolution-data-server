@@ -1,20 +1,18 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Street #330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -55,7 +53,8 @@ void		camel_msgport_push		(CamelMsgPort *msgport,
 						 CamelMsg *msg);
 CamelMsg *	camel_msgport_pop		(CamelMsgPort *msgport);
 CamelMsg *	camel_msgport_try_pop		(CamelMsgPort *msgport);
-CamelMsg *	camel_msgport_timed_pop		(CamelMsgPort *msgport, GTimeVal *end_time);
+CamelMsg *	camel_msgport_timeout_pop	(CamelMsgPort *msgport,
+						 guint64 timeout);
 void		camel_msgport_reply		(CamelMsg *msg);
 
 struct PRFileDesc * camel_msgport_prfd		(CamelMsgPort *msgport);

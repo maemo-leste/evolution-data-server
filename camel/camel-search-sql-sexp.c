@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Copyright (C) 2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 2008 Novell, Inc. (www.novell.com)
  *
- *  Author: Srinivasa Ragavan  <sragavan@novell.com>
+ * Author: Srinivasa Ragavan  <sragavan@novell.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /* This is a helper class for folders to implement the search function.
@@ -87,9 +85,9 @@ func_and (CamelSExp *f,
 	GString *string;
 	gint i;
 
-	d(printf("executing and: %d", argc));
+	d (printf ("executing and: %d", argc));
 
-	string = g_string_new("( ");
+	string = g_string_new ("( ");
 	for (i = 0; i < argc; i++) {
 		r1 = camel_sexp_term_eval (f, argv[i]);
 
@@ -98,14 +96,14 @@ func_and (CamelSExp *f,
 			continue;
 		}
 		if (r1->value.string && *r1->value.string)
-			g_string_append_printf(string, "%s%s", r1->value.string, ((argc>1) && (i != argc-1)) ?  " AND ":"");
+			g_string_append_printf (string, "%s%s", r1->value.string, ((argc > 1) && (i != argc - 1)) ? " AND ":"");
 		camel_sexp_result_free (f, r1);
 	}
-	g_string_append(string, " )");
+	g_string_append (string, " )");
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 
 	if (strlen (string->str) == 4)
-		r->value.string = g_strdup("");
+		r->value.string = g_strdup ("");
 	else
 		r->value.string = string->str;
 	g_string_free (string, FALSE);
@@ -123,9 +121,9 @@ func_or (CamelSExp *f,
 	GString *string;
 	gint i;
 
-	d(printf("executing or: %d", argc));
+	d (printf ("executing or: %d", argc));
 
-	string = g_string_new("( ");
+	string = g_string_new ("( ");
 	for (i = 0; i < argc; i++) {
 		r1 = camel_sexp_term_eval (f, argv[i]);
 
@@ -133,10 +131,10 @@ func_or (CamelSExp *f,
 			camel_sexp_result_free (f, r1);
 			continue;
 		}
-		g_string_append_printf(string, "%s%s", r1->value.string, ((argc>1) && (i != argc-1)) ?  " OR ":"");
+		g_string_append_printf (string, "%s%s", r1->value.string, ((argc > 1) && (i != argc - 1)) ? " OR ":"");
 		camel_sexp_result_free (f, r1);
 	}
-	g_string_append(string, " )");
+	g_string_append (string, " )");
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 	r->value.string = string->str;
@@ -152,7 +150,7 @@ func_not (CamelSExp *f,
 {
 	CamelSExpResult *r = NULL, *r1;
 
-	d(printf("executing not: %d", argc));
+	d (printf ("executing not: %d", argc));
 	r1 = camel_sexp_term_eval (f, argv[0]);
 
 	if (r1->type == CAMEL_SEXP_RES_STRING) {
@@ -161,8 +159,8 @@ func_not (CamelSExp *f,
 		if (g_strcmp0 (r1->value.string, "( (usertags LIKE '%completed-on 0%' AND usertags LIKE '%completed-on%') )") == 0)
 			r->value.string = g_strdup ("( (not (usertags LIKE '%completed-on 0%')) AND usertags LIKE '%completed-on%' )");
 		else
-			r->value.string = g_strdup_printf ("(NOT (%s))",
-							   r1->value.string);
+			r->value.string = g_strdup_printf (
+				"(NOT (%s))", r1->value.string);
 	}
 	camel_sexp_result_free (f, r1);
 
@@ -181,36 +179,36 @@ eval_eq (struct _CamelSExp *f,
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 
 	if (argc == 2) {
-		GString *str = g_string_new("( ");
+		GString *str = g_string_new ("( ");
 		r1 = camel_sexp_term_eval (f, argv[0]);
 		r2 = camel_sexp_term_eval (f, argv[1]);
 
 		if (r1->type == CAMEL_SEXP_RES_INT)
-			g_string_append_printf(str, "%d", r1->value.number);
+			g_string_append_printf (str, "%d", r1->value.number);
 		else if (r1->type == CAMEL_SEXP_RES_TIME)
-			g_string_append_printf(str, "%ld", r1->value.time);
+			g_string_append_printf (str, "%" G_GINT64_FORMAT, (gint64) r1->value.time);
 		else if (r1->type == CAMEL_SEXP_RES_STRING)
-			g_string_append_printf(str, "%s", r1->value.string);
+			g_string_append_printf (str, "%s", r1->value.string);
 
-		if (!strstr(str->str, "completed-on") && !strstr(str->str, "follow-up")) {
+		if (!strstr (str->str, "completed-on") && !strstr (str->str, "follow-up")) {
 			gboolean ut = FALSE;
 
-			if (strstr(str->str, "usertags"))
+			if (strstr (str->str, "usertags"))
 				ut = TRUE;
 			if (ut)
-				g_string_append_printf(str, " LIKE ");
+				g_string_append_printf (str, " LIKE ");
 			else
-				g_string_append_printf(str, " = ");
+				g_string_append_printf (str, " = ");
 			if (r2->type == CAMEL_SEXP_RES_INT)
-				g_string_append_printf(str, "%d", r2->value.number);
+				g_string_append_printf (str, "%d", r2->value.number);
 			if (r2->type == CAMEL_SEXP_RES_BOOL)
-				g_string_append_printf(str, "%d", r2->value.boolean);
+				g_string_append_printf (str, "%d", r2->value.boolean);
 			else if (r2->type == CAMEL_SEXP_RES_TIME)
-				g_string_append_printf(str, "%ld", r2->value.time);
+				g_string_append_printf (str, "%" G_GINT64_FORMAT, (gint64) r2->value.time);
 			else if (r2->type == CAMEL_SEXP_RES_STRING) {
-				gchar *tmp = g_strdup_printf("%c%s%c", ut ? '%':' ', r2->value.string, ut?'%':' ');
+				gchar *tmp = g_strdup_printf ("%c%s%c", ut ? '%':' ', r2->value.string, ut ? '%':' ');
 				gchar *safe = get_db_safe_string (tmp);
-				g_string_append_printf(str, "%s", safe);
+				g_string_append_printf (str, "%s", safe);
 				g_free (safe);
 				g_free (tmp);
 			}
@@ -237,26 +235,26 @@ eval_lt (struct _CamelSExp *f,
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 
 	if (argc == 2) {
-		GString *str = g_string_new("( ");
+		GString *str = g_string_new ("( ");
 		r1 = camel_sexp_term_eval (f, argv[0]);
 		r2 = camel_sexp_term_eval (f, argv[1]);
 
 		if (r1->type == CAMEL_SEXP_RES_INT)
-			g_string_append_printf(str, "%d", r1->value.number);
+			g_string_append_printf (str, "%d", r1->value.number);
 		else if (r1->type == CAMEL_SEXP_RES_TIME)
-			g_string_append_printf(str, "%ld", r1->value.time);
+			g_string_append_printf (str, "%" G_GINT64_FORMAT, (gint64) r1->value.time);
 		else if (r1->type == CAMEL_SEXP_RES_STRING)
-			g_string_append_printf(str, "%s", r1->value.string);
+			g_string_append_printf (str, "%s", r1->value.string);
 
-		g_string_append_printf(str, " < ");
+		g_string_append_printf (str, " < ");
 		if (r2->type == CAMEL_SEXP_RES_INT)
-			g_string_append_printf(str, "%d", r2->value.number);
+			g_string_append_printf (str, "%d", r2->value.number);
 		if (r2->type == CAMEL_SEXP_RES_BOOL)
-			g_string_append_printf(str, "%d", r2->value.boolean);
+			g_string_append_printf (str, "%d", r2->value.boolean);
 		else if (r2->type == CAMEL_SEXP_RES_TIME)
-			g_string_append_printf(str, "%ld", r2->value.time);
+			g_string_append_printf (str, "%" G_GINT64_FORMAT, (gint64) r2->value.time);
 		else if (r2->type == CAMEL_SEXP_RES_STRING)
-			g_string_append_printf(str, "%s", r2->value.string);
+			g_string_append_printf (str, "%s", r2->value.string);
 		camel_sexp_result_free (f, r1);
 		camel_sexp_result_free (f, r2);
 		g_string_append (str, " )");
@@ -279,26 +277,26 @@ eval_gt (struct _CamelSExp *f,
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 
 	if (argc == 2) {
-		GString *str = g_string_new("( ");
+		GString *str = g_string_new ("( ");
 		r1 = camel_sexp_term_eval (f, argv[0]);
 		r2 = camel_sexp_term_eval (f, argv[1]);
 
 		if (r1->type == CAMEL_SEXP_RES_INT)
-			g_string_append_printf(str, "%d", r1->value.number);
+			g_string_append_printf (str, "%d", r1->value.number);
 		else if (r1->type == CAMEL_SEXP_RES_TIME)
-			g_string_append_printf(str, "%ld", r1->value.time);
+			g_string_append_printf (str, "%" G_GINT64_FORMAT, (gint64) r1->value.time);
 		else if (r1->type == CAMEL_SEXP_RES_STRING)
-			g_string_append_printf(str, "%s", r1->value.string);
+			g_string_append_printf (str, "%s", r1->value.string);
 
-		g_string_append_printf(str, " > ");
+		g_string_append_printf (str, " > ");
 		if (r2->type == CAMEL_SEXP_RES_INT)
-			g_string_append_printf(str, "%d", r2->value.number);
+			g_string_append_printf (str, "%d", r2->value.number);
 		if (r2->type == CAMEL_SEXP_RES_BOOL)
-			g_string_append_printf(str, "%d", r2->value.boolean);
+			g_string_append_printf (str, "%d", r2->value.boolean);
 		else if (r2->type == CAMEL_SEXP_RES_TIME)
-			g_string_append_printf(str, "%ld", r2->value.time);
+			g_string_append_printf (str, "%" G_GINT64_FORMAT, (gint64) r2->value.time);
 		else if (r2->type == CAMEL_SEXP_RES_STRING)
-			g_string_append_printf(str, "%s", r2->value.string);
+			g_string_append_printf (str, "%s", r2->value.string);
 		camel_sexp_result_free (f, r1);
 		camel_sexp_result_free (f, r2);
 		g_string_append (str, " )");
@@ -317,7 +315,7 @@ match_all (struct _CamelSExp *f,
 {
 	CamelSExpResult *r;
 
-	d(printf("executing match-all: %d", argc));
+	d (printf ("executing match-all: %d", argc));
 	if (argc == 0) {
 		r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 		r->value.string = g_strdup ("1");
@@ -325,7 +323,7 @@ match_all (struct _CamelSExp *f,
 		r = camel_sexp_term_eval (f, argv[0]);
 	else {
 		r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
-		r->value.string = g_strdup(argv[0]->value.boolean ? "1" : "0");
+		r->value.string = g_strdup (argv[0]->value.boolean ? "1" : "0");
 	}
 
 	return r;
@@ -342,11 +340,11 @@ match_threads (struct _CamelSExp *f,
 	gint i;
 	GString *str = g_string_new ("( ");
 
-	d(printf("executing match-threads: %d", argc));
+	d (printf ("executing match-threads: %d", argc));
 
 	for (i = 1; i < argc; i++) {
 		r = camel_sexp_term_eval (f, argv[i]);
-		g_string_append_printf(str, "%s%s", r->value.string, ((argc>1) && (i != argc-1)) ?  " AND ":"");
+		g_string_append_printf (str, "%s%s", r->value.string, ((argc > 1) && (i != argc - 1)) ? " AND ":"");
 		camel_sexp_result_free (f, r);
 	}
 
@@ -368,7 +366,7 @@ check_header (struct _CamelSExp *f,
 	CamelSExpResult *r;
 	gchar *str = NULL;
 
-	d(printf("executing check-header %d\n", how));
+	d (printf ("executing check-header %d\n", how));
 
 	/* are we inside a match-all? */
 	if (argc > 1 && argv[0]->type == CAMEL_SEXP_RES_STRING) {
@@ -377,6 +375,12 @@ check_header (struct _CamelSExp *f,
 
 		/* only a subset of headers are supported .. */
 		headername = camel_db_get_column_name (argv[0]->value.string);
+		if (!headername) {
+			gboolean *pcontains_unknown_column = (gboolean *) data;
+			*pcontains_unknown_column = TRUE;
+
+			headername = g_strdup ("unknown");
+		}
 
 		/* performs an OR of all words */
 		for (i = 1; i < argc; i++) {
@@ -401,7 +405,7 @@ check_header (struct _CamelSExp *f,
 					value = get_db_safe_string (tstr);
 					g_free (tstr);
 				}
-				str = g_strdup_printf("(%s IS NOT NULL AND %s LIKE %s)", headername, headername, value);
+				str = g_strdup_printf ("(%s IS NOT NULL AND %s LIKE %s)", headername, headername, value);
 				g_free (value);
 			}
 		}
@@ -421,7 +425,7 @@ header_contains (struct _CamelSExp *f,
                  struct _CamelSExpResult **argv,
                  gpointer data)
 {
-	d(printf("executing header-contains: %d", argc));
+	d (printf ("executing header-contains: %d", argc));
 
 	return check_header (f, argc, argv, data, CAMEL_SEARCH_MATCH_CONTAINS);
 }
@@ -432,7 +436,7 @@ header_has_words (struct _CamelSExp *f,
                   struct _CamelSExpResult **argv,
                   gpointer data)
 {
-	d(printf("executing header-has-word: %d", argc));
+	d (printf ("executing header-has-word: %d", argc));
 
 	return check_header (f, argc, argv, data, CAMEL_SEARCH_MATCH_WORD);
 }
@@ -443,7 +447,7 @@ header_matches (struct _CamelSExp *f,
                 struct _CamelSExpResult **argv,
                 gpointer data)
 {
-	d(printf("executing header-matches: %d", argc));
+	d (printf ("executing header-matches: %d", argc));
 
 	return check_header (f, argc, argv, data, CAMEL_SEARCH_MATCH_EXACT);
 }
@@ -454,7 +458,7 @@ header_starts_with (struct _CamelSExp *f,
                     struct _CamelSExpResult **argv,
                     gpointer data)
 {
-	d(printf("executing header-starts-with: %d", argc));
+	d (printf ("executing header-starts-with: %d", argc));
 
 	return check_header (f, argc, argv, data, CAMEL_SEARCH_MATCH_STARTS);
 }
@@ -465,7 +469,7 @@ header_ends_with (struct _CamelSExp *f,
                   struct _CamelSExpResult **argv,
                   gpointer data)
 {
-	d(printf("executing header-ends-with: %d", argc));
+	d (printf ("executing header-ends-with: %d", argc));
 
 	return check_header (f, argc, argv, data, CAMEL_SEARCH_MATCH_ENDS);
 }
@@ -479,12 +483,20 @@ header_exists (struct _CamelSExp *f,
 	CamelSExpResult *r;
 	gchar *headername;
 
-	d(printf("executing header-exists: %d", argc));
+	d (printf ("executing header-exists: %d", argc));
 
 	headername = camel_db_get_column_name (argv[0]->value.string);
+	if (!headername) {
+		gboolean *pcontains_unknown_column = (gboolean *) data;
+		*pcontains_unknown_column = TRUE;
+
+		headername = g_strdup ("unknown");
+	}
+
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 	r->value.string = g_strdup_printf ("(%s NOTNULL)", headername);
 	g_free (headername);
+
 	return r;
 }
 
@@ -496,16 +508,16 @@ user_tag (struct _CamelSExp *f,
 {
 	CamelSExpResult *r;
 
-	d(printf("executing user-tag: %d", argc));
+	d (printf ("executing user-tag: %d", argc));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 	/* Hacks no otherway to fix these really :( */
 	if (g_strcmp0 (argv[0]->value.string, "completed-on") == 0)
-		r->value.string = g_strdup_printf("(usertags LIKE '%ccompleted-on 0%c' AND usertags LIKE '%ccompleted-on%c')", '%', '%', '%', '%');
+		r->value.string = g_strdup_printf ("(usertags LIKE '%ccompleted-on 0%c' AND usertags LIKE '%ccompleted-on%c')", '%', '%', '%', '%');
 	else if (g_strcmp0 (argv[0]->value.string, "follow-up") == 0)
-		r->value.string = g_strdup_printf("usertags NOT LIKE '%cfollow-up%c'", '%', '%');
+		r->value.string = g_strdup_printf ("usertags NOT LIKE '%cfollow-up%c'", '%', '%');
 	else
-		r->value.string = g_strdup("usertags");
+		r->value.string = g_strdup ("usertags");
 
 	return r;
 }
@@ -519,17 +531,17 @@ user_flag (struct _CamelSExp *f,
 	CamelSExpResult *r;
 	gchar *tstr, *qstr;
 
-	d(printf("executing user-flag: %d", argc));
+	d (printf ("executing user-flag: %d", argc));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 
 	if (argc != 1) {
 		r->value.string = g_strdup ("(0)");
 	} else {
-		tstr = g_strdup_printf("%s", argv[0]->value.string);
+		tstr = g_strdup_printf ("%s", argv[0]->value.string);
 		qstr = get_db_safe_string (tstr);
 		g_free (tstr);
-		r->value.string = g_strdup_printf("(labels MATCH %s)", qstr);
+		r->value.string = g_strdup_printf ("(labels MATCH %s)", qstr);
 		g_free (qstr);
 	}
 
@@ -545,7 +557,7 @@ system_flag (struct _CamelSExp *f,
 	CamelSExpResult *r;
 	gchar *tstr;
 
-	d(printf("executing system-flag: %d", argc));
+	d (printf ("executing system-flag: %d", argc));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 
@@ -553,7 +565,14 @@ system_flag (struct _CamelSExp *f,
 		r->value.string = g_strdup ("(0)");
 	} else {
 		tstr = camel_db_get_column_name (argv[0]->value.string);
-		r->value.string = g_strdup_printf("(%s = 1)", tstr);
+		if (!tstr) {
+			gboolean *pcontains_unknown_column = (gboolean *) data;
+			*pcontains_unknown_column = TRUE;
+
+			tstr = g_strdup ("unknown");
+		}
+
+		r->value.string = g_strdup_printf ("(%s = 1)", tstr);
 		g_free (tstr);
 	}
 
@@ -568,10 +587,10 @@ get_sent_date (struct _CamelSExp *f,
 {
 	CamelSExpResult *r;
 
-	d(printf("executing get-sent-date\n"));
+	d (printf ("executing get-sent-date\n"));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
-	r->value.string = g_strdup("dsent");
+	r->value.string = g_strdup ("dsent");
 
 	return r;
 }
@@ -584,10 +603,10 @@ get_received_date (struct _CamelSExp *f,
 {
 	CamelSExpResult *r;
 
-	d(printf("executing get-received-date\n"));
+	d (printf ("executing get-received-date\n"));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
-	r->value.string = g_strdup("dreceived");
+	r->value.string = g_strdup ("dreceived");
 
 	return r;
 }
@@ -600,7 +619,7 @@ get_current_date (struct _CamelSExp *f,
 {
 	CamelSExpResult *r;
 
-	d(printf("executing get-current-date\n"));
+	d (printf ("executing get-current-date\n"));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_INT);
 	r->value.number = time (NULL);
@@ -615,7 +634,7 @@ get_relative_months (struct _CamelSExp *f,
 {
 	CamelSExpResult *r;
 
-	d(printf("executing get-relative-months\n"));
+	d (printf ("executing get-relative-months\n"));
 
 	if (argc != 1 || argv[0]->type != CAMEL_SEXP_RES_INT) {
 		r = camel_sexp_result_new (f, CAMEL_SEXP_RES_BOOL);
@@ -638,10 +657,10 @@ get_size (struct _CamelSExp *f,
 {
 	CamelSExpResult *r;
 
-	d(printf("executing get-size\n"));
+	d (printf ("executing get-size\n"));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
-	r->value.string = g_strdup("size/1024");
+	r->value.string = g_strdup ("size/1024");
 
 	return r;
 }
@@ -656,7 +675,7 @@ sql_exp (struct _CamelSExp *f,
 	gint i;
 	GString *str = g_string_new (NULL);
 
-	d(printf("executing sql-exp\n"));
+	d (printf ("executing sql-exp\n"));
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 	for (i = 0; i < argc; i++) {
@@ -678,12 +697,12 @@ static struct {
 	{ "and", (CamelSExpFunc) func_and, 1 },
 	{ "or", (CamelSExpFunc) func_or, 1},
 	{ "not", (CamelSExpFunc) func_not, 1},
-	{ "=", (CamelSExpFunc)eval_eq, 1},
-	{ ">", (CamelSExpFunc)eval_gt, 1},
-	{ "<", (CamelSExpFunc)eval_lt, 1},
+	{ "=", (CamelSExpFunc) eval_eq, 1},
+	{ ">", (CamelSExpFunc) eval_gt, 1},
+	{ "<", (CamelSExpFunc) eval_lt, 1},
 
-	{ "match-all", (CamelSExpFunc)match_all, 1 },
-	{ "match-threads", (CamelSExpFunc)match_threads, 1 },
+	{ "match-all", (CamelSExpFunc) match_all, 1 },
+	{ "match-threads", (CamelSExpFunc) match_threads, 1 },
 /*	{ "body-contains", body_contains}, */ /* We don't store body on the db. */
 	{ "header-contains", header_contains, 0},
 	{ "header-has-words", header_has_words, 0},
@@ -715,17 +734,19 @@ camel_sexp_to_sql_sexp (const gchar *sql)
 	CamelSExp *sexp;
 	CamelSExpResult *r;
 	gint i;
-	gchar *res;
+	gchar *res = NULL;
+	gboolean contains_unknown_column = FALSE;
 
 	sexp = camel_sexp_new ();
 
 	for (i = 0; i < G_N_ELEMENTS (symbols); i++) {
 		if (symbols[i].immediate)
 			camel_sexp_add_ifunction (sexp, 0, symbols[i].name,
-					     (CamelSExpIFunc) symbols[i].func, NULL);
+					     (CamelSExpIFunc) symbols[i].func, &contains_unknown_column);
 		else
-			camel_sexp_add_function (sexp, 0, symbols[i].name,
-					    symbols[i].func, NULL);
+			camel_sexp_add_function (
+				sexp, 0, symbols[i].name,
+				symbols[i].func, &contains_unknown_column);
 	}
 
 	camel_sexp_input_text (sexp, sql, strlen (sql));
@@ -740,10 +761,9 @@ camel_sexp_to_sql_sexp (const gchar *sql)
 		return NULL;
 	}
 
-	if (r->type == CAMEL_SEXP_RES_STRING) {
+	if (!contains_unknown_column && r->type == CAMEL_SEXP_RES_STRING) {
 		res = g_strdup (r->value.string);
-	} else
-		g_assert (0);
+	}
 
 	camel_sexp_result_free (sexp, r);
 	g_object_unref (sexp);
@@ -868,9 +888,9 @@ gint main ()
 
 	for (i = 0; i < G_N_ELEMENTS (txt); i++) {
 		gchar *sql = NULL;
-		printf("Q: %s\n\"%c\"\n", txt[i], 40);
+		printf ("Q: %s\n\"%c\"\n", txt[i], 40);
 		sql = camel_sexp_to_sql_sexp (txt[i]);
-		printf("A: %s\n\n\n", sql);
+		printf ("A: %s\n\n\n", sql);
 		g_free (sql);
 	}
 

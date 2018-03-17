@@ -4,19 +4,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -57,22 +55,28 @@ folders_update (const gchar *root,
                 GCancellable *cancellable)
 {
 	gchar *tmp, *tmpnew, *line = NULL;
+	gsize tmpnew_len = 0;
 	CamelStream *stream, *in = NULL, *out = NULL;
 	gchar *folder_newline;
 	gint flen = strlen (folder);
 
 	folder_newline = g_strdup_printf ("%s\n", folder);
 
-	tmpnew = g_alloca (strlen (root) + 16);
-	sprintf (tmpnew, "%s" G_DIR_SEPARATOR_S ".folders~", root);
+	tmpnew_len = strlen (root) + 16;
+	tmpnew = g_alloca (tmpnew_len);
+	g_snprintf (
+		tmpnew, tmpnew_len,
+		"%s" G_DIR_SEPARATOR_S ".folders~", root);
 
 	out = camel_stream_fs_new_with_name (
 		tmpnew, O_WRONLY | O_CREAT | O_TRUNC, 0666, NULL);
 	if (out == NULL)
 		goto fail;
 
-	tmp = g_alloca (strlen (root) + 16);
-	sprintf (tmp, "%s" G_DIR_SEPARATOR_S ".folders", root);
+	tmp = g_alloca (tmpnew_len);
+	g_snprintf (
+		tmp, tmpnew_len,
+		"%s" G_DIR_SEPARATOR_S ".folders", root);
 	stream = camel_stream_fs_new_with_name (tmp, O_RDONLY, 0, NULL);
 	if (stream) {
 		in = camel_stream_buffer_new (stream, CAMEL_STREAM_BUFFER_READ);
@@ -104,7 +108,7 @@ folders_update (const gchar *root,
 			    && (line[flen] == 0 || line[flen] == '/')) {
 				if (camel_stream_write (out, new, strlen (new), cancellable, NULL) == -1
 				    || camel_stream_write (out, line + flen, strlen (line) - flen, cancellable, NULL) == -1
-				    || camel_stream_write(out, "\n", 1, cancellable, NULL) == -1)
+				    || camel_stream_write (out, "\n", 1, cancellable, NULL) == -1)
 					goto fail;
 				copy = FALSE;
 			}
@@ -122,7 +126,7 @@ folders_update (const gchar *root,
 				if (ret == -1)
 					goto fail;
 				mode = UPDATE_NONE;
-			} else if (tmp == NULL) {
+			} else if (cmp == 0) {
 				/* already there */
 				mode = UPDATE_NONE;
 			}
@@ -163,8 +167,9 @@ folders_update (const gchar *root,
 		goto fail;
 
 done:
-	/* should we care if this fails?  I suppose so ... */
-	g_rename (tmpnew, tmp);
+	if (g_rename (tmpnew, tmp) == -1) {
+		g_warning ("%s: Failed to rename '%s' to '%s': %s", G_STRFUNC, tmpnew, tmp, g_strerror (errno));
+	}
 fail:
 	unlink (tmpnew);		/* remove it if its there */
 	g_free (line);
@@ -188,18 +193,10 @@ fill_fi (CamelStore *store,
 	local_store = CAMEL_LOCAL_STORE (store);
 	folder = camel_object_bag_peek (store->folders, fi->full_name);
 
-	if (folder == NULL
-	    && (flags & CAMEL_STORE_FOLDER_INFO_FAST) == 0)
-		folder = camel_store_get_folder_sync (
-			store, fi->full_name, 0, cancellable, NULL);
-
 	if (folder != NULL) {
-		if ((flags & CAMEL_STORE_FOLDER_INFO_FAST) == 0)
-			camel_folder_refresh_info_sync (folder, cancellable, NULL);
 		fi->unread = camel_folder_get_unread_message_count (folder);
 		fi->total = camel_folder_get_message_count (folder);
 		g_object_unref (folder);
-
 	} else {
 		CamelLocalSettings *local_settings;
 		CamelSettings *settings;
@@ -209,10 +206,13 @@ fill_fi (CamelStore *store,
 		gchar *path;
 
 		service = CAMEL_SERVICE (store);
-		settings = camel_service_get_settings (service);
+
+		settings = camel_service_ref_settings (service);
 
 		local_settings = CAMEL_LOCAL_SETTINGS (settings);
 		path = camel_local_settings_dup_path (local_settings);
+
+		g_object_unref (settings);
 
 		/* This should be fast enough not to have to test for INFO_FAST */
 
@@ -285,6 +285,7 @@ recursive_scan (CamelStore *store,
                 GCancellable *cancellable)
 {
 	gchar *fullpath, *tmp;
+	gsize fullpath_len;
 	DIR *dp;
 	struct dirent *d;
 	struct stat st;
@@ -293,8 +294,9 @@ recursive_scan (CamelStore *store,
 
 	/* Open the specified directory. */
 	if (path[0]) {
-		fullpath = alloca (strlen (root) + strlen (path) + 2);
-		sprintf (fullpath, "%s/%s", root, path);
+		fullpath_len = strlen (root) + strlen (path) + 2;
+		fullpath = alloca (fullpath_len);
+		g_snprintf (fullpath, fullpath_len, "%s/%s", root, path);
 	} else
 		fullpath = (gchar *) root;
 
@@ -327,8 +329,8 @@ recursive_scan (CamelStore *store,
 		/* Look for subdirectories to add and scan. */
 		while ((d = readdir (dp)) != NULL) {
 			/* Skip current and parent directory. */
-			if (strcmp(d->d_name, ".") == 0
-			    || strcmp(d->d_name, "..") == 0)
+			if (strcmp (d->d_name, ".") == 0
+			    || strcmp (d->d_name, "..") == 0)
 				continue;
 
 			/* skip fully-numerical entries (i.e. mh messages) */
@@ -339,7 +341,7 @@ recursive_scan (CamelStore *store,
 			/* Otherwise, treat at potential node, and recurse,
 			 * a bit more expensive than needed, but tough! */
 			if (path[0]) {
-				tmp = g_strdup_printf("%s/%s", path, d->d_name);
+				tmp = g_strdup_printf ("%s/%s", path, d->d_name);
 				recursive_scan (
 					store, &fi->child, fi, visited,
 					root, tmp, flags, cancellable);
@@ -366,14 +368,16 @@ folders_scan (CamelStore *store,
 {
 	CamelFolderInfo *fi;
 	gchar  line[512], *path, *tmp;
+	gsize tmp_len;
 	CamelStream *stream, *in;
 	struct stat st;
 	GPtrArray *folders;
 	GHashTable *visited;
 	gint len;
 
-	tmp = g_alloca (strlen (root) + 16);
-	sprintf (tmp, "%s/.folders", root);
+	tmp_len = strlen (root) + 16;
+	tmp = g_alloca (tmp_len);
+	g_snprintf (tmp, tmp_len, "%s/.folders", root);
 	stream = camel_stream_fs_new_with_name (tmp, 0, O_RDONLY, NULL);
 	if (stream == NULL)
 		return;
@@ -429,7 +433,7 @@ folders_scan (CamelStore *store,
 		tmp = g_strdup (line);
 		g_hash_table_insert (visited, tmp, tmp);
 
-		path = g_strdup_printf("%s/%s", root, line);
+		path = g_strdup_printf ("%s/%s", root, line);
 		if (g_stat (path, &st) == 0 && S_ISDIR (st.st_mode)) {
 			fi = folder_info_new (
 				store, root, line, flags, cancellable);
@@ -498,13 +502,16 @@ mh_store_get_folder_sync (CamelStore *store,
 		return NULL;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
 
 	use_dot_folders = camel_mh_settings_get_use_dot_folders (
 		CAMEL_MH_SETTINGS (settings));
+
+	g_object_unref (settings);
 
 	name = g_build_filename (path, folder_name, NULL);
 
@@ -523,7 +530,7 @@ mh_store_get_folder_sync (CamelStore *store,
 				error, CAMEL_STORE_ERROR,
 				CAMEL_STORE_ERROR_NO_FOLDER,
 				_("Cannot get folder '%s': "
-				  "folder does not exist."),
+				"folder does not exist."),
 				folder_name);
 			goto exit;
 		}
@@ -549,13 +556,6 @@ mh_store_get_folder_sync (CamelStore *store,
 			error, CAMEL_STORE_ERROR,
 			CAMEL_STORE_ERROR_NO_FOLDER,
 			_("Cannot get folder '%s': not a directory."),
-			folder_name);
-		goto exit;
-
-	} else if (flags & CAMEL_STORE_FOLDER_EXCL) {
-		g_set_error (
-			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-			_("Cannot create folder '%s': folder exists."),
 			folder_name);
 		goto exit;
 	}
@@ -585,13 +585,16 @@ mh_store_get_folder_info_sync (CamelStore *store,
 	gchar *path;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
 
 	use_dot_folders = camel_mh_settings_get_use_dot_folders (
 		CAMEL_MH_SETTINGS (settings));
+
+	g_object_unref (settings);
 
 	/* use .folders if we are supposed to */
 	if (use_dot_folders) {
@@ -653,13 +656,16 @@ mh_store_delete_folder_sync (CamelStore *store,
 	gchar *path;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
 
 	use_dot_folders = camel_mh_settings_get_use_dot_folders (
 		CAMEL_MH_SETTINGS (settings));
+
+	g_object_unref (settings);
 
 	/* remove folder directory - will fail if not empty */
 	name = g_build_filename (path, folder_name, NULL);
@@ -705,13 +711,16 @@ mh_store_rename_folder_sync (CamelStore *store,
 	gchar *path;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
 
 	use_dot_folders = camel_mh_settings_get_use_dot_folders (
 		CAMEL_MH_SETTINGS (settings));
+
+	g_object_unref (settings);
 
 	/* Chain up to parent's rename_folder() method. */
 	store_class = CAMEL_STORE_CLASS (camel_mh_store_parent_class);

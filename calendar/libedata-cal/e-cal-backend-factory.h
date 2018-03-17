@@ -3,28 +3,30 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  * Author: Chris Toshok <toshok@ximian.com>
  */
+
+#if !defined (__LIBEDATA_CAL_H_INSIDE__) && !defined (LIBEDATA_CAL_COMPILATION)
+#error "Only <libedata-cal/libedata-cal.h> should be included directly."
+#endif
 
 #ifndef E_CAL_BACKEND_FACTORY_H
 #define E_CAL_BACKEND_FACTORY_H
 
 #include <libical/ical.h>
-#include <libebackend/e-backend-factory.h>
+#include <libebackend/libebackend.h>
 
 /* Standard GObject macros */
 #define E_TYPE_CAL_BACKEND_FACTORY \
@@ -51,13 +53,35 @@ typedef struct _ECalBackendFactory ECalBackendFactory;
 typedef struct _ECalBackendFactoryClass ECalBackendFactoryClass;
 typedef struct _ECalBackendFactoryPrivate ECalBackendFactoryPrivate;
 
+/**
+ * ECalBackendFactory:
+ *
+ * Contains only private data that should be read and manipulated using the
+ * functions below.
+ */
 struct _ECalBackendFactory {
+	/*< private >*/
 	EBackendFactory parent;
+	ECalBackendFactoryPrivate *priv;
 };
 
+/**
+ * ECalBackendFactoryClass:
+ * @factory_name: The string identifier for this book backend type
+ * @component_kind: The type if component this calendar backend should be created for
+ * @backend_type: The #GType to use to build #EBookBackends for this factory
+ *
+ * Class structure for the #ECalBackendFactory class.
+ *
+ * Subclasses need to set the factory name and backend type
+ * at initialization, the base class will take care of creating
+ * backends of the specified type on demand.
+ */
 struct _ECalBackendFactoryClass {
+	/*< private >*/
 	EBackendFactoryClass parent_class;
 
+	/*< public >*/
 	/* Subclasses just need to set these
 	 * class members, we handle the rest. */
 	const gchar *factory_name;

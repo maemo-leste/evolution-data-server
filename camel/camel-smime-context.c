@@ -1,28 +1,26 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *           Michael Zucchi <notzed@ximian.com>
  *
- *  The Initial Developer of the Original Code is Netscape
- *  Communications Corporation.  Portions created by Netscape are
- *  Copyright (C) 1994-2000 Netscape Communications Corporation.  All
- *  Rights Reserved.
+ * The Initial Developer of the Original Code is Netscape
+ * Communications Corporation.  Portions created by Netscape are
+ * Copyright (C) 1994-2000 Netscape Communications Corporation.  All
+ * Rights Reserved.
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -284,7 +282,7 @@ nss_error_to_string (glong errorcode)
 	cs (SEC_ERROR_BAD_LDAP_RESPONSE, "Server returned bad LDAP response")
 	cs (SEC_ERROR_FAILED_TO_ENCODE_DATA, "Failed to encode data with ASN1 encoder")
 	cs (SEC_ERROR_BAD_INFO_ACCESS_LOCATION, "Bad information access location in cert extension")
-	cs (SEC_ERROR_LIBPKIX_INTERNAL, "Libpkix internal error occured during cert validation.")
+	cs (SEC_ERROR_LIBPKIX_INTERNAL, "Libpkix internal error occurred during cert validation.")
 	cs (SEC_ERROR_PKCS11_GENERAL_ERROR, "A PKCS #11 module returned CKR_GENERAL_ERROR, indicating that an unrecoverable error has occurred.")
 	cs (SEC_ERROR_PKCS11_FUNCTION_FAILED, "A PKCS #11 module returned CKR_FUNCTION_FAILED, indicating that the requested function could not be performed.  Trying the same operation again might succeed.")
 	cs (SEC_ERROR_PKCS11_DEVICE_ERROR, "A PKCS #11 module returned CKR_DEVICE_ERROR, indicating that a problem has occurred with the token or slot.")
@@ -658,9 +656,10 @@ sm_verify_cmsg (CamelCipherContext *context,
 					cn = NSS_CMSSignerInfo_GetSignerCommonName (si);
 					em = NSS_CMSSignerInfo_GetSignerEmailAddress (si);
 
-					g_string_append_printf (description, _("Signer: %s <%s>: %s\n"),
-							       cn?cn:"<unknown>", em?em:"<unknown>",
-							       sm_status_description (status));
+					g_string_append_printf (
+						description, _("Signer: %s <%s>: %s\n"),
+						cn ? cn:"<unknown>", em ? em:"<unknown>",
+						sm_status_description (status));
 
 					camel_cipher_validity_add_certinfo_ex (
 						valid, CAMEL_CIPHER_VALIDITY_SIGN, cn, em,
@@ -710,19 +709,21 @@ smime_context_hash_to_id (CamelCipherContext *context,
                           CamelCipherHash hash)
 {
 	switch (hash) {
-	case CAMEL_CIPHER_HASH_MD5:
-		return "md5";
-	case CAMEL_CIPHER_HASH_SHA1:
-	case CAMEL_CIPHER_HASH_DEFAULT:
-		return "sha1";
-	case CAMEL_CIPHER_HASH_SHA256:
-		return "sha256";
-	case CAMEL_CIPHER_HASH_SHA384:
-		return "sha384";
-	case CAMEL_CIPHER_HASH_SHA512:
-		return "sha512";
-	default:
-		return NULL;
+		/* Support registered IANA hash function textual names.
+		 * http://www.iana.org/assignments/hash-function-text-names */
+		case CAMEL_CIPHER_HASH_MD5:
+			return "md5";
+		case CAMEL_CIPHER_HASH_SHA1:
+		case CAMEL_CIPHER_HASH_DEFAULT:
+			return "sha-1";
+		case CAMEL_CIPHER_HASH_SHA256:
+			return "sha-256";
+		case CAMEL_CIPHER_HASH_SHA384:
+			return "sha-384";
+		case CAMEL_CIPHER_HASH_SHA512:
+			return "sha-512";
+		default:
+			return NULL;
 	}
 }
 
@@ -730,16 +731,28 @@ static CamelCipherHash
 smime_context_id_to_hash (CamelCipherContext *context,
                           const gchar *id)
 {
-	if (id) {
-		if (!strcmp (id, "md5"))
+	if (id != NULL) {
+		/* Support registered IANA hash function textual names.
+		 * http://www.iana.org/assignments/hash-function-text-names */
+		if (g_str_equal (id, "md5"))
 			return CAMEL_CIPHER_HASH_MD5;
-		else if (!strcmp (id, "sha1"))
+		if (g_str_equal (id, "sha-1"))
 			return CAMEL_CIPHER_HASH_SHA1;
-		else if (!strcmp (id, "sha256"))
+		if (g_str_equal (id, "sha-256"))
 			return CAMEL_CIPHER_HASH_SHA256;
-		else if (!strcmp (id, "sha384"))
+		if (g_str_equal (id, "sha-384"))
 			return CAMEL_CIPHER_HASH_SHA384;
-		else if (!strcmp (id, "sha512"))
+		if (g_str_equal (id, "sha-512"))
+			return CAMEL_CIPHER_HASH_SHA512;
+
+		/* Non-standard names. */
+		if (g_str_equal (id, "sha1"))
+			return CAMEL_CIPHER_HASH_SHA1;
+		if (g_str_equal (id, "sha256"))
+			return CAMEL_CIPHER_HASH_SHA256;
+		if (g_str_equal (id, "sha384"))
+			return CAMEL_CIPHER_HASH_SHA384;
+		if (g_str_equal (id, "sha512"))
 			return CAMEL_CIPHER_HASH_SHA512;
 	}
 
@@ -832,12 +845,13 @@ smime_context_sign_sync (CamelCipherContext *context,
 		goto fail;
 	}
 
-	enc = NSS_CMSEncoder_Start (cmsg,
-				   sm_write_stream, ostream, /* DER output callback  */
-				   NULL, NULL,     /* destination storage  */
-				   NULL, NULL,	   /* password callback    */
-				   NULL, NULL,     /* decrypt key callback */
-				   NULL, NULL );   /* detached digests    */
+	enc = NSS_CMSEncoder_Start (
+		cmsg,
+		sm_write_stream, ostream, /* DER output callback  */
+		NULL, NULL,     /* destination storage  */
+		NULL, NULL,	   /* password callback    */
+		NULL, NULL,     /* decrypt key callback */
+		NULL, NULL );   /* detached digests    */
 	if (!enc) {
 		set_nss_error (error, _("Cannot create encoder context"));
 		goto fail;
@@ -886,8 +900,10 @@ smime_context_sign_sync (CamelCipherContext *context,
 		camel_content_type_unref (ct);
 		camel_multipart_set_boundary ((CamelMultipart *) mps, NULL);
 
-		mps->signature = sigpart;
-		mps->contentraw = g_object_ref (istream);
+		camel_multipart_signed_set_signature (mps, sigpart);
+		camel_multipart_signed_set_content_stream (mps, istream);
+
+		g_object_unref (sigpart);
 
 		g_seekable_seek (
 			G_SEEKABLE (istream), 0,
@@ -955,7 +971,7 @@ smime_context_verify_sync (CamelCipherContext *context,
 			g_set_error (
 				error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
 				_("Cannot verify message signature: "
-				  "Incorrect message format"));
+				"Incorrect message format"));
 			goto fail;
 		}
 
@@ -969,7 +985,7 @@ smime_context_verify_sync (CamelCipherContext *context,
 			g_set_error (
 				error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
 				_("Cannot verify message signature: "
-				  "Incorrect message format"));
+				"Incorrect message format"));
 			goto fail;
 		}
 	} else if (camel_content_type_is (ct, "application", "x-pkcs7-mime")) {
@@ -978,19 +994,22 @@ smime_context_verify_sync (CamelCipherContext *context,
 		g_set_error (
 			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
 			_("Cannot verify message signature: "
-			  "Incorrect message format"));
+			"Incorrect message format"));
 		goto fail;
 	}
 
-	dec = NSS_CMSDecoder_Start (NULL,
-				   NULL, NULL, /* content callback     */
-				   NULL, NULL,	/* password callback    */
-				   NULL, NULL); /* decrypt key callback */
+	dec = NSS_CMSDecoder_Start (
+		NULL,
+		NULL, NULL, /* content callback     */
+		NULL, NULL,	/* password callback    */
+		NULL, NULL); /* decrypt key callback */
 
 	camel_data_wrapper_decode_to_stream_sync (
 		camel_medium_get_content (
 			CAMEL_MEDIUM (sigpart)), mem, cancellable, NULL);
-	(void) NSS_CMSDecoder_Update (dec, (gchar *) buffer->data, buffer->len);
+	if (NSS_CMSDecoder_Update (dec, (gchar *) buffer->data, buffer->len) != SECSuccess) {
+		g_warning ("%s: Failed to call NSS_CMSDecoder_Update", G_STRFUNC);
+	}
 	cmsg = NSS_CMSDecoder_Finish (dec);
 	if (cmsg == NULL) {
 		set_nss_error (error, _("Decoder failed"));
@@ -1043,7 +1062,7 @@ smime_context_encrypt_sync (CamelCipherContext *context,
 	}
 
 	/* Lookup all recipients certs, for later working */
-	recipient_certs = (CERTCertificate **) PORT_ArenaZAlloc (poolp, sizeof (*recipient_certs[0]) * (recipients->len + 1));
+	recipient_certs = (CERTCertificate **) PORT_ArenaZAlloc (poolp, sizeof (recipient_certs[0]) * (recipients->len + 1));
 	if (recipient_certs == NULL) {
 		set_nss_error (error, g_strerror (ENOMEM));
 		goto fail;
@@ -1120,12 +1139,13 @@ smime_context_encrypt_sync (CamelCipherContext *context,
 
 	/* dump it out */
 	ostream = camel_stream_mem_new ();
-	enc = NSS_CMSEncoder_Start (cmsg,
-				   sm_write_stream, ostream,
-				   NULL, NULL,
-				   NULL, NULL,
-				   sm_decrypt_key, bulkkey,
-				   NULL, NULL);
+	enc = NSS_CMSEncoder_Start (
+		cmsg,
+		sm_write_stream, ostream,
+		NULL, NULL,
+		NULL, NULL,
+		sm_decrypt_key, bulkkey,
+		NULL, NULL);
 	if (enc == NULL) {
 		set_nss_error (error, _("Cannot create encoder context"));
 		goto fail;
@@ -1226,10 +1246,11 @@ smime_context_decrypt_sync (CamelCipherContext *context,
 
 	g_seekable_seek (G_SEEKABLE (istream), 0, G_SEEK_SET, NULL, NULL);
 
-	dec = NSS_CMSDecoder_Start (NULL,
-				   sm_write_stream, ostream, /* content callback     */
-				   NULL, NULL,
-				   NULL, NULL); /* decrypt key callback */
+	dec = NSS_CMSDecoder_Start (
+		NULL,
+		sm_write_stream, ostream, /* content callback     */
+		NULL, NULL,
+		NULL, NULL); /* decrypt key callback */
 
 	if (NSS_CMSDecoder_Update (dec, (gchar *) buffer->data, buffer->len) != SECSuccess) {
 		cmsg = NULL;
@@ -1381,10 +1402,11 @@ camel_smime_context_describe_part (CamelSMIMEContext *context,
 		g_seekable_seek (
 			G_SEEKABLE (istream), 0, G_SEEK_SET, NULL, NULL);
 
-		dec = NSS_CMSDecoder_Start (NULL,
-					   NULL, NULL,
-					   NULL, NULL,	/* password callback    */
-					   NULL, NULL); /* decrypt key callback */
+		dec = NSS_CMSDecoder_Start (
+			NULL,
+			NULL, NULL,
+			NULL, NULL,	/* password callback    */
+			NULL, NULL); /* decrypt key callback */
 
 		NSS_CMSDecoder_Update (dec, (gchar *) buffer->data, buffer->len);
 		g_object_unref (istream);

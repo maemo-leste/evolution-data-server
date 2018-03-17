@@ -8,19 +8,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -62,9 +60,7 @@ gchar *camel_file_util_safe_filename (const gchar *name);
 /* Code that intends to be portable to Win32 should use camel_read()
  * and camel_write() only on file descriptors returned from open(),
  * creat(), pipe() or fileno(). On Win32 camel_read() and
- * camel_write() calls will not be cancellable. For sockets, use
- * camel_read_socket() and camel_write_socket(). These are cancellable
- * also on Win32.
+ * camel_write() calls will not be cancellable.
  */
 gssize		camel_read			(gint fd,
 						 gchar *buf,
@@ -72,17 +68,6 @@ gssize		camel_read			(gint fd,
 						 GCancellable *cancellable,
 						 GError **error);
 gssize		camel_write			(gint fd,
-						 const gchar *buf,
-						 gsize n,
-						 GCancellable *cancellable,
-						 GError **error);
-
-gssize		camel_read_socket		(gint fd,
-						 gchar *buf,
-						 gsize n,
-						 GCancellable *cancellable,
-						 GError **error);
-gssize		camel_write_socket		(gint fd,
 						 const gchar *buf,
 						 gsize n,
 						 GCancellable *cancellable,

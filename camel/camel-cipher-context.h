@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -117,12 +115,12 @@ struct _CamelCipherValidity {
 };
 
 struct _CamelCipherContext {
-	CamelObject parent;
+	GObject parent;
 	CamelCipherContextPrivate *priv;
 };
 
 struct _CamelCipherContextClass {
-	CamelObjectClass parent_class;
+	GObjectClass parent_class;
 
 	/* these MUST be set by implementors */
 	const gchar *sign_protocol;
@@ -161,81 +159,9 @@ struct _CamelCipherContextClass {
 						 CamelMimePart *opart,
 						 GCancellable *cancellable,
 						 GError **error);
-	gboolean	(*import_keys_sync)	(CamelCipherContext *context,
-						 CamelStream *istream,
-						 GCancellable *cancellable,
-						 GError **error);
-	gboolean	(*export_keys_sync)	(CamelCipherContext *context,
-						 GPtrArray *keys,
-						 CamelStream *ostream,
-						 GCancellable *cancellable,
-						 GError **error);
 
-	/* Asynchronous I/O Methods (all have defaults) */
-	void		(*sign)			(CamelCipherContext *context,
-						 const gchar *userid,
-						 CamelCipherHash hash,
-						 CamelMimePart *ipart,
-						 CamelMimePart *opart,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	gboolean	(*sign_finish)		(CamelCipherContext *context,
-						 GAsyncResult *result,
-						 GError **error);
-	void		(*verify)		(CamelCipherContext *context,
-						 CamelMimePart *ipart,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	CamelCipherValidity *
-			(*verify_finish)	(CamelCipherContext *context,
-						 GAsyncResult *result,
-						 GError **error);
-	void		(*encrypt)		(CamelCipherContext *context,
-						 const gchar *user_id,
-						 GPtrArray *recipients,
-						 CamelMimePart *ipart,
-						 CamelMimePart *opart,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	gboolean	(*encrypt_finish)	(CamelCipherContext *context,
-						 GAsyncResult *result,
-						 GError **error);
-	void		(*decrypt)		(CamelCipherContext *context,
-						 CamelMimePart *ipart,
-						 CamelMimePart *opart,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	CamelCipherValidity *
-			(*decrypt_finish)	(CamelCipherContext *context,
-						 GAsyncResult *result,
-						 GError **error);
-	void		(*import_keys)		(CamelCipherContext *context,
-						 CamelStream *istream,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	gboolean	(*import_keys_finish)	(CamelCipherContext *context,
-						 GAsyncResult *result,
-						 GError **error);
-	void		(*export_keys)		(CamelCipherContext *context,
-						 GPtrArray *keys,
-						 CamelStream *ostream,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	gboolean	(*export_keys_finish)	(CamelCipherContext *context,
-						 GAsyncResult *result,
-						 GError **error);
+	/* Reserved slots. */
+	gpointer reserved[8];
 };
 
 GType		camel_cipher_context_get_type	(void);
@@ -330,42 +256,6 @@ void		camel_cipher_context_decrypt	(CamelCipherContext *context,
 						 gpointer user_data);
 CamelCipherValidity *
 		camel_cipher_context_decrypt_finish
-						(CamelCipherContext *context,
-						 GAsyncResult *result,
-						 GError **error);
-
-/* key/certificate routines */
-gboolean	camel_cipher_context_import_keys_sync
-						(CamelCipherContext *context,
-						 CamelStream *istream,
-						 GCancellable *cancellable,
-						 GError **error);
-void		camel_cipher_context_import_keys
-						(CamelCipherContext *context,
-						 CamelStream *istream,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-gboolean	camel_cipher_context_import_keys_finish
-						(CamelCipherContext *context,
-						 GAsyncResult *result,
-						 GError **error);
-gboolean	camel_cipher_context_export_keys_sync
-						(CamelCipherContext *context,
-						 GPtrArray *keys,
-						 CamelStream *ostream,
-						 GCancellable *cancellable,
-						 GError **error);
-void		camel_cipher_context_export_keys
-						(CamelCipherContext *context,
-						 GPtrArray *keys,
-						 CamelStream *ostream,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-gboolean	camel_cipher_context_export_keys_finish
 						(CamelCipherContext *context,
 						 GAsyncResult *result,
 						 GError **error);

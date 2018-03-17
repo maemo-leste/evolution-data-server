@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -156,9 +154,10 @@ gint main (gint argc, gchar **argv)
 				inbuf++;
 				inleft--;
 			} else {
-				g_warning ("iconv (%s->UCS4, ..., %d, ..., %d): %s",
-					   tables[j].name, inleft, outleft,
-					   g_strerror (errno));
+				g_warning (
+					"iconv (%s->UCS4, ..., %d, ..., %d): %s",
+					tables[j].name, inleft, outleft,
+					g_strerror (errno));
 				exit (1);
 			}
 		}
@@ -225,7 +224,7 @@ gint main (gint argc, gchar **argv)
 			if (!has_bits)
 				continue;
 
-			sprintf (name, "m%02x%x", i, k);
+			g_snprintf (name, sizeof (name), "m%02x%x", i, k);
 
 			if ((alias = g_hash_table_lookup (table_hash, block))) {
 				/* this block is identical to an earlier block, just alias it */
@@ -276,9 +275,15 @@ gint main (gint argc, gchar **argv)
 	}
 	printf ("\n};\n\n");
 
-	printf ("static const struct {\n\tconst gchar *name;\n\tguint bit;\n} camel_charinfo[] = {\n");
+	printf (
+		"static const struct {\n"
+		"\tconst gchar *name;\n"
+		"\tguint bit;\n"
+		"} camel_charinfo[] = {\n");
 	for (j = 0; tables[j].name; j++)
-		printf ("\t{ \"%s\", 0x%08x },\n", tables[j].name, tables[j].bit);
+		printf (
+			"\t{ \"%s\", 0x%08x },\n",
+			tables[j].name, tables[j].bit);
 	printf ("};\n\n");
 
 	printf ("#define charset_mask(x) \\\n");
@@ -288,7 +293,9 @@ gint main (gint argc, gchar **argv)
 		else
 			printf ("\t");
 
-		printf ("(camel_charmap[(x) >> 8].bits%d ? camel_charmap[(x) >> 8].bits%d[(x) & 0xff] << %d : 0)",
+		printf (
+			"(camel_charmap[(x) >> 8].bits%d ? "
+			"camel_charmap[(x) >> 8].bits%d[(x) & 0xff] << %d : 0)",
 			k, k, k * 8);
 
 		if (k < bytes - 1)

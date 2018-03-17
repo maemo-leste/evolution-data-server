@@ -1,42 +1,62 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 
 #include <stdlib.h>
-#include <libecal/e-cal.h>
+#include <libecal/libecal.h>
 #include <libical/ical.h>
 
 #include "ecal-test-utils.h"
+#include "e-test-server-utils.h"
 
-gint
-main (gint argc,
-      gchar **argv)
+static ETestServerClosure cal_closure =
+	{ E_TEST_SERVER_DEPRECATED_CALENDAR, NULL, E_CAL_SOURCE_TYPE_EVENT };
+
+static void
+test_send_objects (ETestServerFixture *fixture,
+                   gconstpointer user_data)
 {
 	ECal *cal;
-	gchar *uri = NULL;
 	GList *users = NULL;
 	ECalComponent *e_component = NULL;
 	icalcomponent *component = NULL;
 	icalcomponent *modified_component = NULL;
 	gchar *uid = NULL;
 
-	g_type_init ();
+	cal = E_TEST_SERVER_UTILS_SERVICE (fixture, ECal);
 
-	cal = ecal_test_utils_cal_new_temp (&uri, E_CAL_SOURCE_TYPE_EVENT);
-	ecal_test_utils_cal_open (cal, FALSE);
+	ecal_test_utils_create_component (
+		cal,
+		"20040109T090000Z", "UTC",
+		"20040109T103000", "UTC",
+		"new event", &e_component, &uid);
 
-        ecal_test_utils_create_component (cal, "20040109T090000Z", "UTC",
-                        "20040109T103000", "UTC", "new event", &e_component,
-			&uid);
-
+	/* FIXME: This test seems to be a false positive,
+	 * ecal_test_utils_cal_send_objects() successfully sends no objects
+	 * (test print shows the objects successfully sent are "(none)".
+	 */
 	component = e_cal_component_get_icalcomponent (e_component);
 	ecal_test_utils_cal_send_objects (cal, component, &users, &modified_component);
-
-	ecal_test_utils_cal_remove (cal);
 
 	g_list_foreach (users, (GFunc) g_free, NULL);
 	g_list_free (users);
 
 	g_object_unref (e_component);
 	g_free (uid);
+}
 
-	return 0;
+gint
+main (gint argc,
+      gchar **argv)
+{
+	g_test_init (&argc, &argv, NULL);
+	g_test_bug_base ("http://bugzilla.gnome.org/");
+
+	g_test_add (
+		"/ECal/SendObjects",
+		ETestServerFixture,
+		&cal_closure,
+		e_test_server_utils_setup,
+		test_send_objects,
+		e_test_server_utils_teardown);
+
+	return e_test_server_utils_run ();
 }

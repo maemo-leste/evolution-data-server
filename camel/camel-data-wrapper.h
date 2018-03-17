@@ -1,24 +1,22 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Bertrand Guiheneuf <bertrand@helixcode.com>
- *           Michael Zucchi <notzed@ximian.com>
- *           Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Bertrand Guiheneuf <bertrand@helixcode.com>
+ *          Michael Zucchi <notzed@ximian.com>
+ *          Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -59,17 +57,8 @@ typedef struct _CamelDataWrapper CamelDataWrapper;
 typedef struct _CamelDataWrapperClass CamelDataWrapperClass;
 typedef struct _CamelDataWrapperPrivate CamelDataWrapperPrivate;
 
-/**
- * CamelDataWrapperLock:
- *
- * Since: 2.32
- **/
-typedef enum {
-	CAMEL_DATA_WRAPPER_STREAM_LOCK
-} CamelDataWrapperLock;
-
 struct _CamelDataWrapper {
-	CamelObject parent;
+	GObject parent;
 	CamelDataWrapperPrivate *priv;
 
 	CamelTransferEncoding encoding;
@@ -80,7 +69,7 @@ struct _CamelDataWrapper {
 };
 
 struct _CamelDataWrapperClass {
-	CamelObjectClass parent_class;
+	GObjectClass parent_class;
 
 	/* Non-Blocking Methods */
 	void		(*set_mime_type)	(CamelDataWrapper *data_wrapper,
@@ -106,39 +95,24 @@ struct _CamelDataWrapperClass {
 						 CamelStream *stream,
 						 GCancellable *cancellable,
 						 GError **error);
+	gssize		(*write_to_output_stream_sync)
+						(CamelDataWrapper *data_wrapper,
+						 GOutputStream *output_stream,
+						 GCancellable *cancellable,
+						 GError **error);
+	gssize		(*decode_to_output_stream_sync)
+						(CamelDataWrapper *data_wrapper,
+						 GOutputStream *output_stream,
+						 GCancellable *cancellable,
+						 GError **error);
+	gboolean	(*construct_from_input_stream_sync)
+						(CamelDataWrapper *data_wrapper,
+						 GInputStream *input_stream,
+						 GCancellable *cancellable,
+						 GError **error);
 
-	/* Asyncrhonous I/O Methods (all have defaults) */
-	void		(*write_to_stream)	(CamelDataWrapper *data_wrapper,
-						 CamelStream *stream,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	gssize		(*write_to_stream_finish)
-						(CamelDataWrapper *data_wrapper,
-						 GAsyncResult *result,
-						 GError **error);
-	void		(*decode_to_stream)	(CamelDataWrapper *data_wrapper,
-						 CamelStream *stream,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	gssize		(*decode_to_stream_finish)
-						(CamelDataWrapper *data_wrapper,
-						 GAsyncResult *result,
-						 GError **error);
-	void		(*construct_from_stream)
-						(CamelDataWrapper *data_wrapper,
-						 CamelStream *stream,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	gboolean	(*construct_from_stream_finish)
-						(CamelDataWrapper *data_wrapper,
-						 GAsyncResult *result,
-						 GError **error);
+	/* Reserved slots. */
+	gpointer reserved[3];
 };
 
 GType		camel_data_wrapper_get_type	(void);
@@ -158,10 +132,6 @@ void		camel_data_wrapper_set_mime_type_field
 						(CamelDataWrapper *data_wrapper,
 						 CamelContentType *mime_type);
 gboolean	camel_data_wrapper_is_offline	(CamelDataWrapper *data_wrapper);
-void		camel_data_wrapper_lock		(CamelDataWrapper *data_wrapper,
-						 CamelDataWrapperLock lock);
-void		camel_data_wrapper_unlock	(CamelDataWrapper *data_wrapper,
-						 CamelDataWrapperLock lock);
 
 gssize		camel_data_wrapper_write_to_stream_sync
 						(CamelDataWrapper *data_wrapper,
@@ -208,6 +178,54 @@ void		camel_data_wrapper_construct_from_stream
 						 GAsyncReadyCallback callback,
 						 gpointer user_data);
 gboolean	camel_data_wrapper_construct_from_stream_finish
+						(CamelDataWrapper *data_wrapper,
+						 GAsyncResult *result,
+						 GError **error);
+gssize		camel_data_wrapper_write_to_output_stream_sync
+						(CamelDataWrapper *data_wrapper,
+						 GOutputStream *output_stream,
+						 GCancellable *cancellable,
+						 GError **error);
+void		camel_data_wrapper_write_to_output_stream
+						(CamelDataWrapper *data_wrapper,
+						 GOutputStream *output_stream,
+						 gint io_priority,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gssize		camel_data_wrapper_write_to_output_stream_finish
+						(CamelDataWrapper *data_wrapper,
+						 GAsyncResult *result,
+						 GError **error);
+gssize		camel_data_wrapper_decode_to_output_stream_sync
+						(CamelDataWrapper *data_wrapper,
+						 GOutputStream *output_stream,
+						 GCancellable *cancellable,
+						 GError **error);
+void		camel_data_wrapper_decode_to_output_stream
+						(CamelDataWrapper *data_wrapper,
+						 GOutputStream *output_stream,
+						 gint io_priority,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gssize		camel_data_wrapper_decode_to_output_stream_finish
+						(CamelDataWrapper *data_wrapper,
+						 GAsyncResult *result,
+						 GError **error);
+gboolean	camel_data_wrapper_construct_from_input_stream_sync
+						(CamelDataWrapper *data_wrapper,
+						 GInputStream *input_stream,
+						 GCancellable *cancellable,
+						 GError **error);
+void		camel_data_wrapper_construct_from_input_stream
+						(CamelDataWrapper *data_wrapper,
+						 GInputStream *input_stream,
+						 gint io_priority,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	camel_data_wrapper_construct_from_input_stream_finish
 						(CamelDataWrapper *data_wrapper,
 						 GAsyncResult *result,
 						 GError **error);

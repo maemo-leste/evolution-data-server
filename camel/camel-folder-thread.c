@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /* TODO: This could probably be made a camel object, but it isn't really required */
@@ -48,7 +46,7 @@ static void
 container_add_child (CamelFolderThreadNode *node,
                      CamelFolderThreadNode *child)
 {
-	d(printf("\nAdding child %p to parent %p \n", child, node));
+	d (printf ("\nAdding child %p to parent %p \n", child, node));
 	child->next = node->child;
 	node->child = child;
 	child->parent = node;
@@ -81,11 +79,11 @@ container_parent_child (CamelFolderThreadNode *parent,
 	/* else remove child from its existing parent, and reparent */
 	node = child->parent;
 	c = (CamelFolderThreadNode *) &node->child;
-	d(printf("scanning children:\n"));
+	d (printf ("scanning children:\n"));
 	while (c->next) {
-		d(printf(" %p\n", c));
+		d (printf (" %p\n", c));
 		if (c->next == child) {
-			d(printf("found node %p\n", child));
+			d (printf ("found node %p\n", child));
 			c->next = c->next->next;
 			child->parent = NULL;
 			container_add_child (parent, child);
@@ -94,7 +92,7 @@ container_parent_child (CamelFolderThreadNode *parent,
 		c = c->next;
 	}
 
-	printf("DAMN, we shouldn't  be here!\n");
+	printf ("DAMN, we shouldn't  be here!\n");
 }
 
 static void
@@ -109,19 +107,21 @@ prune_empty (CamelFolderThread *thread,
 		c = lastc->next;
 		prune_empty (thread, &c->child);
 
-		d(printf("checking message %p %p (%08x%08x)\n", c,
-			 c->message, c->message ? c->message->message_id.id.part.hi : 0,
-			 c->message ? c->message->message_id.id.part.lo : 0));
+		d (printf (
+			"checking message %p %p (%08x%08x)\n", c,
+			c->message,
+			c->message ? c->message->message_id.id.part.hi : 0,
+			c->message ? c->message->message_id.id.part.lo : 0));
 		if (c->message == NULL) {
 			if (c->child == NULL) {
-				d(printf("removing empty node\n"));
+				d (printf ("removing empty node\n"));
 				lastc->next = c->next;
 				m (memset (c, 0xfe, sizeof (*c)));
 				camel_memchunk_free (thread->node_chunks, c);
 				continue;
 			}
 			if (c->parent || c->child->next == NULL) {
-				d(printf("promoting child\n"));
+				d (printf ("promoting child\n"));
 				lastc->next = c->next; /* remove us */
 				child = c->child;
 				while (child) {
@@ -227,7 +227,7 @@ remove_node (CamelFolderThreadNode **list,
 		c = c->next;
 	}
 
-	printf("ERROR: removing node %p failed\n", (gpointer) node);
+	printf ("ERROR: removing node %p failed\n", (gpointer) node);
 }
 
 static void
@@ -238,7 +238,7 @@ group_root_set (CamelFolderThread *thread,
 	CamelFolderThreadNode *c, *clast, *scan, *container;
 
 	/* gather subject lines */
-	d(printf("gathering subject lines\n"));
+	d (printf ("gathering subject lines\n"));
 	clast = (CamelFolderThreadNode *) cp;
 	c = clast->next;
 	while (c) {
@@ -258,13 +258,13 @@ group_root_set (CamelFolderThread *thread,
 	clast = (CamelFolderThreadNode *) cp;
 	while (clast->next) {
 		c = clast->next;
-		d(printf("checking %p %s\n", c, c->root_subject));
+		d (printf ("checking %p %s\n", c, c->root_subject));
 		if (c->root_subject
 		    && (container = g_hash_table_lookup (subject_table, c->root_subject))
 		    && (container != c)) {
-			d(printf(" matching %p %s\n", container, container->root_subject));
+			d (printf (" matching %p %s\n", container, container->root_subject));
 			if (c->message == NULL && container->message == NULL) {
-				d(printf("merge containers children\n"));
+				d (printf ("merge containers children\n"));
 				/* steal the children from c onto container, and unlink c */
 				scan = (CamelFolderThreadNode *) &container->child;
 				while (scan->next)
@@ -275,25 +275,25 @@ group_root_set (CamelFolderThread *thread,
 				camel_memchunk_free (thread->node_chunks, c);
 				continue;
 			} if (c->message == NULL && container->message != NULL) {
-				d(printf("container is non-empty parent\n"));
+				d (printf ("container is non-empty parent\n"));
 				remove_node (cp, container, &clast);
 				container_add_child (c, container);
 			} else if (c->message != NULL && container->message == NULL) {
-				d(printf("container is empty child\n"));
+				d (printf ("container is empty child\n"));
 				clast->next = c->next;
 				container_add_child (container, c);
 				continue;
 			} else if (c->re && !container->re) {
-				d(printf("container is re\n"));
+				d (printf ("container is re\n"));
 				clast->next = c->next;
 				container_add_child (container, c);
 				continue;
 			} else if (!c->re && container->re) {
-				d(printf("container is not re\n"));
+				d (printf ("container is not re\n"));
 				remove_node (cp, container, &clast);
 				container_add_child (c, container);
 			} else {
-				d(printf("subjects are common %p and %p\n", c, container));
+				d (printf ("subjects are common %p and %p\n", c, container));
 
 				/* build a phantom node */
 				remove_node (cp, container, &clast);
@@ -335,16 +335,20 @@ dump_tree_rec (struct _tree_info *info,
 
 	while (c) {
 		if (g_hash_table_lookup (info->visited, c)) {
-			printf("WARNING: NODE REVISITED: %p\n", (gpointer) c);
+			printf ("WARNING: NODE REVISITED: %p\n", (gpointer) c);
 		} else {
 			g_hash_table_insert (info->visited, c, c);
 		}
 		if (c->message) {
-			printf("%s %p Subject: %s <%08x%08x>\n", p, (gpointer) c, camel_message_info_subject(c->message),
-			       camel_message_info_message_id (c->message)->id.part.hi, camel_message_info_message_id (c->message)->id.part.lo);
+			printf (
+				"%s %p Subject: %s <%08x%08x>\n",
+				p, (gpointer) c,
+				camel_message_info_subject (c->message),
+				camel_message_info_message_id (c->message)->id.part.hi,
+				camel_message_info_message_id (c->message)->id.part.lo);
 			count += 1;
 		} else {
-			printf("%s %p <empty>\n", p, (gpointer) c);
+			printf ("%s %p <empty>\n", p, (gpointer) c);
 		}
 		if (c->child)
 			count += dump_tree_rec (info, c->child, depth + 1);
@@ -468,16 +472,16 @@ thread_summary (CamelFolderThread *thread,
 			if (c && c->order) {
 				/* if duplicate, just make out it is a no-id message,  but try and insert it
 				 * into the right spot in the tree */
-				d(printf("doing: (duplicate message id)\n"));
+				d (printf ("doing: (duplicate message id)\n"));
 				c = camel_memchunk_alloc0 (thread->node_chunks);
 				g_hash_table_insert (no_id_table, (gpointer) mi, c);
 			} else if (!c) {
-				d(printf("doing : %08x%08x (%s)\n", mid->id.part.hi, mid->id.part.lo, camel_message_info_subject(mi)));
+				d (printf ("doing : %08x%08x (%s)\n", mid->id.part.hi, mid->id.part.lo, camel_message_info_subject (mi)));
 				c = camel_memchunk_alloc0 (thread->node_chunks);
 				g_hash_table_insert (id_table, (gpointer) mid, c);
 			}
 		} else {
-			d(printf("doing : (no message id)\n"));
+			d (printf ("doing : (no message id)\n"));
 			c = camel_memchunk_alloc0 (thread->node_chunks);
 			g_hash_table_insert (no_id_table, (gpointer) mi, c);
 		}
@@ -488,7 +492,7 @@ thread_summary (CamelFolderThread *thread,
 		if (references) {
 			gint j;
 
-			d(printf("%s (%s) references:\n", G_STRLOC, G_STRFUNC); )
+			d (printf ("%s (%s) references:\n", G_STRLOC, G_STRFUNC); )
 			for (j = 0; j < references->size; j++) {
 				gboolean found = FALSE;
 
@@ -498,7 +502,7 @@ thread_summary (CamelFolderThread *thread,
 
 				c = g_hash_table_lookup (id_table, &references->references[j]);
 				if (c == NULL) {
-					d(printf("%s (%s) not found\n", G_STRLOC, G_STRFUNC));
+					d (printf ("%s (%s) not found\n", G_STRLOC, G_STRFUNC));
 					c = camel_memchunk_alloc0 (thread->node_chunks);
 					g_hash_table_insert (id_table, (gpointer) &references->references[j], c);
 				} else
@@ -516,7 +520,7 @@ thread_summary (CamelFolderThread *thread,
 		}
 	}
 
-	d(printf("\n\n"));
+	d (printf ("\n\n"));
 	/* build a list of root messages (no parent) */
 	head = NULL;
 	g_hash_table_foreach (id_table, hashloop, &head);
@@ -533,9 +537,9 @@ thread_summary (CamelFolderThread *thread,
 		group_root_set (thread, &head);
 
 #if 0
-	printf("finished\n");
+	printf ("finished\n");
 	i = camel_folder_threaded_messages_dump (head);
-	printf("%d count, %d items in tree\n", summary->len, i);
+	printf ("%d count, %d items in tree\n", summary->len, i);
 #endif
 
 	sort_thread (&head);
@@ -578,9 +582,9 @@ thread_summary (CamelFolderThread *thread,
 	while (c->next) {
 		c = c->next;
 		if (c->message == NULL)
-			g_warning("threading missed removing a pseudo node: %s\n", c->root_subject);
+			g_warning ("threading missed removing a pseudo node: %s\n", c->root_subject);
 		if (c->parent != NULL)
-			g_warning("base node has a non-null parent: %s\n", c->root_subject);
+			g_warning ("base node has a non-null parent: %s\n", c->root_subject);
 	}
 
 	thread->tree = head;
@@ -589,8 +593,9 @@ thread_summary (CamelFolderThread *thread,
 	gettimeofday (&end, NULL);
 	diff = end.tv_sec * 1000 + end.tv_usec / 1000;
 	diff -= start.tv_sec * 1000 + start.tv_usec / 1000;
-	printf("Message threading %d messages took %ld.%03ld seconds\n",
-	       summary->len, diff / 1000, diff % 1000);
+	printf (
+		"Message threading %d messages took %ld.%03ld seconds\n",
+		summary->len, diff / 1000, diff % 1000);
 #endif
 }
 
@@ -665,13 +670,18 @@ add_present_rec (CamelFolderThread *thread,
                  CamelFolderThreadNode *node)
 {
 	while (node) {
-		const gchar *uid = camel_message_info_uid (node->message);
+		CamelMessageInfo *info;
+		const gchar *uid;
 
-		if (g_hash_table_lookup (have, (gchar *) uid)) {
-			g_hash_table_remove (have, (gchar *) camel_message_info_uid (node->message));
-			g_ptr_array_add (summary, (gpointer) node->message);
+		/* XXX Casting away const. */
+		info = (CamelMessageInfo *) node->message;
+		uid = camel_message_info_uid (info);
+
+		if (g_hash_table_lookup (have, uid)) {
+			g_hash_table_remove (have, uid);
+			g_ptr_array_add (summary, info);
 		} else {
-			camel_folder_free_message_info (thread->folder, (CamelMessageInfo *) node->message);
+			camel_message_info_unref (info);
 		}
 
 		if (node->child)
@@ -736,7 +746,7 @@ camel_folder_thread_messages_unref (CamelFolderThread *thread)
 		gint i;
 
 		for (i = 0; i < thread->summary->len; i++)
-			camel_folder_free_message_info (thread->folder, thread->summary->pdata[i]);
+			camel_message_info_unref (thread->summary->pdata[i]);
 		g_ptr_array_free (thread->summary, TRUE);
 		g_object_unref (thread->folder);
 	}

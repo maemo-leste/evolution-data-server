@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -57,9 +55,9 @@ static GHashTable *poplast;
 /* use 1 hour as our pop timeout */
 #define POPB4SMTP_TIMEOUT (60*60)
 
-static GStaticMutex lock = G_STATIC_MUTEX_INIT;
-#define POPB4SMTP_LOCK(l) g_static_mutex_lock(&l)
-#define POPB4SMTP_UNLOCK(l) g_static_mutex_unlock(&l)
+static GMutex lock;
+#define POPB4SMTP_LOCK(l) g_mutex_lock(&l)
+#define POPB4SMTP_UNLOCK(l) g_mutex_unlock(&l)
 
 G_DEFINE_TYPE (CamelSaslPOPB4SMTP, camel_sasl_popb4smtp, CAMEL_TYPE_SASL)
 
@@ -76,7 +74,7 @@ sasl_popb4smtp_challenge_sync (CamelSasl *sasl,
 	gchar *pop_uid;
 
 	service = camel_sasl_get_service (sasl);
-	session = camel_service_get_session (service);
+	session = camel_service_ref_session (service);
 
 	camel_sasl_set_authenticated (sasl, FALSE);
 
@@ -85,16 +83,18 @@ sasl_popb4smtp_challenge_sync (CamelSasl *sasl,
 		"popb4smtp_uid", 0, error);
 
 	if (pop_uid != NULL)
-		service = camel_session_get_service (session, pop_uid);
+		service = camel_session_ref_service (session, pop_uid);
 	else
 		service = NULL;
+
+	g_object_unref (session);
 
 	if (service == NULL) {
 		g_set_error (
 			error, CAMEL_SERVICE_ERROR,
 			CAMEL_SERVICE_ERROR_CANT_AUTHENTICATE,
 			_("POP Before SMTP authentication "
-			  "using an unknown transport"));
+			"using an unknown transport"));
 		g_free (pop_uid);
 		return NULL;
 	}
@@ -106,9 +106,8 @@ sasl_popb4smtp_challenge_sync (CamelSasl *sasl,
 			error, CAMEL_SERVICE_ERROR,
 			CAMEL_SERVICE_ERROR_CANT_AUTHENTICATE,
 			_("POP Before SMTP authentication attempted "
-			  "with a %s service"), type_name);
-		g_free (pop_uid);
-		return NULL;
+			"with a %s service"), type_name);
+		goto exit;
 	}
 
 	if (strstr (type_name, "POP") == NULL) {
@@ -116,9 +115,8 @@ sasl_popb4smtp_challenge_sync (CamelSasl *sasl,
 			error, CAMEL_SERVICE_ERROR,
 			CAMEL_SERVICE_ERROR_CANT_AUTHENTICATE,
 			_("POP Before SMTP authentication attempted "
-			  "with a %s service"), type_name);
-		g_free (pop_uid);
-		return NULL;
+			"with a %s service"), type_name);
+		goto exit;
 	}
 
 	/* check if we've done it before recently in this session */
@@ -127,13 +125,13 @@ sasl_popb4smtp_challenge_sync (CamelSasl *sasl,
 	/* need to lock around the whole thing until finished with timep */
 
 	POPB4SMTP_LOCK (lock);
+
 	timep = g_hash_table_lookup (poplast, pop_uid);
 	if (timep) {
 		if ((*timep + POPB4SMTP_TIMEOUT) > now) {
 			camel_sasl_set_authenticated (sasl, TRUE);
 			POPB4SMTP_UNLOCK (lock);
-			g_free (pop_uid);
-			return NULL;
+			goto exit;
 		}
 	} else {
 		timep = g_malloc0 (sizeof (*timep));
@@ -141,7 +139,7 @@ sasl_popb4smtp_challenge_sync (CamelSasl *sasl,
 	}
 
 	/* connect to pop session */
-	if (camel_service_connect_sync (service, error)) {
+	if (camel_service_connect_sync (service, cancellable, error)) {
 		camel_sasl_set_authenticated (sasl, TRUE);
 		*timep = now;
 	} else {
@@ -151,6 +149,8 @@ sasl_popb4smtp_challenge_sync (CamelSasl *sasl,
 
 	POPB4SMTP_UNLOCK (lock);
 
+exit:
+	g_object_unref (service);
 	g_free (pop_uid);
 
 	return NULL;

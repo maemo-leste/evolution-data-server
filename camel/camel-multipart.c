@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -35,18 +33,26 @@
 #include "camel-multipart.h"
 #include "camel-stream-mem.h"
 
-#define d(x)
+#define CAMEL_MULTIPART_GET_PRIVATE(obj) \
+	(G_TYPE_INSTANCE_GET_PRIVATE \
+	((obj), CAMEL_TYPE_MULTIPART, CamelMultipartPrivate))
+
+struct _CamelMultipartPrivate {
+	GPtrArray *parts;
+	gchar *preface;
+	gchar *postface;
+};
 
 G_DEFINE_TYPE (CamelMultipart, camel_multipart, CAMEL_TYPE_DATA_WRAPPER)
 
 static void
 multipart_dispose (GObject *object)
 {
-	CamelMultipart *multipart = CAMEL_MULTIPART (object);
+	CamelMultipartPrivate *priv;
 
-	g_list_foreach (multipart->parts, (GFunc) g_object_unref, NULL);
-	g_list_free (multipart->parts);
-	multipart->parts = NULL;
+	priv = CAMEL_MULTIPART_GET_PRIVATE (object);
+
+	g_ptr_array_set_size (priv->parts, 0);
 
 	/* Chain up to parent's dispose() method. */
 	G_OBJECT_CLASS (camel_multipart_parent_class)->dispose (object);
@@ -55,10 +61,14 @@ multipart_dispose (GObject *object)
 static void
 multipart_finalize (GObject *object)
 {
-	CamelMultipart *multipart = CAMEL_MULTIPART (object);
+	CamelMultipartPrivate *priv;
 
-	g_free (multipart->preface);
-	g_free (multipart->postface);
+	priv = CAMEL_MULTIPART_GET_PRIVATE (object);
+
+	g_ptr_array_unref (priv->parts);
+
+	g_free (priv->preface);
+	g_free (priv->postface);
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (camel_multipart_parent_class)->finalize (object);
@@ -67,14 +77,18 @@ multipart_finalize (GObject *object)
 static gboolean
 multipart_is_offline (CamelDataWrapper *data_wrapper)
 {
-	CamelMultipart *multipart = CAMEL_MULTIPART (data_wrapper);
-	GList *node;
+	CamelMultipartPrivate *priv;
 	CamelDataWrapper *part;
+	guint ii;
 
+	priv = CAMEL_MULTIPART_GET_PRIVATE (data_wrapper);
+
+	/* Chain up to parent's is_offline() method. */
 	if (CAMEL_DATA_WRAPPER_CLASS (camel_multipart_parent_class)->is_offline (data_wrapper))
 		return TRUE;
-	for (node = multipart->parts; node; node = node->next) {
-		part = node->data;
+
+	for (ii = 0; ii < priv->parts->len; ii++) {
+		part = g_ptr_array_index (priv->parts, ii);
 		if (camel_data_wrapper_is_offline (part))
 			return TRUE;
 	}
@@ -89,15 +103,18 @@ multipart_write_to_stream_sync (CamelDataWrapper *data_wrapper,
                                 GCancellable *cancellable,
                                 GError **error)
 {
-	CamelMultipart *multipart = CAMEL_MULTIPART (data_wrapper);
+	CamelMultipartPrivate *priv;
 	const gchar *boundary;
-	GList *node;
 	gchar *content;
 	gssize total = 0;
 	gssize count;
+	guint ii;
+
+	priv = CAMEL_MULTIPART_GET_PRIVATE (data_wrapper);
 
 	/* get the bundary text */
-	boundary = camel_multipart_get_boundary (multipart);
+	boundary = camel_multipart_get_boundary (
+		CAMEL_MULTIPART (data_wrapper));
 
 	/* we cannot write a multipart without a boundary string */
 	g_return_val_if_fail (boundary, -1);
@@ -107,9 +124,9 @@ multipart_write_to_stream_sync (CamelDataWrapper *data_wrapper,
 	 *   "This is a mime message, if you see this, then
 	 *    your mail client probably doesn't support ...."
 	 */
-	if (multipart->preface) {
+	if (priv->preface != NULL) {
 		count = camel_stream_write_string (
-			stream, multipart->preface, cancellable, error);
+			stream, priv->preface, cancellable, error);
 		if (count == -1)
 			return -1;
 		total += count;
@@ -119,8 +136,11 @@ multipart_write_to_stream_sync (CamelDataWrapper *data_wrapper,
 	 * Now, write all the parts, separated by the boundary
 	 * delimiter
 	 */
-	node = multipart->parts;
-	while (node) {
+	for (ii = 0; ii < priv->parts->len; ii++) {
+		CamelDataWrapper *part;
+
+		part = g_ptr_array_index (priv->parts, ii);
+
 		content = g_strdup_printf ("\n--%s\n", boundary);
 		count = camel_stream_write_string (
 			stream, content, cancellable, error);
@@ -130,12 +150,10 @@ multipart_write_to_stream_sync (CamelDataWrapper *data_wrapper,
 		total += count;
 
 		count = camel_data_wrapper_write_to_stream_sync (
-			CAMEL_DATA_WRAPPER (node->data),
-			stream, cancellable, error);
+			part, stream, cancellable, error);
 		if (count == -1)
 			return -1;
 		total += count;
-		node = node->next;
 	}
 
 	/* write the terminating boudary delimiter */
@@ -148,12 +166,103 @@ multipart_write_to_stream_sync (CamelDataWrapper *data_wrapper,
 	total += count;
 
 	/* and finally the postface */
-	if (multipart->postface) {
+	if (priv->postface != NULL) {
 		count = camel_stream_write_string (
-			stream, multipart->postface, cancellable, error);
+			stream, priv->postface, cancellable, error);
 		if (count == -1)
 			return -1;
 		total += count;
+	}
+
+	return total;
+}
+
+/* this is MIME specific, doesn't belong here really */
+static gssize
+multipart_write_to_output_stream_sync (CamelDataWrapper *data_wrapper,
+                                       GOutputStream *output_stream,
+                                       GCancellable *cancellable,
+                                       GError **error)
+{
+	CamelMultipartPrivate *priv;
+	const gchar *boundary;
+	gchar *content;
+	gsize bytes_written;
+	gssize total = 0;
+	gboolean success;
+	guint ii;
+
+	priv = CAMEL_MULTIPART_GET_PRIVATE (data_wrapper);
+
+	/* get the bundary text */
+	boundary = camel_multipart_get_boundary (
+		CAMEL_MULTIPART (data_wrapper));
+
+	/* we cannot write a multipart without a boundary string */
+	g_return_val_if_fail (boundary, -1);
+
+	/*
+	 * write the preface text (usually something like
+	 *   "This is a mime message, if you see this, then
+	 *    your mail client probably doesn't support ...."
+	 */
+	if (priv->preface != NULL) {
+		success = g_output_stream_write_all (
+			output_stream,
+			priv->preface, strlen (priv->preface),
+			&bytes_written, cancellable, error);
+		if (!success)
+			return -1;
+		total += (gsize) bytes_written;
+	}
+
+	/*
+	 * Now, write all the parts, separated by the boundary
+	 * delimiter
+	 */
+	for (ii = 0; ii < priv->parts->len; ii++) {
+		CamelDataWrapper *part;
+		gssize result;
+
+		part = g_ptr_array_index (priv->parts, ii);
+
+		content = g_strdup_printf ("\n--%s\n", boundary);
+		success = g_output_stream_write_all (
+			output_stream,
+			content, strlen (content),
+			&bytes_written, cancellable, error);
+		g_free (content);
+		if (!success)
+			return -1;
+		total += (gsize) bytes_written;
+
+		result = camel_data_wrapper_write_to_output_stream_sync (
+			part, output_stream, cancellable, error);
+		if (result == -1)
+			return -1;
+		total += result;
+	}
+
+	/* write the terminating boudary delimiter */
+	content = g_strdup_printf ("\n--%s--\n", boundary);
+	success = g_output_stream_write_all (
+		output_stream,
+		content, strlen (content),
+		&bytes_written, cancellable, error);
+	g_free (content);
+	if (!success)
+		return -1;
+	total += (gsize) bytes_written;
+
+	/* and finally the postface */
+	if (priv->postface != NULL) {
+		success = g_output_stream_write_all (
+			output_stream,
+			priv->postface, strlen (priv->postface),
+			&bytes_written, cancellable, error);
+		if (!success)
+			return -1;
+		total += (gsize) bytes_written;
 	}
 
 	return total;
@@ -163,77 +272,23 @@ static void
 multipart_add_part (CamelMultipart *multipart,
                     CamelMimePart *part)
 {
-	multipart->parts = g_list_append (
-		multipart->parts, g_object_ref (part));
-}
-
-static void
-multipart_add_part_at (CamelMultipart *multipart,
-                       CamelMimePart *part,
-                       guint index)
-{
-	multipart->parts = g_list_insert (
-		multipart->parts, g_object_ref (part), index);
-}
-
-static void
-multipart_remove_part (CamelMultipart *multipart,
-                       CamelMimePart *part)
-{
-	/* Make sure we don't unref a part we don't have. */
-	if (g_list_find (multipart->parts, part) == NULL)
-		return;
-
-	multipart->parts = g_list_remove (multipart->parts, part);
-	g_object_unref (part);
-}
-
-static CamelMimePart *
-multipart_remove_part_at (CamelMultipart *multipart,
-                          guint index)
-{
-	CamelMimePart *removed_part;
-	GList *link;
-
-	if (!(multipart->parts))
-		return NULL;
-
-	link = g_list_nth (multipart->parts, index);
-	if (link == NULL) {
-		g_warning ("CamelMultipart::remove_part_at: "
-			   "part to remove is NULL\n");
-		return NULL;
-	}
-	removed_part = CAMEL_MIME_PART (link->data);
-
-	multipart->parts = g_list_remove_link (multipart->parts, link);
-	if (link->data)
-		g_object_unref (link->data);
-	g_list_free_1 (link);
-
-	return removed_part;
+	g_ptr_array_add (multipart->priv->parts, g_object_ref (part));
 }
 
 static CamelMimePart *
 multipart_get_part (CamelMultipart *multipart,
                     guint index)
 {
-	GList *part;
-
-	if (!(multipart->parts))
+	if (index >= multipart->priv->parts->len)
 		return NULL;
 
-	part = g_list_nth (multipart->parts, index);
-	if (part)
-		return CAMEL_MIME_PART (part->data);
-	else
-		return NULL;
+	return g_ptr_array_index (multipart->priv->parts, index);
 }
 
 static guint
 multipart_get_number (CamelMultipart *multipart)
 {
-	return g_list_length (multipart->parts);
+	return multipart->priv->parts->len;
 }
 
 static void
@@ -255,9 +310,11 @@ multipart_set_boundary (CamelMultipart *multipart,
 		GChecksum *checksum;
 
 		/* Generate a fairly random boundary string. */
-		bgen = g_strdup_printf ("%p:%lu:%lu", (gpointer) multipart,
-					(gulong) getpid (),
-					(gulong) time (NULL));
+		bgen = g_strdup_printf (
+			"%p:%lu:%lu",
+			(gpointer) multipart,
+			(gulong) getpid (),
+			(gulong) time (NULL));
 
 		checksum = g_checksum_new (G_CHECKSUM_MD5);
 		g_checksum_update (checksum, (guchar *) bgen, -1);
@@ -265,7 +322,7 @@ multipart_set_boundary (CamelMultipart *multipart,
 		g_checksum_free (checksum);
 
 		g_free (bgen);
-		strcpy (bbuf, "=-");
+		g_strlcpy (bbuf, "=-", sizeof (bbuf));
 		p = bbuf + 2;
 		state = save = 0;
 		p += g_base64_encode_step (
@@ -299,12 +356,10 @@ multipart_construct_from_parser (CamelMultipart *multipart,
 
 	g_assert (camel_mime_parser_state (mp) == CAMEL_MIME_PARSER_STATE_MULTIPART);
 
-	/* FIXME: we should use a came-mime-mutlipart, not jsut a camel-multipart, but who cares */
-	d(printf("Creating multi-part\n"));
-
 	content_type = camel_mime_parser_content_type (mp);
-	camel_multipart_set_boundary (multipart,
-				     camel_content_type_param(content_type, "boundary"));
+	camel_multipart_set_boundary (
+		multipart,
+		camel_content_type_param (content_type, "boundary"));
 
 	while (camel_mime_parser_step (mp, &buf, &len) != CAMEL_MIME_PARSER_STATE_MULTIPART_END) {
 		camel_mime_parser_unstep (mp);
@@ -333,6 +388,8 @@ camel_multipart_class_init (CamelMultipartClass *class)
 	GObjectClass *object_class;
 	CamelDataWrapperClass *data_wrapper_class;
 
+	g_type_class_add_private (class, sizeof (CamelMultipartPrivate));
+
 	object_class = G_OBJECT_CLASS (class);
 	object_class->dispose = multipart_dispose;
 	object_class->finalize = multipart_finalize;
@@ -341,11 +398,10 @@ camel_multipart_class_init (CamelMultipartClass *class)
 	data_wrapper_class->is_offline = multipart_is_offline;
 	data_wrapper_class->write_to_stream_sync = multipart_write_to_stream_sync;
 	data_wrapper_class->decode_to_stream_sync = multipart_write_to_stream_sync;
+	data_wrapper_class->write_to_output_stream_sync = multipart_write_to_output_stream_sync;
+	data_wrapper_class->decode_to_output_stream_sync = multipart_write_to_output_stream_sync;
 
 	class->add_part = multipart_add_part;
-	class->add_part_at = multipart_add_part_at;
-	class->remove_part = multipart_remove_part;
-	class->remove_part_at = multipart_remove_part_at;
 	class->get_part = multipart_get_part;
 	class->get_number = multipart_get_number;
 	class->set_boundary = multipart_set_boundary;
@@ -356,11 +412,13 @@ camel_multipart_class_init (CamelMultipartClass *class)
 static void
 camel_multipart_init (CamelMultipart *multipart)
 {
+	multipart->priv = CAMEL_MULTIPART_GET_PRIVATE (multipart);
+
+	multipart->priv->parts =
+		g_ptr_array_new_with_free_func (g_object_unref);
+
 	camel_data_wrapper_set_mime_type (
 		CAMEL_DATA_WRAPPER (multipart), "multipart/mixed");
-	multipart->parts = NULL;
-	multipart->preface = NULL;
-	multipart->postface = NULL;
 }
 
 /**
@@ -373,13 +431,7 @@ camel_multipart_init (CamelMultipart *multipart)
 CamelMultipart *
 camel_multipart_new (void)
 {
-	CamelMultipart *multipart;
-
-	multipart = g_object_new (CAMEL_TYPE_MULTIPART, NULL);
-	multipart->preface = NULL;
-	multipart->postface = NULL;
-
-	return multipart;
+	return g_object_new (CAMEL_TYPE_MULTIPART, NULL);
 }
 
 /**
@@ -402,78 +454,6 @@ camel_multipart_add_part (CamelMultipart *multipart,
 	g_return_if_fail (class->add_part != NULL);
 
 	class->add_part (multipart, part);
-}
-
-/**
- * camel_multipart_add_part_at:
- * @multipart: a #CamelMultipart object
- * @part: a #CamelMimePart to add
- * @index: index to add the multipart at
- *
- * Adds the part to the multipart object after the @index'th
- * element. If @index is greater than the number of parts, it is
- * equivalent to camel_multipart_add_part().
- **/
-void
-camel_multipart_add_part_at (CamelMultipart *multipart,
-                             CamelMimePart *part,
-                             guint index)
-{
-	CamelMultipartClass *class;
-
-	g_return_if_fail (CAMEL_IS_MULTIPART (multipart));
-	g_return_if_fail (CAMEL_IS_MIME_PART (part));
-
-	class = CAMEL_MULTIPART_GET_CLASS (multipart);
-	g_return_if_fail (class->add_part_at != NULL);
-
-	class->add_part_at (multipart, part, index);
-}
-
-/**
- * camel_multipart_remove_part:
- * @multipart: a #CamelMultipart object
- * @part: a #CamelMimePart to remove
- *
- * Removes @part from @multipart.
- **/
-void
-camel_multipart_remove_part (CamelMultipart *multipart,
-                             CamelMimePart *part)
-{
-	CamelMultipartClass *class;
-
-	g_return_if_fail (CAMEL_IS_MULTIPART (multipart));
-	g_return_if_fail (CAMEL_IS_MIME_PART (part));
-
-	class = CAMEL_MULTIPART_GET_CLASS (multipart);
-	g_return_if_fail (class->remove_part != NULL);
-
-	class->remove_part (multipart, part);
-}
-
-/**
- * camel_multipart_remove_part_at:
- * @multipart: a #CamelMultipart object
- * @index: a zero-based index indicating the part to remove
- *
- * Remove the indicated part from the multipart object.
- *
- * Returns: the removed part. Note that it is g_object_unref()'ed
- * before being returned, which may cause it to be destroyed.
- **/
-CamelMimePart *
-camel_multipart_remove_part_at (CamelMultipart *multipart,
-                                guint index)
-{
-	CamelMultipartClass *class;
-
-	g_return_val_if_fail (CAMEL_IS_MULTIPART (multipart), NULL);
-
-	class = CAMEL_MULTIPART_GET_CLASS (multipart);
-	g_return_val_if_fail (class->remove_part_at != NULL, NULL);
-
-	return class->remove_part_at (multipart, index);
 }
 
 /**
@@ -517,6 +497,25 @@ camel_multipart_get_number (CamelMultipart *multipart)
 }
 
 /**
+ * camel_multipart_get_boundary:
+ * @multipart: a #CamelMultipart object
+ *
+ * Returns: the boundary
+ **/
+const gchar *
+camel_multipart_get_boundary (CamelMultipart *multipart)
+{
+	CamelMultipartClass *class;
+
+	g_return_val_if_fail (CAMEL_IS_MULTIPART (multipart), NULL);
+
+	class = CAMEL_MULTIPART_GET_CLASS (multipart);
+	g_return_val_if_fail (class->get_boundary != NULL, NULL);
+
+	return class->get_boundary (multipart);
+}
+
+/**
  * camel_multipart_set_boundary:
  * @multipart: a #CamelMultipart object
  * @boundary: the message boundary, or %NULL
@@ -541,22 +540,21 @@ camel_multipart_set_boundary (CamelMultipart *multipart,
 }
 
 /**
- * camel_multipart_get_boundary:
- * @multipart: a #CamelMultipart object
+ * camel_multipart_get_preface:
+ * @multipart: a #CamelMultipart
  *
- * Returns: the boundary
+ * Returns the preface text for @multipart.
+ *
+ * Returns: the preface text
+ *
+ * Since: 3.12
  **/
 const gchar *
-camel_multipart_get_boundary (CamelMultipart *multipart)
+camel_multipart_get_preface (CamelMultipart *multipart)
 {
-	CamelMultipartClass *class;
-
 	g_return_val_if_fail (CAMEL_IS_MULTIPART (multipart), NULL);
 
-	class = CAMEL_MULTIPART_GET_CLASS (multipart);
-	g_return_val_if_fail (class->get_boundary != NULL, NULL);
-
-	return class->get_boundary (multipart);
+	return multipart->priv->preface;
 }
 
 /**
@@ -574,11 +572,29 @@ camel_multipart_set_preface (CamelMultipart *multipart,
 {
 	g_return_if_fail (CAMEL_IS_MULTIPART (multipart));
 
-	if (multipart->preface == preface)
+	if (multipart->priv->preface == preface)
 		return;
 
-	g_free (multipart->preface);
-	multipart->preface = g_strdup (preface);
+	g_free (multipart->priv->preface);
+	multipart->priv->preface = g_strdup (preface);
+}
+
+/**
+ * camel_multipart_get_postface:
+ * @multipart: a #CamelMultipart
+ *
+ * Returns the postface text for @multipart.
+ *
+ * Returns: the postface text
+ *
+ * Since: 3.12
+ **/
+const gchar *
+camel_multipart_get_postface (CamelMultipart *multipart)
+{
+	g_return_val_if_fail (CAMEL_IS_MULTIPART (multipart), NULL);
+
+	return multipart->priv->postface;
 }
 
 /**
@@ -586,7 +602,7 @@ camel_multipart_set_preface (CamelMultipart *multipart,
  * @multipart: a #CamelMultipart object
  * @postface: multipat postface
  *
- * Set the postfix text for this multipart.  Will be written out after
+ * Set the postface text for this multipart.  Will be written out after
  * the last boundary of the multipart, and ignored by any MIME mail
  * client.
  *
@@ -598,11 +614,11 @@ camel_multipart_set_postface (CamelMultipart *multipart,
 {
 	g_return_if_fail (CAMEL_IS_MULTIPART (multipart));
 
-	if (multipart->postface == postface)
+	if (multipart->priv->postface == postface)
 		return;
 
-	g_free (multipart->postface);
-	multipart->postface = g_strdup (postface);
+	g_free (multipart->priv->postface);
+	multipart->priv->postface = g_strdup (postface);
 }
 
 /**

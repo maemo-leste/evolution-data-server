@@ -2,18 +2,26 @@
 # Please keep this list in alphabetic order.
 [encoding: UTF-8]
 addressbook/backends/file/e-book-backend-file.c
+addressbook/backends/file/e-book-backend-file-migrate-bdb.c
 addressbook/backends/google/e-book-backend-google.c
+addressbook/backends/google/e-book-google-utils.c
 addressbook/backends/ldap/e-book-backend-ldap.c
-addressbook/backends/vcf/e-book-backend-vcf.c
 addressbook/backends/webdav/e-book-backend-webdav.c
+addressbook/libebook-contacts/e-book-contacts-types.c
+addressbook/libebook-contacts/e-contact.c
+addressbook/libebook-contacts/e-phone-number.c
 addressbook/libebook/e-book.c
 addressbook/libebook/e-book-client.c
+addressbook/libebook/e-book-client-cursor.c
 addressbook/libebook/e-book-client-view.c
-addressbook/libebook/e-contact.c
 addressbook/libebook/e-destination.c
 addressbook/libedata-book/e-book-backend.c
+addressbook/libedata-book/e-book-backend-sexp.c
 addressbook/libedata-book/e-book-backend-sqlitedb.c
+addressbook/libedata-book/e-book-sqlite.c
 addressbook/libedata-book/e-data-book.c
+addressbook/libedata-book/e-data-book-cursor.c
+addressbook/libedata-book/e-data-book-cursor-sqlite.c
 addressbook/libedata-book/e-data-book-factory.c
 calendar/backends/caldav/e-cal-backend-caldav.c
 calendar/backends/contacts/e-cal-backend-contacts.c
@@ -28,6 +36,7 @@ calendar/libecal/e-cal-recur.c
 calendar/libecal/e-cal-util.c
 calendar/libedata-cal/e-cal-backend.c
 calendar/libedata-cal/e-cal-backend-sexp.c
+calendar/libedata-cal/e-cal-backend-sync.c
 calendar/libedata-cal/e-cal-backend-util.c
 calendar/libedata-cal/e-data-cal.c
 calendar/libedata-cal/e-data-cal-factory.c
@@ -41,9 +50,6 @@ camel/camel-data-cache.c
 camel/camel-data-wrapper.c
 camel/camel-db.c
 camel/camel-debug.c
-camel/camel-disco-diary.c
-camel/camel-disco-folder.c
-camel/camel-disco-store.c
 camel/camel-file-utils.c
 camel/camel-filter-driver.c
 camel/camel-filter-search.c
@@ -53,7 +59,6 @@ camel/camel-folder-summary.c
 camel/camel-folder-thread.c
 camel/camel-gpg-context.c
 camel/camel-html-parser.c
-camel/camel-http-stream.c
 camel/camel-index.c
 camel/camel-index-control.c
 camel/camel-internet-address.c
@@ -74,7 +79,6 @@ camel/camel-mime-filter-gzip.c
 camel/camel-mime-filter-html.c
 camel/camel-mime-filter-index.c
 camel/camel-mime-filter-linewrap.c
-camel/camel-mime-filter-save.c
 camel/camel-mime-filter-tohtml.c
 camel/camel-mime-filter-windows.c
 camel/camel-mime-filter-yenc.c
@@ -91,7 +95,6 @@ camel/camel-net-utils.c
 camel/camel-network-service.c
 camel/camel-object.c
 camel/camel-offline-folder.c
-camel/camel-offline-journal.c
 camel/camel-offline-store.c
 camel/camel-operation.c
 camel/camel-partition-table.c
@@ -119,9 +122,7 @@ camel/camel-stream-mem.c
 camel/camel-stream-null.c
 camel/camel-stream-process.c
 camel/camel-string-utils.c
-camel/camel-tcp-stream.c
-camel/camel-tcp-stream-raw.c
-camel/camel-tcp-stream-ssl.c
+camel/camel-subscribable.c
 camel/camel-text-index.c
 camel/camel-transport.c
 camel/camel-uid-cache.c
@@ -132,23 +133,12 @@ camel/camel-vee-folder.c
 camel/camel-vee-store.c
 camel/camel-vee-summary.c
 camel/camel-vtrash-folder.c
-camel/providers/imap/camel-imap-command.c
-camel/providers/imap/camel-imap-folder.c
-camel/providers/imap/camel-imap-journal.c
-camel/providers/imap/camel-imap-message-cache.c
-camel/providers/imap/camel-imap-provider.c
-camel/providers/imap/camel-imap-search.c
-camel/providers/imap/camel-imap-store.c
-camel/providers/imap/camel-imap-store-summary.c
-camel/providers/imap/camel-imap-summary.c
-camel/providers/imap/camel-imap-utils.c
-camel/providers/imap/camel-imap-wrapper.c
 camel/providers/imapx/camel-imapx-command.c
 camel/providers/imapx/camel-imapx-folder.c
+camel/providers/imapx/camel-imapx-input-stream.c
 camel/providers/imapx/camel-imapx-provider.c
 camel/providers/imapx/camel-imapx-server.c
 camel/providers/imapx/camel-imapx-store.c
-camel/providers/imapx/camel-imapx-stream.c
 camel/providers/local/camel-local-folder.c
 camel/providers/local/camel-local-provider.c
 camel/providers/local/camel-local-store.c
@@ -180,23 +170,64 @@ camel/providers/sendmail/camel-sendmail-provider.c
 camel/providers/sendmail/camel-sendmail-transport.c
 camel/providers/smtp/camel-smtp-provider.c
 camel/providers/smtp/camel-smtp-transport.c
+data/org.gnome.evolution-data-server.addressbook.gschema.xml.in
+data/org.gnome.evolution-data-server.calendar.gschema.xml.in
+data/org.gnome.evolution.shell.network-config.gschema.xml.in
+libebackend/e-authentication-mediator.c
+libebackend/e-authentication-session.c
+libebackend/e-backend.c
+libebackend/e-collection-backend.c
+libebackend/e-data-factory.c
+libebackend/e-server-side-source.c
+libebackend/e-source-registry-server.c
+libebackend/e-user-prompter-server.c
 libedataserver/e-categories.c
 libedataserver/e-client.c
+libedataserver/e-source-authenticator.c
+libedataserver/e-source.c
+libedataserver/e-source-mail-signature.c
+libedataserver/e-source-proxy.c
+libedataserver/e-source-registry.c
+libedataserver/e-source-webdav.c
 libedataserver/e-time-utils.c
-libedataserver/org.gnome.evolution.shell.network-config.gschema.xml.in
-libedataserverui/e-book-auth-util.c
-libedataserverui/e-categories-dialog.c
-libedataserverui/e-categories-editor.c
-libedataserverui/e-categories-selector.c
-libedataserverui/e-category-completion.c
-libedataserverui/e-category-editor.c
-libedataserverui/e-cell-renderer-color.c
-libedataserverui/e-client-utils.c
-libedataserverui/e-name-selector-dialog.c
-libedataserverui/e-name-selector-entry.c
-libedataserverui/e-name-selector-list.c
-libedataserverui/e-passwords.c
-libedataserverui/e-passwords-win32.c
-libedataserverui/e-source-selector-dialog.c
+modules/gnome-online-accounts/e-goa-password-based.c
+modules/gnome-online-accounts/goaewsclient.c
+modules/gnome-online-accounts/module-gnome-online-accounts.c
+modules/google-backend/module-google-backend.c
+modules/trust-prompt/module-trust-prompt.c
+modules/trust-prompt/trust-prompt-gtk.c
+[type: gettext/xml]modules/ubuntu-online-accounts/calendar.service-type.in.in
+[type: gettext/xml]modules/ubuntu-online-accounts/contacts.service-type.in.in
+modules/ubuntu-online-accounts/e-signon-session-password.c
+modules/ubuntu-online-accounts/evolution-data-server-uoa.desktop.in.in
+[type: gettext/xml]modules/ubuntu-online-accounts/google-calendar.service.in.in
+[type: gettext/xml]modules/ubuntu-online-accounts/google-contacts.service.in.in
+[type: gettext/xml]modules/ubuntu-online-accounts/google-gmail.service.in.in
+[type: gettext/xml]modules/ubuntu-online-accounts/mail.service-type.in.in
+modules/ubuntu-online-accounts/module-ubuntu-online-accounts.c
+modules/ubuntu-online-accounts/uoa-utils.c
+[type: gettext/xml]modules/ubuntu-online-accounts/windows-live-mail.service.in.in
+[type: gettext/xml]modules/ubuntu-online-accounts/yahoo-calendar.service.in.in
+[type: gettext/xml]modules/ubuntu-online-accounts/yahoo-mail.service.in.in
+modules/yahoo-backend/module-yahoo-backend.c
 services/evolution-addressbook-factory/evolution-addressbook-factory.c
 services/evolution-calendar-factory/evolution-calendar-factory.c
+[type: gettext/ini]services/evolution-source-registry/builtin/birthdays.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/caldav-stub.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/contacts-stub.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/google-stub.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/ldap-stub.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/local.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/local-stub.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/sendmail.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/system-address-book.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/system-calendar.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/system-memo-list.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/system-task-list.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/vfolder.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/weather-stub.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/webcal-stub.source.in
+[type: gettext/ini]services/evolution-source-registry/builtin/webdav-stub.source.in
+services/evolution-source-registry/evolution-source-registry.c
+services/evolution-user-prompter/evolution-user-prompter.c
+services/evolution-user-prompter/prompt-user-gtk.c

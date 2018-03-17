@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -37,7 +35,6 @@
 #include "camel-mime-filter-basic.h"
 #include "camel-mime-filter-charset.h"
 #include "camel-mime-filter-crlf.h"
-#include "camel-mime-filter-save.h"
 #include "camel-mime-message.h"
 #include "camel-mime-part-utils.h"
 #include "camel-multipart-encrypted.h"
@@ -64,16 +61,16 @@ simple_data_wrapper_construct_from_parser (CamelDataWrapper *dw,
 	gsize len;
 	gboolean success;
 
-	d(printf ("simple_data_wrapper_construct_from_parser()\n"));
+	d (printf ("simple_data_wrapper_construct_from_parser()\n"));
 
 	/* read in the entire content */
 	buffer = g_byte_array_new ();
 	while (camel_mime_parser_step (mp, &buf, &len) != CAMEL_MIME_PARSER_STATE_BODY_END) {
-		d(printf("appending o/p data: %d: %.*s\n", len, len, buf));
+		d (printf ("appending o/p data: %d: %.*s\n", len, len, buf));
 		g_byte_array_append (buffer, (guint8 *) buf, len);
 	}
 
-	d(printf("message part kept in memory!\n"));
+	d (printf ("message part kept in memory!\n"));
 
 	mem = camel_stream_mem_new_with_byte_array (buffer);
 	success = camel_data_wrapper_construct_from_stream_sync (
@@ -107,7 +104,7 @@ camel_mime_part_construct_content_from_parser (CamelMimePart *dw,
 
 	switch (camel_mime_parser_state (mp)) {
 	case CAMEL_MIME_PARSER_STATE_HEADER:
-		d(printf("Creating body part\n"));
+		d (printf ("Creating body part\n"));
 		/* multipart/signed is some type that we must treat as binary data. */
 		if (camel_content_type_is (ct, "multipart", "signed")) {
 			content = (CamelDataWrapper *) camel_multipart_signed_new ();
@@ -119,13 +116,13 @@ camel_mime_part_construct_content_from_parser (CamelMimePart *dw,
 		}
 		break;
 	case CAMEL_MIME_PARSER_STATE_MESSAGE:
-		d(printf("Creating message part\n"));
+		d (printf ("Creating message part\n"));
 		content = (CamelDataWrapper *) camel_mime_message_new ();
 		success = camel_mime_part_construct_from_parser_sync (
 			(CamelMimePart *) content, mp, cancellable, error);
 		break;
 	case CAMEL_MIME_PARSER_STATE_MULTIPART:
-		d(printf("Creating multi-part\n"));
+		d (printf ("Creating multi-part\n"));
 		if (camel_content_type_is (ct, "multipart", "encrypted"))
 			content = (CamelDataWrapper *) camel_multipart_encrypted_new ();
 		else if (camel_content_type_is (ct, "multipart", "signed"))
@@ -134,10 +131,10 @@ camel_mime_part_construct_content_from_parser (CamelMimePart *dw,
 			content = (CamelDataWrapper *) camel_multipart_new ();
 
 		camel_multipart_construct_from_parser ((CamelMultipart *) content, mp);
-		d(printf("Created multi-part\n"));
+		d (printf ("Created multi-part\n"));
 		break;
 	default:
-		g_warning("Invalid state encountered???: %u", camel_mime_parser_state (mp));
+		g_warning ("Invalid state encountered???: %u", camel_mime_parser_state (mp));
 	}
 
 	if (content) {
@@ -207,7 +204,7 @@ camel_mime_message_build_preview (CamelMimePart *msg,
 			while ((line = camel_stream_buffer_read_line ((CamelStreamBuffer *) bstream, NULL, NULL)) && str->len < 200) {
 				gchar *tmp = line;
 
-				if (*line == '>' || strstr(line, "wrote:")) {
+				if (*line == '>' || strstr (line, "wrote:")) {
 					g_free (tmp);
 					continue;
 				}

@@ -1,21 +1,19 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <stdio.h>
@@ -23,6 +21,7 @@
 
 #include "camel-internet-address.h"
 #include "camel-mime-utils.h"
+#include "camel-net-utils.h"
 
 #define d(x)
 
@@ -75,14 +74,14 @@ internet_address_encode (CamelAddress *a)
 	if (a->addresses->len == 0)
 		return NULL;
 
-	out = g_string_new("");
+	out = g_string_new ("");
 
 	for (i = 0; i < a->addresses->len; i++) {
 		struct _address *addr = g_ptr_array_index (a->addresses, i);
 		gchar *enc;
 
 		if (i != 0)
-			g_string_append(out, ", ");
+			g_string_append (out, ", ");
 
 		enc = camel_internet_address_encode_address (&len, addr->name, addr->address);
 		g_string_append (out, enc);
@@ -106,7 +105,7 @@ internet_address_unformat (CamelAddress *a,
 	if (raw == NULL)
 		return 0;
 
-	d(printf("unformatting address: %s\n", raw));
+	d (printf ("unformatting address: %s\n", raw));
 
 	/* we copy, so we can modify as we go */
 	buffer = g_strdup (raw);
@@ -148,7 +147,7 @@ internet_address_unformat (CamelAddress *a,
 				name = g_strstrip (name);
 			addr = g_strstrip (addr);
 			if (addr[0]) {
-				d(printf("found address: '%s' <%s>\n", name, addr));
+				d (printf ("found address: '%s' <%s>\n", name, addr));
 				camel_internet_address_add ((CamelInternetAddress *) a, name, addr);
 			}
 			name = NULL;
@@ -172,14 +171,14 @@ internet_address_format (CamelAddress *a)
 	if (a->addresses->len == 0)
 		return NULL;
 
-	out = g_string_new("");
+	out = g_string_new ("");
 
 	for (i = 0; i < a->addresses->len; i++) {
 		struct _address *addr = g_ptr_array_index (a->addresses, i);
 		gchar *enc;
 
 		if (i != 0)
-			g_string_append(out, ", ");
+			g_string_append (out, ", ");
 
 		enc = camel_internet_address_format_address (addr->name, addr->address);
 		g_string_append (out, enc);
@@ -350,6 +349,71 @@ camel_internet_address_find_name (CamelInternetAddress *addr,
 	return -1;
 }
 
+static gboolean
+domain_contains_only_ascii (const gchar *address,
+			    gint *at_pos)
+{
+	gint pos;
+	gboolean all_ascii = TRUE;
+
+	g_return_val_if_fail (address != NULL, TRUE);
+	g_return_val_if_fail (at_pos != NULL, TRUE);
+
+	*at_pos = -1;
+	for (pos = 0; address[pos]; pos++) {
+		all_ascii = all_ascii && address[pos] > 0;
+		if (*at_pos == -1 && address[pos] == '@') {
+			*at_pos = pos;
+			all_ascii = TRUE;
+		}
+	}
+
+	/* Do not change anything when there is no domain part
+	   of the email address */
+	return all_ascii || *at_pos == -1;
+}
+
+/**
+ * camel_internet_address_ensure_ascii_domains:
+ * @addr: a #CamelInternetAddress
+ *
+ * Ensures that all email address' domains will be ASCII encoded,
+ * which means that any non-ASCII letters will be properly encoded.
+ * This includes IDN (Internationalized Domain Names).
+ *
+ * Since: 3.12.6
+ **/
+void
+camel_internet_address_ensure_ascii_domains (CamelInternetAddress *addr)
+{
+	struct _address *a;
+	gint i, len;
+
+	g_return_if_fail (CAMEL_IS_INTERNET_ADDRESS (addr));
+
+	len = ((CamelAddress *) addr)->addresses->len;
+	for (i = 0; i < len; i++) {
+		gint at_pos = -1;
+		a = g_ptr_array_index (((CamelAddress *) addr)->addresses, i);
+		if (a->address && !domain_contains_only_ascii (a->address, &at_pos)) {
+			gchar *address, *domain;
+
+			domain = camel_host_idna_to_ascii (a->address + at_pos + 1);
+			if (at_pos >= 0) {
+				gchar *name = g_strndup (a->address, at_pos);
+				address = g_strconcat (name, "@", domain, NULL);
+			} else {
+				address = domain;
+				domain = NULL;
+			}
+
+			g_free (domain);
+			g_free (a->address);
+			a->address = address;
+		}
+	}
+}
+
 /**
  * camel_internet_address_find_address:
  * @addr: a #CamelInternetAddress object
@@ -442,7 +506,7 @@ camel_internet_address_encode_address (gint *inlen,
 	gchar *name = camel_header_encode_phrase ((const guchar *) real);
 	gchar *ret = NULL;
 	gint len = 0;
-	GString *out = g_string_new("");
+	GString *out = g_string_new ("");
 
 	g_assert (addr);
 
@@ -472,17 +536,17 @@ camel_internet_address_encode_address (gint *inlen,
 	 * that will probably not handle this case, we will just move
 	 * the whole address to its own line. */
 	if (inlen != NULL && (strlen (addr) + len) > CAMEL_FOLD_SIZE) {
-		g_string_append(out, "\n\t");
+		g_string_append (out, "\n\t");
 		len = 1;
 	}
 
 	len -= out->len;
 
 	if (name && name[0])
-		g_string_append_printf(out, " <");
+		g_string_append_printf (out, " <");
 	cia_encode_addrspec (out, addr);
 	if (name && name[0])
-		g_string_append_printf(out, ">");
+		g_string_append_printf (out, ">");
 
 	len += out->len;
 
@@ -527,12 +591,12 @@ camel_internet_address_format_address (const gchar *name,
 					if (c != '\"')
 						*o++ = c;
 				*o++ = '\"';
-				sprintf(o, " <%s>", addr);
-				d(printf("encoded '%s' => '%s'\n", name, ret));
+				sprintf (o, " <%s>", addr);
+				d (printf ("encoded '%s' => '%s'\n", name, ret));
 				return ret;
 			}
 		}
-		ret = g_strdup_printf("%s <%s>", name, addr);
+		ret = g_strdup_printf ("%s <%s>", name, addr);
 	} else
 		ret = g_strdup (addr);
 

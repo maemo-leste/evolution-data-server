@@ -1,18 +1,17 @@
 /*
  * camel-offline-settings.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -136,9 +135,12 @@ camel_offline_settings_get_stay_synchronized (CamelOfflineSettings *settings)
  **/
 void
 camel_offline_settings_set_stay_synchronized (CamelOfflineSettings *settings,
-                                       gboolean stay_synchronized)
+                                              gboolean stay_synchronized)
 {
 	g_return_if_fail (CAMEL_IS_OFFLINE_SETTINGS (settings));
+
+	if (settings->priv->stay_synchronized == stay_synchronized)
+		return;
 
 	settings->priv->stay_synchronized = stay_synchronized;
 

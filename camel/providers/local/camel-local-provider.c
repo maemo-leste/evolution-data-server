@@ -4,19 +4,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -59,6 +57,10 @@ static CamelProvider mh_provider = {
 
 #endif
 
+static CamelProviderConfEntry mbox_conf_entries[] = {
+	{ CAMEL_PROVIDER_CONF_END }
+};
+
 static CamelProvider mbox_provider = {
 	"mbox",
 	N_("Local delivery"),
@@ -66,7 +68,7 @@ static CamelProvider mbox_provider = {
 	"mail",
 	CAMEL_PROVIDER_IS_SOURCE | CAMEL_PROVIDER_IS_STORAGE | CAMEL_PROVIDER_IS_LOCAL,
 	CAMEL_URL_NEED_PATH | CAMEL_URL_PATH_IS_ABSOLUTE | CAMEL_URL_FRAGMENT_IS_PATH,
-	NULL,  /* no conf entries */
+	mbox_conf_entries,  /* semi-empty entries, thus evolution will show "Receiving Options" page */
 	NULL,
 	/* ... */
 };
@@ -105,7 +107,9 @@ static CamelProviderConfEntry spool_conf_entries[] = {
 static CamelProvider spool_file_provider = {
 	"spool",
 	N_("Standard Unix mbox spool file"),
-	N_("For reading and storing local mail in external standard mbox spool files.\nMay also be used to read a tree of Elm, Pine, or Mutt style folders."),
+	N_("For reading and storing local mail in external standard mbox "
+	"spool files.\nMay also be used to read a tree of Elm, Pine, or Mutt "
+	"style folders."),
 	"mail",
 	CAMEL_PROVIDER_IS_SOURCE | CAMEL_PROVIDER_IS_STORAGE,
 	CAMEL_URL_NEED_PATH | CAMEL_URL_PATH_IS_ABSOLUTE | CAMEL_URL_FRAGMENT_IS_PATH,
@@ -117,7 +121,9 @@ static CamelProvider spool_file_provider = {
 static CamelProvider spool_directory_provider = {
 	"spooldir",
 	N_("Standard Unix mbox spool directory"),
-	N_("For reading and storing local mail in external standard mbox spool files.\nMay also be used to read a tree of Elm, Pine, or Mutt style folders."),
+	N_("For reading and storing local mail in external standard mbox "
+	"spool files.\nMay also be used to read a tree of Elm, Pine, or Mutt "
+	"style folders."),
 	"mail",
 	CAMEL_PROVIDER_IS_SOURCE | CAMEL_PROVIDER_IS_STORAGE,
 	CAMEL_URL_NEED_PATH | CAMEL_URL_NEED_PATH_DIR | CAMEL_URL_PATH_IS_ABSOLUTE | CAMEL_URL_FRAGMENT_IS_PATH,
@@ -135,7 +141,7 @@ make_can_path (gchar *p,
 {
 	gchar c, last, *start = o;
 
-	d(printf("canonical '%s' = ", p));
+	d (printf ("canonical '%s' = ", p));
 
 	last = 0;
 	while ((c = *p++)) {
@@ -149,7 +155,7 @@ make_can_path (gchar *p,
 	else
 		*o = 0;
 
-	d(printf("'%s'\n", start));
+	d (printf ("'%s'\n", start));
 
 	return start;
 }

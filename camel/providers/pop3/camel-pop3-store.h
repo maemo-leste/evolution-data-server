@@ -8,19 +8,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_POP3_STORE_H
@@ -58,9 +56,6 @@ typedef struct _CamelPOP3StorePrivate CamelPOP3StorePrivate;
 struct _CamelPOP3Store {
 	CamelStore parent;
 	CamelPOP3StorePrivate *priv;
-
-	CamelPOP3Engine *engine; /* pop processing engine */
-	CamelDataCache *cache;
 };
 
 struct _CamelPOP3StoreClass {
@@ -68,9 +63,21 @@ struct _CamelPOP3StoreClass {
 };
 
 GType		camel_pop3_store_get_type	(void);
+CamelDataCache *
+		camel_pop3_store_ref_cache	(CamelPOP3Store *store);
+CamelPOP3Engine *
+		camel_pop3_store_ref_engine	(CamelPOP3Store *store);
 gboolean	camel_pop3_store_expunge	(CamelPOP3Store *store,
 						 GCancellable *cancellable,
 						 GError **error);
+CamelStream *	camel_pop3_store_cache_add	(CamelPOP3Store *store,
+						 const gchar *uid,
+						 GError **error);
+CamelStream *	camel_pop3_store_cache_get	(CamelPOP3Store *store,
+						 const gchar *uid,
+						 GError **error);
+gboolean	camel_pop3_store_cache_has	(CamelPOP3Store *store,
+						 const gchar *uid);
 
 G_END_DECLS
 

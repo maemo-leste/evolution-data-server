@@ -4,19 +4,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -57,14 +55,25 @@ maildir_folder_cmp_uids (CamelFolder *folder,
 	a = camel_folder_summary_get (folder->summary, uid1);
 	b = camel_folder_summary_get (folder->summary, uid2);
 
-	g_return_val_if_fail (a != NULL, 0);
-	g_return_val_if_fail (b != NULL, 0);
+	if (!a || !b) {
+		/* It's not a problem when one of the messages is not in the summary */
+		if (a)
+			camel_message_info_unref (a);
+		if (b)
+			camel_message_info_unref (b);
+
+		if (a == b)
+			return 0;
+		if (!a)
+			return -1;
+		return 1;
+	}
 
 	tma = camel_message_info_date_received (a);
 	tmb = camel_message_info_date_received (b);
 
-	camel_message_info_free (a);
-	camel_message_info_free (b);
+	camel_message_info_unref (a);
+	camel_message_info_unref (b);
 
 	return tma < tmb ? -1 : tma == tmb ? 0 : 1;
 }
@@ -140,7 +149,7 @@ maildir_folder_get_filename (CamelFolder *folder,
 
 	res = g_strdup_printf ("%s/cur/%s", lf->folder_path, camel_maildir_info_filename (mdi));
 
-	camel_message_info_free (info);
+	camel_message_info_unref (info);
 
 	return res;
 }
@@ -160,7 +169,7 @@ maildir_folder_append_message_sync (CamelFolder *folder,
 	gchar *name, *dest = NULL;
 	gboolean success = TRUE, has_attachment;
 
-	d(printf("Appending message\n"));
+	d (printf ("Appending message\n"));
 
 	/* If we can't lock, don't do anything */
 	if (!lf || camel_local_folder_lock (lf, CAMEL_LOCK_WRITE, error) == -1)
@@ -181,10 +190,10 @@ maildir_folder_append_message_sync (CamelFolder *folder,
 
 	mdi = (CamelMaildirMessageInfo *) mi;
 
-	d(printf("Appending message: uid is %s filename is %s\n", camel_message_info_uid(mi), mdi->filename));
+	d (printf ("Appending message: uid is %s filename is %s\n", camel_message_info_uid (mi), mdi->filename));
 
 	/* write it out to tmp, use the uid we got from the summary */
-	name = g_strdup_printf ("%s/tmp/%s", lf->folder_path, camel_message_info_uid(mi));
+	name = g_strdup_printf ("%s/tmp/%s", lf->folder_path, camel_message_info_uid (mi));
 	output_stream = camel_stream_fs_new_with_name (
 		name, O_WRONLY | O_CREAT, 0600, error);
 	if (output_stream == NULL)
@@ -196,7 +205,7 @@ maildir_folder_append_message_sync (CamelFolder *folder,
 		goto fail_write;
 
 	/* now move from tmp to cur (bypass new, does it matter?) */
-	dest = g_strdup_printf("%s/cur/%s", lf->folder_path, camel_maildir_info_filename (mdi));
+	dest = g_strdup_printf ("%s/cur/%s", lf->folder_path, camel_maildir_info_filename (mdi));
 	if (g_rename (name, dest) == -1) {
 		g_set_error (
 			error, G_IO_ERROR,
@@ -257,7 +266,7 @@ maildir_folder_get_message_sync (CamelFolder *folder,
 	CamelMimeMessage *message = NULL;
 	gchar *name = NULL;
 
-	d(printf("getting message: %s\n", uid));
+	d (printf ("getting message: %s\n", uid));
 
 	if (!lf || camel_local_folder_lock (lf, CAMEL_LOCK_WRITE, error) == -1)
 		return NULL;
@@ -340,7 +349,7 @@ maildir_folder_transfer_messages_to_sync (CamelFolder *source,
 			new_filename = camel_maildir_summary_info_to_name (mdi);
 
 			d_filename = g_strdup_printf ("%s/cur/%s", df->folder_path, new_filename);
-			s_filename = g_strdup_printf("%s/cur/%s", lf->folder_path, camel_maildir_info_filename (mdi));
+			s_filename = g_strdup_printf ("%s/cur/%s", lf->folder_path, camel_maildir_info_filename (mdi));
 
 			if (g_rename (s_filename, d_filename) != 0) {
 				if (errno == EXDEV) {
@@ -352,7 +361,7 @@ maildir_folder_transfer_messages_to_sync (CamelFolder *source,
 						g_io_error_from_errno (errno),
 						_("Cannot transfer message to destination folder: %s"),
 						g_strerror (errno));
-					camel_message_info_free (info);
+					camel_message_info_unref (info);
 					g_free (s_filename);
 					g_free (d_filename);
 					g_free (new_filename);
@@ -386,7 +395,7 @@ maildir_folder_transfer_messages_to_sync (CamelFolder *source,
 				camel_folder_summary_remove (source->summary, info);
 			}
 
-			camel_message_info_free (info);
+			camel_message_info_unref (info);
 			g_free (s_filename);
 			g_free (d_filename);
 			g_free (new_filename);
@@ -467,7 +476,7 @@ camel_maildir_folder_new (CamelStore *parent_store,
 	gboolean filter_inbox;
 	gchar *basename;
 
-	d(printf("Creating maildir folder: %s\n", full_name));
+	d (printf ("Creating maildir folder: %s\n", full_name));
 
 	if (g_strcmp0 (full_name, ".") == 0)
 		basename = g_strdup (_("Inbox"));
@@ -482,12 +491,15 @@ camel_maildir_folder_new (CamelStore *parent_store,
 		NULL);
 
 	service = CAMEL_SERVICE (parent_store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	filter_inbox = camel_store_settings_get_filter_inbox (
 		CAMEL_STORE_SETTINGS (settings));
 
-	if (filter_inbox && strcmp (full_name, ".") == 0)
+	g_object_unref (settings);
+
+	if (filter_inbox && (g_str_equal (full_name, ".") || g_ascii_strcasecmp (full_name, "Inbox") == 0))
 		folder->folder_flags |= CAMEL_FOLDER_FILTER_RECENT;
 
 	folder = (CamelFolder *) camel_local_folder_construct (

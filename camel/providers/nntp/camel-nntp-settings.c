@@ -1,18 +1,17 @@
 /*
  * camel-nntp-settings.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -290,6 +289,9 @@ camel_nntp_settings_set_filter_all (CamelNNTPSettings *settings,
 {
 	g_return_if_fail (CAMEL_IS_NNTP_SETTINGS (settings));
 
+	if (settings->priv->filter_all == filter_all)
+		return;
+
 	settings->priv->filter_all = filter_all;
 
 	g_object_notify (G_OBJECT (settings), "filter-all");
@@ -336,6 +338,9 @@ camel_nntp_settings_set_folder_hierarchy_relative (CamelNNTPSettings *settings,
 {
 	g_return_if_fail (CAMEL_IS_NNTP_SETTINGS (settings));
 
+	if (settings->priv->folder_hierarchy_relative == folder_hierarchy_relative)
+		return;
+
 	settings->priv->folder_hierarchy_relative = folder_hierarchy_relative;
 
 	g_object_notify (G_OBJECT (settings), "folder-hierarchy-relative");
@@ -375,6 +380,9 @@ camel_nntp_settings_set_short_folder_names (CamelNNTPSettings *settings,
                                             gboolean short_folder_names)
 {
 	g_return_if_fail (CAMEL_IS_NNTP_SETTINGS (settings));
+
+	if (settings->priv->short_folder_names == short_folder_names)
+		return;
 
 	settings->priv->short_folder_names = short_folder_names;
 

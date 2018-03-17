@@ -1,18 +1,17 @@
 /*
  * e-gdbus-cal-view.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  *
  * Copyright (C) 2011 Red Hat, Inc. (www.redhat.com)
@@ -22,9 +21,7 @@
 #ifndef E_GDBUS_CAL_VIEW_H
 #define E_GDBUS_CAL_VIEW_H
 
-#include <gio/gio.h>
-
-#include <libedataserver/e-gdbus-templates.h>
+#include <libedataserver/libedataserver.h>
 
 G_BEGIN_DECLS
 
@@ -107,6 +104,7 @@ struct _EGdbusCalViewIface
 	/* Signal handlers for handling D-Bus method calls: */
 	gboolean (*handle_start)		(EGdbusCalView *object, GDBusMethodInvocation *invocation);
 	gboolean (*handle_stop)			(EGdbusCalView *object, GDBusMethodInvocation *invocation);
+	gboolean (*handle_set_flags)		(EGdbusCalView *object, GDBusMethodInvocation *invocation, guint in_flags);
 	gboolean (*handle_dispose)		(EGdbusCalView *object, GDBusMethodInvocation *invocation);
 	gboolean (*handle_set_fields_of_interest)(EGdbusCalView *object, GDBusMethodInvocation *invocation, const gchar * const *in_only_fields);
 };
@@ -120,6 +118,10 @@ void		e_gdbus_cal_view_call_stop		(GDBusProxy *proxy, GCancellable *cancellable,
 gboolean	e_gdbus_cal_view_call_stop_finish	(GDBusProxy *proxy, GAsyncResult *result, GError **error);
 gboolean	e_gdbus_cal_view_call_stop_sync		(GDBusProxy *proxy, GCancellable *cancellable, GError **error);
 
+void		e_gdbus_cal_view_call_set_flags		(GDBusProxy *proxy, guint in_flags, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+gboolean	e_gdbus_cal_view_call_set_flags_finish	(GDBusProxy *proxy, GAsyncResult *res, GError **error);
+gboolean	e_gdbus_cal_view_call_set_flags_sync	(GDBusProxy *proxy, guint in_flags, GCancellable *cancellable, GError **error);
+
 void		e_gdbus_cal_view_call_dispose		(GDBusProxy *proxy, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
 gboolean	e_gdbus_cal_view_call_dispose_finish	(GDBusProxy *proxy, GAsyncResult *result, GError **error);
 gboolean	e_gdbus_cal_view_call_dispose_sync	(GDBusProxy *proxy, GCancellable *cancellable, GError **error);
@@ -131,6 +133,7 @@ gboolean	e_gdbus_cal_view_call_set_fields_of_interest_sync	(GDBusProxy *proxy, c
 /* D-Bus Methods Completion Helpers */
 #define e_gdbus_cal_view_complete_start				e_gdbus_complete_sync_method_void
 #define e_gdbus_cal_view_complete_stop				e_gdbus_complete_sync_method_void
+#define e_gdbus_cal_view_complete_set_flags			e_gdbus_complete_sync_method_void
 #define e_gdbus_cal_view_complete_dispose			e_gdbus_complete_sync_method_void
 #define e_gdbus_cal_view_complete_set_fields_of_interest	e_gdbus_complete_sync_method_void
 

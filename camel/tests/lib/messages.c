@@ -239,9 +239,10 @@ test_message_compare (CamelMimeMessage *msg)
 
 	check_unref (msg2, 1);
 
-	check_msg (byte_array1->len == byte_array2->len,
-		   "byte_array1->len = %d, byte_array2->len = %d",
-		   byte_array1->len, byte_array2->len);
+	check_msg (
+		byte_array1->len == byte_array2->len,
+		"byte_array1->len = %d, byte_array2->len = %d",
+		byte_array1->len, byte_array2->len);
 
 	check_msg (memcmp (byte_array1->data, byte_array2->data, byte_array1->len) == 0, "msg/stream compare");
 
@@ -283,7 +284,7 @@ message_dump_rec (CamelMimeMessage *msg,
 	printf ("%sPart <%s>\n", s, G_OBJECT_TYPE_NAME (part));
 	printf ("%sContent-Type: %s\n", s, mime_type);
 	g_free (mime_type);
-	printf ("%s encoding: %s\n", s, camel_transfer_encoding_to_string (((CamelDataWrapper *)part)->encoding));
+	printf ("%s encoding: %s\n", s, camel_transfer_encoding_to_string (((CamelDataWrapper *) part)->encoding));
 	printf ("%s part encoding: %s\n", s, camel_transfer_encoding_to_string (camel_mime_part_get_encoding (part)));
 
 	containee = camel_medium_get_content (CAMEL_MEDIUM (part));
@@ -295,7 +296,7 @@ message_dump_rec (CamelMimeMessage *msg,
 	printf ("%sContent <%s>\n", s, G_OBJECT_TYPE_NAME (containee));
 	printf ("%sContent-Type: %s\n", s, mime_type);
 	g_free (mime_type);
-	printf ("%s encoding: %s\n", s, camel_transfer_encoding_to_string (((CamelDataWrapper *)containee)->encoding));
+	printf ("%s encoding: %s\n", s, camel_transfer_encoding_to_string (((CamelDataWrapper *) containee)->encoding));
 
 	/* using the object types is more accurate than using the mime/types */
 	if (CAMEL_IS_MULTIPART (containee)) {

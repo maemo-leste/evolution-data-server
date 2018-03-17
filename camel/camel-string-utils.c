@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -50,23 +48,6 @@ camel_strcase_hash (gconstpointer v)
 	}
 
 	return h;
-}
-
-static void
-free_string (gpointer string,
-             gpointer user_data)
-{
-	g_free (string);
-}
-
-void
-camel_string_list_free (GList *string_list)
-{
-	if (string_list == NULL)
-		return;
-
-	g_list_foreach (string_list, free_string, NULL);
-	g_list_free (string_list);
 }
 
 gchar *
@@ -108,188 +89,256 @@ camel_strdown (gchar *str)
 	return str;
 }
 
-/**
- * camel_tolower:
- * @c:
- *
- * ASCII to-lower function.
- *
- * Returns:
- **/
-gchar camel_tolower (gchar c)
-{
-	if (c >= 'A' && c <= 'Z')
-		c |= 0x20;
-
-	return c;
-}
-
-/**
- * camel_toupper:
- * @c:
- *
- * ASCII to-upper function.
- *
- * Returns:
- **/
-gchar camel_toupper (gchar c)
-{
-	if (c >= 'a' && c <= 'z')
-		c &= ~0x20;
-
-	return c;
-}
-
 /* working stuff for pstrings */
-static GStaticMutex pstring_lock = G_STATIC_MUTEX_INIT;
-static GHashTable *pstring_table = NULL;
+static GMutex string_pool_lock;
+static GHashTable *string_pool = NULL;
+
+typedef struct _StringPoolNode StringPoolNode;
+
+struct _StringPoolNode {
+	gchar *string;
+	gulong ref_count;
+};
+
+static StringPoolNode *
+string_pool_node_new (gchar *string)
+{
+	StringPoolNode *node;
+
+	node = g_slice_new (StringPoolNode);
+	node->string = string;  /* takes ownership */
+	node->ref_count = 1;
+
+	return node;
+}
+
+static void
+string_pool_node_free (StringPoolNode *node)
+{
+	g_free (node->string);
+
+	g_slice_free (StringPoolNode, node);
+}
+
+static guint
+string_pool_node_hash (const StringPoolNode *node)
+{
+	return g_str_hash (node->string);
+}
+
+static gboolean
+string_pool_node_equal (const StringPoolNode *node_a,
+                        const StringPoolNode *node_b)
+{
+	return g_str_equal (node_a->string, node_b->string);
+}
+
+static void
+string_pool_init (void)
+{
+	if (G_UNLIKELY (string_pool == NULL))
+		string_pool = g_hash_table_new_full (
+			(GHashFunc) string_pool_node_hash,
+			(GEqualFunc) string_pool_node_equal,
+			(GDestroyNotify) string_pool_node_free,
+			(GDestroyNotify) NULL);
+}
 
 /**
  * camel_pstring_add:
- * @str: string to add to the string pool
- * @own: whether the string pool will own the memory pointed to by @str, if @str is not yet in the pool
+ * @string: string to add to the string pool
+ * @own: whether the string pool will own the memory pointed to by
+ *       @string, if @string is not yet in the pool
  *
- * Add the string to the pool.
+ * Add @string to the pool.
  *
- * The NULL and empty strings are special cased to constant values.
+ * The %NULL and empty strings are special cased to constant values.
  *
- * Returns: A pointer to an equivalent string of @s.  Use
- * camel_pstring_free() when it is no longer needed.
+ * Unreference the returned string with camel_pstring_free().
+ *
+ * Returns: a canonicalized copy of @string
  **/
 const gchar *
-camel_pstring_add (gchar *str,
+camel_pstring_add (gchar *string,
                    gboolean own)
 {
-	gpointer pcount;
-	gchar *pstr;
-	gint count;
+	StringPoolNode static_node = { string, };
+	StringPoolNode *node;
+	const gchar *interned;
 
-	if (str == NULL)
+	if (string == NULL)
 		return NULL;
 
-	if (str[0] == '\0') {
+	if (*string == '\0') {
 		if (own)
-			g_free (str);
+			g_free (string);
 		return "";
 	}
 
-	g_static_mutex_lock (&pstring_lock);
-	if (pstring_table == NULL)
-		pstring_table = g_hash_table_new (g_str_hash, g_str_equal);
+	g_mutex_lock (&string_pool_lock);
 
-	if (g_hash_table_lookup_extended (pstring_table, str, (gpointer *) &pstr, &pcount)) {
-		count = GPOINTER_TO_INT (pcount) + 1;
-		g_hash_table_insert (pstring_table, pstr, GINT_TO_POINTER (count));
+	string_pool_init ();
+
+	node = g_hash_table_lookup (string_pool, &static_node);
+
+	if (node != NULL) {
+		node->ref_count++;
 		if (own)
-			g_free (str);
+			g_free (string);
 	} else {
-		pstr = own ? str : g_strdup (str);
-		g_hash_table_insert (pstring_table, pstr, GINT_TO_POINTER (1));
+		if (!own)
+			string = g_strdup (string);
+		node = string_pool_node_new (string);
+		g_hash_table_add (string_pool, node);
 	}
 
-	g_static_mutex_unlock (&pstring_lock);
+	interned = node->string;
 
-	return pstr;
+	g_mutex_unlock (&string_pool_lock);
+
+	return interned;
 }
 
 /**
  * camel_pstring_peek:
- * @str: string to fetch to the string pool
+ * @string: string to fetch from the string pool
  *
- * Add return the string from the pool.
+ * Returns the canonicalized copy of @string without increasing its
+ * reference count in the string pool.  If necessary, @string is first
+ * added to the string pool.
  *
- * The NULL and empty strings are special cased to constant values.
+ * The %NULL and empty strings are special cased to constant values.
  *
- * Returns: A pointer to an equivalent string of @s.  Use
- * camel_pstring_free() when it is no longer needed.
+ * Returns: a canonicalized copy of @string
  *
  * Since: 2.24
  **/
 const gchar *
-camel_pstring_peek (const gchar *str)
+camel_pstring_peek (const gchar *string)
 {
-	gpointer pcount;
-	gchar *pstr;
+	StringPoolNode static_node = { (gchar *) string, };
+	StringPoolNode *node;
+	const gchar *interned;
 
-	if (str == NULL)
+	if (string == NULL)
 		return NULL;
 
-	if (str[0] == '\0') {
+	if (*string == '\0')
 		return "";
+
+	g_mutex_lock (&string_pool_lock);
+
+	string_pool_init ();
+
+	node = g_hash_table_lookup (string_pool, &static_node);
+
+	if (node == NULL) {
+		node = string_pool_node_new (g_strdup (string));
+		g_hash_table_add (string_pool, node);
 	}
 
-	g_static_mutex_lock (&pstring_lock);
-	if (pstring_table == NULL)
-		pstring_table = g_hash_table_new (g_str_hash, g_str_equal);
+	interned = node->string;
 
-	if (!g_hash_table_lookup_extended (pstring_table, str, (gpointer *) &pstr, &pcount)) {
-		pstr = g_strdup (str);
-		g_hash_table_insert (pstring_table, pstr, GINT_TO_POINTER (1));
-	}
+	g_mutex_unlock (&string_pool_lock);
 
-	g_static_mutex_unlock (&pstring_lock);
-
-	return pstr;
+	return interned;
 }
+
 /**
  * camel_pstring_strdup:
- * @s: String to copy.
+ * @string: string to copy
  *
- * Create a new pooled string entry for the string @s.  A pooled
- * string is a table where common strings are uniquified to the same
- * pointer value.  They are also refcounted, so freed when no longer
- * in use.  In a thread-safe manner.
+ * Create a new pooled string entry for @strings.  A pooled string
+ * is a table where common strings are canonicalized.  They are also
+ * reference counted and freed when no longer referenced.
  *
- * The NULL and empty strings are special cased to constant values.
+ * The %NULL and empty strings are special cased to constant values.
  *
- * Returns: A pointer to an equivalent string of @s.  Use
- * camel_pstring_free() when it is no longer needed.
+ * Unreference the returned string with camel_pstring_free().
+ *
+ * Returns: a canonicalized copy of @string
  **/
 const gchar *
-camel_pstring_strdup (const gchar *s)
+camel_pstring_strdup (const gchar *string)
 {
-	return camel_pstring_add ((gchar *) s, FALSE);
+	return camel_pstring_add ((gchar *) string, FALSE);
 }
 
 /**
  * camel_pstring_free:
- * @s: String to free.
+ * @string: string to free
  *
- * De-ref a pooled string. If no more refs exist to this string, it will be deallocated.
- *
- * NULL and the empty string are special cased.
+ * Unreferences a pooled string.  If the string's reference count drops to
+ * zero it will be deallocated.  %NULL and the empty string are special cased.
  **/
 void
-camel_pstring_free (const gchar *s)
+camel_pstring_free (const gchar *string)
 {
-	gchar *p;
-	gpointer pcount;
-	gint count;
+	StringPoolNode static_node = { (gchar *) string, };
+	StringPoolNode *node;
 
-	if (pstring_table == NULL)
-		return;
-	if (s == NULL || s[0] == 0)
+	if (string_pool == NULL)
 		return;
 
-	g_static_mutex_lock (&pstring_lock);
-	if (g_hash_table_lookup_extended (pstring_table, s, (gpointer *) &p, &pcount)) {
-		count = GPOINTER_TO_INT (pcount) - 1;
-		if (count == 0) {
-			g_hash_table_remove (pstring_table, p);
-			g_free (p);
-			if (g_getenv("CDS_DEBUG")) {
-				if (p != s) /* Only for debugging purposes */
-					g_assert (0);
-			}
-		} else {
-			g_hash_table_insert (pstring_table, p, GINT_TO_POINTER (count));
-		}
+	if (string == NULL || *string == '\0')
+		return;
+
+	g_mutex_lock (&string_pool_lock);
+
+	node = g_hash_table_lookup (string_pool, &static_node);
+
+	if (node == NULL) {
+		g_warning ("%s: String not in pool: %s", G_STRFUNC, string);
+	} else if (node->string != string) {
+		g_warning ("%s: String is not ours: %s", G_STRFUNC, string);
+	} else if (node->ref_count == 0) {
+		g_warning ("%s: Orphaned pool node: %s", G_STRFUNC, string);
 	} else {
-		if (g_getenv("CDS_DEBUG")) {
-			g_warning("Trying to free string not allocated from the pool '%s'", s);
-			/*Only for debugging purposes */
-			g_assert (0);
-		}
+		node->ref_count--;
+		if (node->ref_count == 0)
+			g_hash_table_remove (string_pool, node);
 	}
-	g_static_mutex_unlock (&pstring_lock);
+
+	g_mutex_unlock (&string_pool_lock);
+}
+
+/**
+ * camel_pstring_dump_stat:
+ *
+ * Dumps to stdout memory statistic about the string pool.
+ *
+ * Since: 3.6
+ **/
+void
+camel_pstring_dump_stat (void)
+{
+	g_mutex_lock (&string_pool_lock);
+
+	g_print ("   String Pool Statistics: ");
+
+	if (string_pool == NULL) {
+		g_print ("Not used yet\n");
+	} else {
+		GHashTableIter iter;
+		gchar *format_size;
+		guint64 bytes = 0;
+		gpointer key;
+
+		g_hash_table_iter_init (&iter, string_pool);
+
+		while (g_hash_table_iter_next (&iter, &key, NULL))
+			bytes += strlen (((StringPoolNode *) key)->string);
+
+		format_size = g_format_size_full (
+			bytes, G_FORMAT_SIZE_LONG_FORMAT);
+
+		g_print (
+			"Holds %d strings totaling %s\n",
+			g_hash_table_size (string_pool),
+			format_size);
+
+		g_free (format_size);
+	}
+
+	g_mutex_unlock (&string_pool_lock);
 }

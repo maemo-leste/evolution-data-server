@@ -8,6 +8,8 @@
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  */
 
+#ifndef EDS_DISABLE_DEPRECATED
+
 #ifndef E_DBHASH_H
 #define E_DBHASH_H
 
@@ -73,4 +75,6 @@ void		e_dbhash_destroy		(EDbHash *edbh);
 G_END_DECLS
 
 #endif /* E_DBHASH_H */
+
+#endif /* EDS_DISABLE_DEPRECATED */
 

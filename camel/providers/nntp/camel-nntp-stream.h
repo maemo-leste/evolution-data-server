@@ -3,19 +3,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_NNTP_STREAM_H
@@ -70,9 +68,8 @@ struct _CamelNNTPStreamClass {
 };
 
 GType		camel_nntp_stream_get_type	(void);
-
-CamelStream *	camel_nntp_stream_new		(CamelStream *source);
-
+CamelNNTPStream *
+		camel_nntp_stream_new		(CamelStream *source);
 void		camel_nntp_stream_set_mode	(CamelNNTPStream *is,
 						 camel_nntp_stream_mode_t mode);
 gint		camel_nntp_stream_line		(CamelNNTPStream *is,

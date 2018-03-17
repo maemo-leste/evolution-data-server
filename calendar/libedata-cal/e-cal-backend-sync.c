@@ -6,9 +6,21 @@
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  */
 
-#ifdef CONFIG_H
+/**
+ * SECTION: e-cal-backend-sync
+ * @include: libedata-cal/libedata-cal.h
+ * @short_description: A convenience subclass of #ECalBackend
+ *
+ * This class can be subclassed in place of the #ECalBackend
+ * abstract backend for easier implementation of calendar backends.
+ **/
+
+#ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <glib/gi18n-lib.h>
+#include <libedataserver/libedataserver.h>
 
 #include "e-cal-backend-sync.h"
 #include <libical/icaltz-util.h>
@@ -18,51 +30,6 @@
 	((obj), E_TYPE_CAL_BACKEND_SYNC, ECalBackendSyncPrivate))
 
 G_DEFINE_TYPE (ECalBackendSync, e_cal_backend_sync, E_TYPE_CAL_BACKEND)
-
-struct _ECalBackendSyncPrivate {
-	GMutex *sync_mutex;
-
-	gboolean mutex_lock;
-};
-
-#define LOCK_WRAPPER(func, args) G_STMT_START {									\
-	gboolean locked = backend->priv->mutex_lock;								\
-	e_return_data_cal_error_if_fail (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->func, NotSupported);		\
-	if (locked)												\
-		g_mutex_lock (backend->priv->sync_mutex);							\
-	(* E_CAL_BACKEND_SYNC_GET_CLASS (backend)->func) args;							\
-	if (locked)												\
-		g_mutex_unlock (backend->priv->sync_mutex);							\
-	} G_STMT_END
-
-#define LOCK_WRAPPER_RET_VAL(func, args) G_STMT_START {								\
-	gboolean locked = backend->priv->mutex_lock;								\
-	e_return_data_cal_error_val_if_fail (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->func, NotSupported);	\
-	if (locked)												\
-		g_mutex_lock (backend->priv->sync_mutex);							\
-	res = (* E_CAL_BACKEND_SYNC_GET_CLASS (backend)->func) args;						\
-	if (locked)												\
-		g_mutex_unlock (backend->priv->sync_mutex);							\
-	} G_STMT_END
-
-/**
- * e_cal_backend_sync_set_lock:
- * @backend: An ECalBackendSync object.
- * @lock: Lock mode.
- *
- * Sets the lock mode on the ECalBackendSync object. If TRUE, the backend
- * will create a locking mutex for every operation, so that only one can
- * happen at a time. If FALSE, no lock would be done and many operations
- * can happen at the same time.
- */
-void
-e_cal_backend_sync_set_lock (ECalBackendSync *backend,
-                             gboolean lock)
-{
-	g_return_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend));
-
-	backend->priv->mutex_lock = lock;
-}
 
 /**
  * e_cal_backend_sync_open:
@@ -82,52 +49,21 @@ e_cal_backend_sync_open (ECalBackendSync *backend,
                          gboolean only_if_exists,
                          GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (open_sync, (backend, cal, cancellable, only_if_exists, error));
-}
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
 
-/**
- * e_cal_backend_sync_authenticate_user:
- * @backend: an #ECalBackendSync
- * @cancellable: a #GCancellable for the operation
- * @credentials: an #ECredentials to authenticate with
- * @error: #GError to set, when something fails
- *
- * Authenticates @backend with given @credentials.
- *
- * Since: 3.2
- **/
-void
-e_cal_backend_sync_authenticate_user (ECalBackendSync *backend,
-                                      GCancellable *cancellable,
-                                      ECredentials *credentials,
-                                      GError **error)
-{
-	e_return_data_cal_error_if_fail (E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (credentials, InvalidArg);
-
-	LOCK_WRAPPER (authenticate_user_sync, (backend, cancellable, credentials, error));
-}
-
-/**
- * e_cal_backend_sync_remove:
- * @backend: An ECalBackendSync object.
- * @cal: An EDataCal object.
- * @cancellable: a #GCancellable for the operation
- * @error: Out parameter for a #GError.
- *
- * Calls the remove_sync method on the given backend.
- */
-void
-e_cal_backend_sync_remove (ECalBackendSync *backend,
-                           EDataCal *cal,
-                           GCancellable *cancellable,
-                           GError **error)
-{
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-
-	LOCK_WRAPPER (remove_sync, (backend, cal, cancellable, error));
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->open_sync != NULL) {
+		class->open_sync (
+			backend, cal, cancellable, only_if_exists, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -147,82 +83,20 @@ e_cal_backend_sync_refresh (ECalBackendSync *backend,
                             GCancellable *cancellable,
                             GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->refresh_sync != NULL, UnsupportedMethod);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (refresh_sync, (backend, cal, cancellable, error));
-}
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
 
-/**
- * e_cal_backend_sync_get_backend_property:
- * @backend: An ECalBackendSync object.
- * @cal: An EDataCal object.
- * @cancellable: a #GCancellable for the operation
- * @prop_name: Property name whose value to retrieve.
- * @prop_value: Return value of the @prop_name.
- * @error: Out parameter for a #GError.
- *
- * Calls the get_backend_property_sync method on the given backend.
- *
- * Returns whether processed this property. Returning FALSE means to pass
- * the call to the ECalBackend parent class, thus neither @error should be
- * set in this case.
- *
- * Since: 3.2
- **/
-gboolean
-e_cal_backend_sync_get_backend_property (ECalBackendSync *backend,
-                                         EDataCal *cal,
-                                         GCancellable *cancellable,
-                                         const gchar *prop_name,
-                                         gchar **prop_value,
-                                         GError **error)
-{
-	gboolean res = FALSE;
-
-	e_return_data_cal_error_val_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_val_if_fail (prop_name, InvalidArg);
-	e_return_data_cal_error_val_if_fail (prop_value, InvalidArg);
-
-	LOCK_WRAPPER_RET_VAL (get_backend_property_sync, (backend, cal, cancellable, prop_name, prop_value, error));
-
-	return res;
-}
-
-/**
- * e_cal_backend_sync_set_backend_property:
- * @backend: An ECalBackendSync object.
- * @cal: An EDataCal object.
- * @cancellable: a #GCancellable for the operation
- * @prop_name: Property name to set.
- * @prop_value: New value of the @prop_name.
- * @error: Out parameter for a #GError.
- *
- * Calls the set_backend_property_sync method on the given backend.
- *
- * Returns whether processed this property. Returning FALSE means to pass
- * the call to the ECalBackend parent class, thus neither @error should be
- * set in this case.
- *
- * Since: 3.2
- **/
-gboolean
-e_cal_backend_sync_set_backend_property (ECalBackendSync *backend,
-                                         EDataCal *cal,
-                                         GCancellable *cancellable,
-                                         const gchar *prop_name,
-                                         const gchar *prop_value,
-                                         GError **error)
-{
-	gboolean res = FALSE;
-
-	e_return_data_cal_error_val_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_val_if_fail (prop_name, InvalidArg);
-	e_return_data_cal_error_val_if_fail (prop_value, InvalidArg);
-
-	LOCK_WRAPPER_RET_VAL (set_backend_property_sync, (backend, cal, cancellable, prop_name, prop_value, error));
-
-	return res;
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->refresh_sync != NULL) {
+		class->refresh_sync (backend, cal, cancellable, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -247,10 +121,22 @@ e_cal_backend_sync_get_object (ECalBackendSync *backend,
                                gchar **calobj,
                                GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (calobj, InvalidArg);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (get_object_sync, (backend, cal, cancellable, uid, rid, calobj, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+	g_return_if_fail (calobj != NULL);
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->get_object_sync != NULL) {
+		class->get_object_sync (
+			backend, cal, cancellable, uid, rid, calobj, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -272,10 +158,22 @@ e_cal_backend_sync_get_object_list (ECalBackendSync *backend,
                                     GSList **calobjs,
                                     GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (calobjs, InvalidArg);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (get_object_list_sync, (backend, cal, cancellable, sexp, calobjs, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+	g_return_if_fail (calobjs != NULL);
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->get_object_list_sync != NULL) {
+		class->get_object_list_sync (
+			backend, cal, cancellable, sexp, calobjs, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -301,102 +199,154 @@ e_cal_backend_sync_get_free_busy (ECalBackendSync *backend,
                                   GSList **freebusyobjects,
                                   GError **error)
 {
-	e_return_data_cal_error_if_fail (E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (get_free_busy_sync, (backend, cal, cancellable, users, start, end, freebusyobjects, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->get_free_busy_sync != NULL) {
+		class->get_free_busy_sync (
+			backend, cal, cancellable,
+			users, start, end, freebusyobjects, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
- * e_cal_backend_sync_create_object:
+ * e_cal_backend_sync_create_objects:
  * @backend: An ECalBackendSync object.
  * @cal: An EDataCal object.
  * @cancellable: a #GCancellable for the operation
- * @calobj: The object to be added.
- * @uid: Placeholder for server-generated UID.
- * @new_component: (out) (transfer full): Placeholder for returned #ECalComponent.
+ * @calobjs: The objects to be added.
+ * @uids: Placeholder for server-generated UIDs.
+ * @new_components: (out) (transfer full): Placeholder for returned #ECalComponent objects.
  * @error: Out parameter for a #GError.
  *
- * Calls the create_object_sync method on the given backend.
+ * Calls the create_objects_sync method on the given backend.
+ *
+ * Since: 3.6
  */
 void
-e_cal_backend_sync_create_object (ECalBackendSync *backend,
-                                  EDataCal *cal,
-                                  GCancellable *cancellable,
-                                  const gchar *calobj,
-                                  gchar **uid,
-                                  ECalComponent **new_component,
-                                  GError **error)
+e_cal_backend_sync_create_objects (ECalBackendSync *backend,
+                                   EDataCal *cal,
+                                   GCancellable *cancellable,
+                                   const GSList *calobjs,
+                                   GSList **uids,
+                                   GSList **new_components,
+                                   GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->create_object_sync != NULL, UnsupportedMethod);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (create_object_sync, (backend, cal, cancellable, calobj, uid, new_component, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->create_objects_sync != NULL) {
+		class->create_objects_sync (
+			backend, cal, cancellable,
+			calobjs, uids, new_components, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
- * e_cal_backend_sync_modify_object:
+ * e_cal_backend_sync_modify_objects:
  * @backend: An ECalBackendSync object.
  * @cal: An EDataCal object.
  * @cancellable: a #GCancellable for the operation
- * @calobj: Object to be modified.
+ * @calobjs: Objects to be modified.
  * @mod: Type of modification to be done.
- * @old_component: (out) (transfer full): Placeholder for returning the old component as it was stored on the
+ * @old_components: (out) (transfer full): Placeholder for returning the old components as they were stored on the
  * backend.
- * @new_component: (out) (transfer full): Placeholder for returning the new component as it has been stored
+ * @new_components: (out) (transfer full): Placeholder for returning the new components as they have been stored
  * on the backend.
  * @error: Out parameter for a #GError.
  *
- * Calls the modify_object_sync method on the given backend.
+ * Calls the modify_objects_sync method on the given backend.
+ *
+ * Since: 3.6
  */
 void
-e_cal_backend_sync_modify_object (ECalBackendSync *backend,
-                                  EDataCal *cal,
-                                  GCancellable *cancellable,
-                                  const gchar *calobj,
-                                  CalObjModType mod,
-                                  ECalComponent **old_component,
-                                  ECalComponent **new_component,
-                                  GError **error)
+e_cal_backend_sync_modify_objects (ECalBackendSync *backend,
+                                   EDataCal *cal,
+                                   GCancellable *cancellable,
+                                   const GSList *calobjs,
+                                   ECalObjModType mod,
+                                   GSList **old_components,
+                                   GSList **new_components,
+                                   GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->modify_object_sync != NULL, UnsupportedMethod);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (modify_object_sync, (backend, cal, cancellable, calobj, mod, old_component, new_component, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->modify_objects_sync != NULL) {
+		class->modify_objects_sync (
+			backend, cal, cancellable,
+			calobjs, mod, old_components, new_components, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
- * e_cal_backend_sync_remove_object:
+ * e_cal_backend_sync_remove_objects:
  * @backend: An ECalBackendSync object.
  * @cal: An EDataCal object.
  * @cancellable: a #GCancellable for the operation
- * @uid: UID of the object to remove.
- * @rid: Recurrence ID of the instance to remove, or NULL if removing the
- * whole object.
+ * @ids: List of #ECalComponentId objects identifying the objects to remove.
  * @mod: Type of removal.
- * @old_component: (out) (transfer full): Placeholder for returning the old component as it was stored on the
+ * @old_components: (out) (transfer full): Placeholder for returning the old components as they were stored on the
  * backend.
- * @new_component: (out) (transfer full): Placeholder for returning the new component as it has been stored
- * on the backend (when removing individual instances). If removing the whole object,
- * this will be set to %NULL.
+ * @new_components: (out) (transfer full): Placeholder for returning the new components as they have been stored
+ * on the backend (when removing individual instances). If removing whole objects,
+ * they will be set to %NULL.
  * @error: Out parameter for a #GError.
  *
- * Calls the remove_object_sync method on the given backend.
+ * Calls the remove_objects_sync method on the given backend.
+ *
+ * Since: 3.6
  */
 void
-e_cal_backend_sync_remove_object (ECalBackendSync *backend,
-                                  EDataCal *cal,
-                                  GCancellable *cancellable,
-                                  const gchar *uid,
-                                  const gchar *rid,
-                                  CalObjModType mod,
-                                  ECalComponent **old_component,
-                                  ECalComponent **new_component,
-                                  GError **error)
+e_cal_backend_sync_remove_objects (ECalBackendSync *backend,
+                                   EDataCal *cal,
+                                   GCancellable *cancellable,
+                                   const GSList *ids,
+                                   ECalObjModType mod,
+                                   GSList **old_components,
+                                   GSList **new_components,
+                                   GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->remove_object_sync != NULL, UnsupportedMethod);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (remove_object_sync, (backend, cal, cancellable, uid, rid, mod, old_component, new_component, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->remove_objects_sync != NULL) {
+		class->remove_objects_sync (
+			backend, cal, cancellable,
+			ids, mod, old_components, new_components, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -416,10 +366,21 @@ e_cal_backend_sync_receive_objects (ECalBackendSync *backend,
                                     const gchar *calobj,
                                     GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->receive_objects_sync != NULL, UnsupportedMethod);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (receive_objects_sync, (backend, cal, cancellable, calobj, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->receive_objects_sync != NULL) {
+		class->receive_objects_sync (
+			backend, cal, cancellable, calobj, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -443,10 +404,22 @@ e_cal_backend_sync_send_objects (ECalBackendSync *backend,
                                  gchar **modified_calobj,
                                  GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->send_objects_sync != NULL, UnsupportedMethod);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (send_objects_sync, (backend, cal, cancellable, calobj, users, modified_calobj, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->send_objects_sync != NULL) {
+		class->send_objects_sync (
+			backend, cal, cancellable,
+			calobj, users, modified_calobj, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -472,10 +445,23 @@ e_cal_backend_sync_get_attachment_uris (ECalBackendSync *backend,
                                         GSList **attachments,
                                         GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (attachments, InvalidArg);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (get_attachment_uris_sync, (backend, cal, cancellable, uid, rid, attachments, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+	g_return_if_fail (attachments != NULL);
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->get_attachment_uris_sync != NULL) {
+		class->get_attachment_uris_sync (
+			backend, cal, cancellable,
+			uid, rid, attachments, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -499,11 +485,24 @@ e_cal_backend_sync_discard_alarm (ECalBackendSync *backend,
                                   const gchar *auid,
                                   GError **error)
 {
-	e_return_data_cal_error_if_fail (backend && E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
-	e_return_data_cal_error_if_fail (uid, InvalidArg);
-	e_return_data_cal_error_if_fail (auid, InvalidArg);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (discard_alarm_sync, (backend, cal, cancellable, uid, rid, auid, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+	g_return_if_fail (uid != NULL);
+	g_return_if_fail (auid != NULL);
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->discard_alarm_sync != NULL) {
+		class->discard_alarm_sync (
+			backend, cal, cancellable,
+			uid, rid, auid, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 /**
@@ -531,20 +530,22 @@ e_cal_backend_sync_get_timezone (ECalBackendSync *backend,
                                  gchar **tzobject,
                                  GError **error)
 {
-	e_return_data_cal_error_if_fail (E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
+	ECalBackendSyncClass *class;
 
-	if (E_CAL_BACKEND_SYNC_GET_CLASS (backend)->get_timezone_sync) {
-		LOCK_WRAPPER (get_timezone_sync, (backend, cal, cancellable, tzid, tzobject, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->get_timezone_sync != NULL) {
+		class->get_timezone_sync (
+			backend, cal, cancellable,
+			tzid, tzobject, error);
 	}
 
 	if (tzobject && !*tzobject) {
 		icaltimezone *zone = NULL;
 
-		if (backend->priv->mutex_lock)
-			g_mutex_lock (backend->priv->sync_mutex);
-		zone = e_cal_backend_internal_get_timezone (E_CAL_BACKEND (backend), tzid);
-		if (backend->priv->mutex_lock)
-			g_mutex_unlock (backend->priv->sync_mutex);
+		zone = e_timezone_cache_get_timezone (
+			E_TIMEZONE_CACHE (backend), tzid);
 
 		if (!zone) {
 			g_propagate_error (error, e_data_cal_create_error (ObjectNotFound, NULL));
@@ -579,9 +580,21 @@ e_cal_backend_sync_add_timezone (ECalBackendSync *backend,
                                  const gchar *tzobject,
                                  GError **error)
 {
-	e_return_data_cal_error_if_fail (E_IS_CAL_BACKEND_SYNC (backend), InvalidArg);
+	ECalBackendSyncClass *class;
 
-	LOCK_WRAPPER (add_timezone_sync, (backend, cal, cancellable, tzobject, error));
+	g_return_if_fail (E_IS_CAL_BACKEND_SYNC (backend));
+
+	class = E_CAL_BACKEND_SYNC_GET_CLASS (backend);
+	if (class->add_timezone_sync != NULL) {
+		class->add_timezone_sync (
+			backend, cal, cancellable, tzobject, error);
+	} else {
+		g_set_error_literal (
+			error, E_CLIENT_ERROR,
+			E_CLIENT_ERROR_NOT_SUPPORTED,
+			e_client_error_to_string (
+			E_CLIENT_ERROR_NOT_SUPPORTED));
+	}
 }
 
 static void
@@ -599,31 +612,6 @@ cal_backend_open (ECalBackend *backend,
 }
 
 static void
-cal_backend_authenticate_user (ECalBackend *backend,
-                               GCancellable *cancellable,
-                               ECredentials *credentials)
-{
-	GError *error = NULL;
-
-	e_cal_backend_sync_authenticate_user (E_CAL_BACKEND_SYNC (backend), cancellable, credentials, &error);
-
-	e_cal_backend_notify_opened (backend, error);
-}
-
-static void
-cal_backend_remove (ECalBackend *backend,
-                    EDataCal *cal,
-                    guint32 opid,
-                    GCancellable *cancellable)
-{
-	GError *error = NULL;
-
-	e_cal_backend_sync_remove (E_CAL_BACKEND_SYNC (backend), cal, cancellable, &error);
-
-	e_data_cal_respond_remove (cal, opid, error);
-}
-
-static void
 cal_backend_refresh (ECalBackend *backend,
                      EDataCal *cal,
                      guint32 opid,
@@ -634,40 +622,6 @@ cal_backend_refresh (ECalBackend *backend,
 	e_cal_backend_sync_refresh (E_CAL_BACKEND_SYNC (backend), cal, cancellable, &error);
 
 	e_data_cal_respond_refresh (cal, opid, error);
-}
-
-static void
-cal_backend_get_backend_property (ECalBackend *backend,
-                                  EDataCal *cal,
-                                  guint32 opid,
-                                  GCancellable *cancellable,
-                                  const gchar *prop_name)
-{
-	GError *error = NULL;
-	gchar *prop_value = NULL;
-
-	if (e_cal_backend_sync_get_backend_property (E_CAL_BACKEND_SYNC (backend), cal, cancellable, prop_name, &prop_value, &error))
-		e_data_cal_respond_get_backend_property (cal, opid, error, prop_value);
-	else
-		(* E_CAL_BACKEND_CLASS (e_cal_backend_sync_parent_class)->get_backend_property) (backend, cal, opid, cancellable, prop_name);
-
-	g_free (prop_value);
-}
-
-static void
-cal_backend_set_backend_property (ECalBackend *backend,
-                                  EDataCal *cal,
-                                  guint32 opid,
-                                  GCancellable *cancellable,
-                                  const gchar *prop_name,
-                                  const gchar *prop_value)
-{
-	GError *error = NULL;
-
-	if (e_cal_backend_sync_set_backend_property (E_CAL_BACKEND_SYNC (backend), cal, cancellable, prop_name, prop_value, &error))
-		e_data_cal_respond_set_backend_property (cal, opid, error);
-	else
-		(* E_CAL_BACKEND_CLASS (e_cal_backend_sync_parent_class)->set_backend_property) (backend, cal, opid, cancellable, prop_name, prop_value);
 }
 
 static void
@@ -728,80 +682,81 @@ cal_backend_get_free_busy (ECalBackend *backend,
 	g_slist_free (freebusyobjs);
 }
 
-static void
-cal_backend_create_object (ECalBackend *backend,
-                           EDataCal *cal,
-                           guint32 opid,
-                           GCancellable *cancellable,
-                           const gchar *calobj)
+static GSList *
+ecalcomponent_slist_from_strings (const GSList *strings)
 {
-	GError *error = NULL;
-	gchar *uid = NULL;
-	ECalComponent *new_component = NULL;
+	GSList *ecalcomps = NULL;
+	const GSList *l;
 
-	e_cal_backend_sync_create_object (E_CAL_BACKEND_SYNC (backend), cal, cancellable, calobj, &uid, &new_component, &error);
+	for (l = strings; l; l = l->next) {
+		ECalComponent *component = e_cal_component_new_from_string (l->data);
+		ecalcomps = g_slist_prepend (ecalcomps, component);
+	}
 
-	if (!new_component)
-		new_component = e_cal_component_new_from_string (calobj);
-
-	e_data_cal_respond_create_object (cal, opid, error, uid, new_component);
-
-	g_free (uid);
-
-	if (new_component)
-		g_object_unref (new_component);
+	return g_slist_reverse (ecalcomps);
 }
 
 static void
-cal_backend_modify_object (ECalBackend *backend,
-                           EDataCal *cal,
-                           guint32 opid,
-                           GCancellable *cancellable,
-                           const gchar *calobj,
-                           CalObjModType mod)
+cal_backend_create_objects (ECalBackend *backend,
+                            EDataCal *cal,
+                            guint32 opid,
+                            GCancellable *cancellable,
+                            const GSList *calobjs)
 {
 	GError *error = NULL;
-	ECalComponent *old_component = NULL, *new_component = NULL;
+	GSList *uids = NULL;
+	GSList *new_components = NULL;
 
-	e_cal_backend_sync_modify_object (E_CAL_BACKEND_SYNC (backend), cal, cancellable, calobj, mod, &old_component, &new_component, &error);
+	e_cal_backend_sync_create_objects (E_CAL_BACKEND_SYNC (backend), cal, cancellable, calobjs, &uids, &new_components, &error);
 
-	if (!old_component)
-		old_component = e_cal_component_new_from_string (calobj);
+	if (!new_components)
+		new_components = ecalcomponent_slist_from_strings (calobjs);
 
-	e_data_cal_respond_modify_object (cal, opid, error, old_component, new_component);
+	e_data_cal_respond_create_objects (cal, opid, error, uids, new_components);
 
-	if (old_component)
-		g_object_unref (old_component);
-
-	if (new_component)
-		g_object_unref (new_component);
+	g_slist_free_full (uids, g_free);
+	e_util_free_nullable_object_slist (new_components);
 }
 
 static void
-cal_backend_remove_object (ECalBackend *backend,
-                           EDataCal *cal,
-                           guint32 opid,
-                           GCancellable *cancellable,
-                           const gchar *uid,
-                           const gchar *rid,
-                           CalObjModType mod)
+cal_backend_modify_objects (ECalBackend *backend,
+                            EDataCal *cal,
+                            guint32 opid,
+                            GCancellable *cancellable,
+                            const GSList *calobjs,
+                            ECalObjModType mod)
 {
 	GError *error = NULL;
-	ECalComponent *old_component = NULL, *new_component = NULL;
-	ECalComponentId compid;
+	GSList *old_components = NULL, *new_components = NULL;
 
-	compid.uid = (gchar *) uid;
-	compid.rid = (gchar *) ((mod == CALOBJ_MOD_THIS || mod == CALOBJ_MOD_ONLY_THIS) ? rid : NULL);
+	e_cal_backend_sync_modify_objects (E_CAL_BACKEND_SYNC (backend), cal, cancellable, calobjs, mod, &old_components, &new_components, &error);
 
-	e_cal_backend_sync_remove_object (E_CAL_BACKEND_SYNC (backend), cal, cancellable, uid, rid, mod, &old_component, &new_component, &error);
+	if (!old_components)
+		old_components = ecalcomponent_slist_from_strings (calobjs);
 
-	e_data_cal_respond_remove_object (cal, opid, error, &compid, old_component, new_component);
+	e_data_cal_respond_modify_objects (cal, opid, error, old_components, new_components);
 
-	if (old_component)
-		g_object_unref (old_component);
+	e_util_free_nullable_object_slist (old_components);
+	e_util_free_nullable_object_slist (new_components);
+}
 
-	if (new_component)
-		g_object_unref (new_component);
+static void
+cal_backend_remove_objects (ECalBackend *backend,
+                            EDataCal *cal,
+                            guint32 opid,
+                            GCancellable *cancellable,
+                            const GSList *ids,
+                            ECalObjModType mod)
+{
+	GError *error = NULL;
+	GSList *old_components = NULL, *new_components = NULL;
+
+	e_cal_backend_sync_remove_objects (E_CAL_BACKEND_SYNC (backend), cal, cancellable, ids, mod, &old_components, &new_components, &error);
+
+	e_data_cal_respond_remove_objects (cal, opid, error, ids, old_components, new_components);
+
+	e_util_free_nullable_object_slist (old_components);
+	e_util_free_nullable_object_slist (new_components);
 }
 
 static void
@@ -899,8 +854,11 @@ cal_backend_get_timezone (ECalBackend *backend,
 
 			icaltimezone *zone = icaltimezone_get_builtin_timezone (tzid);
 			if (!zone) {
-				/* Try fetching the timezone from zone directory. There are some timezones like MST, US/Pacific etc. which do not appear in
-				zone.tab, so they will not be available in the libical builtin timezone */
+				/* Try fetching the timezone from zone
+				 * directory. There are some timezones like
+				 * MST, US/Pacific etc. which do not appear
+				 * in zone.tab, so they will not be available
+				 * in the libical builtin timezone */
 				icalcomp = free_comp = icaltzutil_fetch_timezone (tzid);
 			}
 
@@ -950,124 +908,30 @@ cal_backend_add_timezone (ECalBackend *backend,
 	e_data_cal_respond_add_timezone (cal, opid, error);
 }
 
-/* The default implementation is looking for timezone in the ical's builtin timezones,
- * and if that fails, then it tries to extract the location from the tzid and get the
- * timezone based on it. If even that fails, then it's returning UTC timezone.
- * That means, that any object deriving from ECalBackendSync is supposed to implement
- * this function for checking for a timezone in its own timezone cache, and if that
- * fails, then call parent's object internal_get_timezone, and that's all.
- */
-static icaltimezone *
-cal_backend_internal_get_timezone (ECalBackend *backend,
-                                   const gchar *tzid)
-{
-	icaltimezone *zone = NULL;
-
-	if (!tzid || !*tzid)
-		return NULL;
-
-	zone = icaltimezone_get_builtin_timezone_from_tzid (tzid);
-
-	if (!zone) {
-		const gchar *s, *slash1 = NULL, *slash2 = NULL;
-
-		/* get builtin by a location, if any */
-		for (s = tzid; *s; s++) {
-			if (*s == '/') {
-				slash1 = slash2;
-				slash2 = s;
-			}
-		}
-
-		if (slash1)
-			zone = icaltimezone_get_builtin_timezone (slash1 + 1);
-		else if (slash2)
-			zone = icaltimezone_get_builtin_timezone (tzid);
-	}
-
-	if (!zone)
-		zone = icaltimezone_get_utc_timezone ();
-
-	return zone;
-}
-
-static gboolean
-cal_backend_sync_get_backend_property (ECalBackendSync *backend,
-                                       EDataCal *cal,
-                                       GCancellable *cancellable,
-                                       const gchar *prop_name,
-                                       gchar **prop_value,
-                                       GError **error)
-{
-	/* to indicate to pass to the ECalBackend parent class */
-	return FALSE;
-}
-
-static gboolean
-cal_backend_sync_set_backend_property (ECalBackendSync *backend,
-                                       EDataCal *cal,
-                                       GCancellable *cancellable,
-                                       const gchar *prop_name,
-                                       const gchar *prop_value,
-                                       GError **error)
-{
-	/* to indicate to pass to the ECalBackend parent class */
-	return FALSE;
-}
-
-static void
-e_cal_backend_sync_finalize (GObject *object)
-{
-	ECalBackendSyncPrivate *priv;
-
-	priv = E_CAL_BACKEND_SYNC_GET_PRIVATE (object);
-
-	g_mutex_free (priv->sync_mutex);
-
-	/* Chain up to parent's finalize() method. */
-	G_OBJECT_CLASS (e_cal_backend_sync_parent_class)->finalize (object);
-}
-
 static void
 e_cal_backend_sync_class_init (ECalBackendSyncClass *class)
 {
-	GObjectClass *object_class;
 	ECalBackendClass *backend_class;
 
-	g_type_class_add_private (class, sizeof (ECalBackendSyncPrivate));
-
-	object_class = G_OBJECT_CLASS (class);
-	object_class->finalize = e_cal_backend_sync_finalize;
-
 	backend_class = E_CAL_BACKEND_CLASS (class);
-	backend_class->open			= cal_backend_open;
-	backend_class->authenticate_user	= cal_backend_authenticate_user;
-	backend_class->remove			= cal_backend_remove;
-	backend_class->refresh			= cal_backend_refresh;
-	backend_class->get_backend_property	= cal_backend_get_backend_property;
-	backend_class->set_backend_property	= cal_backend_set_backend_property;
-	backend_class->get_object		= cal_backend_get_object;
-	backend_class->get_object_list		= cal_backend_get_object_list;
-	backend_class->get_free_busy		= cal_backend_get_free_busy;
-	backend_class->create_object		= cal_backend_create_object;
-	backend_class->modify_object		= cal_backend_modify_object;
-	backend_class->remove_object		= cal_backend_remove_object;
-	backend_class->receive_objects		= cal_backend_receive_objects;
-	backend_class->send_objects		= cal_backend_send_objects;
-	backend_class->get_attachment_uris	= cal_backend_get_attachment_uris;
-	backend_class->discard_alarm		= cal_backend_discard_alarm;
-	backend_class->get_timezone		= cal_backend_get_timezone;
-	backend_class->add_timezone		= cal_backend_add_timezone;
-	backend_class->internal_get_timezone	= cal_backend_internal_get_timezone;
-
-	class->get_backend_property_sync	= cal_backend_sync_get_backend_property;
-	class->set_backend_property_sync	= cal_backend_sync_set_backend_property;
+	backend_class->open = cal_backend_open;
+	backend_class->refresh = cal_backend_refresh;
+	backend_class->get_object = cal_backend_get_object;
+	backend_class->get_object_list = cal_backend_get_object_list;
+	backend_class->get_free_busy = cal_backend_get_free_busy;
+	backend_class->create_objects = cal_backend_create_objects;
+	backend_class->modify_objects = cal_backend_modify_objects;
+	backend_class->remove_objects = cal_backend_remove_objects;
+	backend_class->receive_objects = cal_backend_receive_objects;
+	backend_class->send_objects = cal_backend_send_objects;
+	backend_class->get_attachment_uris = cal_backend_get_attachment_uris;
+	backend_class->discard_alarm = cal_backend_discard_alarm;
+	backend_class->get_timezone = cal_backend_get_timezone;
+	backend_class->add_timezone = cal_backend_add_timezone;
 }
 
 static void
 e_cal_backend_sync_init (ECalBackendSync *backend)
 {
-	backend->priv = E_CAL_BACKEND_SYNC_GET_PRIVATE (backend);
-	backend->priv->sync_mutex = g_mutex_new ();
 }
 

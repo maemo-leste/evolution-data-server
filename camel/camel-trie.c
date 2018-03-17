@@ -1,20 +1,18 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Street #330, Boston, MA 02111-1307, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -207,8 +205,9 @@ dump_trie (struct _trie_state *s,
 	memset (p, ' ', depth * 2);
 	p[depth * 2] = '\0';
 
-	fprintf (stderr, "%s[state] %p: final=%d; pattern-id=%d; fail=%p\n",
-		 p, s, s->final, s->id, s->fail);
+	fprintf (
+		stderr, "%s[state] %p: final=%d; pattern-id=%d; fail=%p\n",
+		p, s, s->final, s->id, s->fail);
 	m = s->match;
 	while (m) {
 		fprintf (stderr, " %s'%c' -> %p\n", p, m->c, m->state);
@@ -307,7 +306,7 @@ camel_trie_add (CamelTrie *trie,
 		}
 	}
 
-	d(fprintf (stderr, "\nafter adding pattern '%s' to trie %p:\n", pattern, trie));
+	d (fprintf (stderr, "\nafter adding pattern '%s' to trie %p:\n", pattern, trie));
 	d (dump_trie (&trie->root, 0));
 }
 

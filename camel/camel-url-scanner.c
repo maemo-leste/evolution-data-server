@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -132,14 +130,14 @@ static guchar url_scanner_table[256] = {
 };
 
 enum {
-	IS_CTRL		= (1 << 0),
-	IS_ALPHA        = (1 << 1),
-	IS_DIGIT        = (1 << 2),
-	IS_LWSP		= (1 << 3),
-	IS_SPACE	= (1 << 4),
-	IS_SPECIAL	= (1 << 5),
-	IS_DOMAIN       = (1 << 6),
-	IS_URLSAFE      = (1 << 7)
+	IS_CTRL = (1 << 0),
+	IS_ALPHA = (1 << 1),
+	IS_DIGIT = (1 << 2),
+	IS_LWSP = (1 << 3),
+	IS_SPACE = (1 << 4),
+	IS_SPECIAL = (1 << 5),
+	IS_DOMAIN = (1 << 6),
+	IS_URLSAFE = (1 << 7)
 };
 
 #define is_ctrl(x) ((url_scanner_table[(guchar)(x)] & IS_CTRL) != 0)
@@ -456,6 +454,7 @@ camel_url_web_end (const gchar *in,
 			/* we have a '/' so there could be a path - fall through */
 		case '/': /* we've detected a path component to our url */
 			inptr++;
+			/* coverity[fallthrough] */
 		case '?':
 			while (inptr < inend && is_urlsafe (*inptr)) {
 				if (*inptr == open_brace) {
@@ -544,7 +543,8 @@ gint main (gint argc, gchar **argv)
 
 	printf ("static guchar url_scanner_table[256] = {");
 	for (i = 0; i < 256; i++) {
-		printf ("%s%3d%s", (i % 16) ? "" : "\n\t",
+		printf (
+			"%s%3d%s", (i % 16) ? "" : "\n\t",
 			url_scanner_table[i], i != 255 ? "," : "\n");
 	}
 	printf ("};\n\n");

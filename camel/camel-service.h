@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -84,16 +82,6 @@ typedef enum {
 	CAMEL_SERVICE_ERROR_NOT_CONNECTED
 } CamelServiceError;
 
-/**
- * CamelServiceLock:
- *
- * Since: 2.32
- **/
-typedef enum {
-	CAMEL_SERVICE_REC_CONNECT_LOCK,
-	CAMEL_SERVICE_CONNECT_OP_LOCK
-} CamelServiceLock;
-
 struct _CamelService {
 	CamelObject parent;
 	CamelServicePrivate *priv;
@@ -107,7 +95,6 @@ struct _CamelServiceClass {
 	/* Non-Blocking Methods */
 	gchar *		(*get_name)		(CamelService *service,
 						 gboolean brief);
-	void		(*cancel_connect)	(CamelService *service);
 
 	/* Synchronous I/O Methods */
 	gboolean	(*connect_sync)		(CamelService *service,
@@ -127,26 +114,8 @@ struct _CamelServiceClass {
 						 GCancellable *cancellable,
 						 GError **error);
 
-	/* Asynchronous I/O Methods (all have defaults) */
-	void		(*authenticate)		(CamelService *service,
-						 const gchar *mechanism,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	CamelAuthenticationResult
-			(*authenticate_finish)	(CamelService *service,
-						 GAsyncResult *result,
-						 GError **error);
-	void		(*query_auth_types)	(CamelService *service,
-						 gint io_priority,
-						 GCancellable *cancellable,
-						 GAsyncReadyCallback callback,
-						 gpointer user_data);
-	GList *		(*query_auth_types_finish)
-						(CamelService *service,
-						 GAsyncResult *result,
-						 GError **error);
+	/* Reserved slots. */
+	gpointer reserved[8];
 };
 
 /* query_auth_types returns a GList of these */
@@ -162,10 +131,15 @@ GType		camel_service_get_type		(void);
 GQuark		camel_service_error_quark	(void) G_GNUC_CONST;
 void		camel_service_migrate_files	(CamelService *service);
 CamelURL *	camel_service_new_camel_url	(CamelService *service);
+CamelServiceConnectionStatus
+		camel_service_get_connection_status
+						(CamelService *service);
 const gchar *	camel_service_get_display_name	(CamelService *service);
+gchar *		camel_service_dup_display_name	(CamelService *service);
 void		camel_service_set_display_name	(CamelService *service,
 						 const gchar *display_name);
 const gchar *	camel_service_get_password	(CamelService *service);
+gchar *		camel_service_dup_password	(CamelService *service);
 void		camel_service_set_password	(CamelService *service,
 						 const gchar *password);
 const gchar *	camel_service_get_user_data_dir	(CamelService *service);
@@ -174,26 +148,45 @@ const gchar *	camel_service_get_user_cache_dir
 gchar *		camel_service_get_name		(CamelService *service,
 						 gboolean brief);
 CamelProvider *	camel_service_get_provider	(CamelService *service);
+GProxyResolver *
+		camel_service_ref_proxy_resolver
+						(CamelService *service);
+void		camel_service_set_proxy_resolver
+						(CamelService *service,
+						 GProxyResolver *proxy_resolver);
 struct _CamelSession *
-		camel_service_get_session	(CamelService *service);
-CamelSettings *	camel_service_get_settings	(CamelService *service);
+		camel_service_ref_session	(CamelService *service);
+CamelSettings *	camel_service_ref_settings	(CamelService *service);
 void		camel_service_set_settings	(CamelService *service,
 						 CamelSettings *settings);
 const gchar *	camel_service_get_uid		(CamelService *service);
-void		camel_service_cancel_connect	(CamelService *service);
+void		camel_service_queue_task	(CamelService *service,
+						 GTask *task,
+						 GTaskThreadFunc task_func);
 gboolean	camel_service_connect_sync	(CamelService *service,
+						 GCancellable *cancellable,
+						 GError **error);
+void		camel_service_connect		(CamelService *service,
+						 gint io_priority,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	camel_service_connect_finish	(CamelService *service,
+						 GAsyncResult *result,
 						 GError **error);
 gboolean	camel_service_disconnect_sync	(CamelService *service,
 						 gboolean clean,
+						 GCancellable *cancellable,
 						 GError **error);
-CamelServiceConnectionStatus
-		camel_service_get_connection_status
-						(CamelService *service);
-void		camel_service_lock		(CamelService *service,
-						 CamelServiceLock lock);
-void		camel_service_unlock		(CamelService *service,
-						 CamelServiceLock lock);
-
+void		camel_service_disconnect	(CamelService *service,
+						 gboolean clean,
+						 gint io_priority,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	camel_service_disconnect_finish	(CamelService *service,
+						 GAsyncResult *result,
+						 GError **error);
 CamelAuthenticationResult
 		camel_service_authenticate_sync	(CamelService *service,
 						 const gchar *mechanism,

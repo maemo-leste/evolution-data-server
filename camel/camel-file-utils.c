@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -42,10 +40,18 @@
 
 #ifdef G_OS_WIN32
 #include <winsock2.h>
+#ifndef EWOULDBLOCK
 #define EWOULDBLOCK EAGAIN
+#endif
 #endif
 
 #define IO_TIMEOUT (60*4)
+
+#define CHECK_CALL(x) G_STMT_START { \
+	if ((x) == -1) { \
+		g_debug ("%s: Call of '" #x "' failed: %s", G_STRFUNC, g_strerror (errno)); \
+	} \
+	} G_STMT_END
 
 /**
  * camel_file_util_encode_uint32:
@@ -148,35 +154,35 @@ camel_file_util_decode_fixed_int32 (FILE *in,
 	}
 }
 
-#define CFU_ENCODE_T(type)						\
-gint									\
-camel_file_util_encode_##type (FILE *out, type value)			\
-{									\
-	gint i;								\
-									\
-	for (i = sizeof (type) - 1; i >= 0; i--) {			\
-		if (fputc ((value >> (i * 8)) & 0xff, out) == -1)	\
-			return -1;					\
-	}								\
-	return 0;							\
+#define CFU_ENCODE_T(type) \
+gint \
+camel_file_util_encode_##type (FILE *out, type value) \
+{ \
+	gint i; \
+ \
+	for (i = sizeof (type) - 1; i >= 0; i--) { \
+		if (fputc ((value >> (i * 8)) & 0xff, out) == -1) \
+			return -1; \
+	} \
+	return 0; \
 }
 
-#define CFU_DECODE_T(type)				\
-gint							\
-camel_file_util_decode_##type (FILE *in, type *dest)	\
-{							\
-	type save = 0;					\
-	gint i = sizeof (type) - 1;			\
-	gint v = EOF;					\
-							\
-	while (i >= 0 && (v = fgetc (in)) != EOF) {	\
-		save |= ((type) v) << (i * 8);		\
-		i--;					\
-	}						\
-	*dest = save;					\
-	if (v == EOF)					\
-		return -1;				\
-	return 0;					\
+#define CFU_DECODE_T(type) \
+gint \
+camel_file_util_decode_##type (FILE *in, type *dest) \
+{ \
+	type save = 0; \
+	gint i = sizeof (type) - 1; \
+	gint v = EOF; \
+ \
+	while (i >= 0 && (v = fgetc (in)) != EOF) { \
+		save |= ((type) v) << (i * 8); \
+		i--; \
+	} \
+	*dest = save; \
+	if (v == EOF) \
+		return -1; \
+	return 0; \
 }
 
 /**
@@ -454,7 +460,7 @@ camel_read (gint fd,
 		fd_set rdset;
 
 		flags = fcntl (fd, F_GETFL);
-		fcntl (fd, F_SETFL, flags | O_NONBLOCK);
+		CHECK_CALL (fcntl (fd, F_SETFL, flags | O_NONBLOCK));
 
 		do {
 			struct timeval tv;
@@ -484,7 +490,7 @@ camel_read (gint fd,
 		} while (nread == -1 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK));
 	failed:
 		errnosav = errno;
-		fcntl (fd, F_SETFL, flags);
+		CHECK_CALL (fcntl (fd, F_SETFL, flags));
 		errno = errnosav;
 #endif
 	}
@@ -550,7 +556,7 @@ camel_write (gint fd,
 		fd_set rdset, wrset;
 
 		flags = fcntl (fd, F_GETFL);
-		fcntl (fd, F_SETFL, flags | O_NONBLOCK);
+		CHECK_CALL (fcntl (fd, F_SETFL, flags | O_NONBLOCK));
 
 		fdmax = MAX (fd, cancel_fd) + 1;
 		do {
@@ -587,7 +593,7 @@ camel_write (gint fd,
 		} while (w != -1 && written < n);
 
 		errnosav = errno;
-		fcntl (fd, F_SETFL, flags);
+		CHECK_CALL (fcntl (fd, F_SETFL, flags));
 		errno = errnosav;
 #endif
 	}
@@ -606,197 +612,6 @@ camel_write (gint fd,
 	}
 
 	return written;
-}
-
-/**
- * camel_read_socket:
- * @fd: a socket
- * @buf: buffer to fill
- * @n: number of bytes to read into @buf
- * @cancellable: optional #GCancellable object, or %NULL
- * @error: return location for a #GError, or %NULL
- *
- * Cancellable read() replacement for sockets. Code that intends to be
- * portable to Win32 should call this function only on sockets
- * returned from socket(), or accept().
- *
- * Returns: number of bytes read or -1 on fail. On failure, errno will
- * be set appropriately. If the socket is nonblocking
- * camel_read_socket() will retry the read until it gets something.
- **/
-gssize
-camel_read_socket (gint fd,
-                   gchar *buf,
-                   gsize n,
-                   GCancellable *cancellable,
-                   GError **error)
-{
-#ifndef G_OS_WIN32
-	return camel_read (fd, buf, n, cancellable, error);
-#else
-	gssize nread;
-	gint cancel_fd;
-
-	if (g_cancellable_set_error_if_cancelled (cancellable, error)) {
-		errno = EINTR;
-		return -1;
-	}
-
-	cancel_fd = g_cancellable_get_fd (cancellable);
-
-	if (cancel_fd == -1) {
-		do {
-			nread = recv (fd, buf, n, 0);
-		} while (nread == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK);
-	} else {
-		gint fdmax;
-		fd_set rdset;
-		u_long yes = 1;
-
-		ioctlsocket (fd, FIONBIO, &yes);
-		fdmax = MAX (fd, cancel_fd) + 1;
-		do {
-			struct timeval tv;
-			gint res;
-
-			FD_ZERO (&rdset);
-			FD_SET (fd, &rdset);
-			FD_SET (cancel_fd, &rdset);
-			tv.tv_sec = IO_TIMEOUT;
-			tv.tv_usec = 0;
-			nread = -1;
-
-			res = select (fdmax, &rdset, 0, 0, &tv);
-			if (res == -1)
-				;
-			else if (res == 0)
-				errno = EAGAIN;
-			else if (FD_ISSET (cancel_fd, &rdset)) {
-				errno = EINTR;
-				goto failed;
-			} else {
-				nread = recv (fd, buf, n, 0);
-			}
-		} while (nread == -1 && WSAGetLastError () == WSAEWOULDBLOCK);
-	failed:
-		;
-	}
-
-	g_cancellable_release_fd (cancellable);
-
-	if (g_cancellable_set_error_if_cancelled (cancellable, error))
-		return -1;
-
-	if (nread == -1)
-		g_set_error (
-			error, G_IO_ERROR,
-			g_io_error_from_errno (errno),
-			"%s", g_strerror (errno));
-
-	return nread;
-#endif
-}
-
-/**
- * camel_write_socket:
- * @fd: file descriptor
- * @buf: buffer to write
- * @n: number of bytes of @buf to write
- * @error: return location for a #GError, or %NULL
- *
- * Cancellable write() replacement for sockets. Code that intends to
- * be portable to Win32 should call this function only on sockets
- * returned from socket() or accept().
- *
- * Returns: number of bytes written or -1 on fail. On failure, errno will
- * be set appropriately.
- **/
-gssize
-camel_write_socket (gint fd,
-                    const gchar *buf,
-                    gsize n,
-                    GCancellable *cancellable,
-                    GError **error)
-{
-#ifndef G_OS_WIN32
-	return camel_write (fd, buf, n, cancellable, error);
-#else
-	gssize w, written = 0;
-	gint cancel_fd;
-
-	if (g_cancellable_is_cancelled (cancellable)) {
-		errno = EINTR;
-		g_set_error (
-			error, G_IO_ERROR,
-			G_IO_ERROR_CANCELLED,
-			_("Canceled"));
-		return -1;
-	}
-
-	cancel_fd = g_cancellable_get_fd (cancellable);
-
-	if (cancel_fd == -1) {
-		do {
-			do {
-				w = send (fd, buf + written, n - written, 0);
-			} while (w == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK);
-			if (w > 0)
-				written += w;
-		} while (w != -1 && written < n);
-	} else {
-		gint fdmax;
-		fd_set rdset, wrset;
-		u_long arg = 1;
-
-		ioctlsocket (fd, FIONBIO, &arg);
-		fdmax = MAX (fd, cancel_fd) + 1;
-		do {
-			struct timeval tv;
-			gint res;
-
-			FD_ZERO (&rdset);
-			FD_ZERO (&wrset);
-			FD_SET (fd, &wrset);
-			FD_SET (cancel_fd, &rdset);
-			tv.tv_sec = IO_TIMEOUT;
-			tv.tv_usec = 0;
-			w = -1;
-
-			res = select (fdmax, &rdset, &wrset, 0, &tv);
-			if (res == SOCKET_ERROR) {
-				/* w still being -1 will catch this */
-			} else if (res == 0)
-				errno = EAGAIN;
-			else if (FD_ISSET (cancel_fd, &rdset))
-				errno = EINTR;
-			else {
-				w = send (fd, buf + written, n - written, 0);
-				if (w == SOCKET_ERROR) {
-					if (WSAGetLastError () == WSAEWOULDBLOCK)
-						w = 0;
-				} else
-					written += w;
-			}
-		} while (w != -1 && written < n);
-		arg = 0;
-		ioctlsocket (fd, FIONBIO, &arg);
-	}
-
-	g_cancellable_release_fd (cancellable);
-
-	if (g_cancellable_set_error_if_cancelled (cancellable, error))
-		return -1;
-
-	if (w == -1) {
-		g_set_error (
-			error, G_IO_ERROR,
-			g_io_error_from_errno (errno),
-			"%s", g_strerror (errno));
-		return -1;
-	}
-
-	return written;
-#endif
 }
 
 /**

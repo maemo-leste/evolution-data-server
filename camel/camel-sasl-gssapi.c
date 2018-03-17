@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -79,6 +77,12 @@ extern gss_OID gss_nt_service_name;
 	(G_TYPE_INSTANCE_GET_PRIVATE \
 	((obj), CAMEL_TYPE_SASL_GSSAPI, CamelSaslGssapiPrivate))
 
+static const char spnego_OID[] = "\x2b\x06\x01\x05\x05\x02";
+static const gss_OID_desc gss_mech_spnego = {
+       6,
+       &spnego_OID
+};
+
 #ifndef GSS_C_OID_KRBV5_DES
 #define GSS_C_OID_KRBV5_DES GSS_C_NO_OID
 #endif
@@ -114,6 +118,9 @@ struct _CamelSaslGssapiPrivate {
 	gint state;
 	gss_ctx_id_t ctx;
 	gss_name_t target;
+	gchar *override_host;
+	gchar *override_user;
+	gss_OID mech, used_mech;
 };
 
 #endif /* HAVE_KRB5 */
@@ -123,8 +130,49 @@ G_DEFINE_TYPE (CamelSaslGssapi, camel_sasl_gssapi, CAMEL_TYPE_SASL)
 #ifdef HAVE_KRB5
 
 static void
-gssapi_set_exception (OM_uint32 major,
-                      OM_uint32 minor,
+gssapi_set_mechanism_exception (gss_OID mech, OM_uint32 minor, GError **error)
+{
+	OM_uint32 tmajor, tminor, message_status = 0;
+	char *message = NULL;
+
+	do {
+		char *message_part;
+		char *new_message;
+		gss_buffer_desc status_string;
+
+		tmajor = gss_display_status (&tminor, minor, GSS_C_MECH_CODE,
+					     mech, &message_status,
+					     &status_string);
+
+		if (tmajor != GSS_S_COMPLETE) {
+			message_part = g_strdup_printf (
+				_("(Unknown GSSAPI mechanism code: %x)"),
+				minor);
+			message_status = 0;
+		} else {
+			message_part = g_strdup (status_string.value);
+			gss_release_buffer (&tminor, &status_string);
+		}
+		if (message) {
+			new_message = g_strconcat (message, message_part, NULL);
+			free (message_part);
+		} else {
+			new_message = message_part;
+		}
+		g_free (message);
+		message = new_message;
+	} while (message_status != 0);
+
+	g_set_error (
+		error, CAMEL_SERVICE_ERROR,
+		CAMEL_SERVICE_ERROR_CANT_AUTHENTICATE,
+		"%s", message);
+
+	g_free (message);
+}
+
+static void
+gssapi_set_exception (gss_OID mech, OM_uint32 major, OM_uint32 minor,
                       GError **error)
 {
 	const gchar *str;
@@ -169,7 +217,7 @@ gssapi_set_exception (OM_uint32 major,
 		str = _("The referenced credentials have expired.");
 		break;
 	case GSS_S_FAILURE:
-		str = error_message (minor);
+		return gssapi_set_mechanism_exception (mech, minor, error);
 		break;
 	default:
 		str = _("Bad authentication response from server.");
@@ -193,6 +241,9 @@ sasl_gssapi_finalize (GObject *object)
 
 	if (sasl->priv->target != GSS_C_NO_NAME)
 		gss_release_name (&status, &sasl->priv->target);
+
+	g_free (sasl->priv->override_host);
+	g_free (sasl->priv->override_user);
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (camel_sasl_gssapi_parent_class)->finalize (object);
@@ -271,37 +322,50 @@ sasl_gssapi_challenge_sync (CamelSasl *sasl,
                             GError **error)
 {
 	CamelSaslGssapiPrivate *priv;
-	CamelNetworkSettings *network_settings;
-	CamelSettings *settings;
-	CamelService *service;
 	OM_uint32 major, minor, flags, time;
 	gss_buffer_desc inbuf, outbuf;
 	GByteArray *challenge = NULL;
 	gss_buffer_t input_token;
 	gint conf_state;
 	gss_qop_t qop;
-	gss_OID mech;
 	gchar *str;
 	struct addrinfo *ai, hints;
 	const gchar *service_name;
-	gchar *host;
-	gchar *user;
+	gchar *host = NULL;
+	gchar *user = NULL;
 
 	priv = CAMEL_SASL_GSSAPI_GET_PRIVATE (sasl);
 
-	service = camel_sasl_get_service (sasl);
 	service_name = camel_sasl_get_service_name (sasl);
 
-	settings = camel_service_get_settings (service);
-	g_return_val_if_fail (CAMEL_IS_NETWORK_SETTINGS (settings), NULL);
+	if (priv->override_host && priv->override_user) {
+		host = g_strdup (priv->override_host);
+		user = g_strdup (priv->override_user);
+	}
 
-	network_settings = CAMEL_NETWORK_SETTINGS (settings);
-	host = camel_network_settings_dup_host (network_settings);
-	user = camel_network_settings_dup_user (network_settings);
+	if (!host || !user) {
+		CamelNetworkSettings *network_settings;
+		CamelSettings *settings;
+		CamelService *service;
+
+		service = camel_sasl_get_service (sasl);
+
+		settings = camel_service_ref_settings (service);
+		g_return_val_if_fail (CAMEL_IS_NETWORK_SETTINGS (settings), NULL);
+
+		network_settings = CAMEL_NETWORK_SETTINGS (settings);
+		host = camel_network_settings_dup_host (network_settings);
+		user = camel_network_settings_dup_user (network_settings);
+
+		g_object_unref (settings);
+	}
+
 	g_return_val_if_fail (user != NULL, NULL);
 
-	if (host == NULL)
+	if (!host || !*host) {
+		g_free (host);
 		host = g_strdup ("localhost");
+	}
 
 	switch (priv->state) {
 	case GSSAPI_STATE_INIT:
@@ -312,7 +376,11 @@ sasl_gssapi_challenge_sync (CamelSasl *sasl,
 		if (ai == NULL)
 			goto exit;
 
-		str = g_strdup_printf("%s@%s", service_name, ai->ai_canonname);
+		/* HTTP authentication should be SPNEGO not just KRB5 */
+		if (!strcmp (service_name, "HTTP"))
+			priv->mech = (gss_OID)&gss_mech_spnego;
+
+		str = g_strdup_printf ("%s@%s", service_name, ai->ai_canonname);
 		camel_freeaddrinfo (ai);
 
 		inbuf.value = str;
@@ -321,7 +389,7 @@ sasl_gssapi_challenge_sync (CamelSasl *sasl,
 		g_free (str);
 
 		if (major != GSS_S_COMPLETE) {
-			gssapi_set_exception (major, minor, error);
+			gssapi_set_exception (priv->mech, major, minor, error);
 			goto exit;
 		}
 
@@ -343,11 +411,15 @@ sasl_gssapi_challenge_sync (CamelSasl *sasl,
 		input_token = &inbuf;
 
 	challenge:
-		major = gss_init_sec_context (&minor, GSS_C_NO_CREDENTIAL, &priv->ctx, priv->target,
-					      GSS_C_OID_KRBV5_DES, GSS_C_MUTUAL_FLAG |
-					      GSS_C_REPLAY_FLAG | GSS_C_SEQUENCE_FLAG,
-					      0, GSS_C_NO_CHANNEL_BINDINGS,
-					      input_token, &mech, &outbuf, &flags, &time);
+		major = gss_init_sec_context (
+			&minor, GSS_C_NO_CREDENTIAL,
+			&priv->ctx, priv->target,
+			priv->mech,
+			GSS_C_MUTUAL_FLAG |
+			GSS_C_REPLAY_FLAG |
+			GSS_C_SEQUENCE_FLAG,
+			0, GSS_C_NO_CHANNEL_BINDINGS,
+			input_token, &priv->used_mech, &outbuf, &flags, &time);
 
 		switch (major) {
 		case GSS_S_COMPLETE:
@@ -357,13 +429,14 @@ sasl_gssapi_challenge_sync (CamelSasl *sasl,
 			priv->state = GSSAPI_STATE_CONTINUE_NEEDED;
 			break;
 		default:
-			if (major == (OM_uint32) GSS_S_FAILURE &&
+			if (priv->used_mech == GSS_C_OID_KRBV5_DES &&
+			    major == (OM_uint32) GSS_S_FAILURE &&
 			    (minor == (OM_uint32) KRB5KRB_AP_ERR_TKT_EXPIRED ||
 			     minor == (OM_uint32) KRB5KDC_ERR_NEVER_VALID) &&
 			    send_dbus_message (user))
 					goto challenge;
 
-			gssapi_set_exception (major, minor, error);
+			gssapi_set_exception (priv->used_mech, major, minor, error);
 			goto exit;
 		}
 
@@ -387,7 +460,7 @@ sasl_gssapi_challenge_sync (CamelSasl *sasl,
 
 		major = gss_unwrap (&minor, priv->ctx, &inbuf, &outbuf, &conf_state, &qop);
 		if (major != GSS_S_COMPLETE) {
-			gssapi_set_exception (major, minor, error);
+			gssapi_set_exception (priv->used_mech, major, minor, error);
 			goto exit;
 		}
 
@@ -426,7 +499,7 @@ sasl_gssapi_challenge_sync (CamelSasl *sasl,
 
 		major = gss_wrap (&minor, priv->ctx, FALSE, qop, &inbuf, &conf_state, &outbuf);
 		if (major != GSS_S_COMPLETE) {
-			gssapi_set_exception (major, minor, error);
+			gssapi_set_exception (priv->used_mech, major, minor, error);
 			g_free (str);
 			goto exit;
 		}
@@ -482,5 +555,59 @@ camel_sasl_gssapi_init (CamelSaslGssapi *sasl)
 	sasl->priv->state = GSSAPI_STATE_INIT;
 	sasl->priv->ctx = GSS_C_NO_CONTEXT;
 	sasl->priv->target = GSS_C_NO_NAME;
+	sasl->priv->override_host = NULL;
+	sasl->priv->override_user = NULL;
+	sasl->priv->mech = GSS_C_OID_KRBV5_DES;
+#endif /* HAVE_KRB5 */
+}
+
+/**
+ * camel_sasl_gssapi_is_available:
+ *
+ * Returns: Whether the GSSAPI/KRB5 sasl authentication mechanism is available,
+ *    which means whether Camel was built with KRB5 enabled.
+ *
+ * Since: 3.12
+ **/
+gboolean
+camel_sasl_gssapi_is_available (void)
+{
+#ifdef HAVE_KRB5
+	return TRUE;
+#else /* HAVE_KRB5 */
+	return FALSE;
+#endif /* HAVE_KRB5 */
+}
+
+/**
+ * camel_sasl_gssapi_override_host_and_user:
+ * @override_host: Host name to use during challenge processing; can be %NULL
+ * @override_user: User name to use during challenge processing; can be %NULL
+ *
+ * Set host and user to use, instead of those in CamelService's settings.
+ * It's both or none, aka either set both, or the settings values are used.
+ * This is used to not require CamelService instance at all.
+ *
+ * Since: 3.12
+ **/
+void
+camel_sasl_gssapi_override_host_and_user (CamelSaslGssapi *sasl,
+                                          const gchar *override_host,
+                                          const gchar *override_user)
+{
+	g_return_if_fail (CAMEL_IS_SASL_GSSAPI (sasl));
+
+#ifdef HAVE_KRB5
+	if (sasl->priv->override_host != override_host) {
+		g_free (sasl->priv->override_host);
+		sasl->priv->override_host = g_strdup (override_host);
+	}
+
+	if (sasl->priv->override_user != override_user) {
+		g_free (sasl->priv->override_user);
+		sasl->priv->override_user = g_strdup (override_user);
+	}
+#else /* HAVE_KRB5 */
+	g_warning ("%s: KRB5 not available", G_STRFUNC);
 #endif /* HAVE_KRB5 */
 }

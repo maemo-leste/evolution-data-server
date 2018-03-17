@@ -1,16 +1,15 @@
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  *
  * Authors:
@@ -30,8 +29,9 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #ifndef IN6_ARE_ADDR_EQUAL
-#define IN6_ARE_ADDR_EQUAL(a, b)	\
+#define IN6_ARE_ADDR_EQUAL(a, b) \
     (memcmp ((gpointer)(a), (gpointer)(b), sizeof (struct in6_addr)) == 0)
 #endif
 #else
@@ -136,9 +136,7 @@ ep_read_key_boolean (EProxy *proxy,
 {
 	gboolean res = FALSE;
 
-	g_return_val_if_fail (proxy != NULL, FALSE);
 	g_return_val_if_fail (E_IS_PROXY (proxy), FALSE);
-	g_return_val_if_fail (proxy->priv != NULL, FALSE);
 
 	switch (key) {
 	case E_PROXY_KEY_USE_HTTP_PROXY:
@@ -168,9 +166,7 @@ ep_read_key_int (EProxy *proxy,
 {
 	gint res = 0;
 
-	g_return_val_if_fail (proxy != NULL, 0);
 	g_return_val_if_fail (E_IS_PROXY (proxy), 0);
-	g_return_val_if_fail (proxy->priv != NULL, 0);
 
 	switch (key) {
 	case E_PROXY_KEY_HTTP_PORT:
@@ -206,9 +202,7 @@ ep_read_key_string (EProxy *proxy,
 {
 	gchar *res = NULL;
 
-	g_return_val_if_fail (proxy != NULL, NULL);
 	g_return_val_if_fail (E_IS_PROXY (proxy), NULL);
-	g_return_val_if_fail (proxy->priv != NULL, NULL);
 
 	switch (key) {
 	case E_PROXY_KEY_MODE:
@@ -269,9 +263,7 @@ ep_read_key_list (EProxy *proxy,
 	GSList *res = NULL;
 	gchar **strv = NULL;
 
-	g_return_val_if_fail (proxy != NULL, NULL);
 	g_return_val_if_fail (E_IS_PROXY (proxy), NULL);
-	g_return_val_if_fail (proxy->priv != NULL, NULL);
 
 	switch (key) {
 	case E_PROXY_KEY_HTTP_IGNORE_HOSTS:
@@ -370,12 +362,10 @@ ep_need_proxy_http (EProxy *proxy,
 			for (l = priv->ign_addrs; l; l = l->next) {
 				p_addr = (ProxyHostAddr *) l->data;
 				if (p_addr->type == PROXY_IPV4) {
-					addr_in =  ((struct in_addr *) p_addr->addr);
+					addr_in = ((struct in_addr *) p_addr->addr);
 					mask = ((struct in_addr *) p_addr->mask);
-					d(g_print ("ep_need_proxy:ipv4: in: %ul\t mask: %ul\t addr: %ul\n",
-						   in.s_addr, mask->s_addr, addr_in->s_addr));
 					if ((in.s_addr & mask->s_addr) == addr_in->s_addr) {
-						d(g_print ("Host [%s] doesn't require proxy\n", host));
+						d (g_print ("Host [%s] doesn't require proxy\n", host));
 						g_object_unref (addr);
 						return FALSE;
 					}
@@ -391,7 +381,7 @@ ep_need_proxy_http (EProxy *proxy,
 				ipv6_network_addr (&in6, (struct in6_addr *) p_addr->mask, &net6);
 				if (p_addr->type == PROXY_IPV6) {
 					if (IN6_ARE_ADDR_EQUAL (&net6, (struct in6_addr *) p_addr->addr)) {
-						d(g_print ("Host [%s] doesn't require proxy\n", host));
+						d (g_print ("Host [%s] doesn't require proxy\n", host));
 						g_object_unref (addr);
 						return FALSE;
 					}
@@ -399,7 +389,7 @@ ep_need_proxy_http (EProxy *proxy,
 					   IN6_IS_ADDR_V4MAPPED (&net6)) {
 					guint32 v4addr;
 
-					addr_in =  ((struct in_addr *) p_addr->addr);
+					addr_in = ((struct in_addr *) p_addr->addr);
 					mask = ((struct in_addr *) p_addr->mask);
 
 					v4addr = net6.s6_addr[12] << 24
@@ -407,7 +397,7 @@ ep_need_proxy_http (EProxy *proxy,
 						| net6.s6_addr[14] << 8
 						| net6.s6_addr[15];
 					if ((v4addr & mask->s_addr) != addr_in->s_addr) {
-						d(g_print ("Host [%s] doesn't require proxy\n", host));
+						d (g_print ("Host [%s] doesn't require proxy\n", host));
 						g_object_unref (addr);
 						return FALSE;
 					}
@@ -416,7 +406,7 @@ ep_need_proxy_http (EProxy *proxy,
 		}
 	}
 
-	d(g_print ("%s needs a proxy to connect to internet\n", host));
+	d (g_print ("%s needs a proxy to connect to internet\n", host));
 	g_object_unref (addr);
 
 	return TRUE;
@@ -460,15 +450,14 @@ ep_manipulate_ipv4 (ProxyHostAddr *host_addr,
 
 		if (*endptr != '\0' || width < 0 || width > 32) {
 			has_error = TRUE;
+			mask->s_addr = 0xFFFFFFFF;
+		} else {
+			mask->s_addr = htonl (~0 << width);
+			addr->s_addr &= mask->s_addr;
 		}
-		mask->s_addr = htonl (~0 << width);
-		addr->s_addr &= mask->s_addr;
 	} else {
 		mask->s_addr = 0xFFFFFFFF;
 	}
-
-	d(g_print ("ep_manipulate_ipv4: addr_in: %ul, addr: %ul, mask: %ul\n",
-		   addr_in->s_addr, addr->s_addr, mask->s_addr));
 
 	host_addr->addr = addr;
 	host_addr->mask = mask;
@@ -577,22 +566,26 @@ ep_parse_ignore_host (gpointer data,
 			goto error;
 
 		if (so_addr->sa_family == AF_INET)
-			has_error = ep_manipulate_ipv4 (host_addr,
-							&((struct sockaddr_in *) so_addr)->sin_addr,
-							netmask);
+			has_error = ep_manipulate_ipv4 (
+				host_addr,
+				&((struct sockaddr_in *) so_addr)->sin_addr,
+				netmask);
 		else
-			has_error = ep_manipulate_ipv6 (host_addr,
-							&((struct sockaddr_in6 *) so_addr)->sin6_addr,
-							netmask);
+			has_error = ep_manipulate_ipv6 (
+				host_addr,
+				&((struct sockaddr_in6 *) so_addr)->sin6_addr,
+				netmask);
 
 		if (!has_error) {
-			priv->ign_addrs = g_slist_append (priv->ign_addrs, host_addr);
-			priv->ign_hosts = g_slist_append (priv->ign_hosts, hostname);
+			priv->ign_addrs = g_slist_append (
+				priv->ign_addrs, host_addr);
+			priv->ign_hosts = g_slist_append (
+				priv->ign_hosts, hostname);
 		} else {
 			g_free (hostname);
 		}
 	} else {
-		d(g_print ("Unable to resolve %s\n", hostname));
+		d (g_print ("Unable to resolve %s\n", hostname));
 		priv->ign_hosts = g_slist_append (priv->ign_hosts, hostname);
 	}
  error:
@@ -661,7 +654,8 @@ update_proxy_uri (const gchar *uri,
 	/*  here can be only http or https and nothing else */
 	is_https = g_str_has_prefix (uri, "https://");
 
-	res = g_strdup_printf ("%s://%s%s%s@%s",
+	res = g_strdup_printf (
+		"%s://%s%s%s@%s",
 		is_https ? "https" : "http",
 		user,
 		pw ? ":" : "",
@@ -717,7 +711,7 @@ ep_set_proxy (EProxy *proxy,
 	} else
 		uri_http = NULL;
 	g_free (proxy_server);
-	d(g_print ("ep_set_proxy: uri_http: %s\n", uri_http));
+	d (g_print ("ep_set_proxy: uri_http: %s\n", uri_http));
 
 	proxy_server = ep_read_key_string (proxy, E_PROXY_KEY_HTTPS_HOST);
 	proxy_port = ep_read_key_int (proxy, E_PROXY_KEY_HTTPS_PORT);
@@ -729,7 +723,7 @@ ep_set_proxy (EProxy *proxy,
 	} else
 		uri_https = NULL;
 	g_free (proxy_server);
-	d(g_print ("ep_set_proxy: uri_https: %s\n", uri_https));
+	d (g_print ("ep_set_proxy: uri_https: %s\n", uri_https));
 
 	proxy_server = ep_read_key_string (proxy, E_PROXY_KEY_SOCKS_HOST);
 	proxy_port = ep_read_key_int (proxy, E_PROXY_KEY_SOCKS_PORT);
@@ -741,7 +735,7 @@ ep_set_proxy (EProxy *proxy,
 	} else
 		uri_socks = NULL;
 	g_free (proxy_server);
-	d(g_print ("ep_set_proxy: uri_socks: %s\n", uri_socks));
+	d (g_print ("ep_set_proxy: uri_socks: %s\n", uri_socks));
 
 	if (regen_ign_host_list) {
 		if (priv->ign_hosts) {
@@ -791,7 +785,15 @@ ep_set_proxy (EProxy *proxy,
 	changed = ep_change_uri (&priv->uri_socks, uri_socks) || changed;
 
  emit_signal:
-	d(g_print ("%s: changed:%d uri_http: %s; uri_https: %s; uri_socks: %s\n", G_STRFUNC, changed ? 1 : 0, uri_http ? uri_http : "[null]", uri_https ? uri_https : "[null]", uri_socks ? uri_socks : "[null]"));
+	d (g_print (
+		"%s: changed:%d "
+		"uri_http: %s; "
+		"uri_https: %s; "
+		"uri_socks: %s\n",
+		G_STRFUNC, changed ? 1 : 0,
+		uri_http ? uri_http : "[null]",
+		uri_https ? uri_https : "[null]",
+		uri_socks ? uri_socks : "[null]"));
 	if (changed)
 		g_signal_emit (proxy, signals[CHANGED], 0);
 
@@ -807,12 +809,11 @@ ep_evo_proxy_changed_cb (GSettings *settings,
 {
 	EProxyPrivate *priv;
 
-	g_return_if_fail (proxy != NULL);
-	g_return_if_fail (proxy->priv != NULL);
+	g_return_if_fail (E_IS_PROXY (proxy));
 
 	priv = proxy->priv;
 
-	d(g_print ("%s: proxy settings changed, key '%s'\n", G_STRFUNC, key ? key : "NULL"));
+	d (g_print ("%s: proxy settings changed, key '%s'\n", G_STRFUNC, key ? key : "NULL"));
 	if (g_strcmp0 (key, "proxy-type") == 0) {
 		ep_set_proxy (proxy, TRUE);
 	} else if (priv->type == PROXY_TYPE_SYSTEM) {
@@ -953,8 +954,7 @@ e_proxy_class_init (EProxyClass *class)
 		G_OBJECT_CLASS_TYPE (object_class),
 		G_SIGNAL_RUN_FIRST,
 		G_STRUCT_OFFSET (EProxyClass, changed),
-		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
+		NULL, NULL, NULL,
 		G_TYPE_NONE, 0);
 
 }
@@ -991,7 +991,7 @@ e_proxy_new (void)
 }
 
 /**
- * e_proxxy_setup_proxy:
+ * e_proxy_setup_proxy:
  *
  * Since: 2.24
  **/
@@ -1056,7 +1056,7 @@ e_proxy_require_proxy_for_uri (EProxy *proxy,
 	g_return_val_if_fail (uri != NULL, FALSE);
 
 	if (!proxy->priv->use_proxy || proxy->priv->type == PROXY_TYPE_NO_PROXY) {
-		d(g_print ("[%s] don't need a proxy to connect to internet\n", uri));
+		d (g_print ("[%s] don't need a proxy to connect to internet\n", uri));
 		return FALSE;
 	}
 

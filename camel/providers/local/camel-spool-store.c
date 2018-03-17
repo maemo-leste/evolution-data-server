@@ -4,19 +4,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -72,10 +70,13 @@ spool_store_get_type (CamelSpoolStore *spool_store,
 	gchar *path;
 
 	service = CAMEL_SERVICE (spool_store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	/* Check the path for validity while we have the opportunity. */
 
@@ -187,18 +188,20 @@ scan_dir (CamelStore *store,
 	DIR *dir;
 	struct dirent *d;
 	gchar *name, *tmp, *fname;
+	gsize name_len;
 	CamelFolderInfo *fi = NULL;
 	struct stat st;
 	CamelFolder *folder;
 	gchar from[80];
 	FILE *fp;
 
-	d(printf("checking dir '%s' part '%s' for mbox content\n", root, path));
+	d (printf ("checking dir '%s' part '%s' for mbox content\n", root, path));
 
 	/* look for folders matching the right structure, recursively */
 	if (path) {
-		name = alloca (strlen (root) + strlen (path) + 2);
-		sprintf(name, "%s/%s", root, path);
+		name_len = strlen (root) + strlen (path) + 2;
+		name = alloca (name_len);
+		g_snprintf (name, name_len, "%s/%s", root, path);
 	} else
 		name = (gchar *) root;  /* XXX casting away const */
 
@@ -239,11 +242,11 @@ scan_dir (CamelStore *store,
 	}
 
 	while ((d = readdir (dir))) {
-		if (strcmp(d->d_name, ".") == 0
-		    || strcmp(d->d_name, "..") == 0)
+		if (strcmp (d->d_name, ".") == 0
+		    || strcmp (d->d_name, "..") == 0)
 			continue;
 
-		tmp = g_strdup_printf("%s/%s", name, d->d_name);
+		tmp = g_strdup_printf ("%s/%s", name, d->d_name);
 		if (g_stat (tmp, &st) == 0) {
 			if (path)
 				fname = g_strdup_printf (
@@ -258,11 +261,11 @@ scan_dir (CamelStore *store,
 				folder = camel_object_bag_peek (
 					store->folders, fname);
 				if (folder == NULL) {
-					fp = fopen(tmp, "r");
+					fp = fopen (tmp, "r");
 					if (fp != NULL) {
 						isfolder = (st.st_size == 0
 							    || (fgets (from, sizeof (from), fp) != NULL
-								&& strncmp(from, "From ", 5) == 0));
+								&& strncmp (from, "From ", 5) == 0));
 						fclose (fp);
 					}
 				}
@@ -346,17 +349,20 @@ get_folder_info_elm (CamelStore *store,
 	gchar *path;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	visited = g_hash_table_new (inode_hash, inode_equal);
 
 	if (scan_dir (
 		store, visited, path, top, flags,
 		NULL, &fi, cancellable, error) == -1 && fi != NULL) {
-		camel_store_free_folder_info_full (store, fi);
+		camel_folder_info_free (fi);
 		fi = NULL;
 	}
 
@@ -402,10 +408,13 @@ spool_store_get_name (CamelService *service,
 	gchar *path;
 
 	spool_store = CAMEL_SPOOL_STORE (service);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	if (brief)
 		return path;
@@ -429,17 +438,6 @@ spool_store_get_name (CamelService *service,
 	return name;
 }
 
-static void
-spool_store_free_folder_info (CamelStore *store,
-                              CamelFolderInfo *fi)
-{
-	if (fi) {
-		g_free (fi->full_name);
-		g_free (fi->display_name);
-		g_slice_free (CamelFolderInfo, fi);
-	}
-}
-
 static CamelFolder *
 spool_store_get_folder_sync (CamelStore *store,
                              const gchar *folder_name,
@@ -457,7 +455,7 @@ spool_store_get_folder_sync (CamelStore *store,
 	gchar *name;
 	gchar *path;
 
-	d(printf("opening folder %s on path %s\n", folder_name, path));
+	d (printf ("opening folder %s on path %s\n", folder_name, path));
 
 	spool_store = CAMEL_SPOOL_STORE (store);
 	type = spool_store_get_type (spool_store, error);
@@ -466,14 +464,17 @@ spool_store_get_folder_sync (CamelStore *store,
 		return NULL;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
 
+	g_object_unref (settings);
+
 	/* we only support an 'INBOX' in mbox mode */
 	if (type == CAMEL_SPOOL_STORE_MBOX) {
-		if (strcmp(folder_name, "INBOX") != 0) {
+		if (strcmp (folder_name, "INBOX") != 0) {
 			g_set_error (
 				error, CAMEL_STORE_ERROR,
 				CAMEL_STORE_ERROR_NO_FOLDER,
@@ -632,10 +633,13 @@ spool_store_get_full_path (CamelLocalStore *local_store,
 	gchar *path;
 
 	service = CAMEL_SERVICE (local_store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	spool_store = CAMEL_SPOOL_STORE (local_store);
 
@@ -691,7 +695,6 @@ camel_spool_store_class_init (CamelSpoolStoreClass *class)
 	service_class->get_name = spool_store_get_name;
 
 	store_class = CAMEL_STORE_CLASS (class);
-	store_class->free_folder_info = spool_store_free_folder_info;
 	store_class->get_folder_sync = spool_store_get_folder_sync;
 	store_class->get_folder_info_sync = spool_store_get_folder_info_sync;
 	store_class->get_inbox_folder_sync = spool_store_get_inbox_folder_sync;

@@ -6,19 +6,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -29,6 +27,8 @@
 #include <stdio.h>
 
 #include <glib/gi18n-lib.h>
+#include <unicode/uidna.h>
+#include <unicode/ustring.h>
 
 #include "camel-msgport.h"
 #include "camel-net-utils.h"
@@ -41,6 +41,7 @@
 #endif
 #include "camel-object.h"
 #include "camel-operation.h"
+#include "camel-service.h"
 
 #define d(x)
 
@@ -91,78 +92,78 @@ G_LOCK_DEFINE_STATIC (gethost_mutex);
 
 #define ALIGN(x) (((x) + (sizeof (gchar *) - 1)) & ~(sizeof (gchar *) - 1))
 
-#define GETHOST_PROCESS(h, host, buf, buflen, herr) G_STMT_START {     \
-	gint num_aliases = 0, num_addrs = 0;                            \
-	gint req_length;                                                \
-	gchar *p;                                                       \
-	gint i;                                                         \
-								       \
-	/* check to make sure we have enough room in our buffer */     \
-	req_length = 0;                                                \
-	if (h->h_aliases) {                                            \
-		for (i = 0; h->h_aliases[i]; i++)                      \
-			req_length += strlen (h->h_aliases[i]) + 1;    \
-		num_aliases = i;                                       \
-	}                                                              \
-								       \
-	if (h->h_addr_list) {                                          \
-		for (i = 0; h->h_addr_list[i]; i++)                    \
-			req_length += h->h_length;                     \
-		num_addrs = i;                                         \
-	}                                                              \
-								       \
-	req_length += sizeof (gchar *) * (num_aliases + 1);             \
-	req_length += sizeof (gchar *) * (num_addrs + 1);               \
-	req_length += strlen (h->h_name) + 1;                          \
-								       \
-	if (buflen < req_length) {                                     \
-		*herr = ERANGE;                                        \
-		G_UNLOCK (gethost_mutex);                              \
-		return ERANGE;                                         \
-	}                                                              \
-								       \
-	/* we store the alias/addr pointers in the buffer */           \
-        /* their addresses here. */                                    \
-	p = buf;                                                       \
-	if (num_aliases) {                                             \
-		host->h_aliases = (gchar **) p;                         \
-		p += sizeof (gchar *) * (num_aliases + 1);              \
-	} else                                                         \
-		host->h_aliases = NULL;                                \
-                                                                       \
-	if (num_addrs) {                                               \
-		host->h_addr_list = (gchar **) p;                       \
-		p += sizeof (gchar *) * (num_addrs + 1);                \
-	} else                                                         \
-		host->h_addr_list = NULL;                              \
-								       \
-	/* copy the host name into the buffer */                       \
-	host->h_name = p;                                              \
-	strcpy (p, h->h_name);                                         \
-	p += strlen (h->h_name) + 1;                                   \
-	host->h_addrtype = h->h_addrtype;                              \
-	host->h_length = h->h_length;                                  \
-								       \
-	/* copy the aliases/addresses into the buffer */               \
-        /* and assign pointers into the hostent */                     \
-	*p = 0;                                                        \
-	if (num_aliases) {                                             \
-		for (i = 0; i < num_aliases; i++) {                    \
-			strcpy (p, h->h_aliases[i]);                   \
-			host->h_aliases[i] = p;                        \
-			p += strlen (h->h_aliases[i]);                 \
-		}                                                      \
-		host->h_aliases[num_aliases] = NULL;                   \
-	}                                                              \
-								       \
-	if (num_addrs) {                                               \
-		for (i = 0; i < num_addrs; i++) {                      \
-			memcpy (p, h->h_addr_list[i], h->h_length);    \
-			host->h_addr_list[i] = p;                      \
-			p += h->h_length;                              \
-		}                                                      \
-		host->h_addr_list[num_addrs] = NULL;                   \
-	}                                                              \
+#define GETHOST_PROCESS(h, host, buf, buflen, herr) G_STMT_START { \
+	gint num_aliases = 0, num_addrs = 0; \
+	gint req_length; \
+	gchar *p; \
+	gint i; \
+ \
+	/* check to make sure we have enough room in our buffer */ \
+	req_length = 0; \
+	if (h->h_aliases) { \
+		for (i = 0; h->h_aliases[i]; i++) \
+			req_length += strlen (h->h_aliases[i]) + 1; \
+		num_aliases = i; \
+	} \
+ \
+	if (h->h_addr_list) { \
+		for (i = 0; h->h_addr_list[i]; i++) \
+			req_length += h->h_length; \
+		num_addrs = i; \
+	} \
+ \
+	req_length += sizeof (gchar *) * (num_aliases + 1); \
+	req_length += sizeof (gchar *) * (num_addrs + 1); \
+	req_length += strlen (h->h_name) + 1; \
+ \
+	if (buflen < req_length) { \
+		*herr = ERANGE; \
+		G_UNLOCK (gethost_mutex); \
+		return ERANGE; \
+	} \
+ \
+	/* we store the alias/addr pointers in the buffer */ \
+        /* their addresses here. */ \
+	p = buf; \
+	if (num_aliases) { \
+		host->h_aliases = (gchar **) p; \
+		p += sizeof (gchar *) * (num_aliases + 1); \
+	} else \
+		host->h_aliases = NULL; \
+ \
+	if (num_addrs) { \
+		host->h_addr_list = (gchar **) p; \
+		p += sizeof (gchar *) * (num_addrs + 1); \
+	} else \
+		host->h_addr_list = NULL; \
+ \
+	/* copy the host name into the buffer */ \
+	host->h_name = p; \
+	strcpy (p, h->h_name); \
+	p += strlen (h->h_name) + 1; \
+	host->h_addrtype = h->h_addrtype; \
+	host->h_length = h->h_length; \
+ \
+	/* copy the aliases/addresses into the buffer */ \
+        /* and assign pointers into the hostent */ \
+	*p = 0; \
+	if (num_aliases) { \
+		for (i = 0; i < num_aliases; i++) { \
+			strcpy (p, h->h_aliases[i]); \
+			host->h_aliases[i] = p; \
+			p += strlen (h->h_aliases[i]); \
+		} \
+		host->h_aliases[num_aliases] = NULL; \
+	} \
+ \
+	if (num_addrs) { \
+		for (i = 0; i < num_addrs; i++) { \
+			memcpy (p, h->h_addr_list[i], h->h_length); \
+			host->h_addr_list[i] = p; \
+			p += h->h_length; \
+		} \
+		host->h_addr_list[num_addrs] = NULL; \
+	} \
 } G_STMT_END
 
 #ifdef ENABLE_IPv6
@@ -235,7 +236,7 @@ camel_gethostbyname_r (const gchar *name,
 		return ERANGE;
 
 	/* h_name */
-	strcpy (buf, res->ai_canonname);
+	g_strlcpy (buf, res->ai_canonname, buflen);
 	host->h_name = buf;
 	buf += len;
 
@@ -472,7 +473,7 @@ cs_waitinfo (gpointer (worker)(gpointer),
 
 	reply_port = msg->msg.reply_port = camel_msgport_new ();
 	fd = camel_msgport_fd (msg->msg.reply_port);
-	if ((thread = g_thread_create (worker, msg, TRUE, error)) != NULL) {
+	if ((thread = g_thread_new (NULL, worker, msg)) != NULL) {
 		gint status;
 #ifndef G_OS_WIN32
 		GPollFD polls[2];
@@ -482,7 +483,7 @@ cs_waitinfo (gpointer (worker)(gpointer),
 		polls[1].fd = cancel_fd;
 		polls[1].events = G_IO_IN;
 
-		d(printf("waiting for name return/cancellation in main process\n"));
+		d (printf ("waiting for name return/cancellation in main process\n"));
 		do {
 			polls[0].revents = 0;
 			polls[1].revents = 0;
@@ -524,16 +525,16 @@ cs_waitinfo (gpointer (worker)(gpointer),
 
 			/* We cancel so if the thread impl is decent it causes immediate exit.
 			 * We check the reply port incase we had a reply in the mean time, which we free later */
-			d(printf("Canceling lookup thread and leaving it\n"));
+			d (printf ("Canceling lookup thread and leaving it\n"));
 			msg->cancelled = 1;
 			g_thread_join (thread);
 			cancel = 1;
 		} else {
 			struct _addrinfo_msg *reply;
 
-			d(printf("waiting for child to exit\n"));
+			d (printf ("waiting for child to exit\n"));
 			g_thread_join (thread);
-			d(printf("child done\n"));
+			d (printf ("child done\n"));
 
 			reply = (struct _addrinfo_msg *) camel_msgport_try_pop (reply_port);
 			if (reply != msg)
@@ -665,9 +666,9 @@ cs_getaddrinfo (gpointer data)
 	 * Use the port as the service name directly. */
 	if (info->result && info->service) {
 		if (strcmp (info->service, "http") == 0)
-			info->result = getaddrinfo(info->name, "80", info->hints, info->res);
+			info->result = getaddrinfo (info->name, "80", info->hints, info->res);
 		else if (strcmp (info->service, "https") == 0)
-			info->result = getaddrinfo(info->name, "443", info->hints, info->res);
+			info->result = getaddrinfo (info->name, "443", info->hints, info->res);
 	}
 
 	if (!info->cancelled)
@@ -694,6 +695,8 @@ camel_getaddrinfo (const gchar *name,
 #ifndef ENABLE_IPv6
 	struct addrinfo myhints;
 #endif
+	gchar *ascii_name;
+
 	g_return_val_if_fail (name != NULL, NULL);
 
 	if (g_cancellable_set_error_if_cancelled (cancellable, error))
@@ -713,8 +716,10 @@ camel_getaddrinfo (const gchar *name,
 	hints = &myhints;
 #endif
 
+	ascii_name = camel_host_idna_to_ascii (name);
+
 	msg = g_malloc0 (sizeof (*msg));
-	msg->name = name;
+	msg->name = ascii_name;
 	msg->service = service;
 	msg->hints = hints;
 	msg->res = &res;
@@ -726,16 +731,21 @@ camel_getaddrinfo (const gchar *name,
 		cs_getaddrinfo, msg, _("Host lookup failed"),
 		cancellable, error) == 0) {
 
-		if (msg->result != 0) {
+		if (msg->result == EAI_NONAME || msg->result == EAI_FAIL) {
 			g_set_error (
-				error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-				_("Host lookup failed: %s: %s"),
+				error, CAMEL_SERVICE_ERROR, CAMEL_SERVICE_ERROR_URL_INVALID,
+				_("Host lookup '%s' failed. Check your host name for spelling errors."), name);
+		} else if (msg->result != 0) {
+			g_set_error (
+				error, CAMEL_SERVICE_ERROR, CAMEL_SERVICE_ERROR_URL_INVALID,
+				_("Host lookup '%s' failed: %s"),
 				name, gai_strerror (msg->result));
 		}
 	} else
 		res = NULL;
 
 	cs_freeinfo (msg);
+	g_free (ascii_name);
 
 	camel_operation_pop_message (cancellable);
 
@@ -764,130 +774,75 @@ camel_freeaddrinfo (struct addrinfo *host)
 #endif
 }
 
-#ifdef NEED_ADDRINFO
-static gpointer
-cs_getnameinfo (gpointer data)
-{
-	struct _addrinfo_msg *msg = data;
-	gint herr;
-	struct hostent h;
-	struct sockaddr_in *sin = (struct sockaddr_in *) msg->addr;
-
-	/* FIXME: error code */
-	if (msg->addr->sa_family != AF_INET) {
-		msg->result = -1;
-		return NULL;
-	}
-
-	/* FIXME: honour getnameinfo flags: do we care, not really */
-
-	while ((msg->result = camel_gethostbyaddr_r ((const gchar *) &sin->sin_addr, sizeof (sin->sin_addr), AF_INET, &h,
-						    msg->hostbufmem, msg->hostbuflen, &herr)) == ERANGE) {
-		if (msg->cancelled)
-			break;
-		msg->hostbuflen *= 2;
-		msg->hostbufmem = g_realloc (msg->hostbufmem, msg->hostbuflen);
-	}
-
-	if (msg->cancelled)
-		goto cancel;
-
-	if (msg->host) {
-		g_free (msg->host);
-		if (msg->result == 0 && h.h_name && h.h_name[0]) {
-			msg->host = g_strdup (h.h_name);
-		} else {
-			guchar *in = (guchar *) &sin->sin_addr;
-
-			/* sin_addr is always network order which is big-endian */
-			msg->host = g_strdup_printf("%u.%u.%u.%u", in[0], in[1], in[2], in[3]);
-		}
-	}
-
-	/* we never actually use this anyway */
-	if (msg->serv)
-		sprintf(msg->serv, "%d", sin->sin_port);
-
-	if (!msg->cancelled)
-		camel_msgport_reply ((CamelMsg *) msg);
-cancel:
-	return NULL;
-}
-#else
-static gpointer
-cs_getnameinfo (gpointer data)
-{
-	struct _addrinfo_msg *msg = data;
-
-	/* there doens't appear to be a return code which says host or serv buffers are too short, lengthen them */
-	msg->result = getnameinfo (msg->addr, msg->addrlen, msg->host, msg->hostlen, msg->serv, msg->servlen, msg->flags);
-
-	if (!msg->cancelled)
-		camel_msgport_reply ((CamelMsg *) msg);
-
-	return NULL;
-}
-#endif
-
 /**
- * camel_getnameinfo:
+ * camel_host_idna_to_ascii:
+ * @host: Host name, with or without non-ascii letters in utf8
  *
- * Since: 2.22
+ * Converts IDN (Internationalized Domain Name) into ASCII representation.
+ * If there's a failure or the @host has only ASCII letters, then a copy
+ * of @host is returned.
+ *
+ * Returns: Newly allocated string with only ASCII letters describing the @host.
+ *   Free it with g_free() when done with it.
+ *
+ * Since: 3.12.6
  **/
-gint
-camel_getnameinfo (const struct sockaddr *sa,
-                   socklen_t salen,
-                   gchar **host,
-                   gchar **serv,
-                   gint flags,
-                   GCancellable *cancellable,
-                   GError **error)
+gchar *
+camel_host_idna_to_ascii (const gchar *host)
 {
-	struct _addrinfo_msg *msg;
-	gint result;
+	UErrorCode uerror = U_ZERO_ERROR;
+	int32_t uhost_len = 0;
+	const gchar *ptr;
+	gchar *ascii = NULL;
 
-	if (g_cancellable_set_error_if_cancelled (cancellable, error))
-		return -1;
+	g_return_val_if_fail (host != NULL, NULL);
 
-	camel_operation_push_message (
-		cancellable, _("Resolving address"));
+	ptr = host;
+	while (*ptr > 0)
+		ptr++;
 
-	msg = g_malloc0 (sizeof (*msg));
-	msg->addr = sa;
-	msg->addrlen = salen;
-	if (host) {
-		msg->hostlen = NI_MAXHOST;
-		msg->host = g_malloc (msg->hostlen);
-		msg->host[0] = 0;
-	}
-	if (serv) {
-		msg->servlen = NI_MAXSERV;
-		msg->serv = g_malloc (msg->servlen);
-		msg->serv[0] = 0;
-	}
-	msg->flags = flags;
-#ifdef NEED_ADDRINFO
-	msg->hostbuflen = 1024;
-	msg->hostbufmem = g_malloc (msg->hostbuflen);
-#endif
-	cs_waitinfo (
-		cs_getnameinfo, msg, _("Name lookup failed"),
-		cancellable, error);
-
-	if ((result = msg->result) != 0)
-		g_set_error (
-			error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-			_("Name lookup failed: %s"), gai_strerror (result));
-	else {
-		if (host)
-			*host = g_strdup(msg->host);
-		if (serv)
-			*serv = g_strdup(msg->serv);
+	if (!*ptr) {
+		/* Did read whole buffer, it should be ASCII string already */
+		return g_strdup (host);
 	}
 
-	cs_freeinfo (msg);
+	u_strFromUTF8 (NULL, 0, &uhost_len, host, -1, &uerror);
+	if (uhost_len > 0) {
+		UChar *uhost = g_new0 (UChar, uhost_len + 2);
 
-	camel_operation_pop_message (cancellable);
+		uerror = U_ZERO_ERROR;
+		u_strFromUTF8 (uhost, uhost_len + 1, &uhost_len, host, -1, &uerror);
+		if (uerror == U_ZERO_ERROR && uhost_len > 0) {
+			int32_t buffer_len = uhost_len * 6 + 6, nconverted;
+			UChar *buffer = g_new0 (UChar, buffer_len);
 
-	return result;
+			nconverted = uidna_IDNToASCII (uhost, uhost_len, buffer, buffer_len, UIDNA_ALLOW_UNASSIGNED, 0, &uerror);
+			if (uerror == U_ZERO_ERROR && nconverted > 0) {
+				int32_t ascii_len = 0;
+
+				u_strToUTF8 (NULL, 0, &ascii_len, buffer, nconverted, &uerror);
+				if (ascii_len > 0) {
+					uerror = U_ZERO_ERROR;
+					ascii = g_new0 (gchar, ascii_len + 2);
+
+					u_strToUTF8 (ascii, ascii_len + 1, &ascii_len, buffer, nconverted, &uerror);
+					if (uerror == U_ZERO_ERROR && ascii_len > 0) {
+						ascii[ascii_len] = '\0';
+					} else {
+						g_free (ascii);
+						ascii = NULL;
+					}
+				}
+			}
+
+			g_free (buffer);
+		}
+
+		g_free (uhost);
+	}
+
+	if (!ascii)
+		ascii = g_strdup (host);
+
+	return ascii;
 }

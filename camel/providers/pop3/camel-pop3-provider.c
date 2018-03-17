@@ -8,19 +8,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -40,7 +38,8 @@ static CamelProviderConfEntry pop3_conf_entries[] = {
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "keep-on-server", NULL,
 	  N_("_Leave messages on server"), "0" },
 	{ CAMEL_PROVIDER_CONF_CHECKSPIN, "delete-after-days", "keep-on-server",
-	  /* Translators: '%s' is replaced with a widget, where user can select how many days can be message left on the server */
+	  /* Translators: '%s' is replaced with a widget, where user can
+	   * select how many days can be message left on the server. */
 	  N_("_Delete after %s day(s)"), "0:1:7:365" },
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "delete-expunged", "keep-on-server",
 	  N_("Delete _expunged from local Inbox"), "0" },
@@ -104,16 +103,22 @@ camel_provider_module_init (void)
 {
 	CamelServiceAuthType *auth;
 
-	pop3_provider.object_types[CAMEL_PROVIDER_STORE] = camel_pop3_store_get_type ();
+	pop3_provider.object_types[CAMEL_PROVIDER_STORE] =
+		CAMEL_TYPE_POP3_STORE;
 	pop3_provider.url_hash = pop3_url_hash;
 	pop3_provider.url_equal = pop3_url_equal;
 
 	pop3_provider.authtypes = camel_sasl_authtype_list (FALSE);
-	auth = camel_sasl_authtype("LOGIN");
+	auth = camel_sasl_authtype ("LOGIN");
 	if (auth)
-		pop3_provider.authtypes = g_list_prepend (pop3_provider.authtypes, auth);
-	pop3_provider.authtypes = g_list_prepend (pop3_provider.authtypes, &camel_pop3_apop_authtype);
-	pop3_provider.authtypes = g_list_prepend (pop3_provider.authtypes, &camel_pop3_password_authtype);
+		pop3_provider.authtypes = g_list_prepend (
+			pop3_provider.authtypes, auth);
+	pop3_provider.authtypes = g_list_prepend (
+		pop3_provider.authtypes,
+		&camel_pop3_apop_authtype);
+	pop3_provider.authtypes = g_list_prepend (
+		pop3_provider.authtypes,
+		&camel_pop3_password_authtype);
 	pop3_provider.translation_domain = GETTEXT_PACKAGE;
 
 	camel_provider_register (&pop3_provider);

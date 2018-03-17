@@ -1,21 +1,19 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -40,7 +38,7 @@ struct _CamelMimeFilterBestencPrivate {
 	guint total;	/* total characters read */
 
 	guint lastc;	/* the last character read */
-	gint crlfnoorder;	/* if crlf's occured where they shouldn't have */
+	gint crlfnoorder;	/* if crlf's occurred where they shouldn't have */
 
 	gint startofline;	/* are we at the start of a new line? */
 
@@ -86,7 +84,7 @@ mime_filter_bestenc_filter (CamelMimeFilter *mime_filter,
 		    && (priv->fromcount > 0 || priv->startofline)) {
 			if (priv->fromcount + len >=5) {
 				memcpy (&priv->fromsave[priv->fromcount], in, 5 - priv->fromcount);
-				priv->hadfrom = strncmp(priv->fromsave, "From ", 5) == 0;
+				priv->hadfrom = strncmp (priv->fromsave, "From ", 5) == 0;
 				priv->fromcount = 0;
 			} else {
 				memcpy (&priv->fromsave[priv->fromcount], in, len);
@@ -125,7 +123,7 @@ mime_filter_bestenc_filter (CamelMimeFilter *mime_filter,
 					/* Check for "^From " lines */
 					if ((priv->flags & CAMEL_BESTENC_NO_FROM) && !priv->hadfrom) {
 						if (pend - p >= 5) {
-							priv->hadfrom = strncmp((gchar *) p, (gchar *) "From ", 5) == 0;
+							priv->hadfrom = strncmp ((gchar *) p, (gchar *) "From ", 5) == 0;
 						} else if (pend - p == 0) {
 							priv->startofline = TRUE;
 						} else {
@@ -263,9 +261,9 @@ camel_mime_filter_bestenc_get_best_encoding (CamelMimeFilterBestenc *filter,
 	required = required & ~CAMEL_BESTENC_TEXT;
 
 #if 0
-	printf("count0 = %d, count8 = %d, total = %d\n", priv->count0, priv->count8, priv->total);
-	printf("maxline = %d, crlfnoorder = %s\n", priv->maxline, priv->crlfnoorder?"TRUE":"FALSE");
-	printf(" %d%% require encoding?\n", (priv->count0+priv->count8)*100 / priv->total);
+	printf ("count0 = %d, count8 = %d, total = %d\n", priv->count0, priv->count8, priv->total);
+	printf ("maxline = %d, crlfnoorder = %s\n", priv->maxline, priv->crlfnoorder?"TRUE":"FALSE");
+	printf (" %d%% require encoding?\n", (priv->count0 + priv->count8) * 100 / priv->total);
 #endif
 
 	/* if we're not allowed to have From lines and we had one, use an encoding

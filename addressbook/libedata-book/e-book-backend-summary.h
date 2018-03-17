@@ -1,31 +1,33 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- * pas-backend-summary.h
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
  * Authors:
  *   Chris Toshok <toshok@ximian.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License, version 2, as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
  * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
+
+#if !defined (__LIBEDATA_BOOK_H_INSIDE__) && !defined (LIBEDATA_BOOK_COMPILATION)
+#error "Only <libedata-book/libedata-book.h> should be included directly."
+#endif
 
 #ifndef E_BOOK_BACKEND_SUMMARY_H
 #define E_BOOK_BACKEND_SUMMARY_H
 
-#include <libedata-book/e-data-book-types.h>
-#include <libebook/e-contact.h>
+#ifndef EDS_DISABLE_DEPRECATED
+
+#include <libebook-contacts/libebook-contacts.h>
 
 /* Standard GObject macros */
 #define E_TYPE_BOOK_BACKEND_SUMMARY \
@@ -52,12 +54,29 @@ typedef struct _EBookBackendSummary EBookBackendSummary;
 typedef struct _EBookBackendSummaryClass EBookBackendSummaryClass;
 typedef struct _EBookBackendSummaryPrivate EBookBackendSummaryPrivate;
 
-struct _EBookBackendSummary{
+/**
+ * EBookBackendSummary:
+ *
+ * Contains only private data that should be read and manipulated using the
+ * functions below.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead 
+ */
+struct _EBookBackendSummary {
+	/*< private >*/
 	GObject parent_object;
 	EBookBackendSummaryPrivate *priv;
 };
 
+/**
+ * EBookBackendSummaryClass:
+ *
+ * Class structure for the deprecated API for accessing the addressbook
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead 
+ */
 struct _EBookBackendSummaryClass{
+	/*< private >*/
 	GObjectClass parent_class;
 };
 
@@ -99,5 +118,7 @@ gchar *		e_book_backend_summary_get_summary_vcard
 						 const gchar *id);
 
 G_END_DECLS
+
+#endif /* EDS_DISABLE_DEPRECATED */
 
 #endif /* E_BOOK_BACKEND_SUMMARY_H */

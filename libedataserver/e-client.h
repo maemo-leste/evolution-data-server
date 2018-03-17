@@ -1,59 +1,52 @@
 /*
  * e-client.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  *
  * Copyright (C) 2011 Red Hat, Inc. (www.redhat.com)
  *
  */
 
+#if !defined (__LIBEDATASERVER_H_INSIDE__) && !defined (LIBEDATASERVER_COMPILATION)
+#error "Only <libedataserver/libedataserver.h> should be included directly."
+#endif
+
 #ifndef E_CLIENT_H
 #define E_CLIENT_H
 
 #include <gio/gio.h>
 
-#include <libedataserver/e-credentials.h>
 #include <libedataserver/e-source.h>
-#include <libedataserver/e-source-list.h>
 
-#define E_TYPE_CLIENT		(e_client_get_type ())
-#define E_CLIENT(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), E_TYPE_CLIENT, EClient))
-#define E_CLIENT_CLASS(k)	(G_TYPE_CHECK_CLASS_CAST ((k), E_TYPE_CLIENT, EClientClass))
-#define E_IS_CLIENT(o)		(G_TYPE_CHECK_INSTANCE_TYPE ((o), E_TYPE_CLIENT))
-#define E_IS_CLIENT_CLASS(k)	(G_TYPE_CHECK_CLASS_TYPE ((k), E_TYPE_CLIENT))
-#define E_CLIENT_GET_CLASS(obj)	(G_TYPE_INSTANCE_GET_CLASS ((obj), E_TYPE_CLIENT, EClientClass))
-
-/**
- * CLIENT_BACKEND_PROPERTY_OPENED:
- *
- * The "opened" property is "TRUE" when the client is fully opened,
- * "FALSE" at all other times.
- *
- * Since: 3.2
- **/
-#define CLIENT_BACKEND_PROPERTY_OPENED			"opened"
-
-/**
- * CLIENT_BACKEND_PROPERTY_OPENING:
- *
- * The "opening" property is "TRUE" when the client is in the process of
- * opening, "FALSE" at all other times.
- *
- * Since: 3.2
- **/
-#define CLIENT_BACKEND_PROPERTY_OPENING			"opening"
+/* Standard GObject macros */
+#define E_TYPE_CLIENT \
+	(e_client_get_type ())
+#define E_CLIENT(obj) \
+	(G_TYPE_CHECK_INSTANCE_CAST \
+	((obj), E_TYPE_CLIENT, EClient))
+#define E_CLIENT_CLASS(cls) \
+	(G_TYPE_CHECK_CLASS_CAST \
+	((cls), E_TYPE_CLIENT, EClientClass))
+#define E_IS_CLIENT(obj) \
+	(G_TYPE_CHECK_INSTANCE_TYPE \
+	((obj), E_TYPE_CLIENT))
+#define E_IS_CLIENT_CLASS(cls) \
+	(G_TYPE_CHECK_CLASS_TYPE \
+	((cls), E_TYPE_CLIENT))
+#define E_CLIENT_GET_CLASS(obj) \
+	(G_TYPE_INSTANCE_GET_CLASS \
+	((obj), E_TYPE_CLIENT, EClientClass))
 
 /**
  * CLIENT_BACKEND_PROPERTY_ONLINE:
@@ -154,11 +147,11 @@ typedef enum {
 	E_CLIENT_ERROR_QUERY_REFUSED,
 	E_CLIENT_ERROR_DBUS_ERROR,
 	E_CLIENT_ERROR_OTHER_ERROR,
-	E_CLIENT_ERROR_NOT_OPENED
+	E_CLIENT_ERROR_NOT_OPENED,
+	E_CLIENT_ERROR_OUT_OF_SYNC
 } EClientError;
 
-const gchar *	e_client_error_to_string (EClientError code);
-GError *	e_client_error_create (EClientError code, const gchar *custom_msg);
+const gchar *	e_client_error_to_string	(EClientError code);
 
 /**
  * EClient:
@@ -168,104 +161,261 @@ GError *	e_client_error_create (EClientError code, const gchar *custom_msg);
  *
  * Since: 3.2
  **/
-typedef struct _EClient        EClient;
-typedef struct _EClientClass   EClientClass;
+typedef struct _EClient EClient;
+typedef struct _EClientClass EClientClass;
 typedef struct _EClientPrivate EClientPrivate;
 
 struct _EClient {
 	GObject parent;
-
-	/*< private >*/
 	EClientPrivate *priv;
 };
 
 struct _EClientClass {
 	GObjectClass parent;
 
-	/* virtual methods */
-	GDBusProxy *	(* get_dbus_proxy) (EClient *client);
-	void		(* unwrap_dbus_error) (EClient *client, GError *dbus_error, GError **out_error);
+	/* This method is deprecated. */
+	GDBusProxy *	(*get_dbus_proxy)	(EClient *client);
 
-	void		(* retrieve_capabilities) (EClient *client, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-	gboolean	(* retrieve_capabilities_finish) (EClient *client, GAsyncResult *result, gchar **capabilities, GError **error);
-	gboolean	(* retrieve_capabilities_sync) (EClient *client, gchar **capabilities, GCancellable *cancellable, GError **error);
+	/* This method is deprecated. */
+	void		(*unwrap_dbus_error)	(EClient *client,
+						 GError *dbus_error,
+						 GError **out_error);
 
-	void		(* get_backend_property) (EClient *client, const gchar *prop_name, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-	gboolean	(* get_backend_property_finish) (EClient *client, GAsyncResult *result, gchar **prop_value, GError **error);
-	gboolean	(* get_backend_property_sync) (EClient *client, const gchar *prop_name, gchar **prop_value, GCancellable *cancellable, GError **error);
+	/* This method is deprecated. */
+	void		(*retrieve_capabilities)
+						(EClient *client,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+	gboolean	(*retrieve_capabilities_finish)
+						(EClient *client,
+						 GAsyncResult *result,
+						 gchar **capabilities,
+						 GError **error);
+	gboolean	(*retrieve_capabilities_sync)
+						(EClient *client,
+						 gchar **capabilities,
+						 GCancellable *cancellable,
+						 GError **error);
 
-	void		(* set_backend_property) (EClient *client, const gchar *prop_name, const gchar *prop_value, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-	gboolean	(* set_backend_property_finish) (EClient *client, GAsyncResult *result, GError **error);
-	gboolean	(* set_backend_property_sync) (EClient *client, const gchar *prop_name, const gchar *prop_value, GCancellable *cancellable, GError **error);
+	void		(*get_backend_property)	(EClient *client,
+						 const gchar *prop_name,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+	gboolean	(*get_backend_property_finish)
+						(EClient *client,
+						 GAsyncResult *result,
+						 gchar **prop_value,
+						 GError **error);
+	gboolean	(*get_backend_property_sync)
+						(EClient *client,
+						 const gchar *prop_name,
+						 gchar **prop_value,
+						 GCancellable *cancellable,
+						 GError **error);
 
-	void		(* open) (EClient *client, gboolean only_if_exists, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-	gboolean	(* open_finish) (EClient *client, GAsyncResult *result, GError **error);
-	gboolean	(* open_sync) (EClient *client, gboolean only_if_exists, GCancellable *cancellable, GError **error);
+	/* This method is deprecated. */
+	void		(*set_backend_property)	(EClient *client,
+						 const gchar *prop_name,
+						 const gchar *prop_value,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+	gboolean	(*set_backend_property_finish)
+						(EClient *client,
+						 GAsyncResult *result,
+						 GError **error);
+	gboolean	(*set_backend_property_sync)
+						(EClient *client,
+						 const gchar *prop_name,
+						 const gchar *prop_value,
+						 GCancellable *cancellable,
+						 GError **error);
 
-	void		(* remove) (EClient *client, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-	gboolean	(* remove_finish) (EClient *client, GAsyncResult *result, GError **error);
-	gboolean	(* remove_sync) (EClient *client, GCancellable *cancellable, GError **error);
+	void		(*open)			(EClient *client,
+						 gboolean only_if_exists,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+	gboolean	(*open_finish)		(EClient *client,
+						 GAsyncResult *result,
+						 GError **error);
+	gboolean	(*open_sync)		(EClient *client,
+						 gboolean only_if_exists,
+						 GCancellable *cancellable,
+						 GError **error);
 
-	void		(* refresh) (EClient *client, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-	gboolean	(* refresh_finish) (EClient *client, GAsyncResult *result, GError **error);
-	gboolean	(* refresh_sync) (EClient *client, GCancellable *cancellable, GError **error);
+	void		(*remove)		(EClient *client,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+	gboolean	(*remove_finish)	(EClient *client,
+						 GAsyncResult *result,
+						 GError **error);
+	gboolean	(*remove_sync)		(EClient *client,
+						 GCancellable *cancellable,
+						 GError **error);
 
-	void		(* handle_authentication) (EClient *client, const ECredentials *credentials);
+	void		(*refresh)		(EClient *client,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+	gboolean	(*refresh_finish)	(EClient *client,
+						 GAsyncResult *result,
+						 GError **error);
+	gboolean	(*refresh_sync)		(EClient *client,
+						 GCancellable *cancellable,
+						 GError **error);
 
-	/* signals */
-	gboolean	(* authenticate) (EClient *client, ECredentials *credentials);
-	void		(* opened) (EClient *client, const GError *error);
-	void		(* backend_error) (EClient *client, const gchar *error_msg);
-	void		(* backend_died) (EClient *client);
-	void		(* backend_property_changed) (EClient *client, const gchar *prop_name, const gchar *prop_value);
+	void		(*opened)		(EClient *client,
+						 const GError *error);
+	void		(*backend_error)	(EClient *client,
+						 const gchar *error_msg);
+	void		(*backend_died)		(EClient *client);
+	void		(*backend_property_changed)
+						(EClient *client,
+						 const gchar *prop_name,
+						 const gchar *prop_value);
 };
 
-GType		e_client_get_type			(void);
+GType		e_client_get_type		(void) G_GNUC_CONST;
 
-ESource *	e_client_get_source			(EClient *client);
-const gchar *	e_client_get_uri			(EClient *client);
-const GSList *	e_client_get_capabilities		(EClient *client);
-gboolean	e_client_check_capability		(EClient *client, const gchar *capability);
-gboolean	e_client_check_refresh_supported	(EClient *client);
-gboolean	e_client_is_readonly			(EClient *client);
-gboolean	e_client_is_online			(EClient *client);
-gboolean	e_client_is_opened			(EClient *client);
-void		e_client_unwrap_dbus_error		(EClient *client, GError *dbus_error, GError **out_error);
+ESource *	e_client_get_source		(EClient *client);
+const GSList *	e_client_get_capabilities	(EClient *client);
+GMainContext *	e_client_ref_main_context	(EClient *client);
+gboolean	e_client_check_capability	(EClient *client,
+						 const gchar *capability);
+gboolean	e_client_check_refresh_supported
+						(EClient *client);
+gboolean	e_client_is_readonly		(EClient *client);
+gboolean	e_client_is_online		(EClient *client);
 
-void		e_client_cancel_all			(EClient *client);
+void		e_client_get_backend_property	(EClient *client,
+						 const gchar *prop_name,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	e_client_get_backend_property_finish
+						(EClient *client,
+						 GAsyncResult *result,
+						 gchar **prop_value,
+						 GError **error);
+gboolean	e_client_get_backend_property_sync
+						(EClient *client,
+						 const gchar *prop_name,
+						 gchar **prop_value,
+						 GCancellable *cancellable,
+						 GError **error);
 
-void		e_client_get_backend_property		(EClient *client, const gchar *prop_name, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-gboolean	e_client_get_backend_property_finish	(EClient *client, GAsyncResult *result, gchar **prop_value, GError **error);
-gboolean	e_client_get_backend_property_sync	(EClient *client, const gchar *prop_name, gchar **prop_value, GCancellable *cancellable, GError **error);
+void		e_client_refresh		(EClient *client,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	e_client_refresh_finish		(EClient *client,
+						 GAsyncResult *result,
+						 GError **error);
+gboolean	e_client_refresh_sync		(EClient *client,
+						 GCancellable *cancellable,
+						 GError **error);
 
-void		e_client_set_backend_property		(EClient *client, const gchar *prop_name, const gchar *prop_value, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-gboolean	e_client_set_backend_property_finish	(EClient *client, GAsyncResult *result, GError **error);
-gboolean	e_client_set_backend_property_sync	(EClient *client, const gchar *prop_name, const gchar *prop_value, GCancellable *cancellable, GError **error);
+GSList *	e_client_util_parse_comma_strings
+						(const gchar *strings);
 
-void		e_client_open				(EClient *client, gboolean only_if_exists, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-gboolean	e_client_open_finish			(EClient *client, GAsyncResult *result, GError **error);
-gboolean	e_client_open_sync			(EClient *client, gboolean only_if_exists, GCancellable *cancellable, GError **error);
+#ifndef EDS_DISABLE_DEPRECATED
+/**
+ * CLIENT_BACKEND_PROPERTY_OPENED:
+ *
+ * The "opened" property is "TRUE" when the client is fully opened,
+ * "FALSE" at all other times.
+ *
+ * Since: 3.2
+ *
+ * Deprecated: 3.8: Clients don't need to care if they're fully opened
+ *                  anymore.  This property will always return %TRUE.
+ **/
+#define CLIENT_BACKEND_PROPERTY_OPENED			"opened"
 
-void		e_client_remove				(EClient *client, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-gboolean	e_client_remove_finish			(EClient *client, GAsyncResult *result, GError **error);
-gboolean	e_client_remove_sync			(EClient *client, GCancellable *cancellable, GError **error);
+/**
+ * CLIENT_BACKEND_PROPERTY_OPENING:
+ *
+ * The "opening" property is "TRUE" when the client is in the process of
+ * opening, "FALSE" at all other times.
+ *
+ * Since: 3.2
+ *
+ * Deprecated: 3.8: Clients don't need to care if they're fully opened
+ *                  anymore.  This property will always return %FALSE.
+ **/
+#define CLIENT_BACKEND_PROPERTY_OPENING			"opening"
 
-void		e_client_refresh			(EClient *client, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-gboolean	e_client_refresh_finish			(EClient *client, GAsyncResult *result, GError **error);
-gboolean	e_client_refresh_sync			(EClient *client, GCancellable *cancellable, GError **error);
-
-void		e_client_retrieve_capabilities		(EClient *client, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
-gboolean	e_client_retrieve_capabilities_finish	(EClient *client, GAsyncResult *result, gchar **capabilities, GError **error);
-gboolean	e_client_retrieve_capabilities_sync	(EClient *client, gchar **capabilities, GCancellable *cancellable, GError **error);
-
-/* utility functions */
-gchar **	e_client_util_slist_to_strv		(const GSList *strings);
-GSList *	e_client_util_strv_to_slist		(const gchar * const *strv);
-GSList *	e_client_util_copy_string_slist		(GSList *copy_to, const GSList *strings);
-GSList *	e_client_util_copy_object_slist		(GSList *copy_to, const GSList *objects);
-void		e_client_util_free_string_slist		(GSList *strings);
-void		e_client_util_free_object_slist		(GSList *objects);
-GSList *	e_client_util_parse_comma_strings	(const gchar *strings);
+GError *	e_client_error_create		(EClientError code,
+						 const gchar *custom_msg);
+gboolean	e_client_is_opened		(EClient *client);
+void		e_client_cancel_all		(EClient *client);
+void		e_client_unwrap_dbus_error	(EClient *client,
+						 GError *dbus_error,
+						 GError **out_error);
+void		e_client_retrieve_capabilities	(EClient *client,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	e_client_retrieve_capabilities_finish
+						(EClient *client,
+						 GAsyncResult *result,
+						 gchar **capabilities,
+						 GError **error);
+gboolean	e_client_retrieve_capabilities_sync
+						(EClient *client,
+						 gchar **capabilities,
+						 GCancellable *cancellable,
+						 GError **error);
+void		e_client_set_backend_property	(EClient *client,
+						 const gchar *prop_name,
+						 const gchar *prop_value,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	e_client_set_backend_property_finish
+						(EClient *client,
+						 GAsyncResult *result,
+						 GError **error);
+gboolean	e_client_set_backend_property_sync
+						(EClient *client,
+						 const gchar *prop_name,
+						 const gchar *prop_value,
+						 GCancellable *cancellable,
+						 GError **error);
+void		e_client_open			(EClient *client,
+						 gboolean only_if_exists,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	e_client_open_finish		(EClient *client,
+						 GAsyncResult *result,
+						 GError **error);
+gboolean	e_client_open_sync		(EClient *client,
+						 gboolean only_if_exists,
+						 GCancellable *cancellable,
+						 GError **error);
+void		e_client_remove			(EClient *client,
+						 GCancellable *cancellable,
+						 GAsyncReadyCallback callback,
+						 gpointer user_data);
+gboolean	e_client_remove_finish		(EClient *client,
+						 GAsyncResult *result,
+						 GError **error);
+gboolean	e_client_remove_sync		(EClient *client,
+						 GCancellable *cancellable,
+						 GError **error);
+gchar **	e_client_util_slist_to_strv	(const GSList *strings);
+GSList *	e_client_util_strv_to_slist	(const gchar * const *strv);
+GSList *	e_client_util_copy_string_slist	(GSList *copy_to,
+						 const GSList *strings);
+GSList *	e_client_util_copy_object_slist	(GSList *copy_to,
+						 const GSList *objects);
+void		e_client_util_free_string_slist	(GSList *strings);
+void		e_client_util_free_object_slist	(GSList *objects);
 
 typedef struct _EClientErrorsList EClientErrorsList;
 
@@ -273,13 +423,22 @@ typedef struct _EClientErrorsList EClientErrorsList;
  * EClientErrorsList:
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: This structure is no longer used.
  **/
 struct _EClientErrorsList {
 	const gchar *name;
 	gint err_code;
 };
 
-gboolean	e_client_util_unwrap_dbus_error		(GError *dbus_error, GError **client_error, const EClientErrorsList *known_errors, guint known_errors_count, GQuark known_errors_domain, gboolean fail_when_none_matched);
+gboolean	e_client_util_unwrap_dbus_error	(GError *dbus_error,
+						 GError **client_error,
+						 const EClientErrorsList *known_errors,
+						 guint known_errors_count,
+						 GQuark known_errors_domain,
+						 gboolean fail_when_none_matched);
+
+#endif /* EDS_DISABLE_DEPRECATED */
 
 G_END_DECLS
 

@@ -5,26 +5,28 @@
  *
  * Authors: Rodrigo Moya <rodrigo@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
+#if !defined (__LIBEDATA_CAL_H_INSIDE__) && !defined (LIBEDATA_CAL_COMPILATION)
+#error "Only <libedata-cal/libedata-cal.h> should be included directly."
+#endif
 
 #ifndef E_CAL_BACKEND_CACHE_H
 #define E_CAL_BACKEND_CACHE_H
 
-#include "libebackend/e-file-cache.h"
-#include <libecal/e-cal-component.h>
-#include <libecal/e-cal.h>
+#include <libecal/libecal.h>
+#include <libebackend/libebackend.h>
 
 /* Standard GObject macros */
 #define E_TYPE_CAL_BACKEND_CACHE \
@@ -51,12 +53,25 @@ typedef struct _ECalBackendCache ECalBackendCache;
 typedef struct _ECalBackendCacheClass ECalBackendCacheClass;
 typedef struct _ECalBackendCachePrivate ECalBackendCachePrivate;
 
+/**
+ * ECalBackendCache:
+ *
+ * Contains only private data that should be read and manipulated using the
+ * functions below.
+ */
 struct _ECalBackendCache {
+	/*< private >*/
 	EFileCache parent;
 	ECalBackendCachePrivate *priv;
 };
 
+/**
+ * ECalBackendCacheClass:
+ *
+ * Class structure for the #ECalBackendCache.
+ */
 struct _ECalBackendCacheClass {
+	/*< private >*/
 	EFileCacheClass parent_class;
 };
 
@@ -84,9 +99,6 @@ const icaltimezone *
 						 const gchar *tzid);
 gboolean	e_cal_backend_cache_put_timezone (ECalBackendCache *cache,
 						 const icaltimezone *zone);
-gboolean	e_cal_backend_cache_remove_timezone
-						(ECalBackendCache *cache,
-						 const gchar *tzid);
 gboolean	e_cal_backend_cache_put_default_timezone
 						(ECalBackendCache *cache,
 						 icaltimezone *default_zone);

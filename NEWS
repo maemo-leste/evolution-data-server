@@ -1,97 +1,1955 @@
-Evolution-Data-Server 3.4.4 2012-08-13
+Evolution-Data-Server 3.12.8 2014-11-10
+-----------------------------------------
+
+Bug Fixes:
+	Bug 737733 - [IMAPx] Prevent "Stream has outstanding operation" error (Milan Crha)
+	Bug 738288 - EBookSqlite is leaking memory in ebsql_ref_from_hash function (Mateusz Polrola)
+	Bug 698964 - Hide password prompt right after getting the password (Milan Crha)
+	Bug 708166 - Update EClient properties on idle after GDBusProxy notify (Milan Crha)
+	Bug 737930 - Claims invalid PGP signature for single line mail (Christian Schaarschmidt)
+	Bug 738724 - [IMAPx] Message flag changes not always saved (Milan Crha)
+	Bug 738965 - [SQLite VFS] Crash due to missing xFetch definition (Milan Crha)
+	Bug 738184 - [IMAPx] Not every server returns empty namespace prefix for INBOX (Milan Crha)
+	Bug 712392 - Delay server availability checks on network change (Milan Crha)
+	Bug 739343 - Google Task with Due Date freezes UI on save (Milan Crha)
+	Bug 738724 - [IMAPx] Message flag changes not always saved (Milan Crha)
+
+Miscellaneous:
+	Update MAINTAINERS, doap. (Matthew Barnes)
+	[CamelService] Connect/Disconnect rely on provided cancellable (Milan Crha)
+	[CamelFolder/Store] Check online state of the session too before connecting (Milan Crha)
+	[CamelIMAPXConnManager] Can starve in close connections (Milan Crha)
+	[CamelOfflineStore] Count with host reachability update delay (Milan Crha)
+	[IMAPx] Do not connect to the server in offline mode (Milan Crha)
+	[IMAPx] Try to reconnect after socket I/O timeout (Milan Crha)
+	[CamelIMAPXServer] Assign tagprefix per account (Milan Crha)
+	Use 90 seconds timeout for Camel connections (Milan Crha)
+	Disabling/enabling Collection master source doesn't update children properly (Milan Crha)
+	camel_folder_thaw: Save changes to local summary (Milan Crha)
+
+Translations:
+	Kjartan Maraas (nb)
+
+Evolution-Data-Server 3.12.7.1 2014-10-14
+-----------------------------------------
+
+Bug Fixes:
+	Bug 737951 - CAMEL_DEBUG=smtp should provide information about SMTP server (Milan Crha)
+
+Miscellaneous:
+	[SMTP] Fails to send message after a change for bug 737903 (Milan Crha)
+
+Evolution-Data-Server 3.12.7 2014-10-13
+---------------------------------------
+
+Bug Fixes:
+	Bug 736116 - Add EBSQL_DEBUG=timing (David Woodhouse)
+	Bug 737903 - [SMTP] Crash when authentication fails (Milan Crha)
+
+Miscellaneous:
+	camel-sasl-gssapi: Generate correct error messages for non-krb5 mechanisms (Daniel Sands)
+	camel-sasl-gssapi: Use SPNEGO for HTTP auth not bare krb5 (David Woodhouse)
+	Improve error on failed conversion (David Woodhouse)
+	camel-sasl-gssapi: Always use gss_display_status() for mechanism error code (David Woodhouse)
+	Fix UOA accounts accumulating on startup. (Michael Blennerhassett)
+	imapx_is_duplicate_fetch_or_refresh: Fix incorrect bit-flag test (Milan Crha)
+	Do not define EBackend::online as G_PARAM_CONSTRUCT (Milan Crha)
+	Fixed introspection annotations. (tintou)
+
+Translations:
+	Sweta Kothari (gu)
+	Ville-Pekka Vainio (fi)
+	Piotr Drąg (pl)
+	Andika Triwidada (id)
+	Rafael Ferreira (pt_BR)
+	Nilamdyuti Goswami (as)
+	Daniel Mustieles (es)
+	Shankar Prasad (kn)
+	Alexandre Franke (fr)
+	Aurimas Černius (lt)
+	Gil Forcada (ca)
+	Changwoo Ryu (ko)
+	Matej Urbančič (sl)
+	Balázs Úr (hu)
+	Mattias Eriksson (sv)
+	Christian Kirbach (de)
+	Kenneth Nielsen (da)
+	Fran Diéguez (gl)
+	Yuri Myasoedov (ru)
+	Sandeep Sheshrao Shedmake (mr)
+	Tom Tryfonidis (el)
+	Marek Černocký (cs)
+	Rajesh Ranjan (hi)
+	Fran Diéguez (gl)
+	Krishnababu Krothapalli (te)
+	Shantha kumar (ta)
+	Мирослав Николић (sr)
+	Мирослав Николић (sr@latin)
+	Kjartan Maraas (nb)
+	Rūdolfs Mazurs (lv)
+	Saibal Ray (bn_IN)
+	Milo Casagrande (it)
+
+Evolution-Data-Server 3.12.6 2014-09-08
+---------------------------------------
+
+Bug Fixes:
+	Bug 735311 - Adapt to new Google HTTP restriction (Matthew Barnes)
+	Bug 486018 - Implement IDNA (Internationalized Domain Names in Applications) (Milan Crha)
+	Bug 734853 - CamelNetworkService fails to connect to 'localhost' (Milan Crha)
+	Bug 694112 - Crash under e_book_backend_ldap_stop_book_view() (Milan Crha)
+	Bug 735523 - Migrate sync_data from EBookBackendSqliteDB to EBookSqlite (David Woodhouse)
+	Bug 735191 - [IMAPx] Avoid storing server-disallowed message flags (Milan Crha)
+	Bug 733733 - Crash due to write out of buffer in CamelMimeFilterToHTML (Milan Crha)
+	Bug 735200 - [IMAPx] Fails to handle QUOTA response with no quotas (Jeffrey Hutzelman)
+	Bug 735523 - Allow EBookSqlite to be used without transactions (David Woodhouse)
+
+Miscellaneous:
+	Do not add GTasks source when the GTasks backend is not built (Milan Crha)
+	[IMAPx] Deleted messages not always saved to the server properly (Milan Crha)
+	[IMAPx] Incorrect mailbox used for untagged OK/NO/BAD with pending SELECT (Milan Crha)
+
+Translations:
+	MarMav (el)
+	Christian Kirbach (de)
+	ngoswami (as)
+	Kjartan Maraas (nb)
+	Chao-Hsiung Liao (zh_HK)
+	Chao-Hsiung Liao (zh_TW)
+	Claude Paroz (fr)
+	Manoj Kumar Giri (or)
+	Sweta Kothari (gu)
+	Shankar Prasad (kn)
+	Changwoo Ryu (ko)
+	Rūdolfs Mazurs (lv)
+
+Evolution-Data-Server 3.12.5 2014-08-11
+---------------------------------------
+
+Bug Fixes:
+	Bug 733183 - Do not include built sources in distribution (Milan Crha)
+	Bug 732983 - e_book_query_field_exists() fails with non-string fields (Milan Crha)
+	Bug 733081 - [IMAPx] Job stuck after send when saving to IMAP server (Milan Crha)
+	Bug 732627 - [IMAPx] Add support for literal8 in nstring (Milan Crha)
+
+Miscellaneous:
+	Correct the test for g_subprocess_launcher_set_child_setup() availability (Milan Crha)
+	Add missing chain-up-s to parent's constructed() method (Milan Crha)
+	Strip remote GDBus errors after talking to GOA (Milan Crha)
+	[IMAPx] Add actual error message into 'Select failed' debug log (Milan Crha)
+
+Translations:
+	Мирослав Николић (sr)
+	Мирослав Николић (sr@latin)
+	Kjartan Maraas (nb)
+	YunQiang Su (zh_CN)
+	Matej Urbančič (sl)
+
+Evolution-Data-Server 3.12.4 2014-07-14
+---------------------------------------
+
+Bug Fixes:
+	Bug 731418 - Unnecessary localedir override in configure.ac (Alan Swanson)
+	Bug 731356 - GError overwrite in camel_filter_search_match() (Milan Crha)
+	Bug 729848 - [IMAPx] Hard to get to cached messages in offline (Milan Crha)
+	Bug 731585 - evolution-ews Camel part pretends offline state (Milan Crha)
+	Bug 731562 - [IMAPx] Occasionally getting 'Empty cache file' error (Milan Crha)
+	Bug 731560 - Crash under imapx_call_idle() after folder rename (Milan Crha)
+	Bug 731720 - Junk test logic has useless ordering (Milan Crha)
+	Bug 652132 - Google Tasks support (Milan Crha)
+	Bug 731440 - [IMAPx] Moved folder within account duplicated in UI (Milan Crha)
+	Bug 728653 - Fix Google Talk support (Christian Schaarschmidt)
+	Bug 732263 - Deleting Search Folder very slow (Milan Crha)
+	Bug 729172 - [IMAPx] Cannot retrieve certain messages (Ian Campbell)
+	Bug 732607 - Crash in imapx_job_fetch_new_messages_start() (Milan Crha)
+	Bug 732366 - [IMAPx] Stuck FETCH command when using IDLE (Milan Crha)
+	Bug 732730 - Addressbook: Notify views after locale change (Mateusz Polrola)
+
+Miscellaneous:
+	Correct typo in a CAMEL_CHECK_LOCAL_GERROR() debugging macro (Milan Crha)
+	[Maildir] g_mkdir() fails, if the folder already exists (Milan Crha)
+	[IMAPx] Claim camel_store_folder_info_stale() when more settings changed (Milan Crha)
+	[IMAPx] Avoid useless console warnings after a call to g_rename() (Milan Crha)
+	Fix a memory leak in camel_imapx_server_copy_message() (Milan Crha)
+	Revert leak-fix part from commit 6cac5a9da (Milan Crha)
+	Correct a typo in CalDAV's Makefile.am (Milan Crha)
+	Correct return value at pop3_folder_get_message_sync() (Milan Crha)
+	Remove libdb related headers from libebackend.h (Milan Crha)
+	Remove unused and obsolete evolution-data-server-zip.in (Milan Crha)
+	Remove libdb related headers from libedata-book.h (Milan Crha)
+	Do not delete passwords during authentication session (Milan Crha)
+	g_subprocess_launcher_set_child_setup() is available only for Unixes (Milan Crha)
+
+Translations:
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Yuri Myasoedov (ru)
+
+Evolution-Data-Server 3.12.3 2014-06-09
+---------------------------------------
+
+Bug Fixes:
+	Bug 729546 - [IMAPx] Crash after large message download cancel (Milan Crha)
+	Bug 728976 - [IMAPx] Ignore \NoSelect for Inbox folder (Milan Crha)
+	Bug 730398 - [WebDAV] Incorrect cache clean-up after book view cancel (Milan Crha)
+	Bug 725045 - Crash updating Google book's contact with photo (Milan Crha)
+	Bug 730281 - [CalDAV] Recover after temporary connection lost (Milan Crha)
+	Bug 719475 - [IMAPx] Increase multi-fetch chunk size to 32KB (Milan Crha)
+	Bug 730788 - [IMAPx] Deadlock during IDLE start (Milan Crha)
+	Bug 730645 - Search / filtering for "has words" is broken (Milan Crha)
+	Bug 729850 - CamelMimeParser cannot parse mbox files (Milan Crha)
+	Bug 730979 - [IMAPx] Quota information is not read properly (Milan Crha)
+	Bug 721128 - Make Evolution-Data-Server build under Win32 (Tarnyko)
+	Bug 730827 - Cannot use libphonenumber >= r568 (Mateusz Polrola)
+	Bug 591811 - Do not re-encode attachments and change CRLF/LF (Milan Crha)
+
+Miscellaneous:
+	e-proxy: Eliminate use of undefined C behaviour (Philip Withnall)
+	secret-monitor: Remove duplicate assignment (Philip Withnall)
+	addressbook: Fix some potential NULL pointer dereferences with SQL (Philip Withnall)
+	camel: Print a warning on failing to save migrated maildir version (Philip Withnall)
+	camel: Avoid an unlikely division by zero on a race condition (Philip Withnall)
+	addressbook: Add bounds checking to a summary file function (Philip Withnall)
+	addressbook: Fix cancellable handling if not in a transaction (Philip Withnall)
+	camel: Avoid an unlikely division by zero failure (Philip Withnall)
+	addressbook: Strengthen an assertion to avoid negative bit shifts (Philip Withnall)
+	[IMAPx] Add "Number of concurrent connections to use" UI option (Milan Crha)
+	[EBookBackendGoogle] Guard private 'groups' members with a lock (Milan Crha)
+	[EBookBackendGoogle] Do not store active views in its own way (Milan Crha)
+	[EBookBackendGoogle] Serialize group list update and cache update (Milan Crha)
+	Make libdb optional dependency (Milan Crha)
+	Use OpenLDAP in Win32 builds as well (Milan Crha)
+	Misceallenous Win32 build related fixes (Milan Crha)
+	[IMAPx] 'Error performing IDLE: Shutting down' is not an error (Milan Crha)
+	Use g_weak_ref_init/_clear() on structure-allocated GWeakRef-s (Milan Crha)
+
+Translations:
+	Christian Kirbach (de)
+	Piotr Drąg (pl)
+	Enrico Nicoletto (pt_BR)
+	Andika Triwidada (id)
+	Balázs Úr (hu)
+	Gil Forcada (ca)
+	Carles Ferrando (ca@valencia)
+	Aurimas Černius (lt)
+	Marek Černocký (cs)
+	Gianvito Cavasoli (it)
+
+Evolution-Data-Server 3.12.2 2014-05-12
+---------------------------------------
+
+Bug Fixes:
+	Bug 720154 - [NNTP] Silently recover from "Connection reset by peer"
+	             error (Milan Crha)
+	Bug 727598 - [IMAPX] Fails to list folders without NAMESPACE
+	             capability (Milan Crha)
+	Bug 728087 - Use-after-free in contact address switch in composer
+	             (Christian Schaarschmidt)
+	Bug 728167 - [IMAPx] Message headers downloaded twice (Milan Crha)
+	Bug 728414 - Deliver ESource data changes on idle (Milan Crha)
+	Bug 728737 - [IMAPx] Namespaces not recognized in subscription list
+	             (Milan Crha)
+	Bug 728973 - [IMAPX] Recover after store summary version mismatch
+	             (Milan Crha)
+
+Other Changes:
+	* [ownCloud backend] Check color format before using it (Milan Crha)
+	* [IMAPx] Set local cache to never expire (Milan Crha)
+	* [IMAPx] Try to address "Empty cache file" error (Milan Crha)
+
+Translations:
+	Pau Iranzo (ca)
+	Daniel Mustieles (es)
+	Matej Urbančič (sl)
+
+
+Evolution-Data-Server 3.12.1 2014-04-14
+---------------------------------------
+
+Bug Fixes:
+	Bug 660535 - Google contact groups/categories not showing in category
+	             list (Philip Withnall)
+	Bug 722275 - IMAPX: Incorrectly reads astring values (mailbox names)
+	             (Milan Crha)
+	Bug 726060 - Password prompt initiated before D-Bus name acquired
+	             (Milan Crha)
+	Bug 726767 - [imapx] Implement CamelFolder::get_message_cached()
+	             (Milan Crha)
+	Bug 726788 - Crash on malformed vCard (Xavier Claessens)
+
+Other Changes:
+	* CamelIMAPXServer not shut down properly on network outage (Milan Crha)
+	* Claim missing user name when authenticating (Milan Crha)
+	* [IMAPx] Enable concurrent connections (Milan Crha)
+	* [IMAPx] Do not open each folder on LIST/LSUB responses (Milan Crha)
+	* Always reject revoked certificates (Milan Crha)
+
+Translations:
+	Inaki Larranaga Murgoitio (eu)
+	Gianvito Cavasoli (it)
+	Jiro Matsuzawa (ja)
+
+
+Evolution-Data-Server 3.12.0 2014-03-24
+---------------------------------------
+
+Bug Fixes:
+	Bug 726681 - Check GConf XDG folder for migration too (Milan Crha)
+	Bug 726723 - Data loss on message copy to an IMAPx folder (Milan Crha)
+
+Translations:
+	Ask H. Larsen (da)
+	Christian Kirbach (de)
+	Gábor Kelemen (hu)
+	Duarte Loreto (pt)
+	Мирослав Николић (sr)
+
+
+Evolution-Data-Server 3.11.92 2014-03-17
+----------------------------------------
+
+Bug Fixes:
+	Bug 633177 - Avoid runtime warnings from CamelFolder::cmp_uids()
+	             overrides (Milan Crha)
+	Bug 710633 - EDestination: Remove empty sublists (Milan Crha)
+	Bug 711053 - WebDAV: Do not overwrite UID of a contact (Milan Crha)
+	Bug 711436 - CalDAV: Ignore ctag on manual Refresh invocation
+	             (Milan Crha)
+	Bug 712564 - GPG: Treat marginal trust the same as unknown (Milan Crha)
+	Bug 726204 - Ugly error message when creating Maildir folder fails
+	             (Matthew Barnes)
+
+Other Changes:
+	* CamelStore: Handle CAMEL_STORE_FOLDER_CREATE flag directly.
+	  (Matthew Barnes)
+	* CamelDataWrapper: Add construct_from_input_stream() method.
+	  (Matthew Barnes)
+	* CamelIMAPXServer: Copy child setup gunk from CamelStreamProcess.
+	  (Matthew Barnes)
+	* Addressbook: Flush DBus properties after setting new locale.
+	  (Mateusz Polrola)
+	* Don't close base stream when destroying a CamelFilterOutputStream.
+	  (Matthew Barnes)
+	* e_cal_backend_get_timezone_finish: Do not panic when the timezone
+	  cannot be found (Milan Crha)
+
+Translations:
+	Changwoo Ryu (ko)
+	Rūdolfs Mazurs (lv)
+	Kjartan Maraas (nb)
+	Yuri Myasoedov (ru)
+
+
+Evolution-Data-Server 3.11.91 2014-03-03
+----------------------------------------
+
+Bug Fixes:
+	Bug 274316 - [IMAP] Follow-up flag lost on message move/copy
+	             (Milan Crha)
+	Bug 623066 - CalDAV doesn't read Location header from Created
+	             response (Milan Crha)
+	Bug 694084 - IMAPx doesn't stick Labels (Milan Crha)
+	Bug 705028 - gen-western-table.py is not compatible with python3
+	             (Arfrever Frehtes Taifersar Arahesis)
+	Bug 710997 - Check some return values before use (Murray Cumming)
+	Bug 724729 - camel-folder.c:folder_changed() blocks the UI thread
+	             (Milan Crha)
+
+Other Changes:
+	* Ported IMAPX backend to use GIO streams instead of CamelStream.
+	  (Matthew Barnes)
+	* Weather Calendar: Weather info source never freed (Milan Crha)
+	* Fix a memory leak in imapx_untagged_lsub() (Milan Crha)
+
+Translations:
+	Aurimas Černius (lt)
+	Piotr Drąg (pl)
+
+
+Evolution-Data-Server 3.11.90 2014-02-17
+----------------------------------------
+
+Bug Fixes:
+	Bug 655806 - Folder deletion is very slow (Fabiano Fidêncio)
+	Bug 719806 - IMAP: Empty trash doesn't work with a real trash folder
+	             (Milan Crha)
+	Bug 720529 - Merge RFC2047 encoded words before ensuring UTF-8 validity
+	             (Milan Crha)
+	Bug 720751 - camel_tag_set() doesn't copy tag's name properly
+	             (Milan Crha)
+	Bug 720940 - Always asked to synchronize folders when going offline
+	             (Milan Crha)
+	Bug 721030 - WebDAV: download_contacts() leaks (Michel Dänzer)
+	Bug 723481 - Wrong callback signature in imapx_process_read_to_read()
+	             (Matthew Barnes)
+	Bug 723539 - Use SmtpAuth* properties from
+	             org.gnome.OnlineAccounts.Mail (Matthew Barnes)
+	Bug 724343 - Moving emails between IMAP server results in wrong date
+	             (Milan Crha)
+
+Other Changes:
+	* Add a 'secret-monitor' module to maintain keyring entries.
+	  (Matthew Barnes)
+	* Begin phasing out CamelStream for GIO streams. (Matthew Barnes)
+	* ESource changes not always written to a disk (Milan Crha)
+	* ESource: Add functions for password management. (Matthew Barnes)
+
+Translations:
+	Claude Paroz (fr)
+	Shankar Prasad (kn)
+	Kjartan Maraas (nb)
+	Yuri Myasoedov (ru)
+
+
+Evolution-Data-Server 3.11.5 2014-02-02
+---------------------------------------
+
+Bug Fixes:
+	Bug 687640 - Crash in caldav's initialize_backend() (Milan Crha)
+	Bug 702709 - Do network background operations only if the CamelSession
+	             is online (Milan Crha)
+	Bug 719583 - Get a ESourceRegistry singleton (Xavier Claessens)
+	Bug 720676 - [IMAPX] Do more searching server-side (Milan Crha)
+	Bug 720943 - vFolder does not refresh automatically (Milan Crha)
+	Bug 721286 - IMAPx: read messages become unread when reopening
+	             Evolution (Milan Crha)
+	Bug 721581 - Unable to write to ldap addressbook (Milan Crha)
+	Bug 722275 - IMAPX: Parser trips on mailbox containing '+'
+	             (Matthew Barnes)
+	Bug 722415 - Memo does not support Start Date property
+	             (Fabiano Fidêncio)
+
+Other Changes:
+	* IMAP IDLE mode improvements. (Matthew Barnes)
+	* CamelStore: Remove noop_sync() method. (Matthew Barnes)
+	* CalDAV: Force password ask on soup authenticate failure (Milan Crha)
+	* Server-side memory leaks in calendar factory (Milan Crha)
+	* CamelGPGContext: Prefer gpg2 over gpg (Milan Crha)
+	* IMAPX: Remove some unused character macros. (Matthew Barnes)
+	* ESource: Do not set properties on load which did not change
+	  (Milan Crha)
+	* Add CamelNullOutputStream. (Matthew Barnes)
+	* maildir_store_get_folder_sync: Fix use-after-free issue (Milan Crha)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Wylmer Wang (zh_CN)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.11.4 2014-01-13
+---------------------------------------
+
+Bug Fixes:
+	Bug 721527 - License text contains obsolete FSF postal address
+	             (Matthew Barnes)
+	Bug 721733 - Tweak Berkeley DB detection logic (Ryan Lortie)
+	Bug 720657 - IMAPX: No new messages are received (Matthew Barnes)
+
+Other Changes:
+	* Update project homepage URL (William Jon McCann)
+	* Bump SOURCES_DBUS_SERVICE_NAME version. (Matthew Barnes)
+	* Remove #include <malloc.h> from a file (Ryan Lortie)
+	* tests: #include <sys/wait.h> for WIFEXITED (Ryan Lortie)
+	* CamelIMAPXNamespace: Allow NIL separator character. (Lubomir Rintel)
+	* IMAPX: Handle BODY[HEADER] in FETCH response. (Lubomir Rintel)
+
+Translations:
+	Marek Černocký (cs)
+	Dimitris Spingos (el)
+	Fran Diéguez (gl)
+	Gabor Kelemen (hu)
+	Andika Triwidada (id)
+	Rafael Ferreira (pt_BR)
+
+
+Evolution-Data-Server 3.11.3 2013-12-16
+---------------------------------------
+
+Highlights:
+	* Evolution-Data-Server API documentation has been merged into
+	  one Gtk-Doc module (excluding Camel and private D-Bus APIs).
+	  (Tristan Van Berkom)
+
+Bug Fixes:
+	Bug 680961 - Broken dispatching of EAuthenticationSession (Milan Crha)
+	Bug 709838 - CamelDataCache: Empty cache file leads to deadlock
+	             (Matthew Barnes)
+	Bug 710361 - GError corruption in imapx_command_fetch_message_done()
+	             (Matthew Barnes)
+	Bug 712323 - Substantially expand EVCard documentation
+	             (Philip Withnall)
+	Bug 712578 - MH folder refresh can cause summary rebuild (Milan Crha)
+	Bug 712728 - Add --disable-migration option to
+	             evolution-source-registry (Tristan Van Berkom)
+	Bug 712829 - Silence unnecessary migration chatter on stdout
+	             (Colin Walters)
+	Bug 715035 - cache-reaper: Demote g_message() -> g_debug()
+	             (Colin Walters)
+	Bug 715057 - Weather calendar is using Fahrenheit units as default
+	             (Fabiano Fidêncio)
+	Bug 719307 - trust-prompt: Squash a compiler warning (Colin Walters)
+	Bug 719382 - Build break, missing NSPR CFLAGS/LIBS in Camel
+	             (Milan Crha)
+	Bug 719720 - Refcount error in imapx_command_select_done()
+	             (Matthew Barnes)
+	Bug 719774 - Missing linker flag in evolution-addressbook-factory
+	             (Lionel Landwerlin)
+
+Other Changes:
+	* Bump minimum libgweather requirement. (Matthew Barnes)
+	* Remove --enable-nntp configure option. (Matthew Barnes)
+	* Remove --enable-strict configure option. (Matthew Barnes)
+	* UOA: Update google-calendar service to use OAuth-based CalDAV.
+	  (Matthew Barnes)
+	* UOA: Add support for IMAP access to Windows Live accounts.
+	  (Matthew Barnes)
+	* ESourceRegistry: Ignore hidden files from .source folder monitoring
+	  (Milan Crha)
+	* Weather calendar: Be able to change temperature unit (Milan Crha)
+	* e-vcard: Fix a minor memory leak for multi-valued parameters.
+	  (Philip Withnall)
+	* e-vcard: Fix case sensitivity of string comparisions.
+	  (Philip Withnall)
+	* EDataBook: Fixed memory leak of every EContact succesfully added to
+	  the addressbook. (Tristan Van Berkom)
+	* ESExp: Fixed memory leak of ESExp->error string (Tristan Van Berkom)
+	* CamelSession: Remove "check-junk" property. (Matthew Barnes)
+	* CamelSession: Add a "user-alert" signal. (Matthew Barnes)
+	* Added e_vcard_construct_full() (Tristan Van Berkom)
+	* ECollator: fixed e_collator_collate() to allow NULL strings.
+	  (Tristan Van Berkom)
+	* ECollator: Added e_collator_new_interpret_country()
+	  (Tristan Van Berkom)
+	* EPhoneNumber: Fixed phone number matching semantics.
+	  (Tristan Van Berkom)
+	* Added E_BOOK_INDEX_SORT_KEY to EBookIndexType (Tristan Van Berkom)
+	* Adding new EBookSqlite (Tristan Van Berkom)
+	* EDataBookCursor: Changed APIs to permit GCancellable for long
+	  running operations. (Tristan Van Berkom)
+	* Camel: Remove all asynchronous class methods. (Matthew Barnes)
+	* Camel: Port from GSimpleAsyncResult to GTask. (Matthew Barnes)
+	* CamelFolder: Remove unused fetch_messages_sync() method.
+	  (Matthew Barnes)
+	* CamelPOP3Settings: Remove unused "mobile-mode" property.
+	  (Matthew Barnes)
+	* CamelPOP3Settings: Remove unused "batch-fetch-count" property.
+	  (Matthew Barnes)
+	* CamelIMAPXSettings: Remove unused "mobile-mode" property.
+	  (Matthew Barnes)
+	* Add CamelAsyncClosure. (Matthew Barnes)
+	* Added m4/eds-installed-tests.m4 with the EDS_INSTALLED_TESTS macro
+	  (Tristan Van Berkom)
+	* CamelPOP3Folder: Fix a potential g_object_unref(NULL) call
+	  (Philip Withnall)
+	* libecal: Refactor system timezone key file parsing code
+	  (Philip Withnall)
+	* Deprecate ECancellable[Rec]Mutex. (Matthew Barnes)
+	* Add camel_service_queue_task(). (Matthew Barnes)
+	* CamelIMAPXServer: Fix handling of LSUB responses. (Matthew Barnes)
+
+Translations:
+	Dimitris Spingos (el)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Aurimas Černius (lt)
+	Piotr Drąg (pl)
+	Shantha kumar (ta)
+
+
+Evolution-Data-Server 3.11.2 2013-11-18
+---------------------------------------
+
+Highlights:
+	* New cursor API for address book clients. (Tristan Van Berkom)
+	* Partial support for the IMAP NOTIFY extension. (Matthew Barnes)
+	* Add VPN awareness to email accounts and transports. (Matthew Barnes)
+
+Bug Fixes:
+	Bug 710668 - ESource: Verify removal before returning (Matthew Barnes)
+	Bug 710787 - Replace most uses of sprintf() with g_snprintf()
+	             (Murray Cumming)
+	Bug 710808 - Name all the timeouts added with g_timeout_add()
+	             (Bastien Nocera)
+	Bug 710989 - Replace most uses of strcpy() (Murray Cumming)
+
+Other Changes:
+	* Bump minimum libsoup requirement to 2.42. (Matthew Barnes)
+	* Integrate network proxy support into the ESource framework, and
+	  deprecate the old EProxy API. (Matthew Barnes)
+	* Convert the IMAP APIs back into a loadable library module so it's
+	  no longer part of libcamel's public API.  It was originally made
+	  public to assist evolution-kolab, but that project is inactive.
+	  (Matthew Barnes)
+	* Support migrating merged GConf trees. (Matthew Barnes)
+	* Start converting libcamel's public API to favor GIO streams over
+	  CamelStream.  Still a work-in-progress. (Matthew Barnes)
+	* Fix potential issues found by static analysis tools.
+	  (Fabian Fidêncio, Milan Crha, Vadim Rutkovsky)
+	* Convert the NNTP backend to CamelOfflineStore and finally remove
+	  the long-deprecated "disco" (disconnected) classes from libcamel.
+	* Switch from g_timeout_add to g_timeout_add_seconds (Alexandre Franke)
+
+Translations:
+	Dimitris Spingos (el)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Anish A (ml)
+
+
+Evolution-Data-Server 3.11.1 2013-10-21
+---------------------------------------
+
+Bug Fixes:
+	Bug 695232 - Finish EVCard quoted-printable handling (Milan Crha)
+	Bug 704869 - Make CamelSaslGssapi usable out of Camel (Milan Crha)
+	Bug 708627 - Use PLAIN instead of LOGIN for GOA SMTP accounts
+	             (Matthew Barnes)
+	Bug 708730 - CalDAV: Improve handling of invalid access tokens
+	             (Matthew Barnes)
+	Bug 709198 - Add regression test for contacts database migrations
+	             (Tristan Van Berkom)
+	Bug 709550 - CamelService: Do not call disconnect_sync from its
+	             finalize (Milan Crha)
+	Bug 709561 - Pick up Windows Live mail from GOA (Matthew Barnes)
+
+Other Changes:
+	* Bump minimum GLib requirement to 2.36. (Matthew Barnes)
+	* Clean up some unused or just bad Camel APIs. (Matthew Barnes)
+	* Rework CamelStream to a GIOStream, and remove CamelTcpStream.
+	  Camel uses GTcpConnection now. (Matthew Barnes)
+	* Use GcrCertificateWidget in certificate prompts. (Matthew Barnes)
+
+Translations:
+	Gil Forcada (ca)
+	Carles Ferrando (ca@valencia)
+	Christian Kirbach (de)
+	Andika Triwidada (id)
+	Duarte Loreto (pt)
+	Enrico Nicoletto (pt_BR)
+	Yuri Myasoedov (ru)
+	Marián Čavojský (sk)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.10.0 2013-09-23
+---------------------------------------
+
+Translations:
+	Ask H. Larsen (da)
+	Luca Ferretti (it)
+	Marián Čavojský (sk)
+
+
+Evolution-Data-Server 3.9.92 2013-09-16
+---------------------------------------
+
+Bug Fixes:
+	Bug 707034 - vCard param value parsing too strict (Milan Crha)
+	Bug 707116 - IMAPX: Normalize descendants of INBOX (Matthew Barnes)
+	Bug 707520 - New detached instance notification not send to clients
+	             (Milan Crha)
+	Bug 707736 - IMAPX: LSUB response handling broken (Matthew Barnes)
+	Bug 708016 - CamelIMAPXStore: Crash when no namespace info present
+	             (Matthew Barnes)
+
+Other Changes:
+	* More preliminary IMAPX refactoring. (Matthew Barnes)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Ihar Hrachyshka (be)
+	Timo Jyrinki (fi)
+	Claude Paroz (fr)
+	Andika Triwidada (id)
+	Luca Ferretti (it)
+	Changwoo Ryu (ko)
+	Rūdolfs Mazurs (lv)
+	Rafael Ferreira (pt_BR)
+	Мирослав Николић (sr)
+
+
+Evolution-Data-Server 3.9.91 2013-09-02
+---------------------------------------
+
+Miscellaneous Changes:
+	* Preliminary IMAPX refactoring for 3.12 features. (Matthew Barnes)
+	* Fix a possible memory leak in sasl_ntlm_try_empty_password_sync()
+	  (Milan Crha)
+
+Translations:
+	Marek Černocký (cs)
+	Fran Diéguez (gl)
+	Balázs Úr (hu)
+	Aurimas Černius (lt)
+	Piotr Drąg (pl)
+	Rafael Ferreira (pt_BR)
+
+
+Evolution-Data-Server 3.9.90 2013-08-19
+---------------------------------------
+
+Bug Fixes:
+	Bug 672899 - Renaming Google book group doesn't propagate to category
+	             (Milan Crha)
+	Bug 700895 - Decode header's value before comparing with RegEx
+	             (Milan Crha)
+	Bug 703181 - Book/calendar backends can authenticate without password
+	             (Milan Crha)
+	Bug 704688 - HTTP Backend: Don't authenticate unnecessarily
+	             (Milan Crha)
+	Bug 704871 - Fails to manage subscription on an NNTP account
+	             (Matthew Barnes)
+	Bug 704885 - "Unknown background operation" when syncing spamassassin
+	             (Matthew Barnes)
+	Bug 704895 - Nicknames for Google Contacts not synced (Milan Crha)
+	Bug 705206 - Stale "Retrieving message xxx" in preview panel
+	             (Matthew Barnes)
+	Bug 705273 - Leaked sockets after failed authentication (Milan Crha)
+	Bug 705288 - Custom header search produces error (Milan Crha)
+	Bug 705444 - Can not create contact lists in LDAP address book
+	             (Milan Crha)
+	Bug 705446 - Old POP3 mails can be removed before getting them
+	             (Milan Crha)
+	Bug 705493 - Wrong default in configure help for --enable-largefile
+	             (Matthew Barnes)
+	Bug 705617 - Failed connection hides offline data in online mode
+	             (Milan Crha)
+	Bug 705814 - Crash in certificate_viewer_new() (Milan Crha)
+
+Other Changes:
+	* [Google] Implement EBookBackend::refresh and advertise its support
+	  (Milan Crha)
+	* [NNTP] Fails to get list of folders, if not connected already
+	  (Milan Crha)
+	* NNTP: Authentication requires nntp_stream set (Milan Crha)
+	* CamelDiscoStore: Fix CamelServiceConnectionStatus tracking.
+	  (Matthew Barnes)
+	* [Camel] Disable SSL v2 and weak ciphers by default (Milan Crha)
+	* IMAPX: Add classes to model LIST and STATUS responses, with more to
+	  follow. (Matthew Barnes)
+	* IMAPX: More refactoring of error handling, this time drastically
+	  simplifying it. (Matthew Barnes)
+	* Remove unused CamelOfflineJournal. (Matthew Barnes)
+	* [Maildir] Create the 'tmp' directory, if missing (Milan Crha)
+	* GOA: Honor GoaMail's "smtp-use-auth" setting. (Matthew Barnes)
+	* EDataBook/CalFactory: Work around a GDBus name watching bug.
+	  (Matthew Barnes)
+	* EBook/CalBackend: Add a "shutdown" signal. (Matthew Barnes)
+	* Tighten up the CamelStoreSummary API and keep mutexes internal.
+	  (Matthew Barnes)
+	* IMAPX: Obtain a fresh folder list on startup. (Matthew Barnes)
+
+Translations:
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Kjartan Maraas (nb)
+	Matej Urbančič (sl)
+	Victor Ibragimov (tg)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.9.5 2013-07-29
+--------------------------------------
+
+* E-D-S now uses Google's OAuth2-based CalDAV v2 interface for Google
+  accounts added through GNOME Online Accounts or Ubuntu Online Accounts,
+  which means no more password prompts.
+
+Bug Fixes:
+	Bug 386113 - show custom alarm message in pop-up alerts
+	             (Fabiano Fidêncio)
+	Bug 691526 - Memory corruption under
+	             e_book_backend_google_start_book_view() (Milan Crha)
+	Bug 692904 - Do not call camel_service_disconnect during connection
+	             phase (Milan Crha)
+	Bug 704003 - IMAPX: Untagged BYE message while connecting is lost
+	             (Matthew Barnes)
+	Bug 704181 - Froze while filtering messages (Milan Crha)
+	Bug 704220 - Incorrect runtime check in
+	             e_data_cal_respond_send_objects() (Milan Crha)
+	Bug 704618 - Missing detached instances in get_object() response
+	             (Milan Crha)
+	Bug 704740 - WebDAV - Do not store ETag into REV attribute (Milan Crha)
+
+Other Changes:
+	* IMAPX: Improve error handling in parser. (Matthew Barnes)
+	* IMAPX: Remove CamelIMAPXConnManager, just use a single connection.
+	  (Matthew Barnes)
+	* CamelTcpStreamRaw: Don't timeout on reads. (Matthew Barnes)
+	* CalDAV: Add support for OAuth 2.0 authentication. (Matthew Barnes)
+	* google: Use CalDAV v2 if OAuth 2.0 support is available.
+	  (Matthew Barnes)
+	* Insufficient return values from e_cal_backend_get_object/_list().
+	  (Milan Crha)
+	* CamelGpgContext: Be aware of gpg2 (Milan Crha)
+	* CamelGpgContext: Enclose email addresses in brackets.
+	  (Matthew Barnes)
+	* Fix memory leak in camel_imapx_command_add_qresync_parameter().
+	  (Matthew Barnes)
+	* Do not use generic error codes in camel_getaddrinfo() /
+	  camel_getnameinfo(). (Milan Crha)
+
+Translations:
+	Marek Černocký (cs)
+	Christian Kirbach (de)
+	Andika Triwidada (id)
+	Kjartan Maraas (nb)
+	Wylmer Wang (zh_CN)
+
+
+Evolution-Data-Server 3.9.4 2013-07-08
+--------------------------------------
+
+Bug Fixes:
+	Bug 682322 - SIGSEGV in pop3_folder_refresh_info_sync (Milan Crha)
+	Bug 697598 - [imapx] Freeze due to calling thread join from main thread
+	             (Milan Crha)
+	Bug 700894 - LDAP 'Copy for offline' blocks online searches (Milan Crha)
+	Bug 703053 - Error on setting reminder 'after start of appointment'
+	             (Fabiano Fidêncio)
+	Bug 703194 - Custom alarm message is REMINDER (Fabiano Fidêncio)
+
+Other Changes:
+	* CamelStore: Add a "folder-info-stale" signal. (Matthew Barnes)
+	* CamelIMAPXStore: Try harder to track settings. (Matthew Barnes)
+	* Add a desktop file for Ubuntu Online Accounts. (Iain Lane)
+	* UOA: Add service-specific descriptions for E-D-S. (Matthew Barnes)
+	* Allow automatic NTLM authentication unconditionally (David Woodhouse)
+	* GError instance use-after-free in collection_backend_load_resources()
+	  (Milan Crha)
+	* [IMAPX] Server connection is not mandatory when searching folder
+	  content (Milan Crha)
+	* e_book_backend_sqlitedb_has_contact() used nonexistent column
+	  (Milan Crha)
+
+Translations:
+	Daniel Mustieles (es)
+	Aurimas Černius (lt)
+	Kjartan Maraas (nb)
+
+
+Evolution-Data-Server 3.9.3 2013-06-17
+--------------------------------------
+
+Bug Fixes:
+	Bug 649420 - Work around QRESYNC bug in Zimbra's IMAP server
+	             (Matthew Barnes)
+	Bug 672837 - Crash in camel_pop3_engine_command_free (Milan Crha)
+	Bug 699448 - Crash under e_book_backend_ldap_stop_view() (Milan Crha)
+	Bug 701797 - UOA: Remove ResponseType and AuthPath from service files
+	             (Ken VanDine)
+	Bug 701838 - Work around a semantic API break in GObject
+	             (Tristan Van Berkom)
+
+Other Changes:
+	* EBookQuery: Added regex query API (Tristan Van Berkom)
+	* Be able to debug SMTP provider separately (Milan Crha)
+	* Make the statements explicit when using ternary if (Fabiano Fidêncio)
+
+Translations:
+	Marek Černocký (cs)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	ManojKumar Giri (or)
+	Marián Čavojský (sk)
+	Matej Urbančič (sl)
+
+
+Evolution-Data-Server 3.9.2 2013-05-27
+--------------------------------------
+
+Bug Fixes:
+	Bug 697859 - Google: "Other Fax" is saved as "Business Fax"
+	             (Matthew Barnes)
+	Bug 698725 - ESourceRegistry: Handle service restarts gracefully
+	             (Matthew Barnes)
+	Bug 699024 - [google/yahoo] Don't override username (Matthew Barnes)
+	Bug 699160 - IMAPX: Always flush debugging messages (Matthew Barnes)
+	Bug 699223 - Emit view signals from context where view was started
+	             (Matthew Barnes)
+	Bug 699461 - Accept any 2xx HTTP code as successful DELETE
+	             (Matthew Barnes)
+	Bug 699597 - Autocomplete using GAL is slow (David Woodhouse)
+	Bug 699811 - Moved IMAPx messages reappear (Milan Crha)
+	Bug 699909 — Do not use toggle_refs in CamelObjectBag (David Woodhouse)
+
+Other Changes:
+	* Make camel_mime_message_dump() dump message contents (Dan Williams)
+	* IMAPX: Recognize RFC 5530 response codes. (Matthew Barnes)
+	* EBookClientView/ECalClientView: Make D-Bus signal handlers
+	  thread-safe. (Matthew Barnes)
+	* ECalBackendWeather: e_weather_source_new() is failable.
+	  (Matthew Barnes)
+	* google: Remove environment variable check for debugging.
+	  (Matthew Barnes)
+	* IMAPX: Support IMAP MOVE extension. (Matthew Barnes)
+	* IMAPX: Set real Trash/Junk folder type as expected (Milan Crha)
+	* Camel MH provider can deadlock on folder creation (Milan Crha)
+	* CamelGpgContext: Report decrypt error only if no data was decrypted
+	  (Milan Crha)
+	* Make CamelPOP3Store a bit more thread-safe. (Matthew Barnes)
+	* Make CamelNNTPStore a bit more thread-safe. (Matthew Barnes)
+	* Improve error handling in imapx_command_fetch_message_done().
+	  (Matthew Barnes)
+
+Translations:
+	Daniel Mustieles (es)
+	Shankar Prasad (kn)
+	Kjartan Maraas (nb)
+	Matej Urbančič (sl)
+
+
+Evolution-Data-Server 3.9.1 2013-04-29
+--------------------------------------
+
+* Dependency change: GNOME Online Accounts support is still optional.
+  But if enabled, the goa-1.0 requirement is now 3.8 (bumped from 3.2).
+
+Bug Fixes:
+	Bug 271262 - Allow Send/Receive of local stores in offline (Milan Crha)
+	Bug 656488 - imapx: Memory leak of mi->server_user_flags (Milan Crha)
+	Bug 681837 - Make enum type registration thread safe (Milan Crha)
+	Bug 691939 - Password prompt has "save password" always checked
+	             (Milan Crha)
+	Bug 693101 - IMAPx can vanish and redownload folder summary (Milan Crha)
+	Bug 695578 - Trailing space in translatable string (Matthew Barnes)
+	Bug 695915 - IMAP alert is not displayed (Milan Crha)
+	Bug 696285 - ownCloud: Check addressbook even if calendar fails
+	             (Vadim Rutkovsky)
+	Bug 696637 - Deadlock in data_cal_view_dispose(). (Matthew Barnes)
+	Bug 696757 - Do not use dynamic keys in g_object_set_data() (Milan Crha)
+	Bug 697705 - e_cal_client_remove_objects_sync() crashes on empty UID
+	             (Matthew Barnes)
+	Bug 697734 - Memory leak in local calendar backend (Matthew Barnes)
+	Bug 698261 - Skip invalid flags in imapx_parse_flags() (Milan Crha)
+	Bug 698726 - Handle goa-daemon crashes/restarts gracefully
+	             (Matthew Barnes)
+
+Other Changes:
+	* Start modernizing the EBookBackend and ECalBackend APIs (still a
+	  work in progress). (Matthew Barnes)
+	* Rewrite client connection tracking for factories. (Matthew Barnes)
+	* libedata-*: Remove all deprecated backend APIs. (Matthew Barnes)
+	* Simplify direct access to address books. (Matthew Barnes)
+	* Fix implicit declaration of WIFEXITED. (Antoine Jacoutot)
+	* E*Client: Use G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED for close().
+	  (Matthew Barnes)
+	* Remove EBookBackendSync. (Matthew Barnes)
+	* sqlite addressbook: fix memory corruption in get_revision
+	  (Patrick Ohly)
+	* CamelIMAPXServer: Rewrite duplicate message fetching.
+	  (Matthew Barnes)
+	* Automatically strip D-Bus info from error messages. (Matthew Barnes)
+	* EBookBackendSqliteDB: Avoid summary introspection on initial
+	  creation. (Tristan Van Berkom)
+	* Switch NULL to empty string in e_util_utf8_{data_}make_valid()
+	  (Milan Crha)
+	* LC_ADDRESS is a GNU extension. Treat it as such. (Matthew Barnes)
+	* CamelStoreSettings::filter-inbox: Change default to TRUE (Milan Crha)
+	* Do not consider PGP and S/MIME subparts as attachments (Milan Crha)
+	* ECalClient test: test-client-get-revision not broken anymore
+	  (Tristan Van Berkom)
+	* Improve error handling in imapx_server_get_message().
+	  (Matthew Barnes)
+	* Fix reference leak in book_client_view_emit_objects_modified().
+	  (Matthew Barnes)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Gil Forcada (ca)
+	Carles Ferrando (ca@valencia)
+	Jiri Eischmann (cs)
+	Marek Černocký (cs)
+	Flemming Christensen (da)
+	Joe Hansen (da)
+	Mario Blättermann (de)
+	Dimitris Spingos (el)
+	Daniel Mustieles (es)
+	Inaki Larranaga Murgoitio (eu)
+	Jiri Grönroos (fi)
+	Alexandre Franke (fr)
+	Sweta Kothari (gu)
+	Chandan Kumar (hi)
+	Balázs Úr (hu)
+	Gabor Kelemen (hu)
+	Noriko Mizumoto (ja)
+	Shankar Prasad (kn)
+	ManojKumar Giri (or)
+	Piotr Drąg (pl)
+	Yuri Myasoedov (ru)
+	Marián Čavojský (sk)
+	Andrej Žnidaršič (sl)
+	Martin Srebotnjak (sl)
+	Matej Urbančič (sl)
+	Shantha kumar (ta)
+
+
+Evolution-Data-Server 3.7.92 2013-03-18
+---------------------------------------
+
+Bug Fixes:
+	Bug 215428 - Show percentage progress when filtering messages
+	             (Milan Crha)
+	Bug 350323 - Filter by "Mailing list contains" requires "@" symbol
+	             (Milan Crha)
+	Bug 352266 - Can't filter on body of message if
+	             Content-Transfer-Encoding is base64 (Milan Crha)
+	Bug 690433 - Do not refresh folder on every message transfer
+	             (Milan Crha)
+	Bug 690552 - Property 'other-phone' overwrites first phone in home or
+	             work group (Milan Crha)
+	Bug 695308 - Migration of broken signature breaks whole migration
+	             (Milan Crha)
+	Bug 695539 - Birthdays don't show up in the calendar (Sebastian Keller)
+	Bug 695960 - Use a weak reference for GBusNameVanishedCallback
+	             (Matthew Barnes)
+
+Other Changes:
+	* Test suite improvements. (Tristan Van Berkom, Mathias Hasselmann)
+	* EBookBackendSqliteDB improvements. (Mathias Hasselmann)
+	* EBookClient introspection fixes. (Simon McVittie)
+	* Fix a memory leak around imapx_untagged_vanished() (Milan Crha)
+	* Correct names for im_jabber_work variables (Vadim Rutkovsky)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Ihar Hrachyshka (be)
+	Mario Blättermann (de)
+	Bruce Cowan (en_GB)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Sweta Kothari (gu)
+	Changwoo Ryu (ko)
+	Rūdolfs Mazurs (lv)
+	Kjartan Maraas (nb)
+	Duarte Loreto (pt)
+	Enrico Nicoletto (pt_BR)
+	Marián Čavojský (sk)
+	Martin Srebotnjak (sl)
+	Matej Urbančič (sl)
+	Мирослав Николић (sr)
+	Gheyret Kenji (ug)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.7.91 2013-03-04
+---------------------------------------
+
+Bug Fixes:
+	Bug 693101 - IMAPx can vanish and redownload folder summary
+	             (Milan Crha)
+	Bug 693345 - dngettext should be used instead of ngettext (Milan Crha)
+	Bug 694152 - Compile errors in C++ due to G_BEGIN/END_DECLS
+	             (Patrick Ohly)
+	Bug 694223 - The "message-location" search never matches on IMAP+
+	             (Milan Crha)
+	Bug 694734 - Relative URI in Location on PUT confuses WebDAV
+	             (Milan Crha)
+
+Other Changes:
+	* Add VPN-awareness to calendar, contact, task and memo backends.
+	  VPN-awareness for mail accounts not yet finished. (Matthew Barnes)
+	* Support GOA's new IMAP/SMTP provider. (Matthew Barnes)
+	* Added documentation for new Direct Read Access related apis.
+	  (Tristan Van Berkom)
+	* Fixing pkg-config files for libebook & libedata-book
+	  (Tristan Van Berkom)
+	* source_write_sync: Fail gracefully when given a scratch source.
+	  (Matthew Barnes)
+	* source_remove_sync: Fail gracefully when given a scratch source.
+	  (Matthew Barnes)
+	* e-test-server-utils: Add support for testing Direct Read Access
+	  books. (Tristan Van Berkom)
+	* Ported various EBookClient tests to additionally test Direct Read
+	  Access variants (Tristan Van Berkom)
+	* Do not use SSL_V2_COMPATIBLE_HELLO by default (Milan Crha)
+	* Local Delivery not updated on start and missing Receiving Options
+	  page (Milan Crha)
+	* EBookBackendSexp: Restore suffix search functionality
+	  (Tristan Van Berkom)
+	* e_source_registry_server_load_directory: Monitor failure is
+	  non-fatal. (Matthew Barnes)
+	* e_cal_client_modify_objects_sync: Fix infinite loop. (Matthew Barnes)
+	* EBookQuery/EPhoneNumber: Enhanced documentation (Tristan Van Berkom)
+	* CamelSMIMEContext: Support IANA registered hash function names.
+	  (Matthew Barnes)
+	* evolution-user-prompter: Add a --keep-running option.
+	  (Matthew Barnes)
+	* Make the ESourceRegistryServer modules relocatable like addressbook
+	  & calendar (Tristan Van Berkom)
+	* Make the Camel provider modules relocatable (Tristan Van Berkom)
+	* build: Support (and prefer) libboost_thread-mt (Mathias Hasselmann)
+	* CamelIMAPXServer: Improve thread-safety when selecting folders.
+	  (Matthew Barnes)
+
+Translations:
+	Dimitris Spingos (el)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Aurimas Černius (lt)
+	Anish A (ml)
+	Kjartan Maraas (nb)
+	Piotr Drąg (pl)
+	Yuri Myasoedov (ru)
+	Мирослав Николић (sr)
+	Gheyret Kenji (ug)
+	Nguyễn Thái Ngọc Duy (vi)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.7.90 2013-02-18
+---------------------------------------
+
+Bug Fixes:
+	Bug 675287 - Spool file account doesn't show messages (Milan Crha)
+	Bug 683867 - Schedule actions with higher idle priority (Michel Dänzer)
+	Bug 686528 - Pickup ownCloud accounts from GOA (Milan Crha)
+	Bug 693841 - EDataCal: Complete implementation of GetObjectsList
+	             (Giocanni Campagna)
+
+Other Changes:
+	* Improved phone number support. (Mathias Hasselmann)
+	* Direct access to local address books. (Tristan Van Berkom)
+	* Make e_book_client_is_self() more efficient. (Patrick Ohly)
+	* Add e_data_factory_ref_initable_backend(). (Matthew Barnes)
+	* Remove --with-dbus-call-timeout configure option. (Matthew Barnes)
+	* Add CAMEL_MIME_FILTER_TOHTML_QUOTE_CITATION flag. (Matthew Barnes)
+	* EBookClient: Use g_bus_watch_name_on_connection(). (Matthew Barnes)
+	* ECalClient: Use g_bus_watch_name_on_connection(). (Matthew Barnes)
+	* Add camel_service_ref_session(). (Matthew Barnes)
+	* Fix few memory leaks in evolution-source-registry (Milan Crha)
+	* Introduce e_backend_is_destination_reachable() (Milan Crha)
+	* CalDAV: Try to search for event when not in local cache (Milan Crha)
+	* e_extensible_load_extensions: Allow for retries. (Matthew Barnes)
+
+Translations:
+	Ihar Hrachyshka (be)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Aurimas Černius (lt)
+	Piotr Drąg (pl)
+
+
+Evolution-Data-Server 3.7.5 2013-02-04
+--------------------------------------
+
+* This release adds support for Ubuntu's Single-SignOn framework (a.k.a.
+  Ubuntu Online Accounts), with the following optional pkg dependencies:
+
+    libaccounts-glib
+    libsignon-glib
+    json-glib-1.0
+    librest-0.7
+
+  Pass --disable-uoa to configure to disable support.
+
+Bug Fixes:
+	Bug 651399 - [maildir] Escape dots in folder display names (Milan Crha)
+	Bug 691126 - Fix warnings find by Clang (Milan Crha)
+	Bug 692278 - LDAP backend mutex deadlock on finalize (Milan Crha)
+
+Other Changes:
+	* Generate address book and calendar GDBus classes with gdbus-codegen
+	  and simplify the APIs to require only one round trip per method.
+	  (Matthew Barnes)
+	* Introduce e_book_client_connect() and e_cal_client_connect() as
+	  one-step replacements for e_book/cal_client_new() + e_client_open().
+	  (Matthew Barnes)
+	* Built-in data sources are now packaged as a GResource rather than
+	  installed data files for better reliability. (Matthew Barnes)
+	* Add --disable-google configure option to make libgdata dependency
+	  optional.  (Tristan Van Berkom)
+	* Unit test suite improvements. (Mathias Hasselmann and Tristan Van
+	  Berkom)
+	* Bump libsoup dependency to 2.40.3 (Milan Crha)
+	* GOA: Support the upcoming "imap_smtp" provider type. (Matthew Barnes)
+	* Optional libphonenumber support for local address books.
+	  (Mathias Hasselmann)
+	* EBookBackendSqliteDB: Added e_book_backend_new_contact[s]() APIs
+	  (Tristan Van Berkom)
+	* EBookBackendFile: Don't overwrite UIDs on incomming/new contacts.
+	  (Tristan Van Berkom)
+	* CamelIMAPXStore: Configure folder flags on folder creation.
+	  (Matthew Barnes)
+	* EBookBackendFile: Avoid lost data in contact modifications
+	  (Tristan Van Berkom)
+	* store_synchronize_sync(): Only synchronize subscribed folders.
+	  (Matthew Barnes)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Ihar Hrachyshka (be)
+	Krasimir Chonov (bg)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Aurimas Černius (lt)
+	Kjartan Maraas (nb)
+	Piotr Drąg (pl)
+	Marián Čavojský (sk)
+	Matej Urbančič (sl)
+	Мирослав Николић (sr)
+	Theppitak Karoonboonyanan (th)
+	Gheyret Kenji (ug)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.7.4 2013-01-14
+--------------------------------------
+
+* The legacy IMAP backend has been retired.  Legacy IMAP accounts will
+  be converted to the newer "IMAP+" backend and their data caches reset.
+
+Bug Fixes:
+	Bug 665371 - Decommission legacy IMAP backend (Matthew Barnes)
+	Bug 689124 - Increase Camel's TCP read/write timeout (Matthew Barnes)
+	Bug 690151 - Crash in e_book_backend_file_bump_revision()
+	             (Milan Crha)
+	Bug 690158 - libedataserver: Vala binding updates (Alban Browaeys)
+	Bug 690177 - Use trust-prompt for certificate verification in WebDAV
+	             backends (Milan Crha)
+	Bug 691033 - Avoid using LIBSOUP_DISABLE_DEPRECATED (Hashem Nasarat)
+	Bug 691466 - Cache reaper restores old IMAP cache directories
+	             (Matthew Barnes)
+	Bug 691477 - exists_vcard is not supported when parsing a query from
+	             string (Milan Crha)
+
+Other Changes:
+	* IMAPX: Support non-virtual Junk/Trash folders. (Matthew Barnes)
+	* IMAPX: Ask server to handle "body-contains" searches.
+	  (Matthew Barnes)
+	* ESourceRegistryServer: Add a "tweak-key-file" signal.
+	  (Matthew Barnes)
+	* Add automatic IMAP to IMAPX account migration. (Matthew Barnes)
+	* Add OAuth2Support D-Bus interface. (Matthew Barnes)
+	* Merge ECalBackendFileStore into ECalBackendStore. (Matthew Barnes)
+	* Add ETimezoneCache interface. (Matthew Barnes)
+	* ECalBackend: Remove internal_get_timezone() method.
+	  (Matthew Barnes)
+	* CamelMimeFilterPgp: Ignore right side white spaces (Milan Crha)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Christian Kirbach (de)
+	Dimitris Spingos (el)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Kjartan Maraas (nb)
+	Rafael Ferreira (pt_BR)
+	Matej Urbančič (sl)
+
+
+Evolution-Data-Server 3.7.3 2012-12-16
+--------------------------------------
+
+* libedataserverui has been removed from Evolution-Data-Server and
+  merged back into Evolution, since Evolution is its only consumer
+  nowadays.
+
+* The E-D-S unit test suite is functional again!  Many thanks to Tristan
+  Van Berkom, Murray Cumming and Mathias Hasselmann for their hard work.
+
+Bug Fixes:
+	Bug 202576 - A way to refresh IMAP folder list (Milan Crha)
+	Bug 371469 - Add port to connection refused error messages
+	             (Milan Crha)
+	Bug 512714 - Error string "Host lookup failed: Name or Service not
+	             known" (Milan Crha)
+	Bug 529743 - Add "Any header" filter and search folder condition
+	             (Milan Crha)
+	Bug 579315 - Identify filter names in filtering errors (Milan Crha)
+	Bug 671620 - Support signing with multiple OpenPGP keys (Milan Crha)
+	Bug 677378 - Crash in imapx_query_auth_types_sync() (Milan Crha)
+	Bug 680201 - Backup restore doesn't migrate accounts from GConf
+	             (Milan Crha)
+	Bug 684175 - Check email value in e_destination_set_contact()
+	             (Paul Menzel)
+	Bug 687670 - Signing with both pgp and S/MIME causes a broken
+	             signature (Milan Crha)
+	Bug 688366 - WebDAV book can cause high CPU usage (Milan Crha)
+	Bug 688479 - Empty name selector dialog on open (Milan Crha)
+	Bug 688639 - SMTP: Correctly deal with 535 authentication error
+	             (Paul Menzel)
+	Bug 688660 - Crash on webdav contact cache update (Milan Crha)
+	Bug 688795 - Crash under e_cal_backend_contacts_start_view()
+	             (Milan Crha)
+	Bug 688926 - SIGABRT on call_old_file_Sync (Daniele Rondina)
+
+Other Changes
+	* Added ESourceBackendSummarySetup extension (Tristan Van Berkom)
+	* EBookBackendFile: Use the new ESourceBackendSummarySetup to
+	  configure the summary (Tristan Van Berkom)
+	* Use version-based GLib/GDK/GTK+ warnings. (Matthew Barnes)
+	* Coverity scan cleanups. (Milan Crha)
+	* Do not generate a ChangeLog file from 'git log' (Milan Crha)
+	* Introduce evolution-user-prompter service (Milan Crha)
+	* IMAPX: Support the QUOTA extension (RFC 2087). (Matthew Barnes)
+	* Remove introspection of libecal. (Matthew Barnes)
+	* Workaround file description leak from
+	  e_source_registry_authenticate_sync() (Milan Crha)
+
+Translations
+	Nilamdyuti Goswami (as)
+	Daniel Mustieles (es)
+	Dr.T.Vasudevan (ta)
+	Krishnababu Krothapalli (te)
+
+
+Evolution-Data-Server 3.7.2 2012-11-17
+--------------------------------------
+
+Bug Fixes:
+	Bug 640594 - Save also UID/REV in WebDAV backend (for CardDAV)
+	             (Milan Crha)
+	Bug 674454 - Crash in e_book_backend_ldap_authenticate_user()
+	             (Milan Crha)
+	Bug 686727 - POP3 provider deadlocks on finalize (Milan Crha)
+	Bug 680497 - POP3 re-adds messages to local Inbox (Milan Crha)
+	Bug 686719 - Missing linker flags in Camel tests (JB Lallement)
+	Bug 685986 - ESourceRegistry: Wait for signals after creating sources
+	             (Matthew Barnes)
+	Bug 686924 - Doesn't parse Gerrit encoded From address correctly
+	             (Milan Crha)
+	Bug 687100 - Crash under cal_backend_contacts_remove_book_record()
+	             (Milan Crha)
+	Bug 685034 - [imapx] Read status of email is not persisted correctly
+	             (Milan Crha)
+	Bug 681962 - Identify server certificates by hostname and fingerprint
+	             (Milan Crha)
+	Bug 685090 - GOA EWS module doesn't save all required values
+	             (Milan Crha)
+	Bug 687776 - E-D-S crash in local address book (Milan Crha)
+	Bug 669082 - Workaround crash in
+	             imapx_command_copy_messages_step_done() (Andreas Kohn)
+	Bug 687642 - Crash under caldav_synch_slave_loop() (Milan Crha)
+	Bug 687694 - imapx_untagged_vanished() is inefficient (Dan Williams)
+	Bug 687865 - Shows old reminders for GOA accounts (Milan Crha)
+	Bug 687634 - Improve camel console warning text (Paul Menzel)
+	Bug 688146 - Crash in Contacts calendar backend (Milan Crha)
+
+Other Changes:
+	* EAuthenticationSession: Close prompt before storing password.
+	  (Matthew Barnes)
+	* IMAPX error handling improvements. (Matthew Barnes)
+	* Bump minimum GLib requirement to 2.34. (Matthew Barnes)
+	* Use code coverage macros from gnome-common. (Matthew Barnes)
+	* Remove version number from ${privdatadir}. (Matthew Barnes)
+	* Remove erroneous version number from ${privlibdir}. (Matthew Barnes)
+	* Remove version number from ${privincludedir}. (Matthew Barnes)
+	* Add AllowAuthPromptAll() method to SourceManager interface.
+	  (Matthew Barnes)
+	* Reimplement EBook, ECal, et. al. using their EClient counterparts.
+          (Matthew Barnes)
+	* Google: allow writing X-GOOGLE-SYSTEM-GROUP-IDS (Giovanni Campagna)
+	* Local file backend modified to use sqlite db exclusively
+	  (Tristan Van Berkom)
+	* gnome-online-accounts: Add an EDataFactory extension (Matthew Barnes)
+	* Remove EBookBackendVCF. (Matthew Barnes)
+
+Translations:
+	Christian Kirbach (de)
+	Hendrik Knackstedt (de)
+	Paul Menzel (de)
+	Gabor Kelemen (hu)
+	Andika Triwidada (id)
+	Kjartan Maraas (nb)
+	Yuri Myasoedov (ru)
+	Matej Urbančič (sl)
+
+
+Evolution-Data-Server 3.7.1 2012-10-22
+--------------------------------------
+
+Dependency Changes:
+	* Replaced gnome-keyring-1 with libsecret-1
+
+Bug Fixes:
+	Bug 201807 - Cannot specify sendmail parameters (Milan Crha)
+	Bug 268618 - Add: Save replies in the folder of the message being
+	             replied to (Milan Crha)
+	Bug 310978 - USENET always requires authentication (Milan Crha)
+	Bug 549819 - Cannot specify a custom sendmail program (Milan Crha)
+	Bug 641825 - Crash in poll_ldap() when finalizing the backend
+	             (Milan Crha)
+	Bug 679914 - Replace libgnomekeyring with libsecret (Stef Walter)
+	Bug 681314 - Add address dialog should follow composer's view settings
+	             (Milan Crha)
+	Bug 684655 - Files in data/sources are not getting translated
+	             (Gert Kulyk)
+	Bug 685588 - Remove useless LIBICAL_CFLAGS and LIBICAL_LIBS
+	             (Peter Hurley)
+	Bug 685713 - ESourceRegistry's manager thread aborts on error
+	             (Matthew Barnes)
+	Bug 685725 - Handle "muser" attributes in %gconf.xml files
+	             (Bastien Nocera)
+	Bug 686421 - Restore libebook tests to minimum working condition
+	             (Tristan Van Berkom)
+
+Other Changes:
+	* Remove e_data_book_view_ref/unref(). (Matthew Barnes)
+	* EBook: Reimplement "remove" functions. (Matthew Barnes)
+	* EGdbusBook: Remove the remove() method. (Matthew Barnes)
+	* Rename e_book_backend_start_book_view(). (Matthew Barnes)
+	* Rename e_book_backend_stop_book_view(). (Matthew Barnes)
+	* Rename e_book_backend_add_book_view(). (Matthew Barnes)
+	* Rename e_book_backend_remove_book_view(). (Matthew Barnes)
+	* Add e_book_backend_list_views(). (Matthew Barnes)
+	* Deprecate e_book_backend_foreach_view(). (Matthew Barnes)
+	* Remove e_data_book_register_gdbus_object(). (Matthew Barnes)
+	* Remove e_data_book_view_register_gdbus_object(). (Matthew Barnes)
+	* libedata-cal: Purge deprecated APIs. (Matthew Barnes)
+	* ECal: Reimplement "remove" functions. (Matthew Barnes)
+	* EGdbusCal: Remove the remove() method. (Matthew Barnes)
+	* ECalBackend: Prefer GList over GSList. (Matthew Barnes)
+	* Add e_cal_backend_list_views(). (Matthew Barnes)
+	* Deprecate e_cal_backend_foreach_view(). (Matthew Barnes)
+	* Remove e_data_cal_register_gdbus_object(). (Matthew Barnes)
+	* Remove e_data_cal_view_register_gdbus_object(). (Matthew Barnes)
+	* Don't migrate sources with empty attributes (Dan Vrátil)
+	* EGDataGoaAuthorizer: Use GHmac to sign the OAuth parameters.
+	  (Matthew Barnes)
+	* Drop oauth package requirement for GOA support. (Matthew Barnes)
+	* EGDataGoaAuthorizer: Prototype OAuth 2.0 support. (Matthew Barnes)
+	* online-accounts: Refresh mail account settings on startup.
+	  (Matthew Barnes)
+	* Add e_book_backend_sexp_text(). (Matthew Barnes)
+	* Deprecate e_source_extension_get_source(). (Matthew Barnes)
+	* Silence libsecret unstable API warnings. (Matthew Barnes)
+	* ESourceRegistryServer: File monitor should set flags on new sources.
+	  (Matthew Barnes)
+	* Rename 'online-accounts' module to 'gnome-online-accounts'.
+	  (Matthew Barnes)
+	* Change camel_junk_filter_classify() signature. (Matthew Barnes)
+	* evolution-source-viewer: Select next source after deleting.
+	  (Matthew Barnes)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Alexander Shopov (bg)
+	Runa Bhattacharjee (bn_IN)
+	Gil Forcada (ca)
+	Carles Ferrando (ca@valencia)
+	Jiri Eischmann (cs)
+	Marek Černocký (cs)
+	Flemming Christensen (da)
+	Tom Tryfonidis (el)
+	Daniel Mustieles (es)
+	Timo Jyrinki (fi)
+	Alexandre Franke (fr)
+	Fran Diéguez (gl)
+	Rajesh Ranjan (hi)
+	Gabor Kelemen (hu)
+	Andika Triwidada (id)
+	Luca Ferretti (it)
+	Žygimantas Beručka (lt)
+	Rūdolfs Mazurs (lv)
+	A S Alam (pa)
+	Piotr Drąg (pl)
+	Rafael Ferreira (pt_BR)
+	Yuri Myasoedov (ru)
+	Marián Čavojský (sk)
+	Matej Urbančič (sl)
+	Krishnababu Krothapalli (te)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.6.0 2012-09-24
+--------------------------------------
+
+Translations:
+	Runa Bhattacharjee (bn_IN)
+	Gil Forcada (ca)
+	Carles Ferrando (ca@valencia)
+	Rajesh Ranjan (hi)
+	Gabor Kelemen (hu)
+	Shankar Prasad (kn)
+	Rūdolfs Mazurs (lv)
+	Ani Peter (ml)
+	A S Alam (pa)
+	Djavan Fagundes (pt_BR)
+	Rafael Ferreira (pt_BR)
+	Matej Urbančič (sl)
+	Krishnababu Krothapalli (te)
+
+
+Evolution-Data-Server 3.5.92 2012-09-17
+---------------------------------------
+
+Bug Fixes:
+	Bug 677393 - [IMAP] Deadlock when moving message and checking new mail
+	             (Alban Browaeys)
+	Bug 677685 - WebCal backend doesn't stop opening phase on error
+	             (Milan Crha)
+	Bug 677871 - EBookBackendSqliteDB - Escape SQL strings
+	             (Mathias Hasselmann)
+	Bug 679219 - IMAP+ fails to show newly created top-level folders
+	             (Milan Crha)
+	Bug 682398 - GError reuse during IMAP connect routine (Milan Crha)
+	Bug 683785 - Add e_source_new_with_uid() (Matthew Barnes)
+
+Other Changes:
+	* CamelIMAPXServer: Fix shell command connections (Yanko Kaneti)
+	* IMAPX - Copy also user flags/tags on message append, if server can
+	  save them (Milan Crha)
+	* IMAP - Be able to read messages from cache in offline mode
+	  (Milan Crha)
+	* Skip sources with disabled parents from completion lookup
+	  (Milan Crha)
+	* IMAP - Do not update folder list when the operation was cancelled
+	  (Milan Crha)
+	* ESourceRegistry: Work around GType deadlock. (Matthew Barnes)
+	* [CalDAV] Block EProxy::changed when changing priv::uri (Milan Crha)
+	* Fix a memory leak from MH-format camel provider (Milan Crha)
+	* Unwrap GDBus error in generic EClient operations (Milan Crha)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Ihar Hrachyshka (be)
+	Mario Blättermann (de)
+	Tom Tryfonidis (el)
+	Daniel Mustieles (es)
+	Alexandre Franke (fr)
+	Sweta Kothari (gu)
+	Gabor Kelemen (hu)
+	Andika Triwidada (id)
+	Seong-ho Cho (ko)
+	Rūdolfs Mazurs (lv)
+	Sandeep Sheshrao Shedmake (mr)
+	Piotr Drąg (pl)
+	Duarte Loreto (pt)
+	Yuri Myasoedov (ru)
+	Matej Urbančič (sl)
+	Мирослав Николић (sr)
+	Nguyễn Thái Ngọc Duy (vi)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.5.91 2012-09-03
+---------------------------------------
+
+Bug Fixes:
+	Bug 660383 - Backends should listen for changes in refresh interval
+	             (Milan Crha)
+	Bug 680467 - Crash under camel_folder_search_search() (Milan Crha)
+	Bug 680961 - Broken dispatching of EAuthenticationSession
+	             (Matthew Barnes)
+	Bug 681930 - STARTTLS was default auth method (Milan Crha)
+	Bug 681939 - camel_folder_summary_remove_uids() doesn't remove from DB
+	             (Milan Crha)
+	Bug 681995 - IMAPx does't set message size on message append
+	             (Milan Crha)
+	Bug 682706 - WebDAV addressbook lookup very slow (Milan Crha)
+
+Other Changes:
+	* IMAPX thread-safety improvements (Matthew Barnes)
+	* Start/stop book/cal views in a dedicated thread (Milan Crha)
+	* IMAP - Do not do folder summary update as all-or-nothing approach
+	  (Milan Crha)
+	* ESourceWebdav: Add "resource-query" property. (Matthew Barnes)
+	* WebDAV addressbook cannot be opened (Milan Crha)
+	* Could not create folders in Yahoo! account using imapx (Milan Crha)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Chris Leonard (en_GB)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Andika Triwidada (id)
+	Aurimas Černius (lt)
+	Kjartan Maraas (nb)
+	Piotr Drąg (pl)
+	Duarte Loreto (pt)
+	Yuri Myasoedov (ru)
+	Dr.T.Vasudevan (ta)
+	Nguyễn Thái Ngọc Duy (vi)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.5.90 2012-08-20
+---------------------------------------
+
+Bug Fixes:
+	Bug 678289 - Filters are not applied automatically to local maildir
+	             Inbox (Milan Crha)
+	Bug 679488 - Unable to send mail using SMTP (Milan Crha)
+	Bug 680744 - IMAP: Does not update folder structure (Milan Crha)
+	Bug 681046 - Occasional crash of evolution-source-registry (Milan Crha)
+	Bug 681318 - Filter by Source account doesn't match in local folders
+	             (Milan Crha)
+	Bug 681321 - Support both old and new-buf libxml2 APIs (Colin Walters)
+	Bug 681466 - Virtual Trash/Junk not updated on change (Milan Crha)
+	Bug 681640 - Check for Python interpreter in configure.ac
+	             (Matthew Barnes)
+	Bug 681679 - Typo in migration causes signatures to be dropped
+	             (Matthew Barnes)
+	Bug 682038 - "Show only this calendar" broken (Milan Crha)
+	Bug 682102 - Upstream Debian's 20_gettext_intltool.patch
+	             (Matthew Barnes)
+	Bug 682103 - -fPIC build fix (Fabien Tassin)
+
+Other Changes:
+	* Do not update unread count in source folder for junk/deleted
+	  messages. (Milan Crha)
+	* e-book-backend-db-cache.h: Avoid DB typedef. (Matthew Barnes)
+	* CamelSession: Make forward_to() method asynchronous. (Matthew Barnes)
+	* CamelSession: Remove camel_session_lock/unlock(). (Matthew Barnes)
+	* CamelSession: Have add_service() return a new reference.
+	  (Matthew Barnes)
+	* Have camel_session_list_services() return new references.
+	  (Matthew Barnes)
+	* Rename camel_session_get_service(). (Matthew Barnes)
+	* Rename camel_service_get_settings(). (Matthew Barnes)
+	* Add e_collection_backend_claim_all_resources(). (Matthew Barnes)
+	* cache-reaper: Clean up abandoned data directories. (Matthew Barnes)
+	* Deprecate e_client_remove_sync(). (Matthew Barnes)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Sweta Kothari (gu)
+	Aurimas Černius (lt)
+	Sandeep Sheshrao Shedmake (mr)
+	Мирослав Николић (sr)
+	Krishnababu Krothapalli (te)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.5.5 2012-08-06
 --------------------------------------
 
 Bug Fixes:
 	Bug 551788 - Hangs when network changes (Milan Crha)
-	Bug 559391 - Wrong number of unread mails in folder tree (Milan Crha)
 	Bug 674696 - Crash from finish_operation, get_groups_cb in Google
 	             backend (Milan Crha)
 	Bug 677530 - Memory leaks in imapx code (Milan Crha)
-	Bug 678856 - Crash in add_instance() at e-cal-client.c (Milan Crha)
+	Bug 678893 - Allow concurrent authentication sessions (Matthew Barnes)
 	Bug 679017 - Broken spool mbox file accounts (Milan Crha)
-	Bug 679245 - Local address book not created (Milan Crha)
-	Bug 679488 - Unable to send mail using SMTP (Milan Crha)
+	Bug 679808 - e_source_selector_set_primary_selection() has side-effects
+	             (Matthew Barnes)
+	Bug 680013 - Deadlock in CalDAV calendar (Milan Crha)
+	Bug 680106 - Missing status message in camel_folder_refresh_info_sync()
+	             (Matthew Barnes)
 	Bug 680211 - Memory usage increases on each folder select (Milan Crha)
 	Bug 680502 - Deadlock in contacts backend (Milan Crha)
-	Bug 681318 - Filter by Source account doesn't match in local folders
+	Bug 680687 - System timezone name differs from set in Gnome
 	             (Milan Crha)
 
+Other Changes:
+	* Support creating/deleting remote resources. (Matthew Barnes)
+	* Use template files to generate GEnumClass types. (Matthew Barnes)
+	* google: Fix removal of custom vCard attributes in Google address
+	  books (Philip Withnall)
+	* Make sure IMAP is connected before doing online operations
+	  (Milan Crha)
+	* Move e_pointer_tracker to camel (Milan Crha)
+	* Replace e_source_registry_server_queue_auth_session().
+	  (Matthew Barnes)
+	* CamelIMAPXServer: fixed API function for running custom commands
+	  (Christian Hilberg)
+	* Fix a memory leak in e-cal-system-timezone.c (Dan Vrátil)
+	* Conditionally enable bug-buddy/gtk+ also for
+	  evolution-source-registry (Milan Crha)
+	* libecal: fix memory leak after failed object creation (Patrick Ohly)
+	* e_source_registry_commit_source_sync(): Handle collection members.
+	  (Matthew Barnes)
 
-Evolution-Data-Server 3.4.3 2012-06-18
+Translations:
+	Andika Triwidada (id)
+	Chao-Hsiung Liao (zh_HK)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Sweta Kothari (gu)
+	Kjartan Maraas (nb)
+	Nilamdyuti Goswami (as)
+	Tom Tryfonidis (el)
+	Мирослав Николић (sr)
+
+
+Evolution-Data-Server 3.5.4 2012-07-16
 --------------------------------------
 
 Bug Fixes:
+	Bug 559391 - Wrong number of unread mails in folder tree (Milan Crha)
+	Bug 578240 - Impossible to cancel search in search folders (Milan Crha)
+	Bug 677697 - Huge memory leaks (Milan Crha)
+	Bug 677886 - Runtime warning from ESourceAlarms (Milan Crha)
+	Bug 678602 - Inform server of client-side auth cancellations.
+	             (Matthew Barnes)
+	Bug 678856 - Crash in add_instance() at e-cal-client.c (Milan Crha)
+	Bug 678903 - GConf migration omits so-called "send-only" accounts
+	             (Matthew Barnes)
+
+Other Changes:
+	* Rework CamelIMAPXServer to be subclassed and extended more
+	  easily. (Christian Hilberg)
+	* google: Remove the option to not cache Google Contacts data locally
+	  (Philip Withnall)
+	* Fix install failure in google backend. (Matthew Barnes)
+	* Add ESourceResource extension type. (Matthew Barnes)
+	* weather: update for newer GWeather (Giovanni Campagna)
+	* libedata-book.pc.in: Add a 'libexecdir' variable. (Matthew Barnes)
+	* libedata-cal.pc.in: Add a 'libexecdir' variable. (Matthew Barnes)
+	* camel_provider_list(): Emit CRITICAL if camel_provider_load() fails.
+	  (Matthew Barnes)
+	* Disregard G_FILE_ERROR_NOENT during GConf migration. (Matthew Barnes)
+	* evolution-source-viewer: Add delete capability. (Matthew Barnes)
+	* CamelStoreClass: Rename compare_folder_name to equal_folder_name.
+	  (Matthew Barnes)
+	* server_side_source_remove(): Disregard G_IO_ERROR_NOT_FOUND.
+	  (Matthew Barnes)
+	* Camel: Use folder display name in status messages when possible.
+	  (Matthew Barnes)
+	* Preset timeout on SoupSession-s to 90 seconds (Milan Crha)
+	* online-accounts: Mail sources need to be writable. (Matthew Barnes)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Ihar Hrachyshka (be)
+	Alexander Shopov (bg)
+	Dimitris Spingos (el)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Kjartan Maraas (nb)
+	Nguyễn Thái Ngọc Duy (vi)
+	Chao-Hsiung Liao (zh_HK)
+
+
+Evolution-Data-Server 3.5.3 2012-06-25
+--------------------------------------
+
+!!! MAJOR DESIGN CHANGES AND API BREAKS IN THIS RELEASE !!!
+
+* GConf dependency has been dropped.
+
+* Account data now resides in plain text files rather than GConf XML blobs.
+  As part of this effort, a good part of libedataserver was rewritten from
+  scratch.  For further details and links to documentation see:
+  https://mail.gnome.org/archives/evolution-list/2012-May/msg00214.html
+
+Bug Fixes:
+	Bug 668247 - Broken non-basic-latin folder name handling (Milan Crha)
+	Bug 673817 - Crash in e_book_backend_file_dispose() (Milan Crha)
+	Bug 676541 - Unreliable IMAP provider (Milan Crha)
+	Bug 677183 - maildir account doesn't open (Milan Crha)
+	Bug 677610 - Avoid modification of CPPFLAGS in Makefile.am (Milan Crha)
+	Bug 677642 - Critical warnings on vFolder change (Milan Crha)
+	Bug 677664 - Camel: Remove "SMTP Authentication" status message
+	             (Matthew Barnes)
+	Bug 677687 - Broken migration of "namespace" IMAP setting
+	             (Matthew Barnes)
+	Bug 677841 - Workaround for crash in
+	             imapx_command_append_message_done() (Milan Crha)
+	Bug 677933 - imapx_utils_init() called too early (Matthew Barnes)
+	Bug 678067 - Localized display names get stuck (Matthew Barnes)
+	Bug 678069 - Crash in _gdata_entry_update_from_e_contact() (Milan Crha)
+	Bug 678255 - edata-cal missing libebackend-1.2 requirement
+	             (Jordi Mallach)
+	Bug 678378 - ESourceRegistry causes deadlock in gnome-shell
+	             (Matthew Barnes)
+	Bug 678618 - Runtime warning when clicking on top-level sidebar item
+	             (Matthew Barnes)
+
+Other Changes:
+	* Remove camel_settings_load_from_url(). (Matthew Barnes)
+	* Remove camel_settings_save_to_url(). (Matthew Barnes)
+	* ldap: Avoid a race during finalize. (Matthew Barnes)
+	* imap[x]: Remove shell command option from user interfaces.
+	  (Matthew Barnes)
+	* Add 'evolution-source-viewer' test tool. (Matthew Barnes)
+	* Port remaining bits from GConf to GSettings (Milan Crha)
+	* Remove forgotten DBUS_GLIB_CFLAGS/LIBS, these are gone now
+	  (Milan Crha)
+	* Remove -Werror from AM_INIT_AUTOMAKE. (Matthew Barnes)
+	* google: Split conversion functions from Google backend into a util
+	  lib (Philip Withnall)
+	* google: Add some tests to Google address book backend
+	  (Philip Withnall)
+	* google: Make ‘rel’ and ‘label’ mutually exclusive for certain
+	  elements (Philip Withnall)
+	* Tighten up pkg-config files. (Matthew Barnes)
+	* build: Enable g-ir-scanner’s --warn-all option when building GIR
+	  files (Philip Withnall)
+	* Do not call g_object_notify() when property didn't change (Milan Crha)
+	* imapx_store_noop_sync: Don't return FALSE without setting a GError.
+	  (Matthew Barnes)
+	* Deprecate EUri. (Matthew Barnes)
+	* Updated Telugu Translation (Sasi Bhushan Boddepalli)
+	* imapx_command_fetch_message_done: Fix an error handling issue.
+	  (Matthew Barnes)
+	* camel_data_cache_get_filename: Remove unused GError parameter.
+	  (Matthew Barnes)
+	* e_book_backend_file_open: Fix directory existence test.
+	  (Matthew Barnes)
+	* camel_data_cache_get: Improve empty file handling. (Matthew Barnes)
+	* Improve imapx_command_fetch_message_done(). (Matthew Barnes)
+	* CAMEL_PROVIDER_IS_STORE_AND_TRANSPORT: Handle NULL gracefully.
+	  (Matthew Barnes)
+	* Updated Telugu Translation (Sasi Bhushan Boddepalli)
+	* Deprecate EDbHash. (Matthew Barnes)
+	* google: Add a new custom vCard property containing Google system
+	  groups (Philip Withnall)
+	* libebook: Reference address books by UID instead of URI.
+	  (Matthew Barnes)
+	* Camel string pool improvements. (Matthew Barnes)
+
+Translations:
+	Nilamdyuti Goswami (as)
+	Ihar Hrachyshka (be)
+	Daniel Mustieles (es)
+	Bruno Brouard (fr)
+	Fran Diéguez (gl)
+	Yuri Kozlov (ru)
+
+
+Evolution-Data-Server 3.5.2 2012-06-04
+--------------------------------------
+
+Bug Fixes:
+	Bug 606181 - Accepting bad SSL certificate applies to any hostname
+	             (Matt McCutchen)
+	Bug 664639 - [IMAPX] Doesn't quit gracefully on account disable
+	             (Chenthill Palanisamy)
+	Bug 666327 - IMAP deadlock when moving message and checking new mail
+	             (Alban Browaeys)
 	Bug 667725 - imapx_untagged: code should not be reached
 	             (David Woodhouse)
-	Bug 668247 - Broken non-basic-latin folder name handling (Milan Crha)
+	Bug 669191 - Address book dialog has incorrect default size
+	             (Mathieu Trudel-Lapierre)
+	Bug 670279 - "Category" selector mnemonic not shown (Milan Crha)
 	Bug 671603 - Birthday calendar broken since 3.3.4 (Milan Crha)
-	Bug 673817 - Crash in e_book_backend_file_dispose() (Milan Crha)
 	Bug 673946 - Cannot delete search folders (Milan Crha)
-	Bug 674454 - Crash in e_book_backend_ldap_authenticate_user()
-	             (Milan Crha)
+	Bug 675387 - Store certificates under $XDG_DATA_HOME (Matthew Barnes)
 	Bug 676108 - OpenBSD needs _XOPEN_SOURCE_EXTENDED for strptime(3)
 	             (Antoine Jacoutot)
 	Bug 676403 - imapx: Syncing folder after server-side deletion of
 	             many messages is *very* slow (David Woodhouse)
 	Bug 676506 - imapx: After QRESYNC leaves us out of sync, a "full
 	             resync" doesn't work either. (David Woodhouse)
-	Bug 677183 - maildir account doesn't open (Milan Crha)
-	Bug 677841 - Workaround for crash in
-	             imapx_command_append_message_done() (Milan Crha)
-	Bug 678069 - Crash in _gdata_entry_update_from_e_contact() (Milan Crha)
-	Bug 678255 - edata-cal missing libebackend-1.2 requirement
-	             (Jordi Mallach)
+
+Other Changes:
+	* Require libsoup >= 2.38.1. (Matthew Barnes)
+	* Remove extra test on Google server photo data validity (Milan Crha)
+	* Split camel-imapx library and merge into camel so that providers
+	  can be written on top of imapx (Chenthill Palanisamy)
+	* Add a extended response handler for unhandled imapx tokens to be
+	  handled by the derived providers. (Chenthill Palanisamy)
+	* Add EAsyncClosure. (Matthew Barnes)
+	* Make sure data-book/cal is closed/freed in a separate thread
+	  (Milan Crha)
+	* CalDAV: Report NoSuchCal only when opening, ObjectNotFound
+	  otherwise (Milan Crha)
+	* Better error message for SOUP_STATUS_SSL_FAILED response (Milan Crha)
+	* CalDAV: Also rename NoSuchCal to ObjectNotFound in
+	  caldav_server_put_object() (Milan Crha)
+	* Camel: Allow SSL certificate resave and use detailed errors from
+	  SSL stream (Milan Crha)
+	* Remove camel_folder_has_search_capability() (Milan Crha)
+	* CamelService: Rewrite connect/disconnect API. (Matthew Barnes)
+	* Simplify vFolder's code and other bunch of related time
+	  optimizations (Milan Crha)
 
 Translations:
-	Nilamdyuti Goswami (as)
-
-
-Evolution-Data-Server 3.4.2 2012-05-14
---------------------------------------
-
-Bug Fixes:
-	Bug 669191 - Address book dialog has incorrect default size (Mathieu Trudel-Lapierre)
-	Bug 674257 - Recheck attachment availability on message download (Milan Crha)
-	Bug 672398 - CalDAV backend doesn't respect "Copy for offline" option (Milan Crha)
-	Bug 674309 - Crash when calling oauth_init_nss() from two threads (Milan Crha)
-	Bug 667891 - Rapid message list regen when downloading a folder (Milan Crha)
-
-Miscellaneous Fixes:
-	Make sure data-book/cal is closed/freed in a separate thread (Milan Crha)
-	Remove extra test on Google server photo data validity (Milan Crha)
-
-Translations:
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
 	Luca Ferretti (it)
+	Kjartan Maraas (nb)
+	Matej Urbančič (sl)
 
 
-Evolution-Data-Server 3.4.1 2012-04-16
+Evolution-Data-Server 3.5.1 2012-04-30
 --------------------------------------
 
 Bug Fixes:
-	Bug 673894 - Adding events to Google Calendar is broken (Milan Crha)
-	Bug 667477 - EXDATE containing time are not handle correctly (Milan Crha)
-	Bug 666896 - Workaround Improper GB-2312 Mail Encodings (Palmer Dabbelt)
-	Bug 666438 - Contact's Full name field not displayed in list view (Milan Crha)
-	Bug 673563 - Encoded filename for Outlook broken by spaces (Milan Crha)
-	Bug 673527 - Addressbook bulk methods are broken (Christophe Dumez)
+	Bug 658742 - Change EContact property description string (Milan Crha)
+	Bug 663324 - Categories not correctly aligned with Google contacts
+	             (Milan Crha)
+	Bug 664639 - [IMAPX] Doesn't quit gracefully on account disable
+	             (Milan Crha)
 	Bug 664793 - Deadlock on EClient operation cancel (Milan Crha)
-	Bug 663324 - Categories not correctly aligned with Google contacts (Milan Crha)
-	Bug 672258 - Error while moving messages in local folders (Milan Crha)
-	Bug 671172 - camel: smtp: Make EHLO keywords check case insensitive (Pawel Moll)
+	Bug 665381 - LDAP backend crash when query_ldap_root_dse() fails
+	             (Milan Crha)
+	Bug 666438 - Contact's Full name field not displayed in list view
+	             (Milan Crha)
+	Bug 666896 - Workaround Improper GB-2312 Mail Encodings
+	             (Palmer Dabbelt)
+	Bug 667477 - EXDATE containing time are not handle correctly
+	             (Milan Crha)
+	Bug 667891 - Rapid message list regen when downloading a folder
+	             (Milan Crha)
+	Bug 668549 - Crash in objects_added_cb() in e-book-client-view.c
+	             (Milan Crha)
+	Bug 668679 - Crash on insertion of NULL in e_destination_set_contact()
+	             (Milan Crha)
+	Bug 668989 - Add a twitter username to IM in contacts (Milan Crha)
+	Bug 669034 - [IMAP] Shows "Unknown background operation" on start
+	             (Milan Crha)
+	Bug 669085 - Saving draft on Google server emits runtime warning
+	             (Milan Crha)
+	Bug 670435 - Added e_cal_client_view_set_flags() (Christophe Dumez)
+	Bug 670457 - Add bulk methods to ECalClient (Christophe Dumez)
 	Bug 670470 - Do not force password for IMAPx connection (Yanko Kaneti)
+	Bug 671172 - camel: smtp: Make EHLO keywords check case insensitive
+	             (Pawel Moll)
+	Bug 671537 - Option to validate SLL certificates with libsoup
+	             (Milan Crha)
+	Bug 672175 - Make CamelFolderSearch cancellable (Milan Crha)
+	Bug 672258 - Error while moving messages in local folders (Milan Crha)
+	Bug 672398 - CalDAV backend doesn't respect "Copy for offline" option
+	             (Milan Crha)
+	Bug 673527 - Addressbook bulk methods are broken (Christophe Dumez)
+	Bug 673563 - Encoded filename for Outlook broken by spaces (Milan Crha)
+	Bug 673894 - Adding events to Google Calendar is broken (Milan Crha)
+	Bug 674257 - Recheck attachment availability on message download
+	             (Milan Crha)
+	Bug 674309 - Crash when calling oauth_init_nss() from two threads
+	             (Milan Crha)
 
-Miscellaneous Fixes:
-	Add "new symbols in 3.4" indices to API docs. (Matthew Barnes)
-	CalDAV backend could starve on its dispose waiting for slave finish (Milan Crha)
-	Avoid possible use-after-free in Google's addressbook backend (Milan Crha)
+Miscellaneous Changes:
+	* Add an --enable-code-coverage configure option to enable gcov
+	  support (Philip Withnall)
+	* Limit supported gweather to < 3.5. (Matthew Barnes)
+	* Require GLib >= 2.32. (Matthew Barnes)
+	* EDataFactory: Use GNetworkMonitor always. (Matthew Barnes)
+	* Deprecate and gut EOfflineListener. (Matthew Barnes)
+	* Remove migration of categories from GConf. (Matthew Barnes)
+	* EDBusServer: Add run/quit signals. (Matthew Barnes)
+	* CalDAV backend could starve on its dispose waiting for slave
+	  finish (Milan Crha)
+	* Remove CamelHttpStream. (Matthew Barnes)
+	* Add e_file_recursive_delete(). (Matthew Barnes)
+	* Make e_dbus_server_load_modules() idempotent. (Matthew Barnes)
+	* EDBusServer: Add exit codes to run() and quit(). (Matthew Barnes)
+	* ENameSelectorEntry: Remove USER_QUERY_FIELDS macro. (Matthew Barnes)
+	* ENameSelectorDialog: Remove use of "primary_addressbook".
+	  (Matthew Barnes)
+	* Remove EDataFactory's "online" property. (Matthew Barnes)
+	* Remove EBackend::last-client-gone signal. (Matthew Barnes)
+	* Add e_data_factory_ref_backend_factory(). (Matthew Barnes)
+	* Bump libedataserverui shared object name. (Matthew Barnes)
+	* ESourceSelector: Add e_source_selector_ref_source_by_path().
+	  (Matthew Barnes)
+	* ESourceSelector: Add e_source_selector_ref_primary_selection().
+	  (Matthew Barnes)
+	* Remove e_source_combo_box_get/set_active_uid(). (Matthew Barnes)
+	* ESourceComboBox: Add e_source_combo_box_ref_active().
+	  (Matthew Barnes)
+	* Remove deprecated API from ESourceSelector (Milan Crha)
+	* Fix Google Talk vCard attribute name definition (Milan Crha)
 
 Translations:
 	Gil Forcada (ca)
-	Rajesh Ranjan (hi)
-	Valencian translation  (ca)
-	ManojKumar Giri (or)
 	Jordi Serratosa (ca)
+	Carles Ferrando (ca@valencia)
+	Daniel Mustieles (es)
+	Fran Diéguez (gl)
+	Rajesh Ranjan (hi)
 	Sandeep Sheshrao Shedmake (mr)
+	Kjartan Maraas (nb)
+	ManojKumar Giri (or)
+	Daniel Nylander (sv)
+	Krishnababu Krothapalli (te)
+	Sasi Bhushan (te)
 
 
 Evolution-Data-Server 3.4.0 2012-03-26

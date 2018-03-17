@@ -3,19 +3,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_POP3_ENGINE_H
@@ -50,7 +48,8 @@ typedef struct _CamelPOP3Engine CamelPOP3Engine;
 typedef struct _CamelPOP3EngineClass CamelPOP3EngineClass;
 typedef struct _CamelPOP3Command CamelPOP3Command;
 
-/* pop 3 connection states, actually since we're given a connected socket, we always start in auth state */
+/* POP3 connection states, actually since we're given
+ * a connected socket, we always start in auth state. */
 typedef enum {
 	CAMEL_POP3_ENGINE_DISCONNECT = 0,
 	CAMEL_POP3_ENGINE_AUTH,
@@ -80,7 +79,7 @@ enum {
 	CAMEL_POP3_CAP_APOP = 1 << 0,
 	CAMEL_POP3_CAP_UIDL = 1 << 1,
 	CAMEL_POP3_CAP_SASL = 1 << 2,
-	CAMEL_POP3_CAP_TOP  = 1 << 3,
+	CAMEL_POP3_CAP_TOP = 1 << 3,
 	CAMEL_POP3_CAP_PIPE = 1 << 4,
 	CAMEL_POP3_CAP_STLS = 1 << 5
 };
@@ -90,11 +89,16 @@ enum {
 	CAMEL_POP3_ENGINE_DISABLE_EXTENSIONS = 1 << 0
 };
 
-typedef void (*CamelPOP3CommandFunc)(CamelPOP3Engine *pe, CamelPOP3Stream *stream, GCancellable *cancellable, gpointer data);
+typedef void	(*CamelPOP3CommandFunc)		(CamelPOP3Engine *pe,
+						 CamelPOP3Stream *stream,
+						 GCancellable *cancellable,
+						 GError **error,
+						 gpointer data);
 
 struct _CamelPOP3Command {
 	guint32 flags;
 	camel_pop3_command_t state;
+	gchar *error_str;
 
 	CamelPOP3CommandFunc func;
 	gpointer func_data;
@@ -104,7 +108,7 @@ struct _CamelPOP3Command {
 };
 
 struct _CamelPOP3Engine {
-	CamelObject parent;
+	GObject parent;
 
 	guint32 flags;
 
@@ -130,19 +134,19 @@ struct _CamelPOP3Engine {
 };
 
 struct _CamelPOP3EngineClass {
-	CamelObjectClass parent_class;
+	GObjectClass parent_class;
 };
 
 GType		camel_pop3_engine_get_type	(void);
 CamelPOP3Engine *
 		camel_pop3_engine_new		(CamelStream *source,
 						 guint32 flags,
-						 GCancellable *cancellable);
-void		camel_pop3_engine_reget_capabilities
+						 GCancellable *cancellable,
+						 GError **error);
+gboolean	camel_pop3_engine_reget_capabilities
 						(CamelPOP3Engine *engine,
-						 GCancellable *cancellable);
-void		camel_pop3_engine_command_free	(CamelPOP3Engine *pe,
-						 CamelPOP3Command *pc);
+						 GCancellable *cancellable,
+						 GError **error);
 gint		camel_pop3_engine_iterate	(CamelPOP3Engine *pe,
 						 CamelPOP3Command *pc,
 						 GCancellable *cancellable,
@@ -156,6 +160,8 @@ CamelPOP3Command *
 						 GError **error,
 						 const gchar *fmt,
 						 ...);
+void		camel_pop3_engine_command_free	(CamelPOP3Engine *pe,
+						 CamelPOP3Command *pc);
 
 G_END_DECLS
 

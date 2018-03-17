@@ -1,18 +1,17 @@
 /*
  * camel-imapx-settings.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -96,11 +95,6 @@ gboolean	camel_imapx_settings_get_filter_junk_inbox
 void		camel_imapx_settings_set_filter_junk_inbox
 						(CamelIMAPXSettings *settings,
 						 gboolean filter_junk_inbox);
-gboolean	camel_imapx_settings_get_mobile_mode
-						(CamelIMAPXSettings *settings);
-void		camel_imapx_settings_set_mobile_mode
-						(CamelIMAPXSettings *settings,
-						 gboolean mobile);
 const gchar *	camel_imapx_settings_get_namespace
 						(CamelIMAPXSettings *settings);
 gchar *		camel_imapx_settings_dup_namespace
@@ -108,6 +102,20 @@ gchar *		camel_imapx_settings_dup_namespace
 void		camel_imapx_settings_set_namespace
 						(CamelIMAPXSettings *settings,
 						 const gchar *namespace_);
+const gchar *	camel_imapx_settings_get_real_junk_path
+						(CamelIMAPXSettings *settings);
+gchar *		camel_imapx_settings_dup_real_junk_path
+						(CamelIMAPXSettings *settings);
+void		camel_imapx_settings_set_real_junk_path
+						(CamelIMAPXSettings *settings,
+						 const gchar *real_junk_path);
+const gchar *	camel_imapx_settings_get_real_trash_path
+						(CamelIMAPXSettings *settings);
+gchar *		camel_imapx_settings_dup_real_trash_path
+						(CamelIMAPXSettings *settings);
+void		camel_imapx_settings_set_real_trash_path
+						(CamelIMAPXSettings *settings,
+						 const gchar *real_trash_path);
 const gchar *	camel_imapx_settings_get_shell_command
 						(CamelIMAPXSettings *settings);
 gchar *		camel_imapx_settings_dup_shell_command
@@ -130,6 +138,16 @@ gboolean	camel_imapx_settings_get_use_qresync
 void		camel_imapx_settings_set_use_qresync
 						(CamelIMAPXSettings *settings,
 						 gboolean use_qresync);
+gboolean	camel_imapx_settings_get_use_real_junk_path
+						(CamelIMAPXSettings *settings);
+void		camel_imapx_settings_set_use_real_junk_path
+						(CamelIMAPXSettings *settings,
+						 gboolean use_real_junk_path);
+gboolean	camel_imapx_settings_get_use_real_trash_path
+						(CamelIMAPXSettings *settings);
+void		camel_imapx_settings_set_use_real_trash_path
+						(CamelIMAPXSettings *settings,
+						 gboolean use_real_trash_path);
 gboolean	camel_imapx_settings_get_use_shell_command
 						(CamelIMAPXSettings *settings);
 void		camel_imapx_settings_set_use_shell_command

@@ -1,22 +1,20 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *           Jeffrey Stedfast <fejj@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <string.h>
@@ -55,32 +53,57 @@ mime_filter_basic_filter (CamelMimeFilter *mime_filter,
 	switch (priv->type) {
 	case CAMEL_MIME_FILTER_BASIC_BASE64_ENC:
 		/* wont go to more than 2x size (overly conservative) */
-		camel_mime_filter_set_size (mime_filter, len * 2 + 6, FALSE);
-		newlen = g_base64_encode_step ((const guchar *) in, len, TRUE, mime_filter->outbuf, &priv->state, &priv->save);
+		camel_mime_filter_set_size (
+			mime_filter, len * 2 + 6, FALSE);
+		newlen = g_base64_encode_step (
+			(const guchar *) in, len,
+			TRUE,
+			mime_filter->outbuf,
+			&priv->state,
+			&priv->save);
 		g_assert (newlen <= len * 2 + 6);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_QP_ENC:
 		/* *4 is overly conservative, but will do */
-		camel_mime_filter_set_size (mime_filter, len * 4 + 4, FALSE);
-		newlen = camel_quoted_encode_step ((guchar *) in, len, (guchar *) mime_filter->outbuf, &priv->state, (gint *) &priv->save);
+		camel_mime_filter_set_size (
+			mime_filter, len * 4 + 4, FALSE);
+		newlen = camel_quoted_encode_step (
+			(guchar *) in, len,
+			(guchar *) mime_filter->outbuf,
+			&priv->state,
+			(gint *) &priv->save);
 		g_assert (newlen <= len * 4 + 4);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_UU_ENC:
 		/* won't go to more than 2 * (x + 2) + 62 */
-		camel_mime_filter_set_size (mime_filter, (len + 2) * 2 + 62, FALSE);
-		newlen = camel_uuencode_step ((guchar *) in, len, (guchar *) mime_filter->outbuf, priv->uubuf, &priv->state, (guint32 *) &priv->save);
+		camel_mime_filter_set_size (
+			mime_filter, (len + 2) * 2 + 62, FALSE);
+		newlen = camel_uuencode_step (
+			(guchar *) in, len,
+			(guchar *) mime_filter->outbuf,
+			priv->uubuf,
+			&priv->state,
+			(guint32 *) &priv->save);
 		g_assert (newlen <= (len + 2) * 2 + 62);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_BASE64_DEC:
 		/* output can't possibly exceed the input size */
 		camel_mime_filter_set_size (mime_filter, len + 3, FALSE);
-		newlen = g_base64_decode_step (in, len, (guchar *) mime_filter->outbuf, &priv->state, (guint *) &priv->save);
+		newlen = g_base64_decode_step (
+			in, len,
+			(guchar *) mime_filter->outbuf,
+			&priv->state,
+			(guint *) &priv->save);
 		g_assert (newlen <= len + 3);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_QP_DEC:
 		/* output can't possibly exceed the input size */
 		camel_mime_filter_set_size (mime_filter, len + 2, FALSE);
-		newlen = camel_quoted_decode_step ((guchar *) in, len, (guchar *) mime_filter->outbuf, &priv->state, (gint *) &priv->save);
+		newlen = camel_quoted_decode_step (
+			(guchar *) in, len,
+			(guchar *) mime_filter->outbuf,
+			&priv->state,
+			(gint *) &priv->save);
 		g_assert (newlen <= len + 2);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_UU_DEC:
@@ -120,9 +143,15 @@ mime_filter_basic_filter (CamelMimeFilter *mime_filter,
 		}
 
 		if ((priv->state & CAMEL_UUDECODE_STATE_BEGIN) && !(priv->state & CAMEL_UUDECODE_STATE_END)) {
-			/* "begin <mode> <filename>\n" has been found, so we can now start decoding */
-			camel_mime_filter_set_size (mime_filter, len + 3, FALSE);
-			newlen = camel_uudecode_step ((guchar *) in, len, (guchar *) mime_filter->outbuf, &priv->state, (guint32 *) &priv->save);
+			/* "begin <mode> <filename>\n" has been
+			 * found, so we can now start decoding */
+			camel_mime_filter_set_size (
+				mime_filter, len + 3, FALSE);
+			newlen = camel_uudecode_step (
+				(guchar *) in, len,
+				(guchar *) mime_filter->outbuf,
+				&priv->state,
+				(guint32 *) &priv->save);
 		} else {
 			newlen = 0;
 		}
@@ -160,41 +189,77 @@ mime_filter_basic_complete (CamelMimeFilter *mime_filter,
 	switch (priv->type) {
 	case CAMEL_MIME_FILTER_BASIC_BASE64_ENC:
 		/* wont go to more than 2x size (overly conservative) */
-		camel_mime_filter_set_size (mime_filter, len * 2 + 6, FALSE);
+		camel_mime_filter_set_size (
+			mime_filter, len * 2 + 6, FALSE);
 		if (len > 0)
-			newlen += g_base64_encode_step ((const guchar *) in, len, TRUE, mime_filter->outbuf, &priv->state, &priv->save);
-		newlen += g_base64_encode_close (TRUE, mime_filter->outbuf, &priv->state, &priv->save);
+			newlen += g_base64_encode_step (
+				(const guchar *) in, len,
+				TRUE,
+				mime_filter->outbuf,
+				&priv->state,
+				&priv->save);
+		newlen += g_base64_encode_close (
+			TRUE,
+			mime_filter->outbuf,
+			&priv->state,
+			&priv->save);
 		g_assert (newlen <= len * 2 + 6);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_QP_ENC:
 		/* *4 is definetly more than needed ... */
-		camel_mime_filter_set_size (mime_filter, len * 4 + 4, FALSE);
-		newlen = camel_quoted_encode_close ((guchar *) in, len, (guchar *) mime_filter->outbuf, &priv->state, &priv->save);
+		camel_mime_filter_set_size (
+			mime_filter, len * 4 + 4, FALSE);
+		newlen = camel_quoted_encode_close (
+			(guchar *) in, len,
+			(guchar *) mime_filter->outbuf,
+			&priv->state,
+			&priv->save);
 		g_assert (newlen <= len * 4 + 4);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_UU_ENC:
 		/* won't go to more than 2 * (x + 2) + 62 */
-		camel_mime_filter_set_size (mime_filter, (len + 2) * 2 + 62, FALSE);
-		newlen = camel_uuencode_close ((guchar *) in, len, (guchar *) mime_filter->outbuf, priv->uubuf, &priv->state, (guint32 *) &priv->save);
+		camel_mime_filter_set_size (
+			mime_filter, (len + 2) * 2 + 62, FALSE);
+		newlen = camel_uuencode_close (
+			(guchar *) in, len,
+			(guchar *) mime_filter->outbuf,
+			priv->uubuf,
+			&priv->state,
+			(guint32 *) &priv->save);
 		g_assert (newlen <= (len + 2) * 2 + 62);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_BASE64_DEC:
 		/* output can't possibly exceed the input size */
 		camel_mime_filter_set_size (mime_filter, len, FALSE);
-		newlen = g_base64_decode_step (in, len, (guchar *) mime_filter->outbuf, &priv->state, (guint *) &priv->save);
+		newlen = g_base64_decode_step (
+			in, len,
+			(guchar *) mime_filter->outbuf,
+			&priv->state,
+			(guint *) &priv->save);
 		g_assert (newlen <= len);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_QP_DEC:
-		/* output can't possibly exceed the input size, well unless its not really qp, then +2 max */
+		/* output can't possibly exceed the input size,
+		 * well unless its not really qp, then +2 max */
 		camel_mime_filter_set_size (mime_filter, len + 2, FALSE);
-		newlen = camel_quoted_decode_step ((guchar *) in, len, (guchar *) mime_filter->outbuf, &priv->state, (gint *) &priv->save);
+		newlen = camel_quoted_decode_step (
+			(guchar *) in, len,
+			(guchar *) mime_filter->outbuf,
+			&priv->state,
+			(gint *) &priv->save);
 		g_assert (newlen <= len + 2);
 		break;
 	case CAMEL_MIME_FILTER_BASIC_UU_DEC:
 		if ((priv->state & CAMEL_UUDECODE_STATE_BEGIN) && !(priv->state & CAMEL_UUDECODE_STATE_END)) {
-			/* "begin <mode> <filename>\n" has been found, so we can now start decoding */
-			camel_mime_filter_set_size (mime_filter, len + 3, FALSE);
-			newlen = camel_uudecode_step ((guchar *) in, len, (guchar *) mime_filter->outbuf, &priv->state, (guint32 *) &priv->save);
+			/* "begin <mode> <filename>\n" has been
+			 * found, so we can now start decoding */
+			camel_mime_filter_set_size (
+				mime_filter, len + 3, FALSE);
+			newlen = camel_uudecode_step (
+				(guchar *) in, len,
+				(guchar *) mime_filter->outbuf,
+				&priv->state,
+				(guint32 *) &priv->save);
 		} else {
 			newlen = 0;
 		}

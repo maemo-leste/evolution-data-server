@@ -1,21 +1,19 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <string.h>
@@ -38,10 +36,19 @@ struct _CamelMimeFilterPrivate {
 	gsize inlen;
 };
 
+/* Compatible with filter() and complete() methods. */
+typedef void	(*FilterMethod)			(CamelMimeFilter *filter,
+						 const gchar *in,
+						 gsize len,
+						 gsize prespace,
+						 gchar **out,
+						 gsize *outlen,
+						 gsize *outprespace);
+
 #define PRE_HEAD (64)
 #define BACK_HEAD (64)
 
-G_DEFINE_ABSTRACT_TYPE (CamelMimeFilter, camel_mime_filter, CAMEL_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE (CamelMimeFilter, camel_mime_filter, G_TYPE_OBJECT)
 
 static void
 mime_filter_finalize (GObject *object)
@@ -119,25 +126,28 @@ checkmem (gpointer p)
 
 		switch (status) {
 		case MCHECK_HEAD:
-			printf("Memory underrun at %p\n", p);
+			printf ("Memory underrun at %p\n", p);
 			abort ();
 		case MCHECK_TAIL:
-			printf("Memory overrun at %p\n", p);
+			printf ("Memory overrun at %p\n", p);
 			abort ();
 		case MCHECK_FREE:
-			printf("Double free %p\n", p);
+			printf ("Double free %p\n", p);
 			abort ();
 		}
 	}
 }
 #endif
 
-static void filter_run (CamelMimeFilter *f,
-		       const gchar *in, gsize len, gsize prespace,
-		       gchar **out, gsize *outlen, gsize *outprespace,
-		       void (*filterfunc)(CamelMimeFilter *f,
-					  const gchar *in, gsize len, gsize prespace,
-					  gchar **out, gsize *outlen, gsize *outprespace))
+static void
+filter_run (CamelMimeFilter *f,
+            const gchar *in,
+            gsize len,
+            gsize prespace,
+            gchar **out,
+            gsize *outlen,
+            gsize *outprespace,
+            FilterMethod method)
 {
 #ifdef MALLOC_CHECK
 	checkmem (f->outreal);
@@ -179,7 +189,7 @@ static void filter_run (CamelMimeFilter *f,
 	checkmem (f->backbuf);
 #endif
 
-	filterfunc (f, in, len, prespace, out, outlen, outprespace);
+	method (f, in, len, prespace, out, outlen, outprespace);
 
 #ifdef MALLOC_CHECK
 	checkmem (f->outreal);

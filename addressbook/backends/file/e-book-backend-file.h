@@ -3,30 +3,30 @@
 /* e-book-backend-file.h - File contact backend.
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 2012 Intel Corporation
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  * Authors: Nat Friedman <nat@novell.com>
  *          Chris Toshok <toshok@ximian.com>
  *          Hans Petter Jansson <hpj@novell.com>
+ *          Tristan Van Berkom <tristanvb@openismus.com>
  */
 
 #ifndef E_BOOK_BACKEND_FILE_H
 #define E_BOOK_BACKEND_FILE_H
 
-#include <libedata-book/e-book-backend-sync.h>
+#include <libedata-book/libedata-book.h>
 
 /* Standard GObject macros */
 #define E_TYPE_BOOK_BACKEND_FILE \
@@ -54,12 +54,12 @@ typedef struct _EBookBackendFileClass EBookBackendFileClass;
 typedef struct _EBookBackendFilePrivate EBookBackendFilePrivate;
 
 struct _EBookBackendFile {
-	EBookBackendSync parent;
+	EBookBackend parent;
 	EBookBackendFilePrivate *priv;
 };
 
 struct _EBookBackendFileClass {
-	EBookBackendSyncClass parent_class;
+	EBookBackendClass parent_class;
 };
 
 GType		e_book_backend_file_get_type	(void);

@@ -8,19 +8,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "camel-db.h"
@@ -41,10 +39,10 @@
 /* how long to wait before invoking sync on the file */
 #define SYNC_TIMEOUT_SECONDS 5
 
-#define READER_LOCK(cdb) g_static_rw_lock_reader_lock (&cdb->priv->rwlock)
-#define READER_UNLOCK(cdb) g_static_rw_lock_reader_unlock (&cdb->priv->rwlock)
-#define WRITER_LOCK(cdb) g_static_rw_lock_writer_lock (&cdb->priv->rwlock)
-#define WRITER_UNLOCK(cdb) g_static_rw_lock_writer_unlock (&cdb->priv->rwlock)
+#define READER_LOCK(cdb) g_rw_lock_reader_lock (&cdb->priv->rwlock)
+#define READER_UNLOCK(cdb) g_rw_lock_reader_unlock (&cdb->priv->rwlock)
+#define WRITER_LOCK(cdb) g_rw_lock_writer_lock (&cdb->priv->rwlock)
+#define WRITER_UNLOCK(cdb) g_rw_lock_writer_unlock (&cdb->priv->rwlock)
 
 static sqlite3_vfs *old_vfs = NULL;
 static GThreadPool *sync_pool = NULL;
@@ -52,7 +50,7 @@ static GThreadPool *sync_pool = NULL;
 typedef struct {
 	sqlite3_file parent;
 	sqlite3_file *old_vfs_file; /* pointer to old_vfs' file */
-	GStaticRecMutex sync_mutex;
+	GRecMutex sync_mutex;
 	guint timeout_id;
 	gint flags;
 } CamelSqlite3File;
@@ -69,8 +67,8 @@ call_old_file_Sync (CamelSqlite3File *cFile,
 }
 
 typedef struct {
-	GCond *cond;
-	GMutex *mutex;
+	GCond cond;
+	GMutex mutex;
 	gboolean is_set;
 } SyncDone;
 
@@ -97,10 +95,10 @@ sync_request_thread_cb (gpointer task_data,
 	g_free (sync_data);
 
 	if (done != NULL) {
-		g_mutex_lock (done->mutex);
+		g_mutex_lock (&done->mutex);
 		done->is_set = TRUE;
-		g_cond_broadcast (done->cond);
-		g_mutex_unlock (done->mutex);
+		g_cond_broadcast (&done->cond);
+		g_mutex_unlock (&done->mutex);
 	}
 }
 
@@ -115,12 +113,19 @@ sync_push_request (CamelSqlite3File *cFile,
 	g_return_if_fail (cFile != NULL);
 	g_return_if_fail (sync_pool != NULL);
 
-	g_static_rec_mutex_lock (&cFile->sync_mutex);
+	g_rec_mutex_lock (&cFile->sync_mutex);
+
+	if (!cFile->flags) {
+		/* nothing to sync, might be when xClose is called
+		 * without any pending xSync request */
+		g_rec_mutex_unlock (&cFile->sync_mutex);
+		return;
+	}
 
 	if (wait_for_finish) {
 		done = g_slice_new (SyncDone);
-		done->cond = g_cond_new ();
-		done->mutex = g_mutex_new ();
+		g_cond_init (&done->cond);
+		g_mutex_init (&done->mutex);
 		done->is_set = FALSE;
 	}
 
@@ -131,7 +136,7 @@ sync_push_request (CamelSqlite3File *cFile,
 
 	cFile->flags = 0;
 
-	g_static_rec_mutex_unlock (&cFile->sync_mutex);
+	g_rec_mutex_unlock (&cFile->sync_mutex);
 
 	g_thread_pool_push (sync_pool, data, &error);
 
@@ -140,8 +145,8 @@ sync_push_request (CamelSqlite3File *cFile,
 		g_error_free (error);
 
 		if (done != NULL) {
-			g_cond_free (done->cond);
-			g_mutex_free (done->mutex);
+			g_cond_clear (&done->cond);
+			g_mutex_clear (&done->mutex);
 			g_slice_free (SyncDone, done);
 		}
 
@@ -149,13 +154,13 @@ sync_push_request (CamelSqlite3File *cFile,
 	}
 
 	if (done != NULL) {
-		g_mutex_lock (done->mutex);
+		g_mutex_lock (&done->mutex);
 		while (!done->is_set)
-			g_cond_wait (done->cond, done->mutex);
-		g_mutex_unlock (done->mutex);
+			g_cond_wait (&done->cond, &done->mutex);
+		g_mutex_unlock (&done->mutex);
 
-		g_cond_free (done->cond);
-		g_mutex_free (done->mutex);
+		g_cond_clear (&done->cond);
+		g_mutex_clear (&done->mutex);
 		g_slice_free (SyncDone, done);
 	}
 }
@@ -163,30 +168,44 @@ sync_push_request (CamelSqlite3File *cFile,
 static gboolean
 sync_push_request_timeout (CamelSqlite3File *cFile)
 {
-	g_static_rec_mutex_lock (&cFile->sync_mutex);
+	g_rec_mutex_lock (&cFile->sync_mutex);
 
 	if (cFile->timeout_id != 0) {
 		sync_push_request (cFile, FALSE);
 		cFile->timeout_id = 0;
 	}
 
-	g_static_rec_mutex_unlock (&cFile->sync_mutex);
+	g_rec_mutex_unlock (&cFile->sync_mutex);
 
 	return FALSE;
 }
 
-#define def_subclassed(_nm, _params, _call)			\
-static gint							\
-camel_sqlite3_file_ ## _nm _params				\
-{								\
-	CamelSqlite3File *cFile;				\
-								\
-	g_return_val_if_fail (old_vfs != NULL, SQLITE_ERROR);	\
-	g_return_val_if_fail (pFile != NULL, SQLITE_ERROR);	\
-								\
-	cFile = (CamelSqlite3File *) pFile;		\
-	g_return_val_if_fail (cFile->old_vfs_file->pMethods != NULL, SQLITE_ERROR);	\
-	return cFile->old_vfs_file->pMethods->_nm _call;	\
+#define def_subclassed(_nm, _params, _call) \
+static gint \
+camel_sqlite3_file_ ## _nm _params \
+{ \
+	CamelSqlite3File *cFile; \
+ \
+	g_return_val_if_fail (old_vfs != NULL, SQLITE_ERROR); \
+	g_return_val_if_fail (pFile != NULL, SQLITE_ERROR); \
+ \
+	cFile = (CamelSqlite3File *) pFile; \
+	g_return_val_if_fail (cFile->old_vfs_file->pMethods != NULL, SQLITE_ERROR); \
+	return cFile->old_vfs_file->pMethods->_nm _call; \
+}
+
+#define def_subclassed_void(_nm, _params, _call) \
+static void \
+camel_sqlite3_file_ ## _nm _params \
+{ \
+	CamelSqlite3File *cFile; \
+ \
+	g_return_if_fail (old_vfs != NULL); \
+	g_return_if_fail (pFile != NULL); \
+ \
+	cFile = (CamelSqlite3File *) pFile; \
+	g_return_if_fail (cFile->old_vfs_file->pMethods != NULL); \
+	cFile->old_vfs_file->pMethods->_nm _call; \
 }
 
 def_subclassed (xRead, (sqlite3_file *pFile, gpointer pBuf, gint iAmt, sqlite3_int64 iOfst), (cFile->old_vfs_file, pBuf, iAmt, iOfst))
@@ -198,6 +217,12 @@ def_subclassed (xUnlock, (sqlite3_file *pFile, gint lockType), (cFile->old_vfs_f
 def_subclassed (xFileControl, (sqlite3_file *pFile, gint op, gpointer pArg), (cFile->old_vfs_file, op, pArg))
 def_subclassed (xSectorSize, (sqlite3_file *pFile), (cFile->old_vfs_file))
 def_subclassed (xDeviceCharacteristics, (sqlite3_file *pFile), (cFile->old_vfs_file))
+def_subclassed (xShmMap, (sqlite3_file *pFile, gint iPg, gint pgsz, gint n, void volatile **arr), (cFile->old_vfs_file, iPg, pgsz, n, arr))
+def_subclassed (xShmLock, (sqlite3_file *pFile, gint offset, gint n, gint flags), (cFile->old_vfs_file, offset, n, flags))
+def_subclassed_void (xShmBarrier, (sqlite3_file *pFile), (cFile->old_vfs_file))
+def_subclassed (xShmUnmap, (sqlite3_file *pFile, gint deleteFlag), (cFile->old_vfs_file, deleteFlag))
+def_subclassed (xFetch, (sqlite3_file *pFile, sqlite3_int64 iOfst, int iAmt, void **pp), (cFile->old_vfs_file, iOfst, iAmt, pp))
+def_subclassed (xUnfetch, (sqlite3_file *pFile, sqlite3_int64 iOfst, void *p), (cFile->old_vfs_file, iOfst, p))
 
 #undef def_subclassed
 
@@ -231,7 +256,7 @@ camel_sqlite3_file_xClose (sqlite3_file *pFile)
 
 	cFile = (CamelSqlite3File *) pFile;
 
-	g_static_rec_mutex_lock (&cFile->sync_mutex);
+	g_rec_mutex_lock (&cFile->sync_mutex);
 
 	/* Cancel any pending sync requests. */
 	if (cFile->timeout_id > 0) {
@@ -239,7 +264,7 @@ camel_sqlite3_file_xClose (sqlite3_file *pFile)
 		cFile->timeout_id = 0;
 	}
 
-	g_static_rec_mutex_unlock (&cFile->sync_mutex);
+	g_rec_mutex_unlock (&cFile->sync_mutex);
 
 	/* Make the last sync. */
 	sync_push_request (cFile, TRUE);
@@ -252,7 +277,7 @@ camel_sqlite3_file_xClose (sqlite3_file *pFile)
 	g_free (cFile->old_vfs_file);
 	cFile->old_vfs_file = NULL;
 
-	g_static_rec_mutex_free (&cFile->sync_mutex);
+	g_rec_mutex_clear (&cFile->sync_mutex);
 
 	return res;
 }
@@ -268,7 +293,7 @@ camel_sqlite3_file_xSync (sqlite3_file *pFile,
 
 	cFile = (CamelSqlite3File *) pFile;
 
-	g_static_rec_mutex_lock (&cFile->sync_mutex);
+	g_rec_mutex_lock (&cFile->sync_mutex);
 
 	/* If a sync request is already scheduled, accumulate flags. */
 	cFile->flags |= flags;
@@ -281,8 +306,11 @@ camel_sqlite3_file_xSync (sqlite3_file *pFile,
 	cFile->timeout_id = g_timeout_add_seconds (
 		SYNC_TIMEOUT_SECONDS, (GSourceFunc)
 		sync_push_request_timeout, cFile);
+	g_source_set_name_by_id (
+		cFile->timeout_id,
+		"[camel] sync_push_request_timeout");
 
-	g_static_rec_mutex_unlock (&cFile->sync_mutex);
+	g_rec_mutex_unlock (&cFile->sync_mutex);
 
 	return SQLITE_OK;
 }
@@ -294,7 +322,7 @@ camel_sqlite3_vfs_xOpen (sqlite3_vfs *pVfs,
                          gint flags,
                          gint *pOutFlags)
 {
-	static GStaticRecMutex only_once_lock = G_STATIC_REC_MUTEX_INIT;
+	static GRecMutex only_once_lock;
 	static sqlite3_io_methods io_methods = {0};
 	CamelSqlite3File *cFile;
 	gint res;
@@ -311,9 +339,9 @@ camel_sqlite3_vfs_xOpen (sqlite3_vfs *pVfs,
 		return res;
 	}
 
-	g_static_rec_mutex_init (&cFile->sync_mutex);
+	g_rec_mutex_init (&cFile->sync_mutex);
 
-	g_static_rec_mutex_lock (&only_once_lock);
+	g_rec_mutex_lock (&only_once_lock);
 
 	if (!sync_pool)
 		sync_pool = g_thread_pool_new (sync_request_thread_cb, NULL, 2, FALSE, NULL);
@@ -343,10 +371,27 @@ camel_sqlite3_vfs_xOpen (sqlite3_vfs *pVfs,
 		use_subclassed (xFileControl);
 		use_subclassed (xSectorSize);
 		use_subclassed (xDeviceCharacteristics);
+
+		if (io_methods.iVersion > 1) {
+			use_subclassed (xShmMap);
+			use_subclassed (xShmLock);
+			use_subclassed (xShmBarrier);
+			use_subclassed (xShmUnmap);
+		}
+
+		if (io_methods.iVersion > 2) {
+			use_subclassed (xFetch);
+			use_subclassed (xUnfetch);
+		}
+
+		if (io_methods.iVersion > 3) {
+			g_warning ("%s: Unchecked IOMethods version %d, downgrading to version 3", G_STRFUNC, io_methods.iVersion);
+			io_methods.iVersion = 3;
+		}
 		#undef use_subclassed
 	}
 
-	g_static_rec_mutex_unlock (&only_once_lock);
+	g_rec_mutex_unlock (&only_once_lock);
 
 	cFile->parent.pMethods = &io_methods;
 
@@ -373,14 +418,48 @@ init_sqlite_vfs (void)
 }
 
 #define d(x) if (camel_debug("sqlite")) x
-#define START(stmt)	if (camel_debug("dbtime")) { g_print ("\n===========\nDB SQL operation [%s] started\n", stmt); if (!cdb->priv->timer) { cdb->priv->timer = g_timer_new (); } else { g_timer_reset(cdb->priv->timer);} }
-#define END	if (camel_debug("dbtime")) { g_timer_stop (cdb->priv->timer); g_print ("DB Operation ended. Time Taken : %f\n###########\n", g_timer_elapsed (cdb->priv->timer, NULL)); }
-#define STARTTS(stmt)	if (camel_debug("dbtimets")) { g_print ("\n===========\nDB SQL operation [%s] started\n", stmt); if (!cdb->priv->timer) { cdb->priv->timer = g_timer_new (); } else { g_timer_reset(cdb->priv->timer);} }
-#define ENDTS	if (camel_debug("dbtimets")) { g_timer_stop (cdb->priv->timer); g_print ("DB Operation ended. Time Taken : %f\n###########\n", g_timer_elapsed (cdb->priv->timer, NULL)); }
+#define START(stmt) \
+	if (camel_debug ("dbtime")) { \
+		g_print ( \
+			"\n===========\n" \
+			"DB SQL operation [%s] started\n", stmt); \
+		if (!cdb->priv->timer) { \
+			cdb->priv->timer = g_timer_new (); \
+		} else { \
+			g_timer_reset (cdb->priv->timer); \
+		} \
+	}
+#define END \
+	if (camel_debug ("dbtime")) { \
+		g_timer_stop (cdb->priv->timer); \
+		g_print ( \
+			"DB Operation ended. " \
+			"Time Taken : %f\n###########\n", \
+			g_timer_elapsed (cdb->priv->timer, NULL)); \
+	}
+#define STARTTS(stmt) \
+	if (camel_debug ("dbtimets")) { \
+		g_print ( \
+			"\n===========\n" \
+			"DB SQL operation [%s] started\n", stmt); \
+		if (!cdb->priv->timer) { \
+			cdb->priv->timer = g_timer_new (); \
+		} else { \
+			g_timer_reset (cdb->priv->timer); \
+		} \
+	}
+#define ENDTS \
+	if (camel_debug ("dbtimets")) { \
+		g_timer_stop (cdb->priv->timer); \
+		g_print ( \
+			"DB Operation ended. " \
+			"Time Taken : %f\n###########\n", \
+			g_timer_elapsed (cdb->priv->timer, NULL)); \
+	}
 
 struct _CamelDBPrivate {
 	GTimer *timer;
-	GStaticRWLock rwlock;
+	GRWLock rwlock;
 	gchar *file_name;
 	gboolean transaction_is_on;
 };
@@ -401,21 +480,29 @@ cdb_sql_exec (sqlite3 *db,
               GError **error)
 {
 	gchar *errmsg = NULL;
-	gint   ret = -1;
+	gint   ret = -1, retries = 0;
 
-	d(g_print("Camel SQL Exec:\n%s\n", stmt));
+	d (g_print ("Camel SQL Exec:\n%s\n", stmt));
 
 	ret = sqlite3_exec (db, stmt, callback, data, &errmsg);
 	while (ret == SQLITE_BUSY || ret == SQLITE_LOCKED || ret == -1) {
+		/* try for ~15 seconds, then give up */
+		if (retries > 150)
+			break;
+		retries++;
+
 		if (errmsg) {
 			sqlite3_free (errmsg);
 			errmsg = NULL;
 		}
+		g_thread_yield ();
+		g_usleep (100 * 1000); /* Sleep for 100 ms */
+
 		ret = sqlite3_exec (db, stmt, NULL, NULL, &errmsg);
 	}
 
 	if (ret != SQLITE_OK) {
-		d(g_print ("Error in SQL EXEC statement: %s [%s].\n", stmt, errmsg));
+		d (g_print ("Error in SQL EXEC statement: %s [%s].\n", stmt, errmsg));
 		g_set_error (
 			error, CAMEL_ERROR,
 			CAMEL_ERROR_GENERIC, "%s", errmsg);
@@ -504,7 +591,7 @@ camel_db_open (const gchar *path,
 		} else {
 			const gchar *errmsg;
 			errmsg = sqlite3_errmsg (db);
-			d(g_print("Can't open database %s: %s\n", path, errmsg));
+			d (g_print ("Can't open database %s: %s\n", path, errmsg));
 			g_set_error (
 				error, CAMEL_ERROR,
 				CAMEL_ERROR_GENERIC, "%s", errmsg);
@@ -517,24 +604,24 @@ camel_db_open (const gchar *path,
 	cdb->db = db;
 	cdb->priv = g_new (CamelDBPrivate, 1);
 	cdb->priv->file_name = g_strdup (path);
-	g_static_rw_lock_init (&cdb->priv->rwlock);
+	g_rw_lock_init (&cdb->priv->rwlock);
 	cdb->priv->timer = NULL;
-	d(g_print ("\nDatabase succesfully opened  \n"));
+	d (g_print ("\nDatabase succesfully opened  \n"));
 
 	sqlite3_create_function (db, "MATCH", 2, SQLITE_UTF8, NULL, cdb_match_func, NULL, NULL);
 
 	/* Which is big / costlier ? A Stack frame or a pointer */
-	if (g_getenv("CAMEL_SQLITE_DEFAULT_CACHE_SIZE")!=NULL) {
+	if (g_getenv ("CAMEL_SQLITE_DEFAULT_CACHE_SIZE") != NULL) {
 		gchar *cache = NULL;
 
-		cache = g_strdup_printf ("PRAGMA cache_size=%s", g_getenv("CAMEL_SQLITE_DEFAULT_CACHE_SIZE"));
+		cache = g_strdup_printf ("PRAGMA cache_size=%s", g_getenv ("CAMEL_SQLITE_DEFAULT_CACHE_SIZE"));
 		camel_db_command (cdb, cache, NULL);
 		g_free (cache);
 	}
 
 	camel_db_command (cdb, "ATTACH DATABASE ':memory:' AS mem", NULL);
 
-	if (g_getenv("CAMEL_SQLITE_IN_MEMORY") != NULL) {
+	if (g_getenv ("CAMEL_SQLITE_IN_MEMORY") != NULL) {
 		/* Optionally turn off Journaling, this gets over fsync issues, but could be risky */
 		camel_db_command (cdb, "PRAGMA main.journal_mode = off", NULL);
 		camel_db_command (cdb, "PRAGMA temp_store = memory", NULL);
@@ -567,11 +654,11 @@ camel_db_close (CamelDB *cdb)
 {
 	if (cdb) {
 		sqlite3_close (cdb->db);
-		g_static_rw_lock_free (&cdb->priv->rwlock);
+		g_rw_lock_clear (&cdb->priv->rwlock);
 		g_free (cdb->priv->file_name);
 		g_free (cdb->priv);
 		g_free (cdb);
-		d(g_print ("\nDatabase succesfully closed \n"));
+		d (g_print ("\nDatabase succesfully closed \n"));
 	}
 }
 
@@ -592,7 +679,7 @@ camel_db_set_collate (CamelDB *cdb,
 			return 0;
 
 		WRITER_LOCK (cdb);
-		d(g_print("Creating Collation %s on %s with %p\n", collate, col, (gpointer) func));
+		d (g_print ("Creating Collation %s on %s with %p\n", collate, col, (gpointer) func));
 		if (collate && func)
 			ret = sqlite3_create_collation (cdb->db, collate, SQLITE_UTF8,  NULL, func);
 		WRITER_UNLOCK (cdb);
@@ -639,7 +726,7 @@ camel_db_begin_transaction (CamelDB *cdb,
 		return -1;
 
 	WRITER_LOCK (cdb);
-	STARTTS("BEGIN");
+	STARTTS ("BEGIN");
 
 	cdb->priv->transaction_is_on = TRUE;
 
@@ -725,7 +812,7 @@ camel_db_transaction_command (CamelDB *cdb,
 
 	WRITER_LOCK (cdb);
 
-	STARTTS("BEGIN");
+	STARTTS ("BEGIN");
 	ret = cdb_sql_exec (cdb->db, "BEGIN", NULL, NULL, error);
 	if (ret)
 		goto end;
@@ -754,7 +841,7 @@ count_cb (gpointer data,
 	gint i;
 
 	for (i = 0; i < argc; i++) {
-		if (strstr(azColName[i], "COUNT")) {
+		if (strstr (azColName[i], "COUNT")) {
 			*(guint32 *)data = argv [i] ? strtoul (argv [i], NULL, 10) : 0;
 		}
 	}
@@ -981,7 +1068,7 @@ camel_db_select (CamelDB *cdb,
 	if (!cdb)
 		return ret;
 
-	d(g_print ("\n%s:\n%s \n", G_STRFUNC, stmt));
+	d (g_print ("\n%s:\n%s \n", G_STRFUNC, stmt));
 	READER_LOCK (cdb);
 
 	START (stmt);
@@ -990,103 +1077,6 @@ camel_db_select (CamelDB *cdb,
 
 	READER_UNLOCK (cdb);
 	CAMEL_DB_RELEASE_SQLITE_MEMORY;
-
-	return ret;
-}
-
-/**
- * camel_db_create_vfolder:
- *
- * Since: 2.24
- **/
-gint
-camel_db_create_vfolder (CamelDB *db,
-                         const gchar *folder_name,
-                         GError **error)
-{
-	gint ret;
-	gchar *table_creation_query, *safe_index;
-
-	table_creation_query = sqlite3_mprintf ("CREATE TABLE IF NOT EXISTS %Q (  vuid TEXT PRIMARY KEY)", folder_name);
-
-	ret = camel_db_command (db, table_creation_query, error);
-
-	sqlite3_free (table_creation_query);
-
-	safe_index = g_strdup_printf("VINDEX-%s", folder_name);
-	table_creation_query = sqlite3_mprintf ("CREATE INDEX IF NOT EXISTS %Q ON %Q (vuid)", safe_index, folder_name);
-	ret = camel_db_command (db, table_creation_query, error);
-
-	sqlite3_free (table_creation_query);
-	g_free (safe_index);
-	CAMEL_DB_RELEASE_SQLITE_MEMORY;
-
-	return ret;
-}
-
-/**
- * camel_db_recreate_vfolder:
- *
- * Since: 2.24
- **/
-gint
-camel_db_recreate_vfolder (CamelDB *db,
-                           const gchar *folder_name,
-                           GError **error)
-{
-	gchar *table_query;
-
-	table_query = sqlite3_mprintf ("DROP TABLE %Q", folder_name);
-
-	camel_db_command (db, table_query, error);
-
-	sqlite3_free (table_query);
-
-	return camel_db_create_vfolder (db, folder_name, error);
-}
-
-/**
- * camel_db_delete_uid_from_vfolder:
- *
- * Since: 2.24
- **/
-gint
-camel_db_delete_uid_from_vfolder (CamelDB *db,
-                                  gchar *folder_name,
-                                  gchar *vuid,
-                                  GError **error)
-{
-	 gchar *del_query;
-	 gint ret;
-
-	 del_query = sqlite3_mprintf ("DELETE FROM %Q WHERE vuid = %Q", folder_name, vuid);
-
-	 ret = camel_db_command (db, del_query, error);
-
-	 sqlite3_free (del_query);
-	 CAMEL_DB_RELEASE_SQLITE_MEMORY;
-	 return ret;
-}
-
-/**
- * camel_db_delete_uid_from_vfolder_transaction:
- *
- * Since: 2.24
- **/
-gint
-camel_db_delete_uid_from_vfolder_transaction (CamelDB *db,
-                                              const gchar *folder_name,
-                                              const gchar *vuid,
-                                              GError **error)
-{
-	gchar *del_query;
-	gint ret;
-
-	del_query = sqlite3_mprintf ("DELETE FROM %Q WHERE vuid = %Q", folder_name, vuid);
-
-	ret = camel_db_add_to_transaction (db, del_query, error);
-
-	sqlite3_free (del_query);
 
 	return ret;
 }
@@ -1141,7 +1131,13 @@ camel_db_get_folder_uids (CamelDB *db,
 	 gchar *sel_query;
 	 gint ret;
 
-	 sel_query = sqlite3_mprintf("SELECT uid,flags FROM %Q%s%s%s%s", folder_name, sort_by ? " order by " : "", sort_by ? sort_by: "", (sort_by && collate) ? " collate " : "", (sort_by && collate) ? collate : "");
+		sel_query = sqlite3_mprintf (
+		"SELECT uid,flags FROM %Q%s%s%s%s",
+		folder_name,
+		sort_by ? " order by " : "",
+		sort_by ? sort_by : "",
+		(sort_by && collate) ? " collate " : "",
+		(sort_by && collate) ? collate : "");
 
 	 ret = camel_db_select (db, sel_query, read_uids_to_hash_callback, hash, error);
 	 sqlite3_free (sel_query);
@@ -1163,7 +1159,7 @@ camel_db_get_folder_junk_uids (CamelDB *db,
 	 gint ret;
 	 GPtrArray *array = g_ptr_array_new ();
 
-	 sel_query = sqlite3_mprintf("SELECT uid FROM %Q where junk=1", folder_name);
+	 sel_query = sqlite3_mprintf ("SELECT uid FROM %Q where junk=1", folder_name);
 
 	 ret = camel_db_select (db, sel_query, read_uids_callback, array, error);
 
@@ -1190,7 +1186,7 @@ camel_db_get_folder_deleted_uids (CamelDB *db,
 	 gint ret;
 	 GPtrArray *array = g_ptr_array_new ();
 
-	 sel_query = sqlite3_mprintf("SELECT uid FROM %Q where deleted=1", folder_name);
+	 sel_query = sqlite3_mprintf ("SELECT uid FROM %Q where deleted=1", folder_name);
 
 	 ret = camel_db_select (db, sel_query, read_uids_callback, array, error);
 	 sqlite3_free (sel_query);
@@ -1291,109 +1287,12 @@ camel_db_write_preview_record (CamelDB *db,
 	gchar *query;
 	gint ret;
 
-	query = sqlite3_mprintf("INSERT OR REPLACE INTO '%q_preview' VALUES(%Q,%Q)", folder_name, uid, msg);
+	query = sqlite3_mprintf ("INSERT OR REPLACE INTO '%q_preview' VALUES(%Q,%Q)", folder_name, uid, msg);
 
 	ret = camel_db_add_to_transaction (db, query, error);
 	sqlite3_free (query);
 
 	return ret;
-}
-
-static gint
-read_vuids_callback (gpointer ref,
-                     gint ncol,
-                     gchar **cols,
-                     gchar **name)
-{
-	GPtrArray *array = (GPtrArray *) ref;
-
-	if (cols[0] && strlen (cols[0]) > 8)
-		g_ptr_array_add (array, (gchar *) (camel_pstring_strdup (cols[0]+8)));
-
-	return 0;
-}
-
-/**
- * camel_db_get_vuids_from_vfolder:
- *
- * Since: 2.24
- **/
-GPtrArray *
-camel_db_get_vuids_from_vfolder (CamelDB *db,
-                                 const gchar *folder_name,
-                                 gchar *filter,
-                                 GError **error)
-{
-	 gchar *sel_query;
-	 gchar *cond = NULL;
-	 GPtrArray *array;
-	 gchar *tmp = g_strdup_printf("%s%%", filter ? filter:"");
-	 if (filter)
-		  cond = sqlite3_mprintf(" WHERE vuid LIKE %Q", tmp);
-	 g_free (tmp);
-	 sel_query = sqlite3_mprintf("SELECT vuid FROM %Q%s", folder_name, filter ? cond : "");
-
-	 if (cond)
-		  sqlite3_free (cond);
-	 /* FIXME[disk-summary] handle return values */
-	 /* FIXME[disk-summary] No The caller should parse the ex in case
-	 *                      of NULL returns */
-	 array = g_ptr_array_new ();
-	 camel_db_select (db, sel_query, read_vuids_callback, array, error);
-	 sqlite3_free (sel_query);
-	 /* We make sure to return NULL if we don't get anything. Be good to your caller */
-	 if (!array->len) {
-		  g_ptr_array_free (array, TRUE);
-		  array = NULL;
-	 }
-
-	 return array;
-}
-
-/**
- * camel_db_add_to_vfolder:
- *
- * Since: 2.24
- **/
-gint
-camel_db_add_to_vfolder (CamelDB *db,
-                         gchar *folder_name,
-                         gchar *vuid,
-                         GError **error)
-{
-	 gchar *ins_query;
-	 gint ret;
-
-	 ins_query = sqlite3_mprintf ("INSERT INTO %Q VALUES (%Q)", folder_name, vuid);
-
-	 ret = camel_db_command (db, ins_query, error);
-
-	 sqlite3_free (ins_query);
-	 CAMEL_DB_RELEASE_SQLITE_MEMORY;
-	 return ret;
-}
-
-/**
- * camel_db_add_to_vfolder_transaction:
- *
- * Since: 2.24
- **/
-gint
-camel_db_add_to_vfolder_transaction (CamelDB *db,
-                                     const gchar *folder_name,
-                                     const gchar *vuid,
-                                     GError **error)
-{
-	 gchar *ins_query;
-	 gint ret;
-
-	 ins_query = sqlite3_mprintf ("INSERT INTO %Q VALUES (%Q)", folder_name, vuid);
-
-	 ret = camel_db_add_to_transaction (db, ins_query, error);
-
-	 sqlite3_free (ins_query);
-
-	 return ret;
 }
 
 /**
@@ -1405,7 +1304,19 @@ gint
 camel_db_create_folders_table (CamelDB *cdb,
                                GError **error)
 {
-	const gchar *query = "CREATE TABLE IF NOT EXISTS folders ( folder_name TEXT PRIMARY KEY, version REAL, flags INTEGER, nextuid INTEGER, time NUMERIC, saved_count INTEGER, unread_count INTEGER, deleted_count INTEGER, junk_count INTEGER, visible_count INTEGER, jnd_count INTEGER, bdata TEXT )";
+	const gchar *query = "CREATE TABLE IF NOT EXISTS folders ( "
+		"folder_name TEXT PRIMARY KEY, "
+		"version REAL, "
+		"flags INTEGER, "
+		"nextuid INTEGER, "
+		"time NUMERIC, "
+		"saved_count INTEGER, "
+		"unread_count INTEGER, "
+		"deleted_count INTEGER, "
+		"junk_count INTEGER, "
+		"visible_count INTEGER, "
+		"jnd_count INTEGER, "
+		"bdata TEXT )";
 	CAMEL_DB_RELEASE_SQLITE_MEMORY;
 	return ((camel_db_command (cdb, query, error)));
 }
@@ -1418,12 +1329,50 @@ camel_db_create_message_info_table (CamelDB *cdb,
 	gint ret;
 	gchar *table_creation_query, *safe_index;
 
-	/* README: It is possible to compress all system flags into a single column and use just as userflags but that makes querying for other applications difficult an d bloats the parsing code. Instead, it is better to bloat the tables. Sqlite should have some optimizations for sparse columns etc. */
-	table_creation_query = sqlite3_mprintf ("CREATE TABLE IF NOT EXISTS %Q (  uid TEXT PRIMARY KEY , flags INTEGER , msg_type INTEGER , read INTEGER , deleted INTEGER , replied INTEGER , important INTEGER , junk INTEGER , attachment INTEGER , dirty INTEGER , size INTEGER , dsent NUMERIC , dreceived NUMERIC , subject TEXT , mail_from TEXT , mail_to TEXT , mail_cc TEXT , mlist TEXT , followup_flag TEXT , followup_completed_on TEXT , followup_due_by TEXT , part TEXT , labels TEXT , usertags TEXT , cinfo TEXT , bdata TEXT, created TEXT, modified TEXT)", folder_name);
+	/* README: It is possible to compress all system flags into a single
+	 * column and use just as userflags but that makes querying for other
+	 * applications difficult and bloats the parsing code. Instead, it is
+	 * better to bloat the tables. Sqlite should have some optimizations
+	 * for sparse columns etc. */
+	table_creation_query = sqlite3_mprintf (
+		"CREATE TABLE IF NOT EXISTS %Q ( "
+			"uid TEXT PRIMARY KEY , "
+			"flags INTEGER , "
+			"msg_type INTEGER , "
+			"read INTEGER , "
+			"deleted INTEGER , "
+			"replied INTEGER , "
+			"important INTEGER , "
+			"junk INTEGER , "
+			"attachment INTEGER , "
+			"dirty INTEGER , "
+			"size INTEGER , "
+			"dsent NUMERIC , "
+			"dreceived NUMERIC , "
+			"subject TEXT , "
+			"mail_from TEXT , "
+			"mail_to TEXT , "
+			"mail_cc TEXT , "
+			"mlist TEXT , "
+			"followup_flag TEXT , "
+			"followup_completed_on TEXT , "
+			"followup_due_by TEXT , "
+			"part TEXT , "
+			"labels TEXT , "
+			"usertags TEXT , "
+			"cinfo TEXT , "
+			"bdata TEXT, "
+			"created TEXT, "
+			"modified TEXT)",
+			folder_name);
 	ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 	sqlite3_free (table_creation_query);
 
-	table_creation_query = sqlite3_mprintf ("CREATE TABLE IF NOT EXISTS '%q_bodystructure' (  uid TEXT PRIMARY KEY , bodystructure TEXT )", folder_name);
+	table_creation_query = sqlite3_mprintf (
+		"CREATE TABLE IF NOT EXISTS '%q_bodystructure' ( "
+			"uid TEXT PRIMARY KEY , "
+			"bodystructure TEXT )",
+			folder_name);
 	ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 	sqlite3_free (table_creation_query);
 
@@ -1433,35 +1382,35 @@ camel_db_create_message_info_table (CamelDB *cdb,
 	sqlite3_free (table_creation_query);
 
 	/* FIXME: sqlize folder_name before you create the index */
-	safe_index = g_strdup_printf("SINDEX-%s", folder_name);
+	safe_index = g_strdup_printf ("SINDEX-%s", folder_name);
 	table_creation_query = sqlite3_mprintf ("DROP INDEX IF EXISTS %Q", safe_index);
 	ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 	g_free (safe_index);
 	sqlite3_free (table_creation_query);
 
 	/* INDEX on preview */
-	safe_index = g_strdup_printf("SINDEX-%s-preview", folder_name);
+	safe_index = g_strdup_printf ("SINDEX-%s-preview", folder_name);
 	table_creation_query = sqlite3_mprintf ("CREATE INDEX IF NOT EXISTS %Q ON '%q_preview' (uid, preview)", safe_index, folder_name);
 	ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 	g_free (safe_index);
 	sqlite3_free (table_creation_query);
 
 	/* Index on deleted*/
-	safe_index = g_strdup_printf("DELINDEX-%s", folder_name);
+	safe_index = g_strdup_printf ("DELINDEX-%s", folder_name);
 	table_creation_query = sqlite3_mprintf ("CREATE INDEX IF NOT EXISTS %Q ON %Q (deleted)", safe_index, folder_name);
 	ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 	g_free (safe_index);
 	sqlite3_free (table_creation_query);
 
 	/* Index on Junk*/
-	safe_index = g_strdup_printf("JUNKINDEX-%s", folder_name);
+	safe_index = g_strdup_printf ("JUNKINDEX-%s", folder_name);
 	table_creation_query = sqlite3_mprintf ("CREATE INDEX IF NOT EXISTS %Q ON %Q (junk)", safe_index, folder_name);
 	ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 	g_free (safe_index);
 	sqlite3_free (table_creation_query);
 
 	/* Index on unread*/
-	safe_index = g_strdup_printf("READINDEX-%s", folder_name);
+	safe_index = g_strdup_printf ("READINDEX-%s", folder_name);
 	table_creation_query = sqlite3_mprintf ("CREATE INDEX IF NOT EXISTS %Q ON %Q (read)", safe_index, folder_name);
 	ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 	g_free (safe_index);
@@ -1493,11 +1442,51 @@ camel_db_migrate_folder_prepare (CamelDB *cdb,
 		ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 		sqlite3_free (table_creation_query);
 
-		table_creation_query = sqlite3_mprintf ("CREATE TEMP TABLE IF NOT EXISTS 'mem.%q' (  uid TEXT PRIMARY KEY , flags INTEGER , msg_type INTEGER , read INTEGER , deleted INTEGER , replied INTEGER , important INTEGER , junk INTEGER , attachment INTEGER , dirty INTEGER , size INTEGER , dsent NUMERIC , dreceived NUMERIC , subject TEXT , mail_from TEXT , mail_to TEXT , mail_cc TEXT , mlist TEXT , followup_flag TEXT , followup_completed_on TEXT , followup_due_by TEXT , part TEXT , labels TEXT , usertags TEXT , cinfo TEXT , bdata TEXT, created TEXT, modified TEXT )", folder_name);
+		table_creation_query = sqlite3_mprintf (
+			"CREATE TEMP TABLE IF NOT EXISTS 'mem.%q' ( "
+				"uid TEXT PRIMARY KEY , "
+				"flags INTEGER , "
+				"msg_type INTEGER , "
+				"read INTEGER , "
+				"deleted INTEGER , "
+				"replied INTEGER , "
+				"important INTEGER , "
+				"junk INTEGER , "
+				"attachment INTEGER , "
+				"dirty INTEGER , "
+				"size INTEGER , "
+				"dsent NUMERIC , "
+				"dreceived NUMERIC , "
+				"subject TEXT , "
+				"mail_from TEXT , "
+				"mail_to TEXT , "
+				"mail_cc TEXT , "
+				"mlist TEXT , "
+				"followup_flag TEXT , "
+				"followup_completed_on TEXT , "
+				"followup_due_by TEXT , "
+				"part TEXT , "
+				"labels TEXT , "
+				"usertags TEXT , "
+				"cinfo TEXT , "
+				"bdata TEXT, "
+				"created TEXT, "
+				"modified TEXT )",
+				folder_name);
 		ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 		sqlite3_free (table_creation_query);
 
-		table_creation_query = sqlite3_mprintf ("INSERT INTO 'mem.%q' SELECT uid , flags , msg_type , read , deleted , replied , important , junk , attachment , dirty , size , dsent , dreceived , subject , mail_from , mail_to , mail_cc , mlist , followup_flag , followup_completed_on , followup_due_by , part , labels , usertags , cinfo , bdata , strftime(\"%%s\", 'now'), strftime(\"%%s\", 'now') FROM %Q", folder_name, folder_name);
+		table_creation_query = sqlite3_mprintf (
+			"INSERT INTO 'mem.%q' SELECT "
+			"uid , flags , msg_type , read , deleted , "
+			"replied , important , junk , attachment , dirty , "
+			"size , dsent , dreceived , subject , mail_from , "
+			"mail_to , mail_cc , mlist , followup_flag , "
+			"followup_completed_on , followup_due_by , "
+			"part , labels , usertags , cinfo , bdata , "
+			"strftime(\"%%s\", 'now'), "
+			"strftime(\"%%s\", 'now') FROM %Q",
+			folder_name, folder_name);
 		ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 		sqlite3_free (table_creation_query);
 
@@ -1528,7 +1517,15 @@ camel_db_migrate_folder_recreate (CamelDB *cdb,
 	if (version < 2) {
 		GError *local_error = NULL;
 
-		table_creation_query = sqlite3_mprintf ("INSERT INTO %Q SELECT uid , flags , msg_type , read , deleted , replied , important , junk , attachment , dirty , size , dsent , dreceived , subject , mail_from , mail_to , mail_cc , mlist , followup_flag , followup_completed_on , followup_due_by , part , labels , usertags , cinfo , bdata, created, modified FROM 'mem.%q'", folder_name, folder_name);
+		table_creation_query = sqlite3_mprintf (
+			"INSERT INTO %Q SELECT uid , flags , msg_type , "
+			"read , deleted , replied , important , junk , "
+			"attachment , dirty , size , dsent , dreceived , "
+			"subject , mail_from , mail_to , mail_cc , mlist , "
+			"followup_flag , followup_completed_on , "
+			"followup_due_by , part , labels , usertags , "
+			"cinfo , bdata, created, modified FROM 'mem.%q'",
+			folder_name, folder_name);
 		ret = camel_db_add_to_transaction (cdb, table_creation_query, &local_error);
 		sqlite3_free (table_creation_query);
 
@@ -1705,45 +1702,59 @@ write_mir (CamelDB *cdb,
 	/*char *del_query;*/
 	gchar *ins_query;
 
+	if (!record) {
+		g_warn_if_reached ();
+		return -1;
+	}
+
 	/* FIXME: We should migrate from this DELETE followed by INSERT model to an INSERT OR REPLACE model as pointed out by pvanhoof */
 
 	/* NB: UGLIEST Hack. We can't modify the schema now. We are using dirty (an unsed one to notify of FLAGGED/Dirty infos */
 
-	ins_query = sqlite3_mprintf ("INSERT OR REPLACE INTO %Q VALUES (%Q, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %lld, %lld, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, strftime(\"%%s\", 'now'), strftime(\"%%s\", 'now') )",
-			folder_name, record->uid, record->flags,
-			record->msg_type, record->read, record->deleted, record->replied,
-			record->important, record->junk, record->attachment, record->dirty,
-			record->size, (gint64) record->dsent, (gint64) record->dreceived,
-			record->subject, record->from, record->to,
-			record->cc, record->mlist, record->followup_flag,
-			record->followup_completed_on, record->followup_due_by,
-			record->part, record->labels, record->usertags,
-			record->cinfo, record->bdata);
+	ins_query = sqlite3_mprintf (
+		"INSERT OR REPLACE INTO %Q VALUES ("
+		"%Q, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
+		"%lld, %lld, %Q, %Q, %Q, %Q, %Q, %Q, %Q, %Q, "
+		"%Q, %Q, %Q, %Q, %Q, "
+		"strftime(\"%%s\", 'now'), "
+		"strftime(\"%%s\", 'now') )",
+		folder_name,
+		record->uid,
+		record->flags,
+		record->msg_type,
+		record->read,
+		record->deleted,
+		record->replied,
+		record->important,
+		record->junk,
+		record->attachment,
+		record->dirty,
+		record->size,
+		(gint64) record->dsent,
+		(gint64) record->dreceived,
+		record->subject,
+		record->from,
+		record->to,
+		record->cc,
+		record->mlist,
+		record->followup_flag,
+		record->followup_completed_on,
+		record->followup_due_by,
+		record->part,
+		record->labels,
+		record->usertags,
+		record->cinfo,
+		record->bdata);
 
-	/* if (delete_old_record)
-			del_query = sqlite3_mprintf ("DELETE FROM %Q WHERE uid = %Q", folder_name, record->uid); */
-
-#if 0
-	gchar *upd_query;
-
-	upd_query = g_strdup_printf ("IMPLEMENT AND THEN TRY");
-	camel_db_command (cdb, upd_query, ex);
-	g_free (upd_query);
-#else
-
-	/* if (delete_old_record)
-			ret = camel_db_add_to_transaction (cdb, del_query, ex); */
 	ret = camel_db_add_to_transaction (cdb, ins_query, error);
 
-#endif
-
-	/* if (delete_old_record)
-			sqlite3_free (del_query); */
 	sqlite3_free (ins_query);
 
 	if (ret == 0) {
-		ins_query = sqlite3_mprintf ("INSERT OR REPLACE INTO '%q_bodystructure' VALUES (%Q, %Q )",
-				folder_name, record->uid, record->bodystructure);
+		ins_query = sqlite3_mprintf (
+			"INSERT OR REPLACE INTO "
+			"'%q_bodystructure' VALUES (%Q, %Q )",
+			folder_name, record->uid, record->bodystructure);
 		ret = camel_db_add_to_transaction (cdb, ins_query, error);
 		sqlite3_free (ins_query);
 	}
@@ -1794,26 +1805,28 @@ camel_db_write_folder_info_record (CamelDB *cdb,
 	gchar *del_query;
 	gchar *ins_query;
 
-	ins_query = sqlite3_mprintf ("INSERT INTO folders VALUES ( %Q, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %Q ) ",
-			record->folder_name, record->version,
-								 record->flags, record->nextuid, record->time,
-			record->saved_count, record->unread_count,
-								 record->deleted_count, record->junk_count, record->visible_count, record->jnd_count, record->bdata);
+	ins_query = sqlite3_mprintf (
+		"INSERT INTO folders VALUES ("
+		"%Q, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %Q ) ",
+		record->folder_name,
+		record->version,
+		record->flags,
+		record->nextuid,
+		record->time,
+		record->saved_count,
+		record->unread_count,
+		record->deleted_count,
+		record->junk_count,
+		record->visible_count,
+		record->jnd_count,
+		record->bdata);
 
-	del_query = sqlite3_mprintf ("DELETE FROM folders WHERE folder_name = %Q", record->folder_name);
-
-#if 0
-	gchar *upd_query;
-
-	upd_query = g_strdup_printf ("UPDATE folders SET version = %d, flags = %d, nextuid = %d, time = 143, saved_count = %d, unread_count = %d, deleted_count = %d, junk_count = %d, bdata = %s, WHERE folder_name = %Q", record->version, record->flags, record->nextuid, record->saved_count, record->unread_count, record->deleted_count, record->junk_count, "PROVIDER SPECIFIC DATA", record->folder_name );
-	camel_db_command (cdb, upd_query, ex);
-	g_free (upd_query);
-#else
+	del_query = sqlite3_mprintf (
+		"DELETE FROM folders WHERE folder_name = %Q",
+		record->folder_name);
 
 	ret = camel_db_add_to_transaction (cdb, del_query, error);
 	ret = camel_db_add_to_transaction (cdb, ins_query, error);
-
-#endif
 
 	sqlite3_free (del_query);
 	sqlite3_free (ins_query);
@@ -1821,8 +1834,7 @@ camel_db_write_folder_info_record (CamelDB *cdb,
 	return ret;
 }
 
-struct ReadFirData
-{
+struct ReadFirData {
 	GHashTable *columns_hash;
 	CamelFIRecord *record;
 };
@@ -1836,7 +1848,7 @@ read_fir_callback (gpointer ref,
 	struct ReadFirData *rfd = ref;
 	gint i;
 
-	d(g_print ("\nread_fir_callback called \n"));
+	d (g_print ("\nread_fir_callback called \n"));
 
 	for (i = 0; i < ncol; ++i) {
 		if (!name[i] || !cols[i])
@@ -1932,7 +1944,11 @@ camel_db_read_message_info_record_with_uid (CamelDB *cdb,
 	gchar *query;
 	gint ret;
 
-	query = sqlite3_mprintf ("SELECT uid, flags, size, dsent, dreceived, subject, mail_from, mail_to, mail_cc, mlist, part, labels, usertags, cinfo, bdata FROM %Q WHERE uid = %Q", folder_name, uid);
+	query = sqlite3_mprintf (
+		"SELECT uid, flags, size, dsent, dreceived, subject, "
+		"mail_from, mail_to, mail_cc, mlist, part, labels, "
+		"usertags, cinfo, bdata FROM %Q WHERE uid = %Q",
+		folder_name, uid);
 	ret = camel_db_select (cdb, query, read_mir_callback, p, error);
 	sqlite3_free (query);
 
@@ -1954,7 +1970,10 @@ camel_db_read_message_info_records (CamelDB *cdb,
 	gchar *query;
 	gint ret;
 
-	query = sqlite3_mprintf ("SELECT uid, flags, size, dsent, dreceived, subject, mail_from, mail_to, mail_cc, mlist, part, labels, usertags, cinfo, bdata FROM %Q ", folder_name);
+	query = sqlite3_mprintf (
+		"SELECT uid, flags, size, dsent, dreceived, subject, "
+		"mail_from, mail_to, mail_cc, mlist, part, labels, "
+		"usertags, cinfo, bdata FROM %Q ", folder_name);
 	ret = camel_db_select (cdb, query, read_mir_callback, p, error);
 	sqlite3_free (query);
 
@@ -1972,7 +1991,12 @@ camel_db_create_deleted_table (CamelDB *cdb,
 {
 	gint ret;
 	gchar *table_creation_query;
-	table_creation_query = sqlite3_mprintf ("CREATE TABLE IF NOT EXISTS Deletes (id INTEGER primary key AUTOINCREMENT not null, uid TEXT, time TEXT, mailbox TEXT)");
+	table_creation_query = sqlite3_mprintf (
+		"CREATE TABLE IF NOT EXISTS Deletes ("
+			"id INTEGER primary key AUTOINCREMENT not null, "
+			"uid TEXT, "
+			"time TEXT, "
+			"mailbox TEXT)");
 	ret = camel_db_add_to_transaction (cdb, table_creation_query, error);
 	sqlite3_free (table_creation_query);
 	return ret;
@@ -2009,7 +2033,10 @@ camel_db_delete_uid (CamelDB *cdb,
 
 	ret = camel_db_create_deleted_table (cdb, error);
 
-	tab = sqlite3_mprintf ("INSERT OR REPLACE INTO Deletes (uid, mailbox, time) SELECT uid, %Q, strftime(\"%%s\", 'now') FROM %Q WHERE uid = %Q", folder, folder, uid);
+	tab = sqlite3_mprintf (
+		"INSERT OR REPLACE INTO Deletes (uid, mailbox, time) "
+		"SELECT uid, %Q, strftime(\"%%s\", 'now') FROM %Q "
+		"WHERE uid = %Q", folder, folder, uid);
 	ret = camel_db_add_to_transaction (cdb, tab, error);
 	sqlite3_free (tab);
 
@@ -2066,7 +2093,7 @@ cdb_delete_ids (CamelDB *cdb,
 	iterator = uids;
 
 	while (iterator) {
-		gchar *foo = g_strdup_printf("%s%s", uid_prefix, (gchar *) iterator->data);
+		gchar *foo = g_strdup_printf ("%s%s", uid_prefix, (gchar *) iterator->data);
 		tmp = sqlite3_mprintf ("%Q", foo);
 		g_free (foo);
 		iterator = iterator->next;
@@ -2123,21 +2150,6 @@ camel_db_delete_uids (CamelDB *cdb,
 }
 
 /**
- * camel_db_delete_vuids:
- *
- * Since: 2.26
- **/
-gint
-camel_db_delete_vuids (CamelDB *cdb,
-                       const gchar *folder_name,
-                       const gchar *hash,
-                       GList *uids,
-                       GError **error)
-{
-	return cdb_delete_ids (cdb, folder_name, uids, hash, "vuid", error);
-}
-
-/**
  * camel_db_clear_folder_summary:
  *
  * Since: 2.24
@@ -2162,7 +2174,10 @@ camel_db_clear_folder_summary (CamelDB *cdb,
 
 	ret = camel_db_create_deleted_table (cdb, error);
 
-	tab = sqlite3_mprintf ("INSERT OR REPLACE INTO Deletes (uid, mailbox, time) SELECT uid, %Q, strftime(\"%%s\", 'now') FROM %Q", folder, folder);
+	tab = sqlite3_mprintf (
+		"INSERT OR REPLACE INTO Deletes (uid, mailbox, time) "
+		"SELECT uid, %Q, strftime(\"%%s\", 'now') FROM %Q",
+		folder, folder);
 	ret = camel_db_add_to_transaction (cdb, tab, error);
 	sqlite3_free (tab);
 
@@ -2199,7 +2214,10 @@ camel_db_delete_folder (CamelDB *cdb,
 
 	ret = camel_db_create_deleted_table (cdb, error);
 
-	tab = sqlite3_mprintf ("INSERT OR REPLACE INTO Deletes (uid, mailbox, time) SELECT uid, %Q, strftime(\"%%s\", 'now') FROM %Q", folder, folder);
+	tab = sqlite3_mprintf (
+		"INSERT OR REPLACE INTO Deletes (uid, mailbox, time) "
+		"SELECT uid, %Q, strftime(\"%%s\", 'now') FROM %Q",
+		folder, folder);
 	ret = camel_db_add_to_transaction (cdb, tab, error);
 	sqlite3_free (tab);
 
@@ -2241,7 +2259,10 @@ camel_db_rename_folder (CamelDB *cdb,
 
 	ret = camel_db_create_deleted_table (cdb, error);
 
-	tab = sqlite3_mprintf ("INSERT OR REPLACE INTO Deletes (uid, mailbox, time) SELECT uid, %Q, strftime(\"%%s\", 'now') FROM %Q", old_folder, old_folder);
+	tab = sqlite3_mprintf (
+		"INSERT OR REPLACE INTO Deletes (uid, mailbox, time) "
+		"SELECT uid, %Q, strftime(\"%%s\", 'now') FROM %Q",
+		old_folder, old_folder);
 	ret = camel_db_add_to_transaction (cdb, tab, error);
 	sqlite3_free (tab);
 
@@ -2369,9 +2390,9 @@ camel_db_get_column_name (const gchar *raw_name)
 		return g_strdup ("attachment");
 	else if (!g_ascii_strcasecmp (raw_name, "x-camel-mlist"))
 		return g_strdup ("mlist");
-	else
-		return g_strdup (raw_name);
 
+	/* indicate the header name is not part of the summary */
+	return NULL;
 }
 
 /**
@@ -2389,7 +2410,35 @@ camel_db_start_in_memory_transactions (CamelDB *cdb,
 	ret = camel_db_command (cdb, cmd, error);
 	sqlite3_free (cmd);
 
-	cmd = sqlite3_mprintf ("CREATE TEMPORARY TABLE %Q (  uid TEXT PRIMARY KEY , flags INTEGER , msg_type INTEGER , read INTEGER , deleted INTEGER , replied INTEGER , important INTEGER , junk INTEGER , attachment INTEGER , dirty INTEGER , size INTEGER , dsent NUMERIC , dreceived NUMERIC , subject TEXT , mail_from TEXT , mail_to TEXT , mail_cc TEXT , mlist TEXT , followup_flag TEXT , followup_completed_on TEXT , followup_due_by TEXT , part TEXT , labels TEXT , usertags TEXT , cinfo TEXT , bdata TEXT )", CAMEL_DB_IN_MEMORY_TABLE);
+	cmd = sqlite3_mprintf (
+		"CREATE TEMPORARY TABLE %Q ( "
+			"uid TEXT PRIMARY KEY , "
+			"flags INTEGER , "
+			"msg_type INTEGER , "
+			"read INTEGER , "
+			"deleted INTEGER , "
+			"replied INTEGER , "
+			"important INTEGER , "
+			"junk INTEGER , "
+			"attachment INTEGER , "
+			"dirty INTEGER , "
+			"size INTEGER , "
+			"dsent NUMERIC , "
+			"dreceived NUMERIC , "
+			"subject TEXT , "
+			"mail_from TEXT , "
+			"mail_to TEXT , "
+			"mail_cc TEXT , "
+			"mlist TEXT , "
+			"followup_flag TEXT , "
+			"followup_completed_on TEXT , "
+			"followup_due_by TEXT , "
+			"part TEXT , "
+			"labels TEXT , "
+			"usertags TEXT , "
+			"cinfo TEXT , "
+			"bdata TEXT )",
+		CAMEL_DB_IN_MEMORY_TABLE);
 	ret = camel_db_command (cdb, cmd, error);
 	if (ret != 0 )
 		abort ();

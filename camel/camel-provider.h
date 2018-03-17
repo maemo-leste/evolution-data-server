@@ -9,19 +9,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -31,12 +29,21 @@
 #ifndef CAMEL_PROVIDER_H
 #define CAMEL_PROVIDER_H
 
+#include <glib-object.h>
+
 #include <camel/camel-enums.h>
-#include <camel/camel-object.h>
 #include <camel/camel-object-bag.h>
 #include <camel/camel-url.h>
 
 #define CAMEL_PROVIDER(obj) ((CamelProvider *)(obj))
+
+/**
+ * EDS_CAMEL_PROVIDER_DIR:
+ *
+ * This environment variable configures where the camel
+ * provider modules are loaded from.
+ */
+#define EDS_CAMEL_PROVIDER_DIR    "EDS_CAMEL_PROVIDER_DIR"
 
 G_BEGIN_DECLS
 
@@ -70,33 +77,36 @@ extern gchar *camel_provider_type_name[CAMEL_NUM_PROVIDER_TYPES];
 
 /* Providers use these macros to actually define their url_flags */
 typedef enum {
-	CAMEL_URL_ALLOW_USER       = CAMEL_URL_PART_USER,
-	CAMEL_URL_ALLOW_AUTH       = CAMEL_URL_PART_AUTH,
-	CAMEL_URL_ALLOW_PASSWORD   = CAMEL_URL_PART_PASSWORD,
-	CAMEL_URL_ALLOW_HOST       = CAMEL_URL_PART_HOST,
-	CAMEL_URL_ALLOW_PORT       = CAMEL_URL_PART_PORT,
-	CAMEL_URL_ALLOW_PATH       = CAMEL_URL_PART_PATH,
+	CAMEL_URL_ALLOW_USER = CAMEL_URL_PART_USER,
+	CAMEL_URL_ALLOW_AUTH = CAMEL_URL_PART_AUTH,
+	CAMEL_URL_ALLOW_PASSWORD = CAMEL_URL_PART_PASSWORD,
+	CAMEL_URL_ALLOW_HOST = CAMEL_URL_PART_HOST,
+	CAMEL_URL_ALLOW_PORT = CAMEL_URL_PART_PORT,
+	CAMEL_URL_ALLOW_PATH = CAMEL_URL_PART_PATH,
 
-	CAMEL_URL_NEED_USER        = CAMEL_URL_PART_USER << CAMEL_URL_PART_NEED,
-	CAMEL_URL_NEED_AUTH        = CAMEL_URL_PART_AUTH << CAMEL_URL_PART_NEED,
-	CAMEL_URL_NEED_PASSWORD    = CAMEL_URL_PART_PASSWORD << CAMEL_URL_PART_NEED,
-	CAMEL_URL_NEED_HOST        = CAMEL_URL_PART_HOST << CAMEL_URL_PART_NEED,
-	CAMEL_URL_NEED_PORT        = CAMEL_URL_PART_PORT << CAMEL_URL_PART_NEED,
-	CAMEL_URL_NEED_PATH        = CAMEL_URL_PART_PATH << CAMEL_URL_PART_NEED,
-	CAMEL_URL_NEED_PATH_DIR    = CAMEL_URL_PART_PATH_DIR << CAMEL_URL_PART_NEED,
+	CAMEL_URL_NEED_USER = CAMEL_URL_PART_USER << CAMEL_URL_PART_NEED,
+	CAMEL_URL_NEED_AUTH = CAMEL_URL_PART_AUTH << CAMEL_URL_PART_NEED,
+	CAMEL_URL_NEED_PASSWORD = CAMEL_URL_PART_PASSWORD << CAMEL_URL_PART_NEED,
+	CAMEL_URL_NEED_HOST = CAMEL_URL_PART_HOST << CAMEL_URL_PART_NEED,
+	CAMEL_URL_NEED_PORT = CAMEL_URL_PART_PORT << CAMEL_URL_PART_NEED,
+	CAMEL_URL_NEED_PATH = CAMEL_URL_PART_PATH << CAMEL_URL_PART_NEED,
+	CAMEL_URL_NEED_PATH_DIR = CAMEL_URL_PART_PATH_DIR << CAMEL_URL_PART_NEED,
 
-	CAMEL_URL_HIDDEN_USER      = CAMEL_URL_PART_USER << CAMEL_URL_PART_HIDDEN,
-	CAMEL_URL_HIDDEN_AUTH      = CAMEL_URL_PART_AUTH << CAMEL_URL_PART_HIDDEN,
-	CAMEL_URL_HIDDEN_PASSWORD  = CAMEL_URL_PART_PASSWORD << CAMEL_URL_PART_HIDDEN,
-	CAMEL_URL_HIDDEN_HOST      = CAMEL_URL_PART_HOST << CAMEL_URL_PART_HIDDEN,
-	CAMEL_URL_HIDDEN_PORT      = CAMEL_URL_PART_PORT << CAMEL_URL_PART_HIDDEN,
-	CAMEL_URL_HIDDEN_PATH      = CAMEL_URL_PART_PATH << CAMEL_URL_PART_HIDDEN,
+	CAMEL_URL_HIDDEN_USER = CAMEL_URL_PART_USER << CAMEL_URL_PART_HIDDEN,
+	CAMEL_URL_HIDDEN_AUTH = CAMEL_URL_PART_AUTH << CAMEL_URL_PART_HIDDEN,
+	CAMEL_URL_HIDDEN_PASSWORD = CAMEL_URL_PART_PASSWORD << CAMEL_URL_PART_HIDDEN,
+	CAMEL_URL_HIDDEN_HOST = CAMEL_URL_PART_HOST << CAMEL_URL_PART_HIDDEN,
+	CAMEL_URL_HIDDEN_PORT = CAMEL_URL_PART_PORT << CAMEL_URL_PART_HIDDEN,
+	CAMEL_URL_HIDDEN_PATH = CAMEL_URL_PART_PATH << CAMEL_URL_PART_HIDDEN,
 
 	CAMEL_URL_FRAGMENT_IS_PATH = 1 << 30, /* url uses fragment for folder name path, not path */
 	CAMEL_URL_PATH_IS_ABSOLUTE = 1 << 31,
 } CamelProviderURLFlags;
 
-#define CAMEL_PROVIDER_IS_STORE_AND_TRANSPORT(prov) (prov->object_types[CAMEL_PROVIDER_STORE] && prov->object_types[CAMEL_PROVIDER_TRANSPORT])
+#define CAMEL_PROVIDER_IS_STORE_AND_TRANSPORT(provider) \
+	((provider != NULL) && \
+	(provider->object_types[CAMEL_PROVIDER_STORE] != G_TYPE_INVALID) && \
+	(provider->object_types[CAMEL_PROVIDER_TRANSPORT] != G_TYPE_INVALID))
 
 /* Generic extra config stuff */
 
@@ -116,14 +126,6 @@ typedef struct {
 	const gchar *desc;
 	gboolean is_ssl;
 } CamelProviderPortEntry;
-
-/* Some defaults */
-#define CAMEL_PROVIDER_CONF_DEFAULT_USERNAME \
-	{ CAMEL_PROVIDER_CONF_LABEL, "username", NULL, N_("User_name:"), NULL }
-#define CAMEL_PROVIDER_CONF_DEFAULT_HOSTNAME \
-	{ CAMEL_PROVIDER_CONF_LABEL, "hostname", NULL, N_("_Host:"), NULL }
-#define CAMEL_PROVIDER_CONF_DEFAULT_PATH \
-	{ CAMEL_PROVIDER_CONF_ENTRY, "path", NULL, N_("_Path:"), "" }
 
 typedef gint (*CamelProviderAutoDetectFunc) (CamelURL *url, GHashTable **auto_detected, GError **error);
 

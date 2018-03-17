@@ -1,18 +1,17 @@
 /*
  * camel-pop3-settings.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -81,16 +80,6 @@ gboolean	camel_pop3_settings_get_auto_fetch
 void		camel_pop3_settings_set_auto_fetch
 						(CamelPOP3Settings *settings,
 						 gboolean auto_fetch);
-gboolean	camel_pop3_settings_get_mobile_mode
-						(CamelPOP3Settings *settings);
-void		camel_pop3_settings_set_mobile_mode
-						(CamelPOP3Settings *settings,
-						 gboolean mobile_mode);
-gboolean	camel_pop3_settings_get_batch_fetch_count
-						(CamelPOP3Settings *settings);
-void		camel_pop3_settings_set_batch_fetch_count
-						(CamelPOP3Settings *settings,
-						 gint batch_fetch_count);
 
 G_END_DECLS
 

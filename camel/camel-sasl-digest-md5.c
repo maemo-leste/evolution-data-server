@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -252,10 +250,10 @@ decode_value (const gchar **in)
 
 	decode_lwsp (&inptr);
 	if (*inptr == '"') {
-		d(printf ("decoding quoted string token\n"));
+		d (printf ("decoding quoted string token\n"));
 		return decode_quoted_string (in);
 	} else {
-		d(printf ("decoding string token\n"));
+		d (printf ("decoding string token\n"));
 		return decode_token (in);
 	}
 }
@@ -599,9 +597,11 @@ generate_response (struct _DigestChallenge *challenge,
 	resp->nonce = g_strdup (challenge->nonce);
 
 	/* generate the cnonce */
-	bgen = g_strdup_printf ("%p:%lu:%lu", (gpointer) resp,
-				(gulong) getpid (),
-				(gulong) time (NULL));
+	bgen = g_strdup_printf (
+		"%p:%lu:%lu",
+		(gpointer) resp,
+		(gulong) getpid (),
+		(gulong) time (NULL));
 	checksum = g_checksum_new (G_CHECKSUM_MD5);
 	g_checksum_update (checksum, (guchar *) bgen, -1);
 	g_checksum_get_digest (checksum, digest, &length);
@@ -612,7 +612,7 @@ generate_response (struct _DigestChallenge *challenge,
 	resp->cnonce = g_base64_encode ((guchar *) digest, 8);
 
 	/* we don't support re-auth so the nonce count is always 1 */
-	strcpy (resp->nc, "00000001");
+	g_strlcpy (resp->nc, "00000001", sizeof (resp->nc));
 
 	/* choose the QOP */
 	/* FIXME: choose - probably choose "auth" ??? */
@@ -827,16 +827,21 @@ sasl_digest_md5_challenge_sync (CamelSasl *sasl,
 	service = camel_sasl_get_service (sasl);
 	service_name = camel_sasl_get_service_name (sasl);
 
-	settings = camel_service_get_settings (service);
+	settings = camel_service_ref_settings (service);
 	g_return_val_if_fail (CAMEL_IS_NETWORK_SETTINGS (settings), NULL);
 
 	network_settings = CAMEL_NETWORK_SETTINGS (settings);
 	host = camel_network_settings_dup_host (network_settings);
 	user = camel_network_settings_dup_user (network_settings);
+
+	g_object_unref (settings);
+
 	g_return_val_if_fail (user != NULL, NULL);
 
-	if (host == NULL)
+	if (!host || !*host) {
+		g_free (host);
 		host = g_strdup ("localhost");
+	}
 
 	password = camel_service_get_password (service);
 	g_return_val_if_fail (password != NULL, NULL);
@@ -867,7 +872,7 @@ sasl_digest_md5_challenge_sync (CamelSasl *sasl,
 				error, CAMEL_SERVICE_ERROR,
 				CAMEL_SERVICE_ERROR_CANT_AUTHENTICATE,
 				_("Server challenge contained invalid "
-				  "\"Quality of Protection\" token"));
+				"\"Quality of Protection\" token"));
 			goto exit;
 		}
 
@@ -900,7 +905,7 @@ sasl_digest_md5_challenge_sync (CamelSasl *sasl,
 				error, CAMEL_SERVICE_ERROR,
 				CAMEL_SERVICE_ERROR_CANT_AUTHENTICATE,
 				_("Server response did not contain "
-				  "authorization data"));
+				"authorization data"));
 			goto exit;
 		}
 
@@ -921,7 +926,7 @@ sasl_digest_md5_challenge_sync (CamelSasl *sasl,
 				error, CAMEL_SERVICE_ERROR,
 				CAMEL_SERVICE_ERROR_CANT_AUTHENTICATE,
 				_("Server response contained incomplete "
-				  "authorization data"));
+				"authorization data"));
 			goto exit;
 		}
 

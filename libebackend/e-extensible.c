@@ -1,25 +1,24 @@
 /*
  * e-extensible.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /**
  * SECTION: e-extensible
- * @short_description: an interface for extending objects
- * @include: libebackend/e-extensible.h
+ * @include: libebackend/libebackend.h
+ * @short_description: An interface for extending objects
  *
  * #EExtension objects can be tacked on to any #GObject instance that
  * implements the #EExtensible interface.  A #GObject type can be made
@@ -30,7 +29,7 @@
  *
  * <informalexample>
  * <programlisting>
- * #include <libebackend/e-extensible.h>
+ * #include <libebackend/libebackend.h>
  *
  * G_DEFINE_TYPE_WITH_CODE (
  *         ECustomWidget, e_custom_widget, GTK_TYPE_WIDGET,
@@ -46,9 +45,9 @@
  * <informalexample>
  * <programlisting>
  * static void
- * e_custom_widget_init (ECustomWidget *widget)
+ * e_custom_widget_constructed (ECustomWidget *widget)
  * {
- *         Initialization code goes here...
+ *         Construction code goes here, same as call to parent's 'constructed'...
  *
  *         e_extensible_load_extensions (E_EXTENSIBLE (widget));
  * }
@@ -105,7 +104,7 @@ exit:
 }
 
 static void
-e_extensible_default_init (EExtensibleInterface *interface)
+e_extensible_default_init (EExtensibleInterface *iface)
 {
 	extensible_quark = g_quark_from_static_string ("e-extensible-quark");
 }
@@ -136,11 +135,22 @@ e_extensible_load_extensions (EExtensible *extensible)
 
 	g_object_set_qdata_full (
 		G_OBJECT (extensible), extensible_quark,
-		extensions, (GDestroyNotify) g_ptr_array_unref);
+		g_ptr_array_ref (extensions),
+		(GDestroyNotify) g_ptr_array_unref);
 
 	e_type_traverse (
 		E_TYPE_EXTENSION, (ETypeFunc)
 		extensible_load_extension, extensible);
+
+	/* If the extension array is still empty, remove it from the
+	 * extensible object.  It may be that no extension types have
+	 * been registered yet, so this allows for trying again later. */
+	if (extensions->len == 0)
+		g_object_set_qdata (
+			G_OBJECT (extensible),
+			extensible_quark, NULL);
+
+	g_ptr_array_unref (extensions);
 }
 
 /**
@@ -173,7 +183,10 @@ e_extensible_list_extensions (EExtensible *extensible,
 	e_extensible_load_extensions (extensible);
 
 	extensions = extensible_get_extensions (extensible);
-	g_return_val_if_fail (extensions != NULL, NULL);
+
+	/* This will be NULL if no extensions are present. */
+	if (extensions == NULL)
+		return NULL;
 
 	for (ii = 0; ii < extensions->len; ii++) {
 		GObject *object;

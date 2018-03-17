@@ -1,23 +1,21 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors:
+ * Authors:
  *    Michael Zucchi <notzed@ximian.com>
  *    Dan Winship <danw@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -50,22 +48,25 @@
 
 G_BEGIN_DECLS
 
+struct _CamelVeeMessageInfoData;
 struct _CamelVeeFolder;
 struct _CamelFolder;
 
 typedef struct _CamelVeeSummary CamelVeeSummary;
 typedef struct _CamelVeeSummaryClass CamelVeeSummaryClass;
+typedef struct _CamelVeeSummaryPrivate CamelVeeSummaryPrivate;
 
 typedef struct _CamelVeeMessageInfo CamelVeeMessageInfo;
 
 struct _CamelVeeMessageInfo {
 	CamelMessageInfoBase info;
 	CamelFolderSummary *orig_summary;
-	guint32 old_flags;  /* These are just for identifying changed flags */
 };
 
 struct _CamelVeeSummary {
 	CamelFolderSummary summary;
+
+	CamelVeeSummaryPrivate *priv;
 };
 
 struct _CamelVeeSummaryClass {
@@ -77,11 +78,15 @@ CamelFolderSummary *
 		camel_vee_summary_new		(struct _CamelFolder *parent);
 CamelVeeMessageInfo *
 		camel_vee_summary_add		(CamelVeeSummary *s,
-						 CamelFolderSummary *summary,
-						 const gchar *uid,
-						 const gchar hash[8]);
-GPtrArray *	camel_vee_summary_get_ids	(CamelVeeSummary *summary,
-						 gchar hash[8]);
+						 struct _CamelVeeMessageInfoData *mi_data);
+void		camel_vee_summary_remove	(CamelVeeSummary *summary,
+						 const gchar *vuid,
+						 CamelFolder *subfolder);
+void		camel_vee_summary_replace_flags	(CamelVeeSummary *summary,
+						 const gchar *uid);
+GHashTable *	camel_vee_summary_get_uids_for_subfolder
+						(CamelVeeSummary *summary,
+						 CamelFolder *subfolder);
 
 G_END_DECLS
 

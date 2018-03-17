@@ -1,25 +1,24 @@
 /*
  * e-extension.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /**
  * SECTION: e-extension
- * @short_description: abstract base class for extensions
- * @include: libebackend/e-extension.h
+ * @include: libebackend/libebackend.h
+ * @short_description: An abstract base class for extensions
  *
  * #EExtension provides a way to extend the functionality of objects
  * that implement the #EExtensible interface.  #EExtension subclasses
@@ -76,7 +75,8 @@ extension_set_extensible (EExtension *extension,
 
 	/* Verify the EExtensible object is the type we want. */
 	if (!g_type_is_a (extensible_type, class->extensible_type)) {
-		g_warning ("%s is meant to extend %s but was given an %s",
+		g_warning (
+			"%s is meant to extend %s but was given an %s",
 			G_OBJECT_TYPE_NAME (extension),
 			g_type_name (class->extensible_type),
 			g_type_name (extensible_type));

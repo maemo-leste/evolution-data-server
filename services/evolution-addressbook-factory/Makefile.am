@@ -19,24 +19,35 @@ evolution_addressbook_factory_CPPFLAGS = \
 	-I$(top_builddir) \
 	-I$(top_builddir)/addressbook \
 	$(EVOLUTION_ADDRESSBOOK_CFLAGS) \
+	$(LIBSECRET_CFLAGS) \
 	$(FACTORY_GTK_CFLAGS) \
-	$(DBUS_GLIB_CFLAGS) \
+	$(CAMEL_CFLAGS) \
+	$(SOUP_CFLAGS) \
 	$(GOA_CFLAGS) \
+	$(CODE_COVERAGE_CFLAGS) \
 	$(NULL)
 
 evolution_addressbook_factory_SOURCES = \
 	evolution-addressbook-factory.c \
-	evolution-addressbook-factory-migrate-basedir.c \
 	$(NULL)
 
 evolution_addressbook_factory_LDADD = \
 	$(top_builddir)/addressbook/libedata-book/libedata-book-1.2.la \
+	$(top_builddir)/addressbook/libebook/libebook-1.2.la \
+	$(top_builddir)/addressbook/libebook-contacts/libebook-contacts-1.2.la \
 	$(top_builddir)/libebackend/libebackend-1.2.la \
 	$(top_builddir)/libedataserver/libedataserver-1.2.la \
 	$(EVOLUTION_ADDRESSBOOK_LIBS) \
+	$(LIBSECRET_LIBS) \
 	$(FACTORY_GTK_LIBS) \
-	$(DBUS_GLIB_LIBS) \
+	$(CAMEL_LIBS) \
+	$(SOUP_LIBS) \
 	$(GOA_LIBS) \
+	$(NULL)
+
+evolution_addressbook_factory_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(CODE_COVERAGE_LDFLAGS) \
 	$(NULL)
 
 -include $(top_srcdir)/git.mk

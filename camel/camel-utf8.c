@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -224,7 +222,7 @@ camel_utf7_utf8 (const gchar *ptr)
 	gint state = 0;
 	gchar *ret;
 
-	out = g_string_new("");
+	out = g_string_new ("");
 	do {
 		c = *p++;
 		switch (state) {
@@ -244,7 +242,7 @@ camel_utf7_utf8 (const gchar *ptr)
 				state = 2;
 			} else {
 				/* invalid */
-				g_string_append(out, "&-");
+				g_string_append (out, "&-");
 				state = 0;
 			}
 			break;
@@ -305,7 +303,7 @@ camel_utf8_utf7 (const gchar *ptr)
 	gint i = 0;
 	gchar *ret;
 
-	out = g_string_new("");
+	out = g_string_new ("");
 
 	while ((c = camel_utf8_getc (&p))) {
 		if (c >= 0x20 && c <= 0x7e) {
@@ -315,7 +313,7 @@ camel_utf8_utf7 (const gchar *ptr)
 				i = 0;
 			}
 			if (c == '&')
-				g_string_append(out, "&-");
+				g_string_append (out, "&-");
 			else
 				g_string_append_c (out, c);
 		} else {
@@ -367,7 +365,7 @@ camel_utf8_ucs2 (const gchar *pptr)
 		g_byte_array_append (work, (guchar *) &s, 2);
 	}
 
-	g_byte_array_append(work, (guchar *) "\000\000", 2);
+	g_byte_array_append (work, (guchar *) "\000\000", 2);
 	out = g_malloc (work->len);
 	memcpy (out, work->data, work->len);
 	g_byte_array_free (work, TRUE);
@@ -388,7 +386,7 @@ gchar *camel_ucs2_utf8 (const gchar *ptr)
 {
 	guint16 *ucs = (guint16 *) ptr;
 	guint32 c;
-	GString *work = g_string_new("");
+	GString *work = g_string_new ("");
 	gchar *out;
 
 	while ((c = *ucs++))

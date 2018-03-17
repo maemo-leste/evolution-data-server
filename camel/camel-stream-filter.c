@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8; fill-column: 160 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -67,7 +65,7 @@ struct _CamelStreamFilterPrivate {
 #define READ_PAD (128)		/* bytes padded before buffer */
 #define READ_SIZE (4096)
 
-static void camel_stream_filter_seekable_init (GSeekableIface *interface);
+static void camel_stream_filter_seekable_init (GSeekableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (CamelStreamFilter, camel_stream_filter, CAMEL_TYPE_STREAM,
 	G_IMPLEMENT_INTERFACE (G_TYPE_SEEKABLE, camel_stream_filter_seekable_init))
@@ -139,9 +137,11 @@ stream_filter_read (CamelStream *stream,
 			priv->filtered = priv->buffer;
 			priv->filteredlen = size;
 
-			d(printf ("\n\nOriginal content (%s): '", ((CamelObject *)priv->source)->class->name));
+			d (printf (
+				"\n\nOriginal content (%s): '",
+				G_OBJECT_TYPE_NAME (priv->source)));
 			d (fwrite (priv->filtered, sizeof (gchar), priv->filteredlen, stdout));
-			d(printf("'\n"));
+			d (printf ("'\n"));
 
 			while (f) {
 				camel_mime_filter_filter (
@@ -149,9 +149,11 @@ stream_filter_read (CamelStream *stream,
 					&priv->filtered, &priv->filteredlen, &presize);
 				g_check (priv->realbuffer);
 
-				d(printf ("Filtered content (%s): '", ((CamelObject *)f->filter)->class->name));
+				d (printf (
+					"Filtered content (%s): '",
+					G_OBJECT_TYPE_NAME (f->filter)));
 				d (fwrite (priv->filtered, sizeof (gchar), priv->filteredlen, stdout));
-				d(printf("'\n"));
+				d (printf ("'\n"));
 
 				f = f->next;
 			}
@@ -187,9 +189,11 @@ stream_filter_write (CamelStream *stream,
 
 	priv->last_was_read = FALSE;
 
-	d(printf ("\n\nWriting: Original content (%s): '", ((CamelObject *)priv->source)->class->name));
+	d (printf (
+		"\n\nWriting: Original content (%s): '",
+		G_OBJECT_TYPE_NAME (priv->source)));
 	d (fwrite (buf, sizeof (gchar), n, stdout));
-	d(printf("'\n"));
+	d (printf ("'\n"));
 
 	g_check (priv->realbuffer);
 
@@ -208,9 +212,11 @@ stream_filter_write (CamelStream *stream,
 
 			g_check (priv->realbuffer);
 
-			d(printf ("Filtered content (%s): '", ((CamelObject *)f->filter)->class->name));
+			d (printf (
+				"Filtered content (%s): '",
+				G_OBJECT_TYPE_NAME (f->filter)));
 			d (fwrite (buffer, sizeof (gchar), len, stdout));
-			d(printf("'\n"));
+			d (printf ("'\n"));
 
 			f = f->next;
 		}
@@ -245,16 +251,20 @@ stream_filter_flush (CamelStream *stream,
 	presize = 0;
 	f = priv->filters;
 
-	d(printf ("\n\nFlushing: Original content (%s): '", ((CamelObject *)priv->source)->class->name));
+	d (printf (
+		"\n\nFlushing: Original content (%s): '",
+		G_OBJECT_TYPE_NAME (priv->source)));
 	d (fwrite (buffer, sizeof (gchar), len, stdout));
-	d(printf("'\n"));
+	d (printf ("'\n"));
 
 	while (f) {
 		camel_mime_filter_complete (f->filter, buffer, len, presize, &buffer, &len, &presize);
 
-		d(printf ("Filtered content (%s): '", ((CamelObject *)f->filter)->class->name));
+		d (printf (
+			"Filtered content (%s): '",
+			G_OBJECT_TYPE_NAME (f->filter)));
 		d (fwrite (buffer, sizeof (gchar), len, stdout));
-		d(printf("'\n"));
+		d (printf ("'\n"));
 
 		f = f->next;
 	}
@@ -389,13 +399,13 @@ camel_stream_filter_class_init (CamelStreamFilterClass *class)
 }
 
 static void
-camel_stream_filter_seekable_init (GSeekableIface *interface)
+camel_stream_filter_seekable_init (GSeekableIface *iface)
 {
-	interface->tell = stream_filter_tell;
-	interface->can_seek = stream_filter_can_seek;
-	interface->seek = stream_filter_seek;
-	interface->can_truncate = stream_filter_can_truncate;
-	interface->truncate_fn = stream_filter_truncate_fn;
+	iface->tell = stream_filter_tell;
+	iface->can_seek = stream_filter_can_seek;
+	iface->seek = stream_filter_seek;
+	iface->can_truncate = stream_filter_can_truncate;
+	iface->truncate_fn = stream_filter_truncate_fn;
 }
 
 static void

@@ -4,19 +4,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -56,34 +54,11 @@ typedef struct _CamelVeeFolder CamelVeeFolder;
 typedef struct _CamelVeeFolderClass CamelVeeFolderClass;
 typedef struct _CamelVeeFolderPrivate CamelVeeFolderPrivate;
 
-/**
- * CamelVeeFolderLock:
- *
- * Since: 2.32
- **/
-typedef enum {
-	CAMEL_VEE_FOLDER_SUMMARY_LOCK,
-	CAMEL_VEE_FOLDER_SUBFOLDER_LOCK,
-	CAMEL_VEE_FOLDER_CHANGED_LOCK
-} CamelVeeFolderLock;
-
 struct _CamelVeeFolder {
 	CamelFolder parent;
 	CamelVeeFolderPrivate *priv;
 
-	gchar *expression;	/* query expression */
-
 	guint32 flags;		/* folder open flags */
-
-	CamelFolderChangeInfo *changes;
-	CamelFolderSearch *search;
-
-	/* only set-up if our parent is a vee-store, used also as a flag to
-	 * say that this folder is part of the unmatched folder */
-	struct _CamelVeeStore *parent_vee_store;
-	GHashTable *hashes;
-	GHashTable *loaded;
-	gboolean deleted;
 };
 
 struct _CamelVeeFolderClass {
@@ -92,12 +67,14 @@ struct _CamelVeeFolderClass {
 	/* TODO: Some of this may need some additional work/thinking through, it works for now*/
 
 	void		(*add_folder)		(CamelVeeFolder *vee_folder,
-						 CamelFolder *folder);
-	void		(*remove_folder)	(CamelVeeFolder *vee_folder,
-						 CamelFolder *folder);
-	gint		(*rebuild_folder)	(CamelVeeFolder *vee_folder,
 						 CamelFolder *folder,
-						 GError **error);
+						 GCancellable *cancellable);
+	void		(*remove_folder)	(CamelVeeFolder *vee_folder,
+						 CamelFolder *folder,
+						 GCancellable *cancellable);
+	void		(*rebuild_folder)	(CamelVeeFolder *vee_folder,
+						 CamelFolder *folder,
+						 GCancellable *cancellable);
 
 	void		(*set_expression)	(CamelVeeFolder *vee_folder,
 						 const gchar *expression);
@@ -106,34 +83,54 @@ struct _CamelVeeFolderClass {
 	void		(*folder_changed)	(CamelVeeFolder *vee_folder,
 						 CamelFolder *subfolder,
 						 CamelFolderChangeInfo *changes);
-	/* Called for a folder-renamed event on a source folder */
-	void		(*folder_renamed)	(CamelVeeFolder *vee_folder,
-						 CamelFolder *subfolder,
-						 const gchar *old);
 };
 
 #define CAMEL_UNMATCHED_NAME "UNMATCHED"
 
-GType	      camel_vee_folder_get_type		(void);
-CamelFolder  *camel_vee_folder_new		(CamelStore *parent_store, const gchar *full, guint32 flags);
-void         camel_vee_folder_construct		(CamelVeeFolder *vf, guint32 flags);
+GType		camel_vee_folder_get_type		(void);
+CamelFolder *	camel_vee_folder_new			(CamelStore *parent_store,
+							 const gchar *full,
+							 guint32 flags);
+void		camel_vee_folder_construct		(CamelVeeFolder *vf,
+							 guint32 flags);
 
-CamelFolder *camel_vee_folder_get_location (CamelVeeFolder *vf, const struct _CamelVeeMessageInfo *vinfo, gchar **realuid);
+CamelFolder *	camel_vee_folder_get_location		(CamelVeeFolder *vf,
+							 const struct _CamelVeeMessageInfo *vinfo,
+							 gchar **realuid);
+CamelFolder *	camel_vee_folder_get_vee_uid_folder	(CamelVeeFolder *vf,
+							 const gchar *vee_message_uid);
+void		camel_vee_folder_set_auto_update	(CamelVeeFolder *vfolder,
+							 gboolean auto_update);
+gboolean	camel_vee_folder_get_auto_update	(CamelVeeFolder *vfolder);
+void		camel_vee_folder_add_folder		(CamelVeeFolder *vfolder,
+							 CamelFolder *subfolder,
+							 GCancellable *cancellable);
+void		camel_vee_folder_remove_folder		(CamelVeeFolder *vfolder,
+							 CamelFolder *subfolder,
+							 GCancellable *cancellable);
+void		camel_vee_folder_set_folders		(CamelVeeFolder *vf,
+							 GList *folders,
+							 GCancellable *cancellable);
+void		camel_vee_folder_add_vuid		(CamelVeeFolder *vfolder,
+							 struct _CamelVeeMessageInfoData *mi_data,
+							 CamelFolderChangeInfo *changes);
+void		camel_vee_folder_remove_vuid		(CamelVeeFolder *vfolder,
+							 struct _CamelVeeMessageInfoData *mi_data,
+							 CamelFolderChangeInfo *changes);
 
-void         camel_vee_folder_add_folder        (CamelVeeFolder *vf, CamelFolder *sub);
-void		camel_vee_folder_remove_folder	(CamelVeeFolder *vf,
-						 CamelFolder *sub);
-void	     camel_vee_folder_set_folders	(CamelVeeFolder *vf, GList *folders);
-gint         camel_vee_folder_rebuild_folder	(CamelVeeFolder *vf, CamelFolder *sub, GError **error);
-void	     camel_vee_folder_set_expression	(CamelVeeFolder *vf, const gchar *expr);
+void		camel_vee_folder_rebuild_folder		(CamelVeeFolder *vfolder,
+							 CamelFolder *subfolder,
+							 GCancellable *cancellable);
+void		camel_vee_folder_set_expression		(CamelVeeFolder *vfolder,
+							 const gchar *expr);
+const gchar *	camel_vee_folder_get_expression		(CamelVeeFolder *vfolder);
 
-void	     camel_vee_folder_ignore_next_changed_event (CamelVeeFolder *vf, CamelFolder *sub);
-
-void	     camel_vee_folder_hash_folder	(CamelFolder *folder, gchar buffer[8]);
-void	     camel_vee_folder_sync_headers (CamelFolder *vf, GError **error);
-
-void         camel_vee_folder_lock		(CamelVeeFolder *folder, CamelVeeFolderLock lock);
-void         camel_vee_folder_unlock		(CamelVeeFolder *folder, CamelVeeFolderLock lock);
+void		camel_vee_folder_ignore_next_changed_event
+							(CamelVeeFolder *vfolder,
+							 CamelFolder *subfolder);
+void		camel_vee_folder_remove_from_ignore_changed_event
+							(CamelVeeFolder *vfolder,
+							 CamelFolder *subfolder);
 
 G_END_DECLS
 

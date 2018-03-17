@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -37,6 +35,8 @@
 #include "camel-mime-utils.h"
 #include "camel-medium.h"
 #include "camel-multipart.h"
+#include "camel-multipart-encrypted.h"
+#include "camel-multipart-signed.h"
 #include "camel-mime-message.h"
 #include "camel-mime-filter-canon.h"
 #include "camel-stream-filter.h"
@@ -46,9 +46,9 @@
 	((obj), CAMEL_TYPE_CIPHER_CONTEXT, CamelCipherContextPrivate))
 
 #define CIPHER_LOCK(ctx) \
-	g_mutex_lock (((CamelCipherContext *) ctx)->priv->lock)
+	g_mutex_lock (&((CamelCipherContext *) ctx)->priv->lock)
 #define CIPHER_UNLOCK(ctx) \
-	g_mutex_unlock (((CamelCipherContext *) ctx)->priv->lock);
+	g_mutex_unlock (&((CamelCipherContext *) ctx)->priv->lock);
 
 #define d(x)
 
@@ -56,7 +56,7 @@ typedef struct _AsyncContext AsyncContext;
 
 struct _CamelCipherContextPrivate {
 	CamelSession *session;
-	GMutex *lock;
+	GMutex lock;
 };
 
 struct _AsyncContext {
@@ -67,9 +67,6 @@ struct _AsyncContext {
 	CamelStream *stream;
 	GPtrArray *strings;
 	gchar *userid;
-
-	/* results */
-	CamelCipherValidity *validity;
 };
 
 enum {
@@ -77,7 +74,7 @@ enum {
 	PROP_SESSION
 };
 
-G_DEFINE_TYPE (CamelCipherContext, camel_cipher_context, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelCipherContext, camel_cipher_context, G_TYPE_OBJECT)
 
 static void
 async_context_free (AsyncContext *async_context)
@@ -96,9 +93,6 @@ async_context_free (AsyncContext *async_context)
 			async_context->strings, (GFunc) g_free, NULL);
 		g_ptr_array_free (async_context->strings, TRUE);
 	}
-
-	if (async_context->validity != NULL)
-		camel_cipher_validity_free (async_context->validity);
 
 	g_free (async_context->userid);
 
@@ -172,7 +166,7 @@ cipher_context_finalize (GObject *object)
 
 	priv = CAMEL_CIPHER_CONTEXT_GET_PRIVATE (object);
 
-	g_mutex_free (priv->lock);
+	g_mutex_clear (&priv->lock);
 
 	/* Chain up to parent's finalize () method. */
 	G_OBJECT_CLASS (camel_cipher_context_parent_class)->finalize (object);
@@ -251,459 +245,6 @@ cipher_context_decrypt_sync (CamelCipherContext *context,
 	return NULL;
 }
 
-static gboolean
-cipher_context_import_keys_sync (CamelCipherContext *context,
-                                 CamelStream *istream,
-                                 GCancellable *cancellable,
-                                 GError **error)
-{
-	g_set_error (
-		error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-		_("You may not import keys with this cipher"));
-
-	return FALSE;
-}
-
-static gint
-cipher_context_export_keys_sync (CamelCipherContext *context,
-                                 GPtrArray *keys,
-                                 CamelStream *ostream,
-                                 GCancellable *cancellable,
-                                 GError **error)
-{
-	g_set_error (
-		error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-		_("You may not export keys with this cipher"));
-
-	return FALSE;
-}
-
-static void
-cipher_context_sign_thread (GSimpleAsyncResult *simple,
-                            GObject *object,
-                            GCancellable *cancellable)
-{
-	AsyncContext *async_context;
-	GError *error = NULL;
-
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	camel_cipher_context_sign_sync (
-		CAMEL_CIPHER_CONTEXT (object),
-		async_context->userid, async_context->hash,
-		async_context->ipart, async_context->opart,
-		cancellable, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
-}
-
-static void
-cipher_context_sign (CamelCipherContext *context,
-                     const gchar *userid,
-                     CamelCipherHash hash,
-                     CamelMimePart *ipart,
-                     CamelMimePart *opart,
-                     gint io_priority,
-                     GCancellable *cancellable,
-                     GAsyncReadyCallback callback,
-                     gpointer user_data)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-
-	async_context = g_slice_new0 (AsyncContext);
-	async_context->userid = g_strdup (userid);
-	async_context->hash = hash;
-	async_context->ipart = g_object_ref (ipart);
-	async_context->opart = g_object_ref (opart);
-
-	simple = g_simple_async_result_new (
-		G_OBJECT (context), callback, user_data, cipher_context_sign);
-
-	g_simple_async_result_set_op_res_gpointer (
-		simple, async_context, (GDestroyNotify) async_context_free);
-
-	g_simple_async_result_run_in_thread (
-		simple, cipher_context_sign_thread, io_priority, cancellable);
-
-	g_object_unref (simple);
-}
-
-static gboolean
-cipher_context_sign_finish (CamelCipherContext *context,
-                            GAsyncResult *result,
-                            GError **error)
-{
-	GSimpleAsyncResult *simple;
-
-	g_return_val_if_fail (
-		g_simple_async_result_is_valid (
-		result, G_OBJECT (context), cipher_context_sign), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	/* Assume success unless a GError is set. */
-	return !g_simple_async_result_propagate_error (simple, error);
-}
-
-static void
-cipher_context_verify_thread (GSimpleAsyncResult *simple,
-                              GObject *object,
-                              GCancellable *cancellable)
-{
-	AsyncContext *async_context;
-	GError *error = NULL;
-
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	async_context->validity = camel_cipher_context_verify_sync (
-		CAMEL_CIPHER_CONTEXT (object), async_context->ipart,
-		cancellable, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
-}
-
-static void
-cipher_context_verify (CamelCipherContext *context,
-                       CamelMimePart *ipart,
-                       gint io_priority,
-                       GCancellable *cancellable,
-                       GAsyncReadyCallback callback,
-                       gpointer user_data)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-
-	async_context = g_slice_new0 (AsyncContext);
-	async_context->ipart = g_object_ref (ipart);
-
-	simple = g_simple_async_result_new (
-		G_OBJECT (context), callback,
-		user_data, cipher_context_verify);
-
-	g_simple_async_result_set_op_res_gpointer (
-		simple, async_context, (GDestroyNotify) async_context_free);
-
-	g_simple_async_result_run_in_thread (
-		simple, cipher_context_verify_thread,
-		io_priority, cancellable);
-
-	g_object_unref (simple);
-}
-
-static CamelCipherValidity *
-cipher_context_verify_finish (CamelCipherContext *context,
-                              GAsyncResult *result,
-                              GError **error)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-	CamelCipherValidity *validity;
-
-	g_return_val_if_fail (
-		g_simple_async_result_is_valid (
-		result, G_OBJECT (context), cipher_context_verify), NULL);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	if (g_simple_async_result_propagate_error (simple, error))
-		return NULL;
-
-	validity = async_context->validity;
-	async_context->validity = NULL;
-
-	return validity;
-}
-
-static void
-cipher_context_encrypt_thread (GSimpleAsyncResult *simple,
-                               GObject *object,
-                               GCancellable *cancellable)
-{
-	AsyncContext *async_context;
-	GError *error = NULL;
-
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	camel_cipher_context_encrypt_sync (
-		CAMEL_CIPHER_CONTEXT (object),
-		async_context->userid, async_context->strings,
-		async_context->ipart, async_context->opart,
-		cancellable, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
-}
-
-static void
-cipher_context_encrypt (CamelCipherContext *context,
-                        const gchar *userid,
-                        GPtrArray *recipients,
-                        CamelMimePart *ipart,
-                        CamelMimePart *opart,
-                        gint io_priority,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-	guint ii;
-
-	async_context = g_slice_new0 (AsyncContext);
-	async_context->userid = g_strdup (userid);
-	async_context->strings = g_ptr_array_new ();
-	async_context->ipart = g_object_ref (ipart);
-	async_context->opart = g_object_ref (opart);
-
-	for (ii = 0; ii < recipients->len; ii++)
-		g_ptr_array_add (
-			async_context->strings,
-			g_strdup (recipients->pdata[ii]));
-
-	simple = g_simple_async_result_new (
-		G_OBJECT (context), callback,
-		user_data, cipher_context_encrypt);
-
-	g_simple_async_result_set_op_res_gpointer (
-		simple, async_context, (GDestroyNotify) async_context_free);
-
-	g_simple_async_result_run_in_thread (
-		simple, cipher_context_encrypt_thread,
-		io_priority, cancellable);
-
-	g_object_unref (simple);
-}
-
-static gboolean
-cipher_context_encrypt_finish (CamelCipherContext *context,
-                               GAsyncResult *result,
-                               GError **error)
-{
-	GSimpleAsyncResult *simple;
-
-	g_return_val_if_fail (
-		g_simple_async_result_is_valid (
-		result, G_OBJECT (context), cipher_context_encrypt), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	/* Assume success unless a GError is set. */
-	return !g_simple_async_result_propagate_error (simple, error);
-}
-
-static void
-cipher_context_decrypt_thread (GSimpleAsyncResult *simple,
-                               GObject *object,
-                               GCancellable *cancellable)
-{
-	AsyncContext *async_context;
-	GError *error = NULL;
-
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	async_context->validity = camel_cipher_context_decrypt_sync (
-		CAMEL_CIPHER_CONTEXT (object), async_context->ipart,
-		async_context->opart, cancellable, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
-}
-
-static void
-cipher_context_decrypt (CamelCipherContext *context,
-                        CamelMimePart *ipart,
-                        CamelMimePart *opart,
-                        gint io_priority,
-                        GCancellable *cancellable,
-                        GAsyncReadyCallback callback,
-                        gpointer user_data)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-
-	async_context = g_slice_new0 (AsyncContext);
-	async_context->ipart = g_object_ref (ipart);
-	async_context->opart = g_object_ref (opart);
-
-	simple = g_simple_async_result_new (
-		G_OBJECT (context), callback,
-		user_data, cipher_context_decrypt);
-
-	g_simple_async_result_set_op_res_gpointer (
-		simple, async_context, (GDestroyNotify) async_context_free);
-
-	g_simple_async_result_run_in_thread (
-		simple, cipher_context_decrypt_thread,
-		io_priority, cancellable);
-
-	g_object_unref (simple);
-}
-
-static CamelCipherValidity *
-cipher_context_decrypt_finish (CamelCipherContext *context,
-                               GAsyncResult *result,
-                               GError **error)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-	CamelCipherValidity *validity;
-
-	g_return_val_if_fail (
-		g_simple_async_result_is_valid (
-		result, G_OBJECT (context), cipher_context_decrypt), NULL);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	if (g_simple_async_result_propagate_error (simple, error))
-		return NULL;
-
-	validity = async_context->validity;
-	async_context->validity = NULL;
-
-	return validity;
-}
-
-static void
-cipher_context_import_keys_thread (GSimpleAsyncResult *simple,
-                                   GObject *object,
-                                   GCancellable *cancellable)
-{
-	AsyncContext *async_context;
-	GError *error = NULL;
-
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	camel_cipher_context_import_keys_sync (
-		CAMEL_CIPHER_CONTEXT (object), async_context->stream,
-		cancellable, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
-}
-
-static void
-cipher_context_import_keys (CamelCipherContext *context,
-                            CamelStream *istream,
-                            gint io_priority,
-                            GCancellable *cancellable,
-                            GAsyncReadyCallback callback,
-                            gpointer user_data)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-
-	async_context = g_slice_new0 (AsyncContext);
-	async_context->stream = g_object_ref (istream);
-
-	simple = g_simple_async_result_new (
-		G_OBJECT (context), callback,
-		user_data, cipher_context_import_keys);
-
-	g_simple_async_result_set_op_res_gpointer (
-		simple, async_context, (GDestroyNotify) async_context_free);
-
-	g_simple_async_result_run_in_thread (
-		simple, cipher_context_import_keys_thread,
-		io_priority, cancellable);
-
-	g_object_unref (simple);
-}
-
-static gboolean
-cipher_context_import_keys_finish (CamelCipherContext *context,
-                                   GAsyncResult *result,
-                                   GError **error)
-{
-	GSimpleAsyncResult *simple;
-
-	g_return_val_if_fail (
-		g_simple_async_result_is_valid (
-		result, G_OBJECT (context),
-		cipher_context_import_keys), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	/* Assume success unless a GError is set. */
-	return !g_simple_async_result_propagate_error (simple, error);
-}
-
-static void
-cipher_context_export_keys_thread (GSimpleAsyncResult *simple,
-                                   GObject *object,
-                                   GCancellable *cancellable)
-{
-	AsyncContext *async_context;
-	GError *error = NULL;
-
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	camel_cipher_context_export_keys_sync (
-		CAMEL_CIPHER_CONTEXT (object), async_context->strings,
-		async_context->stream, cancellable, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
-}
-
-static void
-cipher_context_export_keys (CamelCipherContext *context,
-                            GPtrArray *keys,
-                            CamelStream *ostream,
-                            gint io_priority,
-                            GCancellable *cancellable,
-                            GAsyncReadyCallback callback,
-                            gpointer user_data)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-	guint ii;
-
-	async_context = g_slice_new0 (AsyncContext);
-	async_context->strings = g_ptr_array_new ();
-	async_context->stream = g_object_ref (ostream);
-
-	for (ii = 0; ii < keys->len; ii++)
-		g_ptr_array_add (
-			async_context->strings,
-			g_strdup (keys->pdata[ii]));
-
-	simple = g_simple_async_result_new (
-		G_OBJECT (context), callback,
-		user_data, cipher_context_export_keys);
-
-	g_simple_async_result_set_op_res_gpointer (
-		simple, async_context, (GDestroyNotify) async_context_free);
-
-	g_simple_async_result_run_in_thread (
-		simple, cipher_context_export_keys_thread,
-		io_priority, cancellable);
-
-	g_object_unref (simple);
-}
-
-static gboolean
-cipher_context_export_keys_finish (CamelCipherContext *context,
-                                   GAsyncResult *result,
-                                   GError **error)
-{
-	GSimpleAsyncResult *simple;
-
-	g_return_val_if_fail (
-		g_simple_async_result_is_valid (
-		result, G_OBJECT (context),
-		cipher_context_export_keys), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	/* Assume success unless a GError is set. */
-	return !g_simple_async_result_propagate_error (simple, error);
-}
-
 static void
 camel_cipher_context_class_init (CamelCipherContextClass *class)
 {
@@ -724,21 +265,6 @@ camel_cipher_context_class_init (CamelCipherContextClass *class)
 	class->verify_sync = cipher_context_verify_sync;
 	class->encrypt_sync = cipher_context_encrypt_sync;
 	class->decrypt_sync = cipher_context_decrypt_sync;
-	class->import_keys_sync = cipher_context_import_keys_sync;
-	class->export_keys_sync = cipher_context_export_keys_sync;
-
-	class->sign = cipher_context_sign;
-	class->sign_finish = cipher_context_sign_finish;
-	class->verify = cipher_context_verify;
-	class->verify_finish = cipher_context_verify_finish;
-	class->encrypt = cipher_context_encrypt;
-	class->encrypt_finish = cipher_context_encrypt_finish;
-	class->decrypt = cipher_context_decrypt;
-	class->decrypt_finish = cipher_context_decrypt_finish;
-	class->import_keys = cipher_context_import_keys;
-	class->import_keys_finish = cipher_context_import_keys_finish;
-	class->export_keys = cipher_context_export_keys;
-	class->export_keys_finish = cipher_context_export_keys_finish;
 
 	g_object_class_install_property (
 		object_class,
@@ -756,7 +282,35 @@ static void
 camel_cipher_context_init (CamelCipherContext *context)
 {
 	context->priv = CAMEL_CIPHER_CONTEXT_GET_PRIVATE (context);
-	context->priv->lock = g_mutex_new ();
+	g_mutex_init (&context->priv->lock);
+}
+
+/* Helper for camel_cipher_context_sign() */
+static void
+cipher_context_sign_thread (GTask *task,
+                            gpointer source_object,
+                            gpointer task_data,
+                            GCancellable *cancellable)
+{
+	gboolean success;
+	AsyncContext *async_context;
+	GError *local_error = NULL;
+
+	async_context = (AsyncContext *) task_data;
+
+	success = camel_cipher_context_sign_sync (
+		CAMEL_CIPHER_CONTEXT (source_object),
+		async_context->userid,
+		async_context->hash,
+		async_context->ipart,
+		async_context->opart,
+		cancellable, &local_error);
+
+	if (local_error != NULL) {
+		g_task_return_error (task, local_error);
+	} else {
+		g_task_return_boolean (task, success);
+	}
 }
 
 /**
@@ -847,16 +401,30 @@ camel_cipher_context_sign (CamelCipherContext *context,
                            GAsyncReadyCallback callback,
                            gpointer user_data)
 {
-	CamelCipherContextClass *class;
+	GTask *task;
+	AsyncContext *async_context;
 
 	g_return_if_fail (CAMEL_IS_CIPHER_CONTEXT (context));
+	g_return_if_fail (CAMEL_IS_MIME_PART (ipart));
+	g_return_if_fail (CAMEL_IS_MIME_PART (opart));
 
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_if_fail (class->sign != NULL);
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->userid = g_strdup (userid);
+	async_context->hash = hash;
+	async_context->ipart = g_object_ref (ipart);
+	async_context->opart = g_object_ref (opart);
 
-	class->sign (
-		context, userid, hash, ipart, opart, io_priority,
-		cancellable, callback, user_data);
+	task = g_task_new (context, cancellable, callback, user_data);
+	g_task_set_source_tag (task, camel_cipher_context_sign);
+	g_task_set_priority (task, io_priority);
+
+	g_task_set_task_data (
+		task, async_context,
+		(GDestroyNotify) async_context_free);
+
+	g_task_run_in_thread (task, cipher_context_sign_thread);
+
+	g_object_unref (task);
 }
 
 /**
@@ -876,15 +444,14 @@ camel_cipher_context_sign_finish (CamelCipherContext *context,
                                   GAsyncResult *result,
                                   GError **error)
 {
-	CamelCipherContextClass *class;
-
 	g_return_val_if_fail (CAMEL_IS_CIPHER_CONTEXT (context), FALSE);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, context), FALSE);
 
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_val_if_fail (class->sign_finish != NULL, FALSE);
+	g_return_val_if_fail (
+		g_async_result_is_tagged (
+		result, camel_cipher_context_sign), FALSE);
 
-	return class->sign_finish (context, result, error);
+	return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -931,6 +498,34 @@ camel_cipher_context_verify_sync (CamelCipherContext *context,
 	return valid;
 }
 
+/* Helper for camel_cipher_context_verify() */
+static void
+cipher_context_verify_thread (GTask *task,
+                              gpointer source_object,
+                              gpointer task_data,
+                              GCancellable *cancellable)
+{
+	CamelCipherValidity *validity;
+	AsyncContext *async_context;
+	GError *local_error = NULL;
+
+	async_context = (AsyncContext *) task_data;
+
+	validity = camel_cipher_context_verify_sync (
+		CAMEL_CIPHER_CONTEXT (source_object),
+		async_context->ipart,
+		cancellable, &local_error);
+
+	if (local_error != NULL) {
+		g_warn_if_fail (validity == NULL);
+		g_task_return_error (task, local_error);
+	} else {
+		g_task_return_pointer (
+			task, validity,
+			(GDestroyNotify) camel_cipher_validity_free);
+	}
+}
+
 /**
  * camel_cipher_context_verify:
  * @context: a #CamelCipherContext
@@ -956,17 +551,26 @@ camel_cipher_context_verify (CamelCipherContext *context,
                              GAsyncReadyCallback callback,
                              gpointer user_data)
 {
-	CamelCipherContextClass *class;
+	GTask *task;
+	AsyncContext *async_context;
 
 	g_return_if_fail (CAMEL_IS_CIPHER_CONTEXT (context));
 	g_return_if_fail (CAMEL_IS_MIME_PART (ipart));
 
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_if_fail (class->verify != NULL);
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->ipart = g_object_ref (ipart);
 
-	class->verify (
-		context, ipart, io_priority,
-		cancellable, callback, user_data);
+	task = g_task_new (context, cancellable, callback, user_data);
+	g_task_set_source_tag (task, camel_cipher_context_verify);
+	g_task_set_priority (task, io_priority);
+
+	g_task_set_task_data (
+		task, async_context,
+		(GDestroyNotify) async_context_free);
+
+	g_task_run_in_thread (task, cipher_context_verify_thread);
+
+	g_object_unref (task);
 }
 
 /**
@@ -988,15 +592,14 @@ camel_cipher_context_verify_finish (CamelCipherContext *context,
                                     GAsyncResult *result,
                                     GError **error)
 {
-	CamelCipherContextClass *class;
-
 	g_return_val_if_fail (CAMEL_IS_CIPHER_CONTEXT (context), NULL);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (context), NULL);
+	g_return_val_if_fail (g_task_is_valid (result, context), NULL);
 
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_val_if_fail (class->verify_finish != NULL, NULL);
+	g_return_val_if_fail (
+		g_async_result_is_tagged (
+		result, camel_cipher_context_verify), NULL);
 
-	return class->verify_finish (context, result, error);
+	return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 /**
@@ -1057,6 +660,34 @@ camel_cipher_context_encrypt_sync (CamelCipherContext *context,
 	return success;
 }
 
+/* Helper for camel_cipher_context_encrypt_thread() */
+static void
+cipher_context_encrypt_thread (GTask *task,
+                               gpointer source_object,
+                               gpointer task_data,
+                               GCancellable *cancellable)
+{
+	gboolean success;
+	AsyncContext *async_context;
+	GError *local_error = NULL;
+
+	async_context = (AsyncContext *) task_data;
+
+	success = camel_cipher_context_encrypt_sync (
+		CAMEL_CIPHER_CONTEXT (source_object),
+		async_context->userid,
+		async_context->strings,
+		async_context->ipart,
+		async_context->opart,
+		cancellable, &local_error);
+
+	if (local_error != NULL) {
+		g_task_return_error (task, local_error);
+	} else {
+		g_task_return_boolean (task, success);
+	}
+}
+
 /**
  * camel_cipher_context_encrypt:
  * @context: a #CamelCipherContext
@@ -1089,18 +720,36 @@ camel_cipher_context_encrypt (CamelCipherContext *context,
                               GAsyncReadyCallback callback,
                               gpointer user_data)
 {
-	CamelCipherContextClass *class;
+	GTask *task;
+	AsyncContext *async_context;
+	guint ii;
 
 	g_return_if_fail (CAMEL_IS_CIPHER_CONTEXT (context));
 	g_return_if_fail (CAMEL_IS_MIME_PART (ipart));
 	g_return_if_fail (CAMEL_IS_MIME_PART (opart));
 
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_if_fail (class->encrypt != NULL);
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->userid = g_strdup (userid);
+	async_context->strings = g_ptr_array_new ();
+	async_context->ipart = g_object_ref (ipart);
+	async_context->opart = g_object_ref (opart);
 
-	class->encrypt (
-		context, userid, recipients, ipart, opart,
-		io_priority, cancellable, callback, user_data);
+	for (ii = 0; ii < recipients->len; ii++)
+		g_ptr_array_add (
+			async_context->strings,
+			g_strdup (recipients->pdata[ii]));
+
+	task = g_task_new (context, cancellable, callback, user_data);
+	g_task_set_source_tag (task, camel_cipher_context_encrypt);
+	g_task_set_priority (task, io_priority);
+
+	g_task_set_task_data (
+		task, async_context,
+		(GDestroyNotify) async_context_free);
+
+	g_task_run_in_thread (task, cipher_context_encrypt_thread);
+
+	g_object_unref (task);
 }
 
 /**
@@ -1120,15 +769,14 @@ camel_cipher_context_encrypt_finish (CamelCipherContext *context,
                                      GAsyncResult *result,
                                      GError **error)
 {
-	CamelCipherContextClass *class;
-
 	g_return_val_if_fail (CAMEL_IS_CIPHER_CONTEXT (context), FALSE);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, context), FALSE);
 
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_val_if_fail (class->encrypt_finish != NULL, FALSE);
+	g_return_val_if_fail (
+		g_async_result_is_tagged (
+		result, camel_cipher_context_encrypt), FALSE);
 
-	return class->encrypt_finish (context, result, error);
+	return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -1183,6 +831,35 @@ camel_cipher_context_decrypt_sync (CamelCipherContext *context,
 	return valid;
 }
 
+/* Helper for camel_cipher_context_decrypt() */
+static void
+cipher_context_decrypt_thread (GTask *task,
+                               gpointer source_object,
+                               gpointer task_data,
+                               GCancellable *cancellable)
+{
+	CamelCipherValidity *validity;
+	AsyncContext *async_context;
+	GError *local_error = NULL;
+
+	async_context = (AsyncContext *) task_data;
+
+	validity = camel_cipher_context_decrypt_sync (
+		CAMEL_CIPHER_CONTEXT (source_object),
+		async_context->ipart,
+		async_context->opart,
+		cancellable, &local_error);
+
+	if (local_error != NULL) {
+		g_warn_if_fail (validity == NULL);
+		g_task_return_error (task, local_error);
+	} else {
+		g_task_return_pointer (
+			task, validity,
+			(GDestroyNotify) camel_cipher_validity_free);
+	}
+}
+
 /**
  * camel_cipher_context_decrypt:
  * @context: a #CamelCipherContext
@@ -1210,18 +887,28 @@ camel_cipher_context_decrypt (CamelCipherContext *context,
                               GAsyncReadyCallback callback,
                               gpointer user_data)
 {
-	CamelCipherContextClass *class;
+	GTask *task;
+	AsyncContext *async_context;
 
 	g_return_if_fail (CAMEL_IS_CIPHER_CONTEXT (context));
 	g_return_if_fail (CAMEL_IS_MIME_PART (ipart));
 	g_return_if_fail (CAMEL_IS_MIME_PART (opart));
 
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_if_fail (class->decrypt != NULL);
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->ipart = g_object_ref (ipart);
+	async_context->opart = g_object_ref (opart);
 
-	class->decrypt (
-		context, ipart, opart, io_priority,
-		cancellable, callback, user_data);
+	task = g_task_new (context, cancellable, callback, user_data);
+	g_task_set_source_tag (task, camel_cipher_context_decrypt);
+	g_task_set_priority (task, io_priority);
+
+	g_task_set_task_data (
+		task, async_context,
+		(GDestroyNotify) async_context_free);
+
+	g_task_run_in_thread (task, cipher_context_decrypt_thread);
+
+	g_object_unref (task);
 }
 
 /**
@@ -1241,227 +928,14 @@ camel_cipher_context_decrypt_finish (CamelCipherContext *context,
                                      GAsyncResult *result,
                                      GError **error)
 {
-	CamelCipherContextClass *class;
-
 	g_return_val_if_fail (CAMEL_IS_CIPHER_CONTEXT (context), NULL);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), NULL);
+	g_return_val_if_fail (g_task_is_valid (result, context), NULL);
 
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_val_if_fail (class->decrypt_finish != NULL, NULL);
+	g_return_val_if_fail (
+		g_async_result_is_tagged (
+		result, camel_cipher_context_decrypt), NULL);
 
-	return class->decrypt_finish (context, result, error);
-}
-
-/**
- * camel_cipher_context_import_keys_sync:
- * @context: a #CamelCipherContext
- * @istream: an input stream containing keys
- * @cancellable: optional #GCancellable object, or %NULL
- * @error: return location for a #GError, or %NULL
- *
- * Imports a stream of keys/certificates contained within @istream
- * into the key/certificate database controlled by @context.
- *
- * Returns: %TRUE on success, %FALSE on error
- *
- * Since: 3.0
- **/
-gboolean
-camel_cipher_context_import_keys_sync (CamelCipherContext *context,
-                                       CamelStream *istream,
-                                       GCancellable *cancellable,
-                                       GError **error)
-{
-	CamelCipherContextClass *class;
-	gboolean success;
-
-	g_return_val_if_fail (CAMEL_IS_CIPHER_CONTEXT (context), FALSE);
-	g_return_val_if_fail (CAMEL_IS_STREAM (istream), FALSE);
-
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_val_if_fail (class->import_keys_sync != NULL, FALSE);
-
-	success = class->import_keys_sync (
-		context, istream, cancellable, error);
-	CAMEL_CHECK_GERROR (context, import_keys_sync, success, error);
-
-	return success;
-}
-
-/**
- * camel_cipher_context_import_keys:
- * @context: a #CamelCipherContext
- * @istream: an input stream containing keys
- * @io_priority: the I/O priority of the request
- * @cancellable: optional #GCancellable object, or %NULL
- * @callback: a #GAsyncReadyCallback to call when the request is satisfied
- * @user_data: data to pass to the callback function
- *
- * Asynchronously imports a stream of keys/certificates contained within
- * @istream into the key/certificate database controlled by @context.
- *
- * When the operation is finished, @callback will be called.  You can
- * then call camel_cipher_context_import_keys_finish() to get the result
- * of the operation.
- *
- * Since: 3.0
- **/
-void
-camel_cipher_context_import_keys (CamelCipherContext *context,
-                                  CamelStream *istream,
-                                  gint io_priority,
-                                  GCancellable *cancellable,
-                                  GAsyncReadyCallback callback,
-                                  gpointer user_data)
-{
-	CamelCipherContextClass *class;
-
-	g_return_if_fail (CAMEL_IS_CIPHER_CONTEXT (context));
-	g_return_if_fail (CAMEL_IS_STREAM (istream));
-
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_if_fail (class->import_keys != NULL);
-
-	class->import_keys (
-		context, istream, io_priority,
-		cancellable, callback, user_data);
-}
-
-/**
- * camel_cipher_context_import_keys_finish:
- * @context: a #CamelCipherContext
- * @result: a #GAsyncResult
- * @error: return location for a #GError, or %NULL
- *
- * Finishes the operation started with camel_cipher_context_import_keys().
- *
- * Returns: %TRUE on success, %FALSE on error
- *
- * Since: 3.0
- **/
-gboolean
-camel_cipher_context_import_keys_finish (CamelCipherContext *context,
-                                         GAsyncResult *result,
-                                         GError **error)
-{
-	CamelCipherContextClass *class;
-
-	g_return_val_if_fail (CAMEL_IS_CIPHER_CONTEXT (context), FALSE);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), FALSE);
-
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_val_if_fail (class->import_keys_finish != NULL, FALSE);
-
-	return class->import_keys_finish (context, result, error);
-}
-
-/**
- * camel_cipher_context_export_keys_sync:
- * @context: a #CamelCipherContext
- * @keys: an array of key IDs
- * @ostream: an output stream
- * @cancellable: optional #GCancellable object, or %NULL
- * @error: return location for a #GError, or %NULL
- *
- * Exports the keys/certificates in @keys to the stream @ostream from
- * the key/certificate database controlled by @context.
- *
- * Returns: %TRUE on success, %FALSE on error
- *
- * Since: 3.0
- **/
-gboolean
-camel_cipher_context_export_keys_sync (CamelCipherContext *context,
-                                       GPtrArray *keys,
-                                       CamelStream *ostream,
-                                       GCancellable *cancellable,
-                                       GError **error)
-{
-	CamelCipherContextClass *class;
-	gboolean success;
-
-	g_return_val_if_fail (CAMEL_IS_CIPHER_CONTEXT (context), FALSE);
-	g_return_val_if_fail (keys != NULL, FALSE);
-	g_return_val_if_fail (CAMEL_IS_STREAM (ostream), FALSE);
-
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_val_if_fail (class->export_keys_sync != NULL, FALSE);
-
-	success = class->export_keys_sync (
-		context, keys, ostream, cancellable, error);
-	CAMEL_CHECK_GERROR (context, export_keys_sync, success, error);
-
-	return success;
-}
-
-/**
- * camel_cipher_context_export_keys:
- * @context: a #CamelCipherContext
- * @keys: an array of key IDs
- * @ostream: an output stream
- * @io_priority: the I/O priority of the request
- * @cancellable: optional #GCancellable object, or %NULL
- * @callback: a #GAsyncReadyCallback to call when the request is satisfied
- * @user_data: data to pass to the callback function
- *
- * Asynchronously exports the keys/certificates in @keys to the stream
- * @ostream from the key/certificate database controlled by @context.
- *
- * When the operation is finished, @callback will be called.  You can then
- * call camel_cipher_context_export_keys_finish() to get the result of the
- * operation.
- *
- * Since: 3.0
- **/
-void
-camel_cipher_context_export_keys (CamelCipherContext *context,
-                                  GPtrArray *keys,
-                                  CamelStream *ostream,
-                                  gint io_priority,
-                                  GCancellable *cancellable,
-                                  GAsyncReadyCallback callback,
-                                  gpointer user_data)
-{
-	CamelCipherContextClass *class;
-
-	g_return_if_fail (CAMEL_IS_CIPHER_CONTEXT (context));
-	g_return_if_fail (keys != NULL);
-	g_return_if_fail (CAMEL_IS_STREAM (ostream));
-
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_if_fail (class->export_keys != NULL);
-
-	class->export_keys (
-		context, keys, ostream, io_priority,
-		cancellable, callback, user_data);
-}
-
-/**
- * camel_cipher_context_export_keys_finish:
- * @context: a #CamelCipherContext
- * @result: a #GAsyncResult
- * @error: return location for a #GError, or %NULL
- *
- * Finishes the operation started with camel_cipher_context_export_keys().
- *
- * Returns: %TRUE on success, %FALSE on error
- *
- * Since: 3.0
- **/
-gboolean
-camel_cipher_context_export_keys_finish (CamelCipherContext *context,
-                                         GAsyncResult *result,
-                                         GError **error)
-{
-	CamelCipherContextClass *class;
-
-	g_return_val_if_fail (CAMEL_IS_CIPHER_CONTEXT (context), FALSE);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), FALSE);
-
-	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
-	g_return_val_if_fail (class->export_keys_finish != NULL, FALSE);
-
-	return class->export_keys_finish (context, result, error);
+	return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 /* a couple of util functions */
@@ -1597,9 +1071,18 @@ camel_cipher_validity_clone (CamelCipherValidity *vin)
 		CamelCipherCertInfo *info = link->data;
 
 		if (info->cert_data && info->cert_data_clone && info->cert_data_free)
-			camel_cipher_validity_add_certinfo_ex (vo, CAMEL_CIPHER_VALIDITY_SIGN, info->name, info->email, info->cert_data_clone (info->cert_data), info->cert_data_free, info->cert_data_clone);
+			camel_cipher_validity_add_certinfo_ex (
+				vo, CAMEL_CIPHER_VALIDITY_SIGN,
+				info->name,
+				info->email,
+				info->cert_data_clone (info->cert_data),
+				info->cert_data_free,
+				info->cert_data_clone);
 		else
-			camel_cipher_validity_add_certinfo (vo, CAMEL_CIPHER_VALIDITY_SIGN, info->name, info->email);
+			camel_cipher_validity_add_certinfo (
+				vo, CAMEL_CIPHER_VALIDITY_SIGN,
+				info->name,
+				info->email);
 	}
 
 	head = g_queue_peek_head_link (&vin->encrypt.encrypters);
@@ -1607,9 +1090,18 @@ camel_cipher_validity_clone (CamelCipherValidity *vin)
 		CamelCipherCertInfo *info = link->data;
 
 		if (info->cert_data && info->cert_data_clone && info->cert_data_free)
-			camel_cipher_validity_add_certinfo_ex (vo, CAMEL_CIPHER_VALIDITY_SIGN, info->name, info->email, info->cert_data_clone (info->cert_data), info->cert_data_free, info->cert_data_clone);
+			camel_cipher_validity_add_certinfo_ex (
+				vo, CAMEL_CIPHER_VALIDITY_SIGN,
+				info->name,
+				info->email,
+				info->cert_data_clone (info->cert_data),
+				info->cert_data_free,
+				info->cert_data_clone);
 		else
-			camel_cipher_validity_add_certinfo (vo, CAMEL_CIPHER_VALIDITY_ENCRYPT, info->name, info->email);
+			camel_cipher_validity_add_certinfo (
+				vo, CAMEL_CIPHER_VALIDITY_ENCRYPT,
+				info->name,
+				info->email);
 	}
 
 	return vo;
@@ -1800,6 +1292,10 @@ cc_prepare_sign (CamelMimePart *part)
 
 	dw = camel_medium_get_content ((CamelMedium *) part);
 	if (!dw)
+		return;
+
+	/* should not change encoding for these, they have the right encoding set already */
+	if (CAMEL_IS_MULTIPART_SIGNED (dw) || CAMEL_IS_MULTIPART_ENCRYPTED (dw))
 		return;
 
 	if (CAMEL_IS_MULTIPART (dw)) {

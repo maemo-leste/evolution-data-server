@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8; fill-column: 160 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -51,9 +49,9 @@
 #define CAMEL_TEXT_INDEX_MAX_WORDLEN  (36)
 
 #define CAMEL_TEXT_INDEX_LOCK(kf, lock) \
-	(g_static_rec_mutex_lock (&((CamelTextIndex *) kf)->priv->lock))
+	(g_rec_mutex_lock (&((CamelTextIndex *) kf)->priv->lock))
 #define CAMEL_TEXT_INDEX_UNLOCK(kf, lock) \
-	(g_static_rec_mutex_unlock (&((CamelTextIndex *) kf)->priv->lock))
+	(g_rec_mutex_unlock (&((CamelTextIndex *) kf)->priv->lock))
 
 static gint text_index_compress_nosync (CamelIndex *idx);
 
@@ -131,7 +129,7 @@ struct _CamelTextIndexPrivate {
 	guint word_cache_limit;
 	GQueue word_cache;
 	GHashTable *words;
-	GStaticRecMutex lock;
+	GRecMutex lock;
 };
 
 /* Root block of text index */
@@ -222,7 +220,7 @@ text_index_finalize (GObject *object)
 
 	g_hash_table_destroy (priv->words);
 
-	g_static_rec_mutex_free (&priv->lock);
+	g_rec_mutex_clear (&priv->lock);
 
 	/* Chain up to parent's finalize () method. */
 	G_OBJECT_CLASS (camel_text_index_parent_class)->finalize (object);
@@ -251,13 +249,15 @@ text_index_add_name_to_word (CamelIndex *idx,
 			data = 0;
 			wordid = camel_key_table_add (p->word_index, word, 0, 0);
 			if (wordid == 0) {
-				g_warning ("Could not create key entry for word '%s': %s\n",
-					   word, g_strerror (errno));
+				g_warning (
+					"Could not create key entry for word '%s': %s\n",
+					word, g_strerror (errno));
 				return;
 			}
 			if (camel_partition_table_add (p->word_hash, word, wordid) == -1) {
-				g_warning ("Could not create hash entry for word '%s': %s\n",
-					   word, g_strerror (errno));
+				g_warning (
+					"Could not create hash entry for word '%s': %s\n",
+					word, g_strerror (errno));
 				return;
 			}
 			rb->words++;
@@ -265,8 +265,9 @@ text_index_add_name_to_word (CamelIndex *idx,
 		} else {
 			data = camel_key_table_lookup (p->word_index, wordid, NULL, NULL);
 			if (data == 0) {
-				g_warning ("Could not find key entry for word '%s': %s\n",
-					   word, g_strerror (errno));
+				g_warning (
+					"Could not find key entry for word '%s': %s\n",
+					word, g_strerror (errno));
 				return;
 			}
 		}
@@ -398,17 +399,20 @@ text_index_sync (CamelIndex *idx)
 	return ret;
 }
 
-static void tmp_name (const gchar *in, gchar *o)
+static void
+tmp_name (const gchar *in,
+          gchar *o,
+          gsize o_len)
 {
 	gchar *s;
 
 	s = strrchr (in, '/');
 	if (s) {
 		memcpy (o, in, s - in + 1);
-		memcpy (o+(s-in+1), ".#", 2);
+		memcpy (o + (s - in + 1), ".#", 2);
 		strcpy (o + (s - in + 3), s + 1);
 	} else {
-		sprintf (o, ".#%s", in);
+		g_snprintf (o, o_len, ".#%s", in);
 	}
 }
 
@@ -451,11 +455,11 @@ text_index_compress_nosync (CamelIndex *idx)
 	newpath = alloca (i);
 	savepath = alloca (i);
 
-	strcpy (oldpath, idx->path);
-	oldpath[strlen (oldpath)-strlen (".index")] = 0;
+	g_strlcpy (oldpath, idx->path, i);
+	oldpath[strlen (oldpath) - strlen (".index")] = 0;
 
-	tmp_name (oldpath, newpath);
-	sprintf (savepath, "%s~", oldpath);
+	tmp_name (oldpath, newpath, i);
+	g_snprintf (savepath, i, "%s~", oldpath);
 
 	d (printf ("Old index: %s\n", idx->path));
 	d (printf ("Old path: %s\n", oldpath));
@@ -515,7 +519,7 @@ text_index_compress_nosync (CamelIndex *idx)
 	 * have to do 1 at a time and its cheap */
 	oldkeyid = 0;
 	while ((oldkeyid = camel_key_table_next (oldp->word_index, oldkeyid, &name, &flags, &data))) {
-		io(printf ("copying word '%s'\n", name));
+		io (printf ("copying word '%s'\n", name));
 		newdata = 0;
 		newcount = 0;
 		if (data) {
@@ -524,7 +528,7 @@ text_index_compress_nosync (CamelIndex *idx)
 		}
 		while (data) {
 			if (camel_key_file_read (oldp->links, &data, &count, &records) == -1) {
-				io (printf ("could not read from old keys at %d for word '%s'\n", (gint)data, name));
+				io (printf ("could not read from old keys at %d for word '%s'\n", (gint) data, name));
 				goto fail;
 			}
 			for (i = 0; i < count; i++) {
@@ -597,9 +601,9 @@ fail:
 	g_hash_table_destroy (remap);
 
 	/* clean up temp files always */
-	sprintf (savepath, "%s~.index", oldpath);
+	g_snprintf (savepath, i, "%s~.index", oldpath);
 	g_unlink (savepath);
-	sprintf (newpath, "%s.data", savepath);
+	g_snprintf (newpath, i, "%s.data", savepath);
 	g_unlink (newpath);
 
 	return ret;
@@ -625,20 +629,23 @@ text_index_rename (CamelIndex *idx,
 {
 	CamelTextIndexPrivate *p = CAMEL_TEXT_INDEX_GET_PRIVATE (idx);
 	gchar *newlink, *newblock;
+	gsize newlink_len, newblock_len;
 	gint err, ret;
 
 	CAMEL_TEXT_INDEX_LOCK (idx, lock);
 
-	newblock = alloca (strlen (path) + 8);
-	sprintf (newblock, "%s.index", path);
+	newblock_len = strlen (path) + 8;
+	newblock = alloca (newblock_len);
+	g_snprintf (newblock, newblock_len, "%s.index", path);
 	ret = camel_block_file_rename (p->blocks, newblock);
 	if (ret == -1) {
 		CAMEL_TEXT_INDEX_UNLOCK (idx, lock);
 		return -1;
 	}
 
-	newlink = alloca (strlen (path) + 16);
-	sprintf (newlink, "%s.index.data", path);
+	newlink_len = strlen (path) + 16;
+	newlink = alloca (newlink_len);
+	g_snprintf (newlink, newlink_len, "%s.index.data", path);
 	ret = camel_key_file_rename (p->links, newlink);
 	if (ret == -1) {
 		err = errno;
@@ -808,14 +815,6 @@ text_index_words (CamelIndex *idx)
 	return (CamelIndexCursor *) camel_text_index_key_cursor_new ((CamelTextIndex *) idx, p->word_index);
 }
 
-static CamelIndexCursor *
-text_index_names (CamelIndex *idx)
-{
-	CamelTextIndexPrivate *p = CAMEL_TEXT_INDEX_GET_PRIVATE (idx);
-
-	return (CamelIndexCursor *) camel_text_index_key_cursor_new ((CamelTextIndex *) idx, p->name_index);
-}
-
 static void
 camel_text_index_class_init (CamelTextIndexClass *class)
 {
@@ -831,7 +830,7 @@ camel_text_index_class_init (CamelTextIndexClass *class)
 	index_class = CAMEL_INDEX_CLASS (class);
 	index_class->sync = text_index_sync;
 	index_class->compress = text_index_compress;
-	index_class->delete = text_index_delete;
+	index_class->delete_ = text_index_delete;
 	index_class->rename = text_index_rename;
 	index_class->has_name = text_index_has_name;
 	index_class->add_name = text_index_add_name;
@@ -840,7 +839,6 @@ camel_text_index_class_init (CamelTextIndexClass *class)
 	index_class->delete_name = text_index_delete_name;
 	index_class->find = text_index_find;
 	index_class->words = text_index_words;
-	index_class->names = text_index_names;
 }
 
 static void
@@ -856,7 +854,7 @@ camel_text_index_init (CamelTextIndex *text_index)
 	 * usage barely affects performance. */
 	text_index->priv->word_cache_limit = 4096; /* 1024 = 128K */
 
-	g_static_rec_mutex_init (&text_index->priv->lock);
+	g_rec_mutex_init (&text_index->priv->lock);
 }
 
 static gchar *
@@ -881,6 +879,7 @@ camel_text_index_new (const gchar *path,
 	CamelTextIndexPrivate *p = CAMEL_TEXT_INDEX_GET_PRIVATE (idx);
 	struct _CamelTextIndexRoot *rb;
 	gchar *link;
+	gsize link_len;
 	CamelBlock *bl;
 
 	camel_index_construct ((CamelIndex *) idx, path, flags);
@@ -891,8 +890,9 @@ camel_text_index_new (const gchar *path,
 	if (p->blocks == NULL)
 		goto fail;
 
-	link = alloca (strlen (idx->parent.path) + 7);
-	sprintf (link, "%s.data", idx->parent.path);
+	link_len = strlen (idx->parent.path) + 7;
+	link = alloca (link_len);
+	g_snprintf (link, link_len, "%s.data", idx->parent.path);
 	p->links = camel_key_file_new (link, flags, CAMEL_TEXT_INDEX_KEY_VERSION);
 
 	if (p->links == NULL)
@@ -967,18 +967,21 @@ gint
 camel_text_index_check (const gchar *path)
 {
 	gchar *block, *key;
+	gsize block_len, key_len;
 	CamelBlockFile *blocks;
 	CamelKeyFile *keys;
 
-	block = alloca (strlen (path) + 7);
-	sprintf (block, "%s.index", path);
+	block_len = strlen (path) + 7;
+	block = alloca (block_len);
+	g_snprintf (block, block_len, "%s.index", path);
 	blocks = camel_block_file_new (block, O_RDONLY, CAMEL_TEXT_INDEX_VERSION, CAMEL_BLOCK_SIZE);
 	if (blocks == NULL) {
 		io (printf ("Check failed: No block file: %s\n", g_strerror (errno)));
 		return -1;
 	}
-	key = alloca (strlen (path) + 12);
-	sprintf (key, "%s.index.data", path);
+	key_len = strlen (path) + 12;
+	key = alloca (key_len);
+	g_snprintf (key, key_len, "%s.index.data", path);
 	keys = camel_key_file_new (key, O_RDONLY, CAMEL_TEXT_INDEX_KEY_VERSION);
 	if (keys == NULL) {
 		io (printf ("Check failed: No key file: %s\n", g_strerror (errno)));
@@ -997,26 +1000,33 @@ camel_text_index_rename (const gchar *old,
                          const gchar *new)
 {
 	gchar *oldname, *newname;
+	gsize oldname_len, newname_len;
 	gint err;
 
 	/* TODO: camel_text_index_rename should find out if we have an active index and use that instead */
 
-	oldname = alloca (strlen (old) + 12);
-	newname = alloca (strlen (new) + 12);
-	sprintf (oldname, "%s.index", old);
-	sprintf (newname, "%s.index", new);
+	oldname_len = strlen (old) + 12;
+	newname_len = strlen (new) + 12;
+	oldname = alloca (oldname_len);
+	newname = alloca (newname_len);
+	g_snprintf (oldname, oldname_len, "%s.index", old);
+	g_snprintf (newname, newname_len, "%s.index", new);
 
 	if (g_rename (oldname, newname) == -1 && errno != ENOENT)
 		return -1;
 
-	sprintf (oldname, "%s.index.data", old);
-	sprintf (newname, "%s.index.data", new);
+	g_snprintf (oldname, oldname_len, "%s.index.data", old);
+	g_snprintf (newname, newname_len, "%s.index.data", new);
 
 	if (g_rename (oldname, newname) == -1 && errno != ENOENT) {
 		err = errno;
-		sprintf (oldname, "%s.index", old);
-		sprintf (newname, "%s.index", new);
-		g_rename (newname, oldname);
+		g_snprintf (oldname, oldname_len, "%s.index", old);
+		g_snprintf (newname, newname_len, "%s.index", new);
+		if (g_rename (newname, oldname) == -1) {
+			g_warning (
+				"%s: Failed to rename '%s' to '%s': %s",
+				G_STRFUNC, newname, oldname, g_strerror (errno));
+		}
 		errno = err;
 		return -1;
 	}
@@ -1028,14 +1038,17 @@ gint
 camel_text_index_remove (const gchar *old)
 {
 	gchar *block, *key;
+	gsize block_len, key_len;
 	gint ret = 0;
 
 	/* TODO: needs to poke any active indices to remain unlinked */
 
-	block = alloca (strlen (old) + 12);
-	key = alloca (strlen (old) + 12);
-	sprintf (block, "%s.index", old);
-	sprintf (key, "%s.index.data", old);
+	block_len = strlen (old) + 12;
+	block = alloca (block_len);
+	key_len = strlen (old) + 12;
+	key = alloca (key_len);
+	g_snprintf (block, block_len, "%s.index", old);
+	g_snprintf (key, key_len, "%s.index.data", old);
 
 	if (g_unlink (block) == -1 && errno != ENOENT && errno != ENOTDIR)
 		ret = -1;
@@ -1205,9 +1218,10 @@ dump_raw (GHashTable *map,
 				else
 					len = k->u.keys[i - 1].offset;
 				len -= k->u.keys[i].offset;
-				printf ("[%03d]: %08x %5d %06x %3d '%.*s'\n", i,
-				       k->u.keys[i].data, k->u.keys[i].offset, k->u.keys[i].flags,
-				       len, len, k->u.keydata + k->u.keys[i].offset);
+				printf (
+					"[%03d]: %08x %5d %06x %3d '%.*s'\n", i,
+					k->u.keys[i].data, k->u.keys[i].offset, k->u.keys[i].flags,
+					len, len, k->u.keydata + k->u.keys[i].offset);
 			}
 		} break;
 		case PARTITION_MAP: {
@@ -1230,7 +1244,7 @@ dump_raw (GHashTable *map,
 		len = 1024;
 		p = buf;
 		do {
-			sprintf (line, "%08x:                                                                      ", total);
+			g_snprintf (line, sizeof (line), "%08x:                                                                      ", total);
 			total += 16;
 			o = line + 10;
 			a = o + 16 * 2 + 2;
@@ -1419,7 +1433,7 @@ camel_text_index_validate (CamelTextIndex *idx)
 				printf ("Warning, read failed for word '%s', at data '%u'\n", word, data);
 				data = 0;
 			} else {
-				printf ("(%d)\n", (gint)count);
+				printf ("(%d)\n", (gint) count);
 				g_free (records);
 			}
 		}
@@ -1679,20 +1693,6 @@ text_index_cursor_next (CamelIndexCursor *idc)
 }
 
 static void
-text_index_cursor_reset (CamelIndexCursor *idc)
-{
-	CamelTextIndexCursorPrivate *p = CAMEL_TEXT_INDEX_CURSOR_GET_PRIVATE (idc);
-
-	g_free (p->records);
-	p->records = NULL;
-	g_free (p->current);
-	p->current = NULL;
-	p->record_count = 0;
-	p->record_index = 0;
-	p->next = p->first;
-}
-
-static void
 camel_text_index_cursor_class_init (CamelTextIndexCursorClass *class)
 {
 	GObjectClass *object_class;
@@ -1705,7 +1705,6 @@ camel_text_index_cursor_class_init (CamelTextIndexCursorClass *class)
 
 	index_cursor_class = CAMEL_INDEX_CURSOR_CLASS (class);
 	index_cursor_class->next = text_index_cursor_next;
-	index_cursor_class->reset = text_index_cursor_reset;
 }
 
 static void
@@ -1790,18 +1789,6 @@ text_index_key_cursor_next (CamelIndexCursor *idc)
 }
 
 static void
-text_index_key_cursor_reset (CamelIndexCursor *idc)
-{
-	CamelTextIndexKeyCursorPrivate *p = CAMEL_TEXT_INDEX_KEY_CURSOR_GET_PRIVATE (idc);
-
-	p->keyid = 0;
-	p->flags = 0;
-	p->data = 0;
-	g_free (p->current);
-	p->current = NULL;
-}
-
-static void
 camel_text_index_key_cursor_class_init (CamelTextIndexKeyCursorClass *class)
 {
 	GObjectClass *object_class;
@@ -1815,7 +1802,6 @@ camel_text_index_key_cursor_class_init (CamelTextIndexKeyCursorClass *class)
 
 	index_cursor_class = CAMEL_INDEX_CURSOR_CLASS (class);
 	index_cursor_class->next = text_index_key_cursor_next;
-	index_cursor_class->reset = text_index_key_cursor_reset;
 }
 
 static void
@@ -1890,7 +1876,7 @@ main (gint argc,
 
 	camel_init (NULL, 0);
 
-	idx = (CamelIndex *)camel_text_index_new ("textindex", O_CREAT|O_RDWR|O_TRUNC);
+	idx = (CamelIndex *) camel_text_index_new ("textindex", O_CREAT | O_RDWR | O_TRUNC);
 
 #if 1
 	camel_index_compress (idx);
@@ -1901,7 +1887,7 @@ main (gint argc,
 	for (i = 0; i < 100; i++) {
 		gchar name[16];
 
-		sprintf (name, "%d", i);
+		g_snprintf (name, sizeof (name), "%d", i);
 		printf ("Adding words to name '%s'\n", name);
 		idn = camel_index_add_name (idx, name);
 		camel_index_name_add_buffer (idn, wordbuffer, sizeof (wordbuffer) - 1);

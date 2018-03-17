@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 
 #include <stdio.h>
-#include <libebook/e-vcard.h>
+#include <libebook-contacts/libebook-contacts.h>
 
 gint
 main (gint argc,
@@ -16,8 +16,6 @@ main (gint argc,
 		g_warning ("Requires one parameter, a vCard file\n");
 		return 1;
 	}
-
-	g_type_init_with_debug_flags (G_TYPE_DEBUG_OBJECTS);
 
 	fp = fopen (argv[1], "r");
 	if (fp == NULL) {

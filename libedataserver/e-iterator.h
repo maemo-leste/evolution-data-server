@@ -6,6 +6,15 @@
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  */
 
+#if !defined (__LIBEDATASERVER_H_INSIDE__) && !defined (LIBEDATASERVER_COMPILATION)
+#error "Only <libedataserver/libedataserver.h> should be included directly."
+#endif
+
+#ifndef EDS_DISABLE_DEPRECATED
+
+/* Do not generate bindings. */
+#ifndef __GI_SCANNER__
+
 #ifndef E_ITERATOR_H
 #define E_ITERATOR_H
 
@@ -86,3 +95,8 @@ void		e_iterator_invalidate		(EIterator *iterator);
 G_END_DECLS
 
 #endif /* E_ITERATOR_H */
+
+#endif /* __GI_SCANNER__ */
+
+#endif /* EDS_DISABLE_DEPRECATED */
+

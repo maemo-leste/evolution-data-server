@@ -4,19 +4,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -74,7 +72,7 @@ xrename (const gchar *oldp,
 	new = g_build_filename (prefix, basename, NULL);
 	g_free (basename);
 
-	d(printf("renaming %s%s to %s%s\n", oldp, suffix, newp, suffix));
+	d (printf ("renaming %s%s to %s%s\n", oldp, suffix, newp, suffix));
 
 	if (g_stat (old, &st) == -1) {
 		if (missingok && errno == ENOENT) {
@@ -167,10 +165,12 @@ local_store_get_name (CamelService *service,
 	gchar *path;
 	gchar *name;
 
-	settings = camel_service_get_settings (service);
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	if (brief)
 		name = g_strdup (path);
@@ -206,10 +206,13 @@ local_store_get_folder_sync (CamelStore *store,
 	gchar *path;
 
 	service = CAMEL_SERVICE (store);
-	settings= camel_service_get_settings (service);
+
+	settings= camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	if (!g_path_is_absolute (path)) {
 		g_set_error (
@@ -270,7 +273,7 @@ local_store_get_folder_info_sync (CamelStore *store,
 	 * there before.
 	 */
 
-	d(printf("-- LOCAL STORE -- get folder info: %s\n", top));
+	d (printf ("-- LOCAL STORE -- get folder info: %s\n", top));
 
 	return NULL;
 }
@@ -361,10 +364,13 @@ local_store_create_folder_sync (CamelStore *store,
 	struct stat st;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	/* This is a pretty hacky version of create folder, but should basically work */
 
@@ -377,9 +383,9 @@ local_store_create_folder_sync (CamelStore *store,
 	}
 
 	if (parent_name && *parent_name)
-		name = g_strdup_printf("%s/%s/%s", path, parent_name, folder_name);
+		name = g_strdup_printf ("%s/%s/%s", path, parent_name, folder_name);
 	else
-		name = g_strdup_printf("%s/%s", path, folder_name);
+		name = g_strdup_printf ("%s/%s", path, folder_name);
 
 	if (g_stat (name, &st) == 0 || errno != ENOENT) {
 		g_set_error (
@@ -393,9 +399,9 @@ local_store_create_folder_sync (CamelStore *store,
 	g_free (name);
 
 	if (parent_name && *parent_name)
-		name = g_strdup_printf("%s/%s", parent_name, folder_name);
+		name = g_strdup_printf ("%s/%s", parent_name, folder_name);
 	else
-		name = g_strdup_printf("%s", folder_name);
+		name = g_strdup_printf ("%s", folder_name);
 
 	folder = CAMEL_STORE_GET_CLASS (store)->get_folder_sync (
 		store, name, CAMEL_STORE_FOLDER_CREATE, cancellable, error);
@@ -430,10 +436,13 @@ local_store_delete_folder_sync (CamelStore *store,
 	gboolean success = TRUE;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	/* remove metadata only */
 	name = g_build_filename (path, folder_name, NULL);
@@ -512,10 +521,13 @@ local_store_rename_folder_sync (CamelStore *store,
 	gboolean success = TRUE;
 
 	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	old_basename = g_strdup_printf ("%s.ibex", old);
 	new_basename = g_strdup_printf ("%s.ibex", new);
@@ -528,28 +540,29 @@ local_store_rename_folder_sync (CamelStore *store,
 
 	/* try to rollback failures, has obvious races */
 
-	d(printf("local rename folder '%s' '%s'\n", old, new));
+	d (printf ("local rename folder '%s' '%s'\n", old, new));
 
 	folder = camel_object_bag_get (store->folders, old);
 	if (folder && folder->index) {
 		if (camel_index_rename (folder->index, newibex) == -1)
 			goto ibex_failed;
 	} else {
-		/* TODO: camel_text_index_rename should find out if we have an active index itself? */
+		/* TODO camel_text_index_rename() should find
+		 *      out if we have an active index itself? */
 		if (camel_text_index_rename (oldibex, newibex) == -1)
 			goto ibex_failed;
 	}
 
-	if (xrename(old, new, path, ".ev-summary", TRUE, error))
+	if (xrename (old, new, path, ".ev-summary", TRUE, error))
 		goto summary_failed;
 
-	if (xrename(old, new, path, ".ev-summary-meta", TRUE, error))
+	if (xrename (old, new, path, ".ev-summary-meta", TRUE, error))
 		goto summary_failed;
 
-	if (xrename(old, new, path, ".cmeta", TRUE, error))
+	if (xrename (old, new, path, ".cmeta", TRUE, error))
 		goto cmeta_failed;
 
-	if (xrename(old, new, path, "", FALSE, error))
+	if (xrename (old, new, path, "", FALSE, error))
 		goto base_failed;
 
 	g_free (newibex);
@@ -563,11 +576,11 @@ local_store_rename_folder_sync (CamelStore *store,
 	/* The (f)utility of this recovery effort is quesitonable */
 
 base_failed:
-	xrename(new, old, path, ".cmeta", TRUE, NULL);
+	xrename (new, old, path, ".cmeta", TRUE, NULL);
 
 cmeta_failed:
-	xrename(new, old, path, ".ev-summary", TRUE, NULL);
-	xrename(new, old, path, ".ev-summary-meta", TRUE, NULL);
+	xrename (new, old, path, ".ev-summary", TRUE, NULL);
+	xrename (new, old, path, ".ev-summary-meta", TRUE, NULL);
 summary_failed:
 	if (folder) {
 		if (folder->index)
@@ -606,10 +619,13 @@ local_store_get_full_path (CamelLocalStore *ls,
 	gchar *path;
 
 	service = CAMEL_SERVICE (ls);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	filename = g_build_filename (path, full_name, NULL);
 
@@ -631,10 +647,13 @@ local_store_get_meta_path (CamelLocalStore *ls,
 	gchar *path;
 
 	service = CAMEL_SERVICE (ls);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
 	path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	basename = g_strconcat (full_name, ext, NULL);
 	filename = g_build_filename (path, basename, NULL);
@@ -665,7 +684,6 @@ camel_local_store_class_init (CamelLocalStoreClass *class)
 
 	store_class = CAMEL_STORE_CLASS (class);
 	store_class->can_refresh_folder = local_store_can_refresh_folder;
-	store_class->free_folder_info = camel_store_free_folder_info_full;
 	store_class->get_folder_sync = local_store_get_folder_sync;
 	store_class->get_folder_info_sync = local_store_get_folder_info_sync;
 	store_class->get_inbox_folder_sync = local_store_get_inbox_folder_sync;
@@ -796,6 +814,9 @@ camel_local_store_set_need_summary_check (CamelLocalStore *store,
                                           gboolean need_summary_check)
 {
 	g_return_if_fail (CAMEL_IS_LOCAL_STORE (store));
+
+	if (store->priv->need_summary_check == need_summary_check)
+		return;
 
 	store->priv->need_summary_check = need_summary_check;
 

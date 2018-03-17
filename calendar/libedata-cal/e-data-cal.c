@@ -1,26 +1,28 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
-/* Evolution calendar client interface object
+/*
+ * e-data-cal.c
  *
- * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
- * Copyright (C) 2009 Intel Corporation
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * Authors: Federico Mena-Quintero <federico@ximian.com>
- *          Rodrigo Moya <rodrigo@ximian.com>
- *          Ross Burton <ross@linux.intel.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
+ *
  */
+
+/**
+ * SECTION: e-data-cal
+ * @include: libedata-cal/libedata-cal.h
+ * @short_description: Server side D-Bus layer to communicate with calendars
+ *
+ * This class communicates with #ECalClients over the bus and accesses
+ * an #ECalBackend to satisfy client requests.
+ **/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -30,13 +32,14 @@
 #include <glib/gi18n-lib.h>
 #include <unistd.h>
 
-#include <libedataserver/e-credentials.h>
-#include <libedataserver/e-data-server-util.h>
-#include <libedataserver/e-operation-pool.h>
+/* Private D-Bus classes. */
+#include <e-dbus-calendar.h>
+
+#include <libedataserver/libedataserver.h>
 
 #include "e-data-cal.h"
-#include "e-data-cal-enumtypes.h"
-#include "e-gdbus-cal.h"
+#include "e-cal-backend.h"
+#include "e-cal-backend-sexp.h"
 
 #define E_DATA_CAL_GET_PRIVATE(obj) \
 	(G_TYPE_INSTANCE_GET_PRIVATE \
@@ -45,325 +48,296 @@
 #define EDC_ERROR(_code) e_data_cal_create_error (_code, NULL)
 #define EDC_ERROR_EX(_code, _msg) e_data_cal_create_error (_code, _msg)
 
+typedef struct _AsyncContext AsyncContext;
+
 struct _EDataCalPrivate {
-	EGdbusCal *gdbus_object;
+	GDBusConnection *connection;
+	EDBusCalendar *dbus_interface;
+	GWeakRef backend;
+	gchar *object_path;
 
-	ECalBackend *backend;
+	GMutex sender_lock;
+	GHashTable *sender_table;
+};
 
-	GStaticRecMutex pending_ops_lock;
-	GHashTable *pending_ops; /* opid to GCancellable for still running operations */
+struct _AsyncContext {
+	EDataCal *data_cal;
+	EDBusCalendar *dbus_interface;
+	GDBusMethodInvocation *invocation;
+	GCancellable *cancellable;
+	guint watcher_id;
 };
 
 enum {
 	PROP_0,
-	PROP_BACKEND
+	PROP_BACKEND,
+	PROP_CONNECTION,
+	PROP_OBJECT_PATH
 };
 
-static EOperationPool *ops_pool = NULL;
+/* Forward Declarations */
+static void	e_data_cal_initable_init	(GInitableIface *iface);
 
-typedef enum {
-	OP_OPEN,
-	OP_AUTHENTICATE,
-	OP_REMOVE,
-	OP_REFRESH,
-	OP_GET_BACKEND_PROPERTY,
-	OP_SET_BACKEND_PROPERTY,
-	OP_GET_OBJECT,
-	OP_GET_OBJECT_LIST,
-	OP_GET_FREE_BUSY,
-	OP_CREATE_OBJECT,
-	OP_MODIFY_OBJECT,
-	OP_REMOVE_OBJECT,
-	OP_RECEIVE_OBJECTS,
-	OP_SEND_OBJECTS,
-	OP_GET_ATTACHMENT_URIS,
-	OP_DISCARD_ALARM,
-	OP_GET_VIEW,
-	OP_GET_TIMEZONE,
-	OP_ADD_TIMEZONE,
-	OP_CANCEL_OPERATION,
-	OP_CANCEL_ALL,
-	OP_CLOSE
-} OperationID;
-
-typedef struct {
-	OperationID op;
-	guint32 id; /* operation id */
-	EDataCal *cal; /* calendar */
-	GCancellable *cancellable;
-
-	union {
-		/* OP_OPEN */
-		gboolean only_if_exists;
-		/* OP_AUTHENTICATE */
-		ECredentials *credentials;
-		/* OP_GET_OBJECT */
-		/* OP_GET_ATTACHMENT_URIS */
-		struct _ur {
-			gchar *uid;
-			gchar *rid;
-		} ur;
-		/* OP_DISCARD_ALARM */
-		struct _ura {
-			gchar *uid;
-			gchar *rid;
-			gchar *auid;
-		} ura;
-		/* OP_GET_OBJECT_LIST */
-		/* OP_GET_VIEW */
-		gchar *sexp;
-		/* OP_GET_FREE_BUSY */
-		struct _free_busy {
-			time_t start, end;
-			GSList *users;
-		} fb;
-		/* OP_CREATE_OBJECT */
-		/* OP_RECEIVE_OBJECTS */
-		/* OP_SEND_OBJECTS */
-		struct _co {
-			gchar *calobj;
-		} co;
-		/* OP_MODIFY_OBJECT */
-		struct _mo {
-			gchar *calobj;
-			EDataCalObjModType mod;
-		} mo;
-		/* OP_REMOVE_OBJECT */
-		struct _ro {
-			gchar *uid;
-			gchar *rid;
-			EDataCalObjModType mod;
-		} ro;
-		/* OP_GET_TIMEZONE */
-		gchar *tzid;
-		/* OP_ADD_TIMEZONE */
-		gchar *tzobject;
-		/* OP_CANCEL_OPERATION */
-		guint opid;
-		/* OP_GET_BACKEND_PROPERTY */
-		gchar *prop_name;
-		/* OP_SET_BACKEND_PROPERTY */
-		struct _sbp {
-			gchar *prop_name;
-			gchar *prop_value;
-		} sbp;
-
-		/* OP_REMOVE */
-		/* OP_REFRESH */
-		/* OP_CANCEL_ALL */
-		/* OP_CLOSE */
-	} d;
-} OperationData;
-
-G_DEFINE_TYPE (EDataCal, e_data_cal, G_TYPE_OBJECT);
-
-/* Function to get a new EDataCalView path, used by get_view below */
-static gchar *
-construct_calview_path (void)
-{
-	static guint counter = 1;
-	return g_strdup_printf ("/org/gnome/evolution/dataserver/CalendarView/%d/%d", getpid(), counter++);
-}
+G_DEFINE_TYPE_WITH_CODE (
+	EDataCal,
+	e_data_cal,
+	G_TYPE_OBJECT,
+	G_IMPLEMENT_INTERFACE (
+		G_TYPE_INITABLE,
+		e_data_cal_initable_init))
 
 static void
-cancel_ops_cb (gpointer opid,
-               gpointer cancellable,
-               gpointer user_data)
+sender_vanished_cb (GDBusConnection *connection,
+                    const gchar *sender,
+                    GCancellable *cancellable)
 {
-	g_return_if_fail (cancellable != NULL);
-
 	g_cancellable_cancel (cancellable);
 }
 
 static void
-operation_thread (gpointer data,
-                  gpointer user_data)
+sender_table_insert (EDataCal *data_cal,
+                     const gchar *sender,
+                     GCancellable *cancellable)
 {
-	OperationData *op = data;
-	ECalBackend *backend;
+	GHashTable *sender_table;
+	GPtrArray *array;
 
-	backend = e_data_cal_get_backend (op->cal);
+	g_return_if_fail (sender != NULL);
 
-	switch (op->op) {
-	case OP_OPEN:
-		e_cal_backend_open (backend, op->cal, op->id, op->cancellable, op->d.only_if_exists);
-		break;
-	case OP_REMOVE:
-		e_cal_backend_remove (backend, op->cal, op->id, op->cancellable);
-		break;
-	case OP_REFRESH:
-		e_cal_backend_refresh (backend, op->cal, op->id, op->cancellable);
-		break;
-	case OP_GET_BACKEND_PROPERTY:
-		e_cal_backend_get_backend_property (backend, op->cal, op->id, op->cancellable, op->d.prop_name);
-		g_free (op->d.prop_name);
-		break;
-	case OP_SET_BACKEND_PROPERTY:
-		e_cal_backend_set_backend_property (backend, op->cal, op->id, op->cancellable, op->d.sbp.prop_name, op->d.sbp.prop_value);
-		g_free (op->d.sbp.prop_name);
-		g_free (op->d.sbp.prop_value);
-		break;
-	case OP_GET_OBJECT:
-		e_cal_backend_get_object (backend, op->cal, op->id, op->cancellable, op->d.ur.uid, op->d.ur.rid && *op->d.ur.rid ? op->d.ur.rid : NULL);
-		g_free (op->d.ur.uid);
-		g_free (op->d.ur.rid);
-		break;
-	case OP_GET_OBJECT_LIST:
-		e_cal_backend_get_object_list (backend, op->cal, op->id, op->cancellable, op->d.sexp);
-		g_free (op->d.sexp);
-		break;
-	case OP_GET_FREE_BUSY:
-		e_cal_backend_get_free_busy (backend, op->cal, op->id, op->cancellable, op->d.fb.users, op->d.fb.start, op->d.fb.end);
-		g_slist_foreach (op->d.fb.users, (GFunc) g_free, NULL);
-		g_slist_free (op->d.fb.users);
-		break;
-	case OP_CREATE_OBJECT:
-		e_cal_backend_create_object (backend, op->cal, op->id, op->cancellable, op->d.co.calobj);
-		g_free (op->d.co.calobj);
-		break;
-	case OP_MODIFY_OBJECT:
-		e_cal_backend_modify_object (backend, op->cal, op->id, op->cancellable, op->d.mo.calobj, op->d.mo.mod);
-		g_free (op->d.mo.calobj);
-		break;
-	case OP_REMOVE_OBJECT:
-		e_cal_backend_remove_object (backend, op->cal, op->id, op->cancellable, op->d.ro.uid, op->d.ro.rid && *op->d.ro.rid ? op->d.ro.rid : NULL, op->d.ro.mod);
-		g_free (op->d.ro.uid);
-		g_free (op->d.ro.rid);
-		break;
-	case OP_RECEIVE_OBJECTS:
-		e_cal_backend_receive_objects (backend, op->cal, op->id, op->cancellable, op->d.co.calobj);
-		g_free (op->d.co.calobj);
-		break;
-	case OP_SEND_OBJECTS:
-		e_cal_backend_send_objects (backend, op->cal, op->id, op->cancellable, op->d.co.calobj);
-		g_free (op->d.co.calobj);
-		break;
-	case OP_GET_ATTACHMENT_URIS:
-		e_cal_backend_get_attachment_uris (backend, op->cal, op->id, op->cancellable, op->d.ur.uid, op->d.ur.rid && *op->d.ur.rid ? op->d.ur.rid : NULL);
-		g_free (op->d.ur.uid);
-		g_free (op->d.ur.rid);
-		break;
-	case OP_DISCARD_ALARM:
-		e_cal_backend_discard_alarm (backend, op->cal, op->id, op->cancellable, op->d.ura.uid, op->d.ura.rid && *op->d.ura.rid ? op->d.ura.rid : NULL, op->d.ura.auid);
-		g_free (op->d.ura.uid);
-		g_free (op->d.ura.rid);
-		g_free (op->d.ura.auid);
-		break;
-	case OP_GET_VIEW:
-		if (op->d.sexp) {
-			EDataCalView *view;
-			ECalBackendSExp *obj_sexp;
-			gchar *path;
-			GError *error = NULL;
+	g_mutex_lock (&data_cal->priv->sender_lock);
 
-			/* we handle this entirely here, since it doesn't require any
-			 * backend involvement now that we have e_cal_view_start to
-			 * actually kick off the search. */
+	sender_table = data_cal->priv->sender_table;
+	array = g_hash_table_lookup (sender_table, sender);
 
-			obj_sexp = e_cal_backend_sexp_new (op->d.sexp);
-			if (!obj_sexp) {
-				g_free (op->d.sexp);
-				e_data_cal_respond_get_view (op->cal, op->id, EDC_ERROR (InvalidQuery), NULL);
-				break;
-			}
-
-			view = e_data_cal_view_new (backend, obj_sexp);
-			g_object_unref (obj_sexp);
-			if (!view) {
-				g_free (op->d.sexp);
-				e_data_cal_respond_get_view (op->cal, op->id, EDC_ERROR (OtherError), NULL);
-				break;
-			}
-
-			path = construct_calview_path ();
-			e_data_cal_view_register_gdbus_object (view, e_gdbus_cal_stub_get_connection (op->cal->priv->gdbus_object), path, &error);
-
-			if (error) {
-				g_object_unref (view);
-				g_free (op->d.sexp);
-				e_data_cal_respond_get_view (op->cal, op->id, EDC_ERROR_EX (OtherError, error->message), NULL);
-				g_error_free (error);
-				g_free (path);
-
-				break;
-			}
-
-			e_cal_backend_add_view (backend, view);
-
-			e_data_cal_respond_get_view (op->cal, op->id, EDC_ERROR (Success), path);
-
-			g_free (path);
-		}
-		g_free (op->d.sexp);
-		break;
-	case OP_GET_TIMEZONE:
-		e_cal_backend_get_timezone (backend, op->cal, op->id, op->cancellable, op->d.tzid);
-		g_free (op->d.tzid);
-		break;
-	case OP_ADD_TIMEZONE:
-		e_cal_backend_add_timezone (backend, op->cal, op->id, op->cancellable, op->d.tzobject);
-		g_free (op->d.tzobject);
-		break;
-	case OP_AUTHENTICATE:
-		e_cal_backend_authenticate_user (backend, op->cancellable, op->d.credentials);
-		e_credentials_free (op->d.credentials);
-		break;
-	case OP_CANCEL_OPERATION:
-		g_static_rec_mutex_lock (&op->cal->priv->pending_ops_lock);
-
-		if (g_hash_table_lookup (op->cal->priv->pending_ops, GUINT_TO_POINTER (op->d.opid))) {
-			GCancellable *cancellable = g_hash_table_lookup (op->cal->priv->pending_ops, GUINT_TO_POINTER (op->d.opid));
-
-			g_cancellable_cancel (cancellable);
-		}
-
-		g_static_rec_mutex_unlock (&op->cal->priv->pending_ops_lock);
-		break;
-	case OP_CLOSE:
-		/* close just cancels all pending ops and frees data cal */
-		e_cal_backend_remove_client (backend, op->cal);
-	case OP_CANCEL_ALL:
-		g_static_rec_mutex_lock (&op->cal->priv->pending_ops_lock);
-		g_hash_table_foreach (op->cal->priv->pending_ops, cancel_ops_cb, NULL);
-		g_static_rec_mutex_unlock (&op->cal->priv->pending_ops_lock);
-		break;
+	if (array == NULL) {
+		array = g_ptr_array_new_with_free_func (
+			(GDestroyNotify) g_object_unref);
+		g_hash_table_insert (
+			sender_table, g_strdup (sender), array);
 	}
 
-	g_object_unref (op->cal);
-	g_object_unref (op->cancellable);
-	g_slice_free (OperationData, op);
+	g_ptr_array_add (array, g_object_ref (cancellable));
+
+	g_mutex_unlock (&data_cal->priv->sender_lock);
 }
 
-static OperationData *
-op_new (OperationID op,
-        EDataCal *cal)
+static gboolean
+sender_table_remove (EDataCal *data_cal,
+                     const gchar *sender,
+                     GCancellable *cancellable)
 {
-	OperationData *data;
+	GHashTable *sender_table;
+	GPtrArray *array;
+	gboolean removed = FALSE;
 
-	data = g_slice_new0 (OperationData);
-	data->op = op;
-	data->cal = g_object_ref (cal);
-	data->id = e_operation_pool_reserve_opid (ops_pool);
-	data->cancellable = g_cancellable_new ();
+	g_return_val_if_fail (sender != NULL, FALSE);
 
-	g_static_rec_mutex_lock (&cal->priv->pending_ops_lock);
-	g_hash_table_insert (cal->priv->pending_ops, GUINT_TO_POINTER (data->id), g_object_ref (data->cancellable));
-	g_static_rec_mutex_unlock (&cal->priv->pending_ops_lock);
+	g_mutex_lock (&data_cal->priv->sender_lock);
 
-	return data;
+	sender_table = data_cal->priv->sender_table;
+	array = g_hash_table_lookup (sender_table, sender);
+
+	if (array != NULL) {
+		removed = g_ptr_array_remove_fast (array, cancellable);
+
+		if (array->len == 0)
+			g_hash_table_remove (sender_table, sender);
+	}
+
+	g_mutex_unlock (&data_cal->priv->sender_lock);
+
+	return removed;
+}
+
+static AsyncContext *
+async_context_new (EDataCal *data_cal,
+                   GDBusMethodInvocation *invocation)
+{
+	AsyncContext *async_context;
+	EDBusCalendar *dbus_interface;
+
+	dbus_interface = data_cal->priv->dbus_interface;
+
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->data_cal = g_object_ref (data_cal);
+	async_context->dbus_interface = g_object_ref (dbus_interface);
+	async_context->invocation = g_object_ref (invocation);
+	async_context->cancellable = g_cancellable_new ();
+
+	async_context->watcher_id = g_bus_watch_name_on_connection (
+		g_dbus_method_invocation_get_connection (invocation),
+		g_dbus_method_invocation_get_sender (invocation),
+		G_BUS_NAME_WATCHER_FLAGS_NONE,
+		(GBusNameAppearedCallback) NULL,
+		(GBusNameVanishedCallback) sender_vanished_cb,
+		g_object_ref (async_context->cancellable),
+		(GDestroyNotify) g_object_unref);
+
+	sender_table_insert (
+		async_context->data_cal,
+		g_dbus_method_invocation_get_sender (invocation),
+		async_context->cancellable);
+
+	return async_context;
 }
 
 static void
-op_complete (EDataCal *cal,
-             guint32 opid)
+async_context_free (AsyncContext *async_context)
 {
-	g_return_if_fail (cal != NULL);
+	sender_table_remove (
+		async_context->data_cal,
+		g_dbus_method_invocation_get_sender (
+			async_context->invocation),
+		async_context->cancellable);
 
-	e_operation_pool_release_opid (ops_pool, opid);
+	g_clear_object (&async_context->data_cal);
+	g_clear_object (&async_context->dbus_interface);
+	g_clear_object (&async_context->invocation);
+	g_clear_object (&async_context->cancellable);
 
-	g_static_rec_mutex_lock (&cal->priv->pending_ops_lock);
-	g_hash_table_remove (cal->priv->pending_ops, GUINT_TO_POINTER (opid));
-	g_static_rec_mutex_unlock (&cal->priv->pending_ops_lock);
+	if (async_context->watcher_id > 0)
+		g_bus_unwatch_name (async_context->watcher_id);
+
+	g_slice_free (AsyncContext, async_context);
+}
+
+static gchar *
+construct_calview_path (void)
+{
+	static volatile gint counter = 1;
+
+	g_atomic_int_inc (&counter);
+
+	return g_strdup_printf (
+		"/org/gnome/evolution/dataserver/CalendarView/%d/%d",
+		getpid (), counter);
+}
+
+static void
+data_cal_convert_to_client_error (GError *error)
+{
+	g_return_if_fail (error != NULL);
+
+	if (error->domain != E_DATA_CAL_ERROR)
+		return;
+
+	switch (error->code) {
+		case RepositoryOffline:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_REPOSITORY_OFFLINE;
+			break;
+
+		case PermissionDenied:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_PERMISSION_DENIED;
+			break;
+
+		case InvalidRange:
+			error->domain = E_CAL_CLIENT_ERROR;
+			error->code = E_CAL_CLIENT_ERROR_INVALID_RANGE;
+			break;
+
+		case ObjectNotFound:
+			error->domain = E_CAL_CLIENT_ERROR;
+			error->code = E_CAL_CLIENT_ERROR_OBJECT_NOT_FOUND;
+			break;
+
+		case InvalidObject:
+			error->domain = E_CAL_CLIENT_ERROR;
+			error->code = E_CAL_CLIENT_ERROR_INVALID_OBJECT;
+			break;
+
+		case ObjectIdAlreadyExists:
+			error->domain = E_CAL_CLIENT_ERROR;
+			error->code = E_CAL_CLIENT_ERROR_OBJECT_ID_ALREADY_EXISTS;
+			break;
+
+		case AuthenticationFailed:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_AUTHENTICATION_FAILED;
+			break;
+
+		case AuthenticationRequired:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_AUTHENTICATION_REQUIRED;
+			break;
+
+		case UnsupportedAuthenticationMethod:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_UNSUPPORTED_AUTHENTICATION_METHOD;
+			break;
+
+		case TLSNotAvailable:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_TLS_NOT_AVAILABLE;
+			break;
+
+		case NoSuchCal:
+			error->domain = E_CAL_CLIENT_ERROR;
+			error->code = E_CAL_CLIENT_ERROR_NO_SUCH_CALENDAR;
+			break;
+
+		case UnknownUser:
+			error->domain = E_CAL_CLIENT_ERROR;
+			error->code = E_CAL_CLIENT_ERROR_UNKNOWN_USER;
+			break;
+
+		case OfflineUnavailable:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_OFFLINE_UNAVAILABLE;
+			break;
+
+		case SearchSizeLimitExceeded:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_SEARCH_SIZE_LIMIT_EXCEEDED;
+			break;
+
+		case SearchTimeLimitExceeded:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_SEARCH_TIME_LIMIT_EXCEEDED;
+			break;
+
+		case InvalidQuery:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_INVALID_QUERY;
+			break;
+
+		case QueryRefused:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_QUERY_REFUSED;
+			break;
+
+		case CouldNotCancel:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_COULD_NOT_CANCEL;
+			break;
+
+		case InvalidArg:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_INVALID_ARG;
+			break;
+
+		case NotSupported:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_NOT_SUPPORTED;
+			break;
+
+		case NotOpened:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_NOT_OPENED;
+			break;
+
+		case UnsupportedField:
+		case UnsupportedMethod:
+		case OtherError:
+		case InvalidServerVersion:
+			error->domain = E_CLIENT_ERROR;
+			error->code = E_CLIENT_ERROR_OTHER_ERROR;
+			break;
+
+		default:
+			g_warn_if_reached ();
+	}
 }
 
 /* Create the EDataCal error quark */
@@ -464,6 +438,13 @@ e_data_cal_status_to_string (EDataCalCallStatus status)
 
 /**
  * e_data_cal_create_error:
+ * @status: #EDataCalStatus code
+ * @custom_msg: Custom message to use for the error. When NULL,
+ *              then uses a default message based on the @status code.
+ *
+ * Returns: NULL, when the @status is Success,
+ *          or a newly allocated GError, which should be freed
+ *          with g_error_free() call.
  *
  * Since: 2.32
  **/
@@ -479,6 +460,9 @@ e_data_cal_create_error (EDataCalCallStatus status,
 
 /**
  * e_data_cal_create_error_fmt:
+ *
+ * Similar as e_data_cal_create_error(), only here, instead of custom_msg,
+ * is used a printf() format to create a custom_msg for the error.
  *
  * Since: 2.32
  **/
@@ -506,440 +490,988 @@ e_data_cal_create_error_fmt (EDataCalCallStatus status,
 }
 
 static void
-data_cal_return_error (GDBusMethodInvocation *invocation,
-                       const GError *perror,
-                       const gchar *error_fmt)
+data_cal_complete_open_cb (GObject *source_object,
+                           GAsyncResult *result,
+                           gpointer user_data)
 {
-	GError *error;
+	AsyncContext *async_context = user_data;
+	GError *error = NULL;
 
-	g_return_if_fail (perror != NULL);
+	e_cal_backend_open_finish (
+		E_CAL_BACKEND (source_object), result, &error);
 
-	error = g_error_new (E_DATA_CAL_ERROR, perror->code, error_fmt, perror->message);
+	if (error == NULL) {
+		e_dbus_calendar_complete_open (
+			async_context->dbus_interface,
+			async_context->invocation);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
 
-	g_dbus_method_invocation_return_gerror (invocation, error);
-
-	g_error_free (error);
-}
-
-/**
- * e_data_cal_register_gdbus_object:
- *
- * Registers GDBus object of this EDataCal.
- *
- * Since: 2.32
- **/
-guint
-e_data_cal_register_gdbus_object (EDataCal *cal,
-                                  GDBusConnection *connection,
-                                  const gchar *object_path,
-                                  GError **error)
-{
-	g_return_val_if_fail (cal != NULL, 0);
-	g_return_val_if_fail (E_IS_DATA_CAL (cal), 0);
-	g_return_val_if_fail (connection != NULL, 0);
-	g_return_val_if_fail (object_path != NULL, 0);
-
-	return e_gdbus_cal_register_object (cal->priv->gdbus_object, connection, object_path, error);
+	async_context_free (async_context);
 }
 
 static gboolean
-impl_Cal_open (EGdbusCal *object,
-               GDBusMethodInvocation *invocation,
-               gboolean in_only_if_exists,
-               EDataCal *cal)
+data_cal_handle_open_cb (EDBusCalendar *dbus_interface,
+                         GDBusMethodInvocation *invocation,
+                         EDataCal *data_cal)
 {
-	OperationData *op;
+	ECalBackend *backend;
+	AsyncContext *async_context;
 
-	op = op_new (OP_OPEN, cal);
-	op->d.only_if_exists = in_only_if_exists;
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
 
-	e_gdbus_cal_complete_open (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_open (
+		backend,
+		async_context->cancellable,
+		data_cal_complete_open_cb,
+		async_context);
+
+	g_object_unref (backend);
 
 	return TRUE;
 }
 
-static gboolean
-impl_Cal_remove (EGdbusCal *object,
-                 GDBusMethodInvocation *invocation,
-                 EDataCal *cal)
+static void
+data_cal_complete_refresh_cb (GObject *source_object,
+                              GAsyncResult *result,
+                              gpointer user_data)
 {
-	OperationData *op;
+	AsyncContext *async_context = user_data;
+	GError *error = NULL;
 
-	op = op_new (OP_REMOVE, cal);
+	e_cal_backend_refresh_finish (
+		E_CAL_BACKEND (source_object), result, &error);
 
-	e_gdbus_cal_complete_remove (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
+	if (error == NULL) {
+		e_dbus_calendar_complete_refresh (
+			async_context->dbus_interface,
+			async_context->invocation);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
 
-	return TRUE;
+	async_context_free (async_context);
 }
 
 static gboolean
-impl_Cal_refresh (EGdbusCal *object,
-                  GDBusMethodInvocation *invocation,
-                  EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_REFRESH, cal);
-
-	e_gdbus_cal_complete_refresh (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_get_backend_property (EGdbusCal *object,
-                               GDBusMethodInvocation *invocation,
-                               const gchar *in_prop_name,
-                               EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_GET_BACKEND_PROPERTY, cal);
-	op->d.prop_name = g_strdup (in_prop_name);
-
-	e_gdbus_cal_complete_get_backend_property (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_set_backend_property (EGdbusCal *object,
-                               GDBusMethodInvocation *invocation,
-                               const gchar * const *in_prop_name_value,
-                               EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_SET_BACKEND_PROPERTY, cal);
-	g_return_val_if_fail (e_gdbus_cal_decode_set_backend_property (in_prop_name_value, &op->d.sbp.prop_name, &op->d.sbp.prop_value), FALSE);
-
-	e_gdbus_cal_complete_set_backend_property (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_get_object (EGdbusCal *object,
-                     GDBusMethodInvocation *invocation,
-                     const gchar * const *in_uid_rid,
-                     EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_GET_OBJECT, cal);
-	g_return_val_if_fail (e_gdbus_cal_decode_get_object (in_uid_rid, &op->d.ur.uid, &op->d.ur.rid), FALSE);
-
-	e_gdbus_cal_complete_get_object (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_get_object_list (EGdbusCal *object,
-                          GDBusMethodInvocation *invocation,
-                          const gchar *in_sexp,
-                          EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_GET_OBJECT_LIST, cal);
-	op->d.sexp = g_strdup (in_sexp);
-
-	e_gdbus_cal_complete_get_object_list (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_get_free_busy (EGdbusCal *object,
-                        GDBusMethodInvocation *invocation,
-                        const gchar * const *in_start_end_userlist,
-                        EDataCal *cal)
-{
-	OperationData *op;
-	guint start, end;
-
-	op = op_new (OP_GET_FREE_BUSY, cal);
-	g_return_val_if_fail (e_gdbus_cal_decode_get_free_busy (in_start_end_userlist, &start, &end, &op->d.fb.users), FALSE);
-
-	op->d.fb.start = (time_t) start;
-	op->d.fb.end = (time_t) end;
-
-	e_gdbus_cal_complete_get_free_busy (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_create_object (EGdbusCal *object,
-                        GDBusMethodInvocation *invocation,
-                        const gchar *in_calobj,
-                        EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_CREATE_OBJECT, cal);
-	op->d.co.calobj = g_strdup (in_calobj);
-
-	e_gdbus_cal_complete_create_object (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_modify_object (EGdbusCal *object,
-                        GDBusMethodInvocation *invocation,
-                        const gchar * const *in_calobj_mod,
-                        EDataCal *cal)
-{
-	OperationData *op;
-	guint mod;
-
-	op = op_new (OP_MODIFY_OBJECT, cal);
-	g_return_val_if_fail (e_gdbus_cal_decode_modify_object (in_calobj_mod, &op->d.mo.calobj, &mod), FALSE);
-	op->d.mo.mod = mod;
-
-	e_gdbus_cal_complete_modify_object (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_remove_object (EGdbusCal *object,
-                        GDBusMethodInvocation *invocation,
-                        const gchar * const *in_uid_rid_mod,
-                        EDataCal *cal)
-{
-	OperationData *op;
-	guint mod = 0;
-
-	op = op_new (OP_REMOVE_OBJECT, cal);
-	g_return_val_if_fail (e_gdbus_cal_decode_remove_object (in_uid_rid_mod, &op->d.ro.uid, &op->d.ro.rid, &mod), FALSE);
-	op->d.ro.mod = mod;
-
-	e_gdbus_cal_complete_remove_object (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_receive_objects (EGdbusCal *object,
-                          GDBusMethodInvocation *invocation,
-                          const gchar *in_calobj,
-                          EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_RECEIVE_OBJECTS, cal);
-	op->d.co.calobj = g_strdup (in_calobj);
-
-	e_gdbus_cal_complete_receive_objects (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_send_objects (EGdbusCal *object,
-                       GDBusMethodInvocation *invocation,
-                       const gchar *in_calobj,
-                       EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_SEND_OBJECTS, cal);
-	op->d.co.calobj = g_strdup (in_calobj);
-
-	e_gdbus_cal_complete_send_objects (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_get_attachment_uris (EGdbusCal *object,
-                              GDBusMethodInvocation *invocation,
-                              const gchar * const *in_uid_rid,
-                              EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_GET_ATTACHMENT_URIS, cal);
-	g_return_val_if_fail (e_gdbus_cal_decode_get_attachment_uris (in_uid_rid, &op->d.ur.uid, &op->d.ur.rid), FALSE);
-
-	e_gdbus_cal_complete_get_attachment_uris (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_discard_alarm (EGdbusCal *object,
-                        GDBusMethodInvocation *invocation,
-                        const gchar * const *in_uid_rid_auid,
-                        EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_DISCARD_ALARM, cal);
-	g_return_val_if_fail (e_gdbus_cal_decode_discard_alarm (in_uid_rid_auid, &op->d.ura.uid, &op->d.ura.rid, &op->d.ura.auid), FALSE);
-
-	e_gdbus_cal_complete_discard_alarm (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_get_view (EGdbusCal *object,
-                   GDBusMethodInvocation *invocation,
-                   const gchar *in_sexp,
-                   EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_GET_VIEW, cal);
-	op->d.sexp = g_strdup (in_sexp);
-
-	e_gdbus_cal_complete_get_view (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_get_timezone (EGdbusCal *object,
-                       GDBusMethodInvocation *invocation,
-                       const gchar *in_tzid,
-                       EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_GET_TIMEZONE, cal);
-	op->d.tzid = g_strdup (in_tzid);
-
-	e_gdbus_cal_complete_get_timezone (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_add_timezone (EGdbusCal *object,
-                       GDBusMethodInvocation *invocation,
-                       const gchar *in_tzobject,
-                       EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_ADD_TIMEZONE, cal);
-	op->d.tzobject = g_strdup (in_tzobject);
-
-	e_gdbus_cal_complete_add_timezone (cal->priv->gdbus_object, invocation, op->id);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_authenticate_user (EGdbusCal *object,
+data_cal_handle_refresh_cb (EDBusCalendar *dbus_interface,
                             GDBusMethodInvocation *invocation,
-                            const gchar * const *in_credentials,
-                            EDataCal *cal)
+                            EDataCal *data_cal)
 {
-	OperationData *op;
+	ECalBackend *backend;
+	AsyncContext *async_context;
 
-	if (in_credentials == NULL) {
-		GError *error = e_data_cal_create_error (InvalidArg, NULL);
-		/* Translators: This is prefix to a detailed error message */
-		data_cal_return_error (invocation, error, _("Cannot authenticate user: "));
-		g_error_free (error);
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_refresh (
+		backend,
+		async_context->cancellable,
+		data_cal_complete_refresh_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_get_object_cb (GObject *source_object,
+                                 GAsyncResult *result,
+                                 gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	gchar *calobj;
+	GError *error = NULL;
+
+	calobj = e_cal_backend_get_object_finish (
+		E_CAL_BACKEND (source_object), result, &error);
+
+	/* Sanity check. */
+	g_return_if_fail (
+		((calobj != NULL) && (error == NULL)) ||
+		((calobj == NULL) && (error != NULL)));
+
+	if (error == NULL) {
+		gchar *utf8_calobj;
+
+		utf8_calobj = e_util_utf8_make_valid (calobj);
+
+		e_dbus_calendar_complete_get_object (
+			async_context->dbus_interface,
+			async_context->invocation,
+			utf8_calobj);
+
+		g_free (utf8_calobj);
+		g_free (calobj);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_get_object_cb (EDBusCalendar *dbus_interface,
+                               GDBusMethodInvocation *invocation,
+                               const gchar *in_uid,
+                               const gchar *in_rid,
+                               EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	/* Recurrence ID is optional.  Its omission is denoted
+	 * via D-Bus by an emptry string.  Convert it to NULL. */
+	if (in_rid != NULL && *in_rid == '\0')
+		in_rid = NULL;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_get_object (
+		backend,
+		in_uid, in_rid,
+		async_context->cancellable,
+		data_cal_complete_get_object_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_get_object_list_cb (GObject *source_object,
+                                      GAsyncResult *result,
+                                      gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GQueue queue = G_QUEUE_INIT;
+	GError *error = NULL;
+
+	e_cal_backend_get_object_list_finish (
+		E_CAL_BACKEND (source_object), result, &queue, &error);
+
+	if (error == NULL) {
+		gchar **strv;
+		gint ii = 0;
+
+		strv = g_new0 (gchar *, queue.length + 1);
+
+		while (!g_queue_is_empty (&queue)) {
+			gchar *calobj;
+
+			calobj = g_queue_pop_head (&queue);
+
+			strv[ii++] = e_util_utf8_make_valid (calobj);
+
+			g_free (calobj);
+		}
+
+		e_dbus_calendar_complete_get_object_list (
+			async_context->dbus_interface,
+			async_context->invocation,
+			(const gchar * const *) strv);
+
+		g_strfreev (strv);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_get_object_list_cb (EDBusCalendar *dbus_interface,
+                                    GDBusMethodInvocation *invocation,
+                                    const gchar *in_query,
+                                    EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_get_object_list (
+		backend,
+		in_query,
+		async_context->cancellable,
+		data_cal_complete_get_object_list_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_get_free_busy_cb (GObject *source_object,
+                                    GAsyncResult *result,
+                                    gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GError *error = NULL;
+
+	e_cal_backend_get_free_busy_finish (
+		E_CAL_BACKEND (source_object), result, &error);
+
+	if (error == NULL) {
+		e_dbus_calendar_complete_get_free_busy (
+			async_context->dbus_interface,
+			async_context->invocation);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_get_free_busy_cb (EDBusCalendar *dbus_interface,
+                                  GDBusMethodInvocation *invocation,
+                                  gint64 in_start,
+                                  gint64 in_end,
+                                  const gchar * const *in_users,
+                                  EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_get_free_busy (
+		backend,
+		(time_t) in_start,
+		(time_t) in_end,
+		in_users,
+		async_context->cancellable,
+		data_cal_complete_get_free_busy_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_create_objects_cb (GObject *source_object,
+                                     GAsyncResult *result,
+                                     gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GQueue queue = G_QUEUE_INIT;
+	GError *error = NULL;
+
+	e_cal_backend_create_objects_finish (
+		E_CAL_BACKEND (source_object), result, &queue, &error);
+
+	if (error == NULL) {
+		gchar **strv;
+		gint ii = 0;
+
+		strv = g_new0 (gchar *, queue.length + 1);
+
+		while (!g_queue_is_empty (&queue)) {
+			gchar *uid;
+
+			uid = g_queue_pop_head (&queue);
+			strv[ii++] = e_util_utf8_make_valid (uid);
+			g_free (uid);
+		}
+
+		e_dbus_calendar_complete_create_objects (
+			async_context->dbus_interface,
+			async_context->invocation,
+			(const gchar * const *) strv);
+
+		g_strfreev (strv);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_create_objects_cb (EDBusCalendar *dbus_interface,
+                                   GDBusMethodInvocation *invocation,
+                                   const gchar * const *in_calobjs,
+                                   EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_create_objects (
+		backend,
+		in_calobjs,
+		async_context->cancellable,
+		data_cal_complete_create_objects_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_modify_objects_cb (GObject *source_object,
+                                     GAsyncResult *result,
+                                     gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GError *error = NULL;
+
+	e_cal_backend_modify_objects_finish (
+		E_CAL_BACKEND (source_object), result, &error);
+
+	if (error == NULL) {
+		e_dbus_calendar_complete_modify_objects (
+			async_context->dbus_interface,
+			async_context->invocation);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_modify_objects_cb (EDBusCalendar *dbus_interface,
+                                   GDBusMethodInvocation *invocation,
+                                   const gchar * const *in_ics_objects,
+                                   const gchar *in_mod_type,
+                                   EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+	GFlagsClass *flags_class;
+	ECalObjModType mod = 0;
+	gchar **flags_strv;
+	gint ii;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	flags_class = g_type_class_ref (E_TYPE_CAL_OBJ_MOD_TYPE);
+	flags_strv = g_strsplit (in_mod_type, ":", -1);
+	for (ii = 0; flags_strv[ii] != NULL; ii++) {
+		GFlagsValue *flags_value;
+
+		flags_value = g_flags_get_value_by_nick (
+			flags_class, flags_strv[ii]);
+		if (flags_value != NULL) {
+			mod |= flags_value->value;
+		} else {
+			g_warning (
+				"%s: Unknown flag: %s",
+				G_STRFUNC, flags_strv[ii]);
+		}
+	}
+	g_strfreev (flags_strv);
+	g_type_class_unref (flags_class);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_modify_objects (
+		backend,
+		in_ics_objects, mod,
+		async_context->cancellable,
+		data_cal_complete_modify_objects_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_remove_objects_cb (GObject *source_object,
+                                     GAsyncResult *result,
+                                     gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GError *error = NULL;
+
+	e_cal_backend_remove_objects_finish (
+		E_CAL_BACKEND (source_object), result, &error);
+
+	if (error == NULL) {
+		e_dbus_calendar_complete_remove_objects (
+			async_context->dbus_interface,
+			async_context->invocation);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_remove_objects_cb (EDBusCalendar *dbus_interface,
+                                   GDBusMethodInvocation *invocation,
+                                   GVariant *in_uid_rid_array,
+                                   const gchar *in_mod_type,
+                                   EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+	GFlagsClass *flags_class;
+	ECalObjModType mod = 0;
+	GQueue component_ids = G_QUEUE_INIT;
+	gchar **flags_strv;
+	gsize n_children, ii;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	flags_class = g_type_class_ref (E_TYPE_CAL_OBJ_MOD_TYPE);
+	flags_strv = g_strsplit (in_mod_type, ":", -1);
+	for (ii = 0; flags_strv[ii] != NULL; ii++) {
+		GFlagsValue *flags_value;
+
+		flags_value = g_flags_get_value_by_nick (
+			flags_class, flags_strv[ii]);
+		if (flags_value != NULL) {
+			mod |= flags_value->value;
+		} else {
+			g_warning (
+				"%s: Unknown flag: %s",
+				G_STRFUNC, flags_strv[ii]);
+		}
+	}
+	g_strfreev (flags_strv);
+	g_type_class_unref (flags_class);
+
+	n_children = g_variant_n_children (in_uid_rid_array);
+	for (ii = 0; ii < n_children; ii++) {
+		ECalComponentId *id;
+
+		/* e_cal_component_free_id() uses g_free(),
+		 * not g_slice_free().  Therefore allocate
+		 * with g_malloc(), not g_slice_new(). */
+		id = g_malloc0 (sizeof (ECalComponentId));
+
+		g_variant_get_child (
+			in_uid_rid_array, ii, "(ss)", &id->uid, &id->rid);
+
+		if (id->uid != NULL && *id->uid == '\0') {
+			e_cal_component_free_id (id);
+			continue;
+		}
+
+		/* Recurrence ID is optional.  Its omission is denoted
+		 * via D-Bus by an empty string.  Convert it to NULL. */
+		if (id->rid != NULL && *id->rid == '\0') {
+			g_free (id->rid);
+			id->rid = NULL;
+		}
+
+		g_queue_push_tail (&component_ids, id);
+	}
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_remove_objects (
+		backend,
+		component_ids.head, mod,
+		async_context->cancellable,
+		data_cal_complete_remove_objects_cb,
+		async_context);
+
+	while (!g_queue_is_empty (&component_ids))
+		e_cal_component_free_id (g_queue_pop_head (&component_ids));
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_receive_objects_cb (GObject *source_object,
+                                      GAsyncResult *result,
+                                      gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GError *error = NULL;
+
+	e_cal_backend_receive_objects_finish (
+		E_CAL_BACKEND (source_object), result, &error);
+
+	if (error == NULL) {
+		e_dbus_calendar_complete_receive_objects (
+			async_context->dbus_interface,
+			async_context->invocation);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_receive_objects_cb (EDBusCalendar *dbus_interface,
+                                    GDBusMethodInvocation *invocation,
+                                    const gchar *in_calobj,
+                                    EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_receive_objects (
+		backend,
+		in_calobj,
+		async_context->cancellable,
+		data_cal_complete_receive_objects_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_send_objects_cb (GObject *source_object,
+                                   GAsyncResult *result,
+                                   gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	gchar *calobj;
+	GQueue queue = G_QUEUE_INIT;
+	GError *error = NULL;
+
+	calobj = e_cal_backend_send_objects_finish (
+		E_CAL_BACKEND (source_object), result, &queue, &error);
+
+	/* Sanity check. */
+	g_return_if_fail (
+		((calobj != NULL) && (error == NULL)) ||
+		((calobj == NULL) && (error != NULL)));
+
+	if (calobj != NULL) {
+		gchar **strv;
+		gchar *utf8_calobj;
+		gint ii = 0;
+
+		strv = g_new0 (gchar *, queue.length + 1);
+
+		while (!g_queue_is_empty (&queue)) {
+			gchar *user;
+
+			user = g_queue_pop_head (&queue);
+			strv[ii++] = e_util_utf8_make_valid (user);
+			g_free (user);
+		}
+
+		utf8_calobj = e_util_utf8_make_valid (calobj);
+
+		e_dbus_calendar_complete_send_objects (
+			async_context->dbus_interface,
+			async_context->invocation,
+			(const gchar * const *) strv,
+			utf8_calobj);
+
+		g_free (utf8_calobj);
+		g_free (calobj);
+
+		g_strfreev (strv);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_send_objects_cb (EDBusCalendar *dbus_interface,
+                                 GDBusMethodInvocation *invocation,
+                                 const gchar *in_calobj,
+                                 EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_send_objects (
+		backend,
+		in_calobj,
+		async_context->cancellable,
+		data_cal_complete_send_objects_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_get_attachment_uris_cb (GObject *source_object,
+                                          GAsyncResult *result,
+                                          gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GQueue queue = G_QUEUE_INIT;
+	GError *error = NULL;
+
+	e_cal_backend_get_attachment_uris_finish (
+		E_CAL_BACKEND (source_object), result, &queue, &error);
+
+	if (error == NULL) {
+		gchar **strv;
+		gint ii = 0;
+
+		strv = g_new0 (gchar *, queue.length + 1);
+
+		while (!g_queue_is_empty (&queue)) {
+			gchar *uri;
+
+			uri = g_queue_pop_head (&queue);
+			strv[ii++] = e_util_utf8_make_valid (uri);
+			g_free (uri);
+		}
+
+		e_dbus_calendar_complete_get_attachment_uris (
+			async_context->dbus_interface,
+			async_context->invocation,
+			(const gchar * const *) strv);
+
+		g_strfreev (strv);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_get_attachment_uris_cb (EDBusCalendar *dbus_interface,
+                                        GDBusMethodInvocation *invocation,
+                                        const gchar *in_uid,
+                                        const gchar *in_rid,
+                                        EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	/* Recurrence ID is optional.  Its omission is denoted
+	 * via D-Bus by an empty string.  Convert it to NULL. */
+	if (in_rid != NULL && *in_rid == '\0')
+		in_rid = NULL;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_get_attachment_uris (
+		backend,
+		in_uid, in_rid,
+		async_context->cancellable,
+		data_cal_complete_get_attachment_uris_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_discard_alarm_cb (GObject *source_object,
+                                    GAsyncResult *result,
+                                    gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GError *error = NULL;
+
+	e_cal_backend_discard_alarm_finish (
+		E_CAL_BACKEND (source_object), result, &error);
+
+	if (error == NULL) {
+		e_dbus_calendar_complete_discard_alarm (
+			async_context->dbus_interface,
+			async_context->invocation);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_discard_alarm_cb (EDBusCalendar *dbus_interface,
+                                  GDBusMethodInvocation *invocation,
+                                  const gchar *in_uid,
+                                  const gchar *in_rid,
+                                  const gchar *in_alarm_uid,
+                                  EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	/* Recurrence ID is optional.  Its omission is denoted
+	 * via D-Bus by an empty string.  Convert it to NULL. */
+	if (in_rid != NULL && *in_rid == '\0')
+		in_rid = NULL;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_discard_alarm (
+		backend,
+		in_uid, in_rid, in_alarm_uid,
+		async_context->cancellable,
+		data_cal_complete_discard_alarm_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static gboolean
+data_cal_handle_get_view_cb (EDBusCalendar *dbus_interface,
+                             GDBusMethodInvocation *invocation,
+                             const gchar *in_query,
+                             EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	EDataCalView *view;
+	ECalBackendSExp *sexp;
+	GDBusConnection *connection;
+	gchar *object_path;
+	GError *error = NULL;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	sexp = e_cal_backend_sexp_new (in_query);
+	if (sexp == NULL) {
+		g_dbus_method_invocation_return_error_literal (
+			invocation,
+			E_CLIENT_ERROR,
+			E_CLIENT_ERROR_INVALID_QUERY,
+			_("Invalid query"));
+		g_object_unref (backend);
 		return TRUE;
 	}
 
-	op = op_new (OP_AUTHENTICATE, cal);
-	op->d.credentials = e_credentials_new_strv (in_credentials);
+	object_path = construct_calview_path ();
+	connection = g_dbus_method_invocation_get_connection (invocation);
 
-	e_gdbus_cal_complete_authenticate_user (cal->priv->gdbus_object, invocation, NULL);
-	e_operation_pool_push (ops_pool, op);
+	view = e_data_cal_view_new (
+		backend, sexp, connection, object_path, &error);
 
-	return TRUE;
-}
+	g_object_unref (sexp);
 
-static gboolean
-impl_Cal_cancel_operation (EGdbusCal *object,
-                           GDBusMethodInvocation *invocation,
-                           guint in_opid,
-                           EDataCal *cal)
-{
-	OperationData *op;
+	/* Sanity check. */
+	g_return_val_if_fail (
+		((view != NULL) && (error == NULL)) ||
+		((view == NULL) && (error != NULL)), FALSE);
 
-	op = op_new (OP_CANCEL_OPERATION, cal);
-	op->d.opid = in_opid;
-
-	e_gdbus_cal_complete_cancel_operation (cal->priv->gdbus_object, invocation, NULL);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_cancel_all (EGdbusCal *object,
-                     GDBusMethodInvocation *invocation,
-                     EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_CANCEL_ALL, cal);
-
-	e_gdbus_cal_complete_cancel_all (cal->priv->gdbus_object, invocation, NULL);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-static gboolean
-impl_Cal_close (EGdbusCal *object,
-                GDBusMethodInvocation *invocation,
-                EDataCal *cal)
-{
-	OperationData *op;
-
-	op = op_new (OP_CLOSE, cal);
-	/* unref here makes sure the cal is freed in a separate thread */
-	g_object_unref (cal);
-
-	e_gdbus_cal_complete_close (cal->priv->gdbus_object, invocation, NULL);
-	e_operation_pool_push (ops_pool, op);
-
-	return TRUE;
-}
-
-/* free returned pointer with g_strfreev() */
-static gchar **
-gslist_to_strv (const GSList *lst)
-{
-	gchar **seq;
-	const GSList *l;
-	gint i;
-
-	seq = g_new0 (gchar *, g_slist_length ((GSList *) lst) + 1);
-	for (l = lst, i = 0; l; l = l->next, i++) {
-		seq[i] = e_util_utf8_make_valid (l->data);
+	if (view != NULL) {
+		e_dbus_calendar_complete_get_view (
+			dbus_interface, invocation, object_path);
+		e_cal_backend_add_view (backend, view);
+		g_object_unref (view);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_prefix_error (&error, "%s", _("Invalid query: "));
+		g_dbus_method_invocation_take_error (invocation, error);
 	}
 
-	return seq;
+	g_free (object_path);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_get_timezone_cb (GObject *source_object,
+                                   GAsyncResult *result,
+                                   gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	gchar *tzobject;
+	GError *error = NULL;
+
+	/* XXX Should this return an ECalComponent instead? */
+	tzobject = e_cal_backend_get_timezone_finish (
+		E_CAL_BACKEND (source_object), result, &error);
+
+	/* Sanity check. */
+	g_return_if_fail (
+		((tzobject != NULL) && (error == NULL)) ||
+		((tzobject == NULL) && (error != NULL)));
+
+	if (tzobject != NULL) {
+		e_dbus_calendar_complete_get_timezone (
+			async_context->dbus_interface,
+			async_context->invocation,
+			tzobject);
+
+		g_free (tzobject);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_get_timezone_cb (EDBusCalendar *dbus_interface,
+                                 GDBusMethodInvocation *invocation,
+                                 const gchar *in_tzid,
+                                 EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_get_timezone (
+		backend,
+		in_tzid,
+		async_context->cancellable,
+		data_cal_complete_get_timezone_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static void
+data_cal_complete_add_timezone_cb (GObject *source_object,
+                                   GAsyncResult *result,
+                                   gpointer user_data)
+{
+	AsyncContext *async_context = user_data;
+	GError *error = NULL;
+
+	e_cal_backend_add_timezone_finish (
+		E_CAL_BACKEND (source_object), result, &error);
+
+	if (error == NULL) {
+		e_dbus_calendar_complete_add_timezone (
+			async_context->dbus_interface,
+			async_context->invocation);
+	} else {
+		data_cal_convert_to_client_error (error);
+		g_dbus_method_invocation_take_error (
+			async_context->invocation, error);
+	}
+
+	async_context_free (async_context);
+}
+
+static gboolean
+data_cal_handle_add_timezone_cb (EDBusCalendar *dbus_interface,
+                                 GDBusMethodInvocation *invocation,
+                                 const gchar *in_tzobject,
+                                 EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	AsyncContext *async_context;
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	async_context = async_context_new (data_cal, invocation);
+
+	e_cal_backend_add_timezone (
+		backend,
+		in_tzobject,
+		async_context->cancellable,
+		data_cal_complete_add_timezone_cb,
+		async_context);
+
+	g_object_unref (backend);
+
+	return TRUE;
+}
+
+static gboolean
+data_cal_handle_close_cb (EDBusCalendar *dbus_interface,
+                          GDBusMethodInvocation *invocation,
+                          EDataCal *data_cal)
+{
+	ECalBackend *backend;
+	const gchar *sender;
+
+	/* G_DBUS_MESSAGE_FLAGS_NO_REPLY_EXPECTED should be set on
+	 * the GDBusMessage, but we complete the invocation anyway
+	 * and let the D-Bus machinery suppress the reply. */
+	e_dbus_calendar_complete_close (dbus_interface, invocation);
+
+	backend = e_data_cal_ref_backend (data_cal);
+	g_return_val_if_fail (backend != NULL, FALSE);
+
+	sender = g_dbus_method_invocation_get_sender (invocation);
+	g_signal_emit_by_name (backend, "closed", sender);
+
+	g_object_unref (backend);
+
+	return TRUE;
 }
 
 /**
@@ -956,42 +1488,27 @@ e_data_cal_respond_open (EDataCal *cal,
                          guint32 opid,
                          GError *error)
 {
-	op_complete (cal, opid);
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, NULL);
+	g_return_if_fail (simple != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot open calendar: "));
 
-	e_gdbus_cal_emit_open_done (cal->priv->gdbus_object, opid, error);
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
 
-	if (error)
-		g_error_free (error);
-}
+	g_simple_async_result_complete_in_idle (simple);
 
-/**
- * e_data_cal_respond_remove:
- * @cal: A calendar client interface.
- * @error: Operation error, if any, automatically freed if passed it.
- *
- * Notifies listeners of the completion of the remove method call.
- *
- * Since: 3.2
- */
-void
-e_data_cal_respond_remove (EDataCal *cal,
-                           guint32 opid,
-                           GError *error)
-{
-	op_complete (cal, opid);
-
-	/* Translators: This is prefix to a detailed error message */
-	g_prefix_error (&error, "%s", _("Cannot remove calendar: "));
-
-	e_gdbus_cal_emit_remove_done (cal->priv->gdbus_object, opid, error);
-
-	if (error)
-		g_error_free (error);
-	else
-		e_cal_backend_set_is_removed (cal->priv->backend, TRUE);
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1008,70 +1525,27 @@ e_data_cal_respond_refresh (EDataCal *cal,
                             guint32 opid,
                             GError *error)
 {
-	op_complete (cal, opid);
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, NULL);
+	g_return_if_fail (simple != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot refresh calendar: "));
 
-	e_gdbus_cal_emit_refresh_done (cal->priv->gdbus_object, opid, error);
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
 
-	if (error)
-		g_error_free (error);
-}
+	g_simple_async_result_complete (simple);
 
-/**
- * e_data_cal_respond_get_backend_property:
- * @cal: A calendar client interface.
- * @error: Operation error, if any, automatically freed if passed it.
- * @prop_value: Value of a property
- *
- * Notifies listeners of the completion of the get_backend_property method call.
- *
- * Since: 3.2
- */
-void
-e_data_cal_respond_get_backend_property (EDataCal *cal,
-                                         guint32 opid,
-                                         GError *error,
-                                         const gchar *prop_value)
-{
-	gchar *gdbus_prop_value = NULL;
-
-	op_complete (cal, opid);
-
-	/* Translators: This is prefix to a detailed error message */
-	g_prefix_error (&error, "%s", _("Cannot retrieve backend property: "));
-
-	e_gdbus_cal_emit_get_backend_property_done (cal->priv->gdbus_object, opid, error, e_util_ensure_gdbus_string (prop_value, &gdbus_prop_value));
-
-	g_free (gdbus_prop_value);
-	if (error)
-		g_error_free (error);
-}
-
-/**
- * e_data_cal_respond_set_backend_property:
- * @cal: A calendar client interface.
- * @error: Operation error, if any, automatically freed if passed it.
- *
- * Notifies listeners of the completion of the set_backend_property method call.
- *
- * Since: 3.2
- */
-void
-e_data_cal_respond_set_backend_property (EDataCal *cal,
-                                         guint32 opid,
-                                         GError *error)
-{
-	op_complete (cal, opid);
-
-	/* Translators: This is prefix to a detailed error message */
-	g_prefix_error (&error, "%s", _("Cannot set backend property: "));
-
-	e_gdbus_cal_emit_set_backend_property_done (cal->priv->gdbus_object, opid, error);
-
-	if (error)
-		g_error_free (error);
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1090,18 +1564,40 @@ e_data_cal_respond_get_object (EDataCal *cal,
                                GError *error,
                                const gchar *object)
 {
-	gchar *gdbus_object = NULL;
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+	GQueue *queue = NULL;
 
-	op_complete (cal, opid);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, &queue);
+	g_return_if_fail (simple != NULL);
+	g_return_if_fail (queue != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot retrieve calendar object path: "));
 
-	e_gdbus_cal_emit_get_object_done (cal->priv->gdbus_object, opid, error, e_util_ensure_gdbus_string (object, &gdbus_object));
+	if (error == NULL) {
+		if (object != NULL) {
+			g_queue_push_tail (queue, g_strdup (object));
+		} else {
+			g_simple_async_result_set_error (
+				simple, E_CAL_CLIENT_ERROR,
+				E_CAL_CLIENT_ERROR_INVALID_OBJECT,
+				"%s", e_cal_client_error_to_string (
+				E_CAL_CLIENT_ERROR_INVALID_OBJECT));
+		}
+	} else {
+		g_simple_async_result_take_error (simple, error);
+	}
 
-	g_free (gdbus_object);
-	if (error)
-		g_error_free (error);
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1120,20 +1616,42 @@ e_data_cal_respond_get_object_list (EDataCal *cal,
                                     GError *error,
                                     const GSList *objects)
 {
-	gchar **strv_objects;
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+	GQueue *queue = NULL;
 
-	op_complete (cal, opid);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, &queue);
+	g_return_if_fail (simple != NULL);
+	g_return_if_fail (queue != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot retrieve calendar object list: "));
 
-	strv_objects = gslist_to_strv (objects);
+	if (error == NULL) {
+		GSList *list, *link;
 
-	e_gdbus_cal_emit_get_object_list_done (cal->priv->gdbus_object, opid, error, (const gchar * const *) strv_objects);
+		list = (GSList *) objects;
 
-	g_strfreev (strv_objects);
-	if (error)
-		g_error_free (error);
+		for (link = list; link != NULL; link = g_slist_next (link)) {
+			const gchar *calobj = link->data;
+
+			if (calobj != NULL)
+				g_queue_push_tail (queue, g_strdup (calobj));
+		}
+
+	} else {
+		g_simple_async_result_take_error (simple, error);
+	}
+
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1151,114 +1669,265 @@ e_data_cal_respond_get_free_busy (EDataCal *cal,
                                   guint32 opid,
                                   GError *error)
 {
-	op_complete (cal, opid);
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, NULL);
+	g_return_if_fail (simple != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot retrieve calendar free/busy list: "));
 
-	e_gdbus_cal_emit_get_free_busy_done (cal->priv->gdbus_object, opid, error);
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
 
-	if (error)
-		g_error_free (error);
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
- * e_data_cal_respond_create_object:
+ * e_data_cal_respond_create_objects:
  * @cal: A calendar client interface.
  * @error: Operation error, if any, automatically freed if passed it.
- * @uid: UID of the object created.
- * @new_component: The newly created #ECalComponent.
+ * @uids: UIDs of the objects created.
+ * @new_components: The newly created #ECalComponent objects.
  *
- * Notifies listeners of the completion of the create_object method call.
+ * Notifies listeners of the completion of the create_objects method call.
  *
- * Since: 3.2
+ * Since: 3.6
  */
 void
-e_data_cal_respond_create_object (EDataCal *cal,
-                                  guint32 opid,
-                                  GError *error,
-                                  const gchar *uid,
-                                  /* const */ ECalComponent *new_component)
+e_data_cal_respond_create_objects (EDataCal *cal,
+                                   guint32 opid,
+                                   GError *error,
+                                   const GSList *uids,
+                                   GSList *new_components)
 {
-	gchar *gdbus_uid = NULL;
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+	GQueue *queue = NULL;
 
-	op_complete (cal, opid);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, &queue);
+	g_return_if_fail (simple != NULL);
+	g_return_if_fail (queue != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot create calendar object: "));
 
-	e_gdbus_cal_emit_create_object_done (cal->priv->gdbus_object, opid, error, e_util_ensure_gdbus_string (uid, &gdbus_uid));
+	if (error == NULL) {
+		GQueue *inner_queue;
+		GSList *list, *link;
 
-	g_free (gdbus_uid);
-	if (error)
-		g_error_free (error);
-	else
-		e_cal_backend_notify_component_created (cal->priv->backend, new_component);
+		inner_queue = g_queue_new ();
+
+		list = (GSList *) uids;
+
+		for (link = list; link != NULL; link = g_slist_next (link))
+			g_queue_push_tail (inner_queue, g_strdup (link->data));
+
+		g_queue_push_tail (queue, inner_queue);
+
+		inner_queue = g_queue_new ();
+
+		list = (GSList *) new_components;
+
+		for (link = list; link != NULL; link = g_slist_next (link))
+			g_queue_push_tail (
+				inner_queue,
+				g_object_ref (link->data));
+
+		g_queue_push_tail (queue, inner_queue);
+
+	} else {
+		g_simple_async_result_take_error (simple, error);
+	}
+
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
- * e_data_cal_respond_modify_object:
+ * e_data_cal_respond_modify_objects:
  * @cal: A calendar client interface.
  * @error: Operation error, if any, automatically freed if passed it.
- * @old_component: The old #ECalComponent.
- * @new_component: The new #ECalComponent.
+ * @old_components: The old #ECalComponents.
+ * @new_components: The new #ECalComponents.
  *
- * Notifies listeners of the completion of the modify_object method call.
+ * Notifies listeners of the completion of the modify_objects method call.
  *
- * Since: 3.2
+ * Since: 3.6
  */
 void
-e_data_cal_respond_modify_object (EDataCal *cal,
-                                  guint32 opid,
-                                  GError *error,
-                                  /* const */ ECalComponent *old_component,
-                                  /* const */ ECalComponent *new_component)
+e_data_cal_respond_modify_objects (EDataCal *cal,
+                                   guint32 opid,
+                                   GError *error,
+                                   GSList *old_components,
+                                   GSList *new_components)
 {
-	op_complete (cal, opid);
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+	GQueue *queue = NULL;
+
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, &queue);
+	g_return_if_fail (simple != NULL);
+	g_return_if_fail (queue != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot modify calendar object: "));
 
-	e_gdbus_cal_emit_modify_object_done (cal->priv->gdbus_object, opid, error);
+	if (error == NULL) {
+		GQueue *inner_queue;
+		GSList *list, *link;
 
-	if (error)
-		g_error_free (error);
-	else
-		e_cal_backend_notify_component_modified (cal->priv->backend, old_component, new_component);
+		/* FIXME Ugh, this is awkward... */
+
+		inner_queue = g_queue_new ();
+
+		list = (GSList *) old_components;
+
+		for (link = list; link != NULL; link = g_slist_next (link)) {
+			if (link->data)
+				g_object_ref (link->data);
+			g_queue_push_tail (
+				inner_queue,
+				link->data);
+		}
+
+		g_queue_push_tail (queue, inner_queue);
+
+		inner_queue = g_queue_new ();
+
+		list = (GSList *) new_components;
+
+		for (link = list; link != NULL; link = g_slist_next (link))
+			g_queue_push_tail (
+				inner_queue,
+				g_object_ref (link->data));
+
+		g_queue_push_tail (queue, inner_queue);
+
+	} else {
+		g_simple_async_result_take_error (simple, error);
+	}
+
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
- * e_data_cal_respond_remove_object:
+ * e_data_cal_respond_remove_objects:
  * @cal: A calendar client interface.
  * @error: Operation error, if any, automatically freed if passed it.
- * @id: ID of the removed object.
- * @old_component: The old #ECalComponent.
- * @new_component: The new #ECalComponent. This will not be NULL only
- * when removing instances of a recurring appointment.
+ * @ids: IDs of the removed objects.
+ * @old_components: The old #ECalComponents.
+ * @new_components: The new #ECalComponents. They will not be NULL only
+ * when removing instances of recurring appointments.
  *
- * Notifies listeners of the completion of the remove_object method call.
+ * Notifies listeners of the completion of the remove_objects method call.
  *
- * Since: 3.2
+ * Since: 3.6
  */
 void
-e_data_cal_respond_remove_object (EDataCal *cal,
+e_data_cal_respond_remove_objects (EDataCal *cal,
                                   guint32 opid,
                                   GError *error,
-                                  const ECalComponentId *id,
-                                  /* const */ ECalComponent *old_component,
-                                  /* const */ ECalComponent *new_component)
+                                  const GSList *ids,
+                                  GSList *old_components,
+                                  GSList *new_components)
 {
-	op_complete (cal, opid);
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+	GQueue *queue = NULL;
+
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, &queue);
+	g_return_if_fail (simple != NULL);
+	g_return_if_fail (queue != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot remove calendar object: "));
 
-	e_gdbus_cal_emit_remove_object_done (cal->priv->gdbus_object, opid, error);
+	if (error == NULL) {
+		GQueue *inner_queue;
+		GSList *list, *link;
 
-	if (error)
-		g_error_free (error);
-	else
-		e_cal_backend_notify_component_removed (cal->priv->backend, id, old_component, new_component);
+		/* FIXME Ugh, this is awkward... */
+
+		inner_queue = g_queue_new ();
+
+		list = (GSList *) ids;
+
+		for (link = list; link != NULL; link = g_slist_next (link))
+			g_queue_push_tail (
+				inner_queue,
+				e_cal_component_id_copy (link->data));
+
+		g_queue_push_tail (queue, inner_queue);
+
+		inner_queue = g_queue_new ();
+
+		list = (GSList *) old_components;
+
+		for (link = list; link != NULL; link = g_slist_next (link)) {
+			if (link->data)
+				g_object_ref (link->data);
+			g_queue_push_tail (
+				inner_queue,
+				link->data);
+		}
+
+		g_queue_push_tail (queue, inner_queue);
+
+		if (new_components != NULL) {
+			inner_queue = g_queue_new ();
+
+			list = (GSList *) new_components;
+
+			/* XXX Careful here.  Apparently list elements
+			 *     can be NULL.  What a horrible API design. */
+			for (link = list; link != NULL; link = g_slist_next (link)) {
+				if (link->data != NULL)
+					g_object_ref (link->data);
+				g_queue_push_tail (
+					inner_queue, link->data);
+			}
+
+			g_queue_push_tail (queue, inner_queue);
+		}
+
+	} else {
+		g_simple_async_result_take_error (simple, error);
+	}
+
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1275,15 +1944,27 @@ e_data_cal_respond_receive_objects (EDataCal *cal,
                                     guint32 opid,
                                     GError *error)
 {
-	op_complete (cal, opid);
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, NULL);
+	g_return_if_fail (simple != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot receive calendar objects: "));
 
-	e_gdbus_cal_emit_receive_objects_done (cal->priv->gdbus_object, opid, error);
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
 
-	if (error)
-		g_error_free (error);
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1304,20 +1985,40 @@ e_data_cal_respond_send_objects (EDataCal *cal,
                                  const GSList *users,
                                  const gchar *calobj)
 {
-	gchar **strv_users_calobj;
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+	GQueue *queue = NULL;
 
-	op_complete (cal, opid);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, &queue);
+	g_return_if_fail (simple != NULL);
+	g_return_if_fail (queue != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Cannot send calendar objects: "));
 
-	strv_users_calobj = e_gdbus_cal_encode_send_objects (calobj, users);
+	if (error == NULL) {
+		GSList *list, *link;
 
-	e_gdbus_cal_emit_send_objects_done (cal->priv->gdbus_object, opid, error, (const gchar * const *) strv_users_calobj);
+		g_queue_push_tail (queue, g_strdup (calobj));
 
-	g_strfreev (strv_users_calobj);
-	if (error)
-		g_error_free (error);
+		list = (GSList *) users;
+
+		for (link = list; link != NULL; link = g_slist_next (link))
+			g_queue_push_tail (queue, g_strdup (link->data));
+
+	} else {
+		g_simple_async_result_take_error (simple, error);
+	}
+
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1336,20 +2037,37 @@ e_data_cal_respond_get_attachment_uris (EDataCal *cal,
                                         GError *error,
                                         const GSList *attachment_uris)
 {
-	gchar **strv_attachment_uris;
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+	GQueue *queue = NULL;
 
-	op_complete (cal, opid);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, &queue);
+	g_return_if_fail (simple != NULL);
+	g_return_if_fail (queue != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Could not retrieve attachment uris: "));
 
-	strv_attachment_uris = gslist_to_strv (attachment_uris);
+	if (error == NULL) {
+		GSList *list, *link;
 
-	e_gdbus_cal_emit_get_attachment_uris_done (cal->priv->gdbus_object, opid, error, (const gchar * const *) strv_attachment_uris);
+		list = (GSList *) attachment_uris;
 
-	g_strfreev (strv_attachment_uris);
-	if (error)
-		g_error_free (error);
+		for (link = list; link != NULL; link = g_slist_next (link))
+			g_queue_push_tail (queue, g_strdup (link->data));
+	} else {
+		g_simple_async_result_take_error (simple, error);
+	}
+
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1366,45 +2084,27 @@ e_data_cal_respond_discard_alarm (EDataCal *cal,
                                   guint32 opid,
                                   GError *error)
 {
-	op_complete (cal, opid);
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, NULL);
+	g_return_if_fail (simple != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Could not discard reminder: "));
 
-	e_gdbus_cal_emit_discard_alarm_done (cal->priv->gdbus_object, opid, error);
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
 
-	if (error)
-		g_error_free (error);
-}
+	g_simple_async_result_complete_in_idle (simple);
 
-/**
- * e_data_cal_respond_get_view:
- * @cal: A calendar client interface.
- * @error: Operation error, if any, automatically freed if passed it.
- * @view_path: The new live view path.
- *
- * Notifies listeners of the completion of the get_view method call.
- *
- * Since: 3.2
- */
-void
-e_data_cal_respond_get_view (EDataCal *cal,
-                             guint32 opid,
-                             GError *error,
-                             const gchar *view_path)
-{
-	gchar *gdbus_view_path = NULL;
-
-	op_complete (cal, opid);
-
-	/* Translators: This is prefix to a detailed error message */
-	g_prefix_error (&error, "%s", _("Could not get calendar view path: "));
-
-	e_gdbus_cal_emit_get_view_done (cal->priv->gdbus_object, opid, error, e_util_ensure_gdbus_string (view_path, &gdbus_view_path));
-
-	g_free (gdbus_view_path);
-	if (error)
-		g_error_free (error);
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1423,18 +2123,32 @@ e_data_cal_respond_get_timezone (EDataCal *cal,
                                  GError *error,
                                  const gchar *tzobject)
 {
-	gchar *gdbus_tzobject = NULL;
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+	GQueue *queue = NULL;
 
-	op_complete (cal, opid);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, &queue);
+	g_return_if_fail (simple != NULL);
+	g_return_if_fail (queue != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Could not retrieve calendar time zone: "));
 
-	e_gdbus_cal_emit_get_timezone_done (cal->priv->gdbus_object, opid, error, e_util_ensure_gdbus_string (tzobject, &gdbus_tzobject));
+	if (error == NULL) {
+		g_queue_push_tail (queue, g_strdup (tzobject));
+	} else {
+		g_simple_async_result_take_error (simple, error);
+	}
 
-	g_free (gdbus_tzobject);
-	if (error)
-		g_error_free (error);
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1451,15 +2165,27 @@ e_data_cal_respond_add_timezone (EDataCal *cal,
                                  guint32 opid,
                                  GError *error)
 {
-	op_complete (cal, opid);
+	ECalBackend *backend;
+	GSimpleAsyncResult *simple;
+
+	g_return_if_fail (E_IS_DATA_CAL (cal));
+
+	backend = e_data_cal_ref_backend (cal);
+	g_return_if_fail (backend != NULL);
+
+	simple = e_cal_backend_prepare_for_completion (backend, opid, NULL);
+	g_return_if_fail (simple != NULL);
 
 	/* Translators: This is prefix to a detailed error message */
 	g_prefix_error (&error, "%s", _("Could not add calendar time zone: "));
 
-	e_gdbus_cal_emit_add_timezone_done (cal->priv->gdbus_object, opid, error);
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
 
-	if (error)
-		g_error_free (error);
+	g_simple_async_result_complete_in_idle (simple);
+
+	g_object_unref (simple);
+	g_object_unref (backend);
 }
 
 /**
@@ -1473,96 +2199,10 @@ void
 e_data_cal_report_error (EDataCal *cal,
                          const gchar *message)
 {
-	g_return_if_fail (cal != NULL);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
 	g_return_if_fail (message != NULL);
 
-	e_gdbus_cal_emit_backend_error (cal->priv->gdbus_object, message);
-}
-
-/**
- * e_data_cal_report_readonly:
- *
- * FIXME: Document me.
- *
- * Since: 3.2
- **/
-void
-e_data_cal_report_readonly (EDataCal *cal,
-                            gboolean readonly)
-{
-	g_return_if_fail (cal != NULL);
-
-	e_gdbus_cal_emit_readonly (cal->priv->gdbus_object, readonly);
-}
-
-/**
- * e_data_cal_report_online:
- *
- * FIXME: Document me.
- *
- * Since: 3.2
- **/
-void
-e_data_cal_report_online (EDataCal *cal,
-                          gboolean is_online)
-{
-	g_return_if_fail (cal != NULL);
-
-	e_gdbus_cal_emit_online (cal->priv->gdbus_object, is_online);
-}
-
-/**
- * e_data_cal_report_auth_required:
- *
- * FIXME: Document me.
- *
- * Since: 3.2
- **/
-void
-e_data_cal_report_auth_required (EDataCal *cal,
-                                 const ECredentials *credentials)
-{
-	gchar *empty_strv[2];
-	gchar **strv = NULL;
-
-	/* credentilas contains extra information for a source for which
-	 * authentication is requested.  This parameter can be NULL to
-	 * indicate "for this calendar". */
-
-	g_return_if_fail (cal != NULL);
-
-	empty_strv[0] = NULL;
-	empty_strv[1] = NULL;
-
-	if (credentials)
-		strv = e_credentials_to_strv (credentials);
-
-	e_gdbus_cal_emit_auth_required (cal->priv->gdbus_object, (const gchar * const *) (strv ? strv : empty_strv));
-
-	g_strfreev (strv);
-}
-
-/**
- * e_data_cal_report_opened:
- *
- * Reports to associated client that opening phase of the cal is finished.
- * error being NULL means successfully, otherwise reports an error which
- * happened during opening phase. By opening phase is meant a process
- * including successfull authentication to the server/storage.
- *
- * Since: 3.2
- **/
-void
-e_data_cal_report_opened (EDataCal *cal,
-                          const GError *error)
-{
-	gchar **strv_error;
-
-	strv_error = e_gdbus_templates_encode_error (error);
-
-	e_gdbus_cal_emit_opened (cal->priv->gdbus_object, (const gchar * const *) strv_error);
-
-	g_strfreev (strv_error);
+	e_dbus_calendar_emit_error (cal->priv->dbus_interface, message);
 }
 
 /**
@@ -1576,15 +2216,25 @@ void
 e_data_cal_report_free_busy_data (EDataCal *cal,
                                   const GSList *freebusy)
 {
-	gchar **strv_freebusy;
+	gchar **strv;
+	guint length;
+	gint ii = 0;
 
-	g_return_if_fail (cal != NULL);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
 
-	strv_freebusy = gslist_to_strv (freebusy);
+	length = g_slist_length ((GSList *) freebusy);
+	strv = g_new0 (gchar *, length + 1);
 
-	e_gdbus_cal_emit_free_busy_data (cal->priv->gdbus_object, (const gchar * const *) strv_freebusy);
+	while (freebusy != NULL) {
+		strv[ii++] = e_util_utf8_make_valid (freebusy->data);
+		freebusy = g_slist_next ((GSList *) freebusy);
+	}
 
-	g_strfreev (strv_freebusy);
+	e_dbus_calendar_emit_free_busy_data (
+		cal->priv->dbus_interface,
+		(const gchar * const *) strv);
+
+	g_strfreev (strv);
 }
 
 /**
@@ -1599,19 +2249,37 @@ e_data_cal_report_backend_property_changed (EDataCal *cal,
                                             const gchar *prop_name,
                                             const gchar *prop_value)
 {
+	EDBusCalendar *dbus_interface;
 	gchar **strv;
 
-	g_return_if_fail (cal != NULL);
+	g_return_if_fail (E_IS_DATA_CAL (cal));
 	g_return_if_fail (prop_name != NULL);
-	g_return_if_fail (*prop_name != '\0');
-	g_return_if_fail (prop_value != NULL);
 
-	strv = e_gdbus_templates_encode_two_strings (prop_name, prop_value);
-	g_return_if_fail (strv != NULL);
+	if (prop_value == NULL)
+		prop_value = "";
 
-	e_gdbus_cal_emit_backend_property_changed (cal->priv->gdbus_object, (const gchar * const *) strv);
+	dbus_interface = cal->priv->dbus_interface;
 
-	g_strfreev (strv);
+	if (g_str_equal (prop_name, CLIENT_BACKEND_PROPERTY_CAPABILITIES)) {
+		strv = g_strsplit (prop_value, ",", -1);
+		e_dbus_calendar_set_capabilities (
+			dbus_interface, (const gchar * const *) strv);
+		g_strfreev (strv);
+	}
+
+	if (g_str_equal (prop_name, CLIENT_BACKEND_PROPERTY_REVISION))
+		e_dbus_calendar_set_revision (dbus_interface, prop_value);
+
+	if (g_str_equal (prop_name, CAL_BACKEND_PROPERTY_CAL_EMAIL_ADDRESS))
+		e_dbus_calendar_set_cal_email_address (dbus_interface, prop_value);
+
+	if (g_str_equal (prop_name, CAL_BACKEND_PROPERTY_ALARM_EMAIL_ADDRESS))
+		e_dbus_calendar_set_alarm_email_address (dbus_interface, prop_value);
+
+	if (g_str_equal (prop_name, CAL_BACKEND_PROPERTY_DEFAULT_OBJECT))
+		e_dbus_calendar_set_default_object (dbus_interface, prop_value);
+
+	/* Disregard anything else. */
 }
 
 static void
@@ -1619,9 +2287,28 @@ data_cal_set_backend (EDataCal *cal,
                       ECalBackend *backend)
 {
 	g_return_if_fail (E_IS_CAL_BACKEND (backend));
-	g_return_if_fail (cal->priv->backend == NULL);
 
-	cal->priv->backend = g_object_ref (backend);
+	g_weak_ref_set (&cal->priv->backend, backend);
+}
+
+static void
+data_cal_set_connection (EDataCal *cal,
+                         GDBusConnection *connection)
+{
+	g_return_if_fail (G_IS_DBUS_CONNECTION (connection));
+	g_return_if_fail (cal->priv->connection == NULL);
+
+	cal->priv->connection = g_object_ref (connection);
+}
+
+static void
+data_cal_set_object_path (EDataCal *cal,
+                          const gchar *object_path)
+{
+	g_return_if_fail (object_path != NULL);
+	g_return_if_fail (cal->priv->object_path == NULL);
+
+	cal->priv->object_path = g_strdup (object_path);
 }
 
 static void
@@ -1636,6 +2323,18 @@ data_cal_set_property (GObject *object,
 				E_DATA_CAL (object),
 				g_value_get_object (value));
 			return;
+
+		case PROP_CONNECTION:
+			data_cal_set_connection (
+				E_DATA_CAL (object),
+				g_value_get_object (value));
+			return;
+
+		case PROP_OBJECT_PATH:
+			data_cal_set_object_path (
+				E_DATA_CAL (object),
+				g_value_get_string (value));
+			return;
 	}
 
 	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -1649,9 +2348,23 @@ data_cal_get_property (GObject *object,
 {
 	switch (property_id) {
 		case PROP_BACKEND:
+			g_value_take_object (
+				value,
+				e_data_cal_ref_backend (
+				E_DATA_CAL (object)));
+			return;
+
+		case PROP_CONNECTION:
 			g_value_set_object (
 				value,
-				e_data_cal_get_backend (
+				e_data_cal_get_connection (
+				E_DATA_CAL (object)));
+			return;
+
+		case PROP_OBJECT_PATH:
+			g_value_set_string (
+				value,
+				e_data_cal_get_object_path (
 				E_DATA_CAL (object)));
 			return;
 	}
@@ -1666,10 +2379,14 @@ data_cal_dispose (GObject *object)
 
 	priv = E_DATA_CAL_GET_PRIVATE (object);
 
-	if (priv->backend) {
-		g_object_unref (priv->backend);
-		priv->backend = NULL;
+	g_weak_ref_set (&priv->backend, NULL);
+
+	if (priv->connection != NULL) {
+		g_object_unref (priv->connection);
+		priv->connection = NULL;
 	}
+
+	g_hash_table_remove_all (priv->sender_table);
 
 	/* Chain up to parent's dispose() method. */
 	G_OBJECT_CLASS (e_data_cal_parent_class)->dispose (object);
@@ -1682,20 +2399,102 @@ data_cal_finalize (GObject *object)
 
 	priv = E_DATA_CAL_GET_PRIVATE (object);
 
-	if (priv->pending_ops) {
-		g_hash_table_destroy (priv->pending_ops);
-		priv->pending_ops = NULL;
-	}
+	g_free (priv->object_path);
 
-	g_static_rec_mutex_free (&priv->pending_ops_lock);
+	g_mutex_clear (&priv->sender_lock);
+	g_weak_ref_clear (&priv->backend);
+	g_hash_table_destroy (priv->sender_table);
 
-	if (priv->gdbus_object) {
-		g_object_unref (priv->gdbus_object);
-		priv->gdbus_object = NULL;
+	if (priv->dbus_interface) {
+		g_object_unref (priv->dbus_interface);
+		priv->dbus_interface = NULL;
 	}
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (e_data_cal_parent_class)->finalize (object);
+}
+
+static void
+data_cal_constructed (GObject *object)
+{
+	EDataCal *cal = E_DATA_CAL (object);
+	ECalBackend *backend;
+	const gchar *prop_name;
+	gchar *prop_value;
+
+	/* Chain up to parent's constructed() method. */
+	G_OBJECT_CLASS (e_data_cal_parent_class)->constructed (object);
+
+	backend = e_data_cal_ref_backend (cal);
+	g_warn_if_fail (backend != NULL);
+
+	/* Attach ourselves to the ECalBackend. */
+	e_cal_backend_set_data_cal (backend, cal);
+
+	g_object_bind_property (
+		backend, "cache-dir",
+		cal->priv->dbus_interface, "cache-dir",
+		G_BINDING_SYNC_CREATE);
+
+	g_object_bind_property (
+		backend, "online",
+		cal->priv->dbus_interface, "online",
+		G_BINDING_SYNC_CREATE);
+
+	g_object_bind_property (
+		backend, "writable",
+		cal->priv->dbus_interface, "writable",
+		G_BINDING_SYNC_CREATE);
+
+	/* XXX Initialize the rest of the properties. */
+
+	prop_name = CLIENT_BACKEND_PROPERTY_CAPABILITIES;
+	prop_value = e_cal_backend_get_backend_property (backend, prop_name);
+	e_data_cal_report_backend_property_changed (
+		cal, prop_name, prop_value);
+	g_free (prop_value);
+
+	prop_name = CLIENT_BACKEND_PROPERTY_REVISION;
+	prop_value = e_cal_backend_get_backend_property (backend, prop_name);
+	e_data_cal_report_backend_property_changed (
+		cal, prop_name, prop_value);
+	g_free (prop_value);
+
+	prop_name = CAL_BACKEND_PROPERTY_CAL_EMAIL_ADDRESS;
+	prop_value = e_cal_backend_get_backend_property (backend, prop_name);
+	e_data_cal_report_backend_property_changed (
+		cal, prop_name, prop_value);
+	g_free (prop_value);
+
+	prop_name = CAL_BACKEND_PROPERTY_ALARM_EMAIL_ADDRESS;
+	prop_value = e_cal_backend_get_backend_property (backend, prop_name);
+	e_data_cal_report_backend_property_changed (
+		cal, prop_name, prop_value);
+	g_free (prop_value);
+
+	prop_name = CAL_BACKEND_PROPERTY_DEFAULT_OBJECT;
+	prop_value = e_cal_backend_get_backend_property (backend, prop_name);
+	e_data_cal_report_backend_property_changed (
+		cal, prop_name, prop_value);
+	g_free (prop_value);
+
+	g_object_unref (backend);
+}
+
+static gboolean
+data_cal_initable_init (GInitable *initable,
+                        GCancellable *cancellable,
+                        GError **error)
+{
+	EDataCal *cal;
+
+	cal = E_DATA_CAL (initable);
+
+	return g_dbus_interface_skeleton_export (
+		G_DBUS_INTERFACE_SKELETON (cal->priv->dbus_interface),
+		cal->priv->connection,
+		cal->priv->object_path,
+		error);
 }
 
 static void
@@ -1710,6 +2509,7 @@ e_data_cal_class_init (EDataCalClass *class)
 	object_class->get_property = data_cal_get_property;
 	object_class->dispose = data_cal_dispose;
 	object_class->finalize = data_cal_finalize;
+	object_class->constructed = data_cal_constructed;
 
 	g_object_class_install_property (
 		object_class,
@@ -1723,104 +2523,197 @@ e_data_cal_class_init (EDataCalClass *class)
 			G_PARAM_CONSTRUCT_ONLY |
 			G_PARAM_STATIC_STRINGS));
 
-	if (!ops_pool)
-		ops_pool = e_operation_pool_new (10, operation_thread, NULL);
+	g_object_class_install_property (
+		object_class,
+		PROP_CONNECTION,
+		g_param_spec_object (
+			"connection",
+			"Connection",
+			"The GDBusConnection on which to "
+			"export the calendar interface",
+			G_TYPE_DBUS_CONNECTION,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (
+		object_class,
+		PROP_OBJECT_PATH,
+		g_param_spec_string (
+			"object-path",
+			"Object Path",
+			"The object path at which to "
+			"export the calendar interface",
+			NULL,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
 }
 
 static void
-e_data_cal_init (EDataCal *ecal)
+e_data_cal_initable_init (GInitableIface *iface)
 {
-	EGdbusCal *gdbus_object;
-
-	ecal->priv = E_DATA_CAL_GET_PRIVATE (ecal);
-
-	ecal->priv->gdbus_object = e_gdbus_cal_stub_new ();
-	ecal->priv->pending_ops = g_hash_table_new_full (
-		g_direct_hash, g_direct_equal, NULL, g_object_unref);
-	g_static_rec_mutex_init (&ecal->priv->pending_ops_lock);
-
-	gdbus_object = ecal->priv->gdbus_object;
-	g_signal_connect (
-		gdbus_object, "handle-open",
-		G_CALLBACK (impl_Cal_open), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-authenticate-user",
-		G_CALLBACK (impl_Cal_authenticate_user), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-remove",
-		G_CALLBACK (impl_Cal_remove), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-refresh",
-		G_CALLBACK (impl_Cal_refresh), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-get-backend-property",
-		G_CALLBACK (impl_Cal_get_backend_property), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-set-backend-property",
-		G_CALLBACK (impl_Cal_set_backend_property), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-get-object",
-		G_CALLBACK (impl_Cal_get_object), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-get-object-list",
-		G_CALLBACK (impl_Cal_get_object_list), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-get-free-busy",
-		G_CALLBACK (impl_Cal_get_free_busy), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-create-object",
-		G_CALLBACK (impl_Cal_create_object), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-modify-object",
-		G_CALLBACK (impl_Cal_modify_object), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-remove-object",
-		G_CALLBACK (impl_Cal_remove_object), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-receive-objects",
-		G_CALLBACK (impl_Cal_receive_objects), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-send-objects",
-		G_CALLBACK (impl_Cal_send_objects), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-get-attachment-uris",
-		G_CALLBACK (impl_Cal_get_attachment_uris), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-discard-alarm",
-		G_CALLBACK (impl_Cal_discard_alarm), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-get-view",
-		G_CALLBACK (impl_Cal_get_view), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-get-timezone",
-		G_CALLBACK (impl_Cal_get_timezone), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-add-timezone",
-		G_CALLBACK (impl_Cal_add_timezone), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-cancel-operation",
-		G_CALLBACK (impl_Cal_cancel_operation), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-cancel-all",
-		G_CALLBACK (impl_Cal_cancel_all), ecal);
-	g_signal_connect (
-		gdbus_object, "handle-close",
-		G_CALLBACK (impl_Cal_close), ecal);
+	iface->init = data_cal_initable_init;
 }
 
+static void
+e_data_cal_init (EDataCal *data_cal)
+{
+	EDBusCalendar *dbus_interface;
+
+	data_cal->priv = E_DATA_CAL_GET_PRIVATE (data_cal);
+
+	dbus_interface = e_dbus_calendar_skeleton_new ();
+	data_cal->priv->dbus_interface = dbus_interface;
+
+	g_mutex_init (&data_cal->priv->sender_lock);
+	g_weak_ref_init (&data_cal->priv->backend, NULL);
+
+	data_cal->priv->sender_table = g_hash_table_new_full (
+		(GHashFunc) g_str_hash,
+		(GEqualFunc) g_str_equal,
+		(GDestroyNotify) g_free,
+		(GDestroyNotify) g_ptr_array_unref);
+
+	g_signal_connect (
+		dbus_interface, "handle-open",
+		G_CALLBACK (data_cal_handle_open_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-refresh",
+		G_CALLBACK (data_cal_handle_refresh_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-get-object",
+		G_CALLBACK (data_cal_handle_get_object_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-get-object-list",
+		G_CALLBACK (data_cal_handle_get_object_list_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-get-free-busy",
+		G_CALLBACK (data_cal_handle_get_free_busy_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-create-objects",
+		G_CALLBACK (data_cal_handle_create_objects_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-modify-objects",
+		G_CALLBACK (data_cal_handle_modify_objects_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-remove-objects",
+		G_CALLBACK (data_cal_handle_remove_objects_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-receive-objects",
+		G_CALLBACK (data_cal_handle_receive_objects_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-send-objects",
+		G_CALLBACK (data_cal_handle_send_objects_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-get-attachment-uris",
+		G_CALLBACK (data_cal_handle_get_attachment_uris_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-discard-alarm",
+		G_CALLBACK (data_cal_handle_discard_alarm_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-get-view",
+		G_CALLBACK (data_cal_handle_get_view_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-get-timezone",
+		G_CALLBACK (data_cal_handle_get_timezone_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-add-timezone",
+		G_CALLBACK (data_cal_handle_add_timezone_cb), data_cal);
+	g_signal_connect (
+		dbus_interface, "handle-close",
+		G_CALLBACK (data_cal_handle_close_cb), data_cal);
+}
+
+/**
+ * e_data_cal_new:
+ * @backend: an #ECalBackend
+ * @connection: a #GDBusConnection
+ * @object_path: object path for the D-Bus interface
+ * @error: return location for a #GError, or %NULL
+ *
+ * Creates a new #EDataCal and exports the Calendar D-Bus interface
+ * on @connection at @object_path.  The #EDataCal handles incoming remote
+ * method invocations and forwards them to the @backend.  If the Calendar
+ * interface fails to export, the function sets @error and returns %NULL.
+ *
+ * Returns: an #EDataCal, or %NULL on error
+ **/
 EDataCal *
-e_data_cal_new (ECalBackend *backend)
+e_data_cal_new (ECalBackend *backend,
+                GDBusConnection *connection,
+                const gchar *object_path,
+                GError **error)
 {
 	g_return_val_if_fail (E_IS_CAL_BACKEND (backend), NULL);
+	g_return_val_if_fail (G_IS_DBUS_CONNECTION (connection), NULL);
+	g_return_val_if_fail (object_path != NULL, NULL);
 
-	return g_object_new (E_TYPE_DATA_CAL, "backend", backend, NULL);
+	return g_initable_new (
+		E_TYPE_DATA_CAL, NULL, error,
+		"backend", backend,
+		"connection", connection,
+		"object-path", object_path,
+		NULL);
 }
 
+/**
+ * e_data_cal_ref_backend:
+ * @cal: an #EDataCal
+ *
+ * Returns the #ECalBackend to which incoming remote method invocations
+ * are being forwarded.
+ *
+ * The returned #ECalBackend is referenced for thread-safety and should
+ * be unreferenced with g_object_unref() when finished with it.
+ *
+ * Returns: an #ECalBackend
+ *
+ * Since: 3.10
+ **/
 ECalBackend *
-e_data_cal_get_backend (EDataCal *cal)
+e_data_cal_ref_backend (EDataCal *cal)
 {
 	g_return_val_if_fail (E_IS_DATA_CAL (cal), NULL);
 
-	return cal->priv->backend;
+	return g_weak_ref_get (&cal->priv->backend);
+}
+
+/**
+ * e_data_cal_get_connection:
+ * @cal: an #EDataCal
+ *
+ * Returns the #GDBusConnection on which the Calendar D-Bus interface
+ * is exported.
+ *
+ * Returns: the #GDBusConnection
+ *
+ * Since: 3.8
+ **/
+GDBusConnection *
+e_data_cal_get_connection (EDataCal *cal)
+{
+	g_return_val_if_fail (E_IS_DATA_CAL (cal), NULL);
+
+	return cal->priv->connection;
+}
+
+/**
+ * e_data_cal_get_object_path:
+ * @cal: an #EDataCal
+ *
+ * Returns the object path at which the Calendar D-Bus interface is
+ * exported.
+ *
+ * Returns: the object path
+ *
+ * Since: 3.8
+ **/
+const gchar *
+e_data_cal_get_object_path (EDataCal *cal)
+{
+	g_return_val_if_fail (E_IS_DATA_CAL (cal), NULL);
+
+	return cal->priv->object_path;
 }
 

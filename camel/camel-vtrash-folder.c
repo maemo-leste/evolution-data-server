@@ -1,23 +1,21 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *	     Michael Zucchi <notzed@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -84,7 +82,7 @@ transfer_messages (CamelFolder *folder,
 		CamelMessageInfo *mi = camel_folder_get_message_info (md->source_folder, md->source_uids->pdata[i]);
 		if (mi) {
 			camel_message_info_set_flags (mi, md->sbit, md->sbit);
-			camel_folder_free_message_info (md->source_folder, mi);
+			camel_message_info_unref (mi);
 		}
 	}
 
@@ -204,7 +202,7 @@ vtrash_folder_transfer_messages_to_sync (CamelFolder *source,
 			g_ptr_array_add (md->uids, g_strdup (tuid));
 			g_ptr_array_add (md->source_uids, uids->pdata[i]);
 		}
-		camel_folder_free_message_info (source, (CamelMessageInfo *) mi);
+		camel_message_info_unref (mi);
 	}
 
 	if (batch) {
@@ -260,9 +258,7 @@ camel_vtrash_folder_new (CamelStore *parent_store,
 	camel_vee_folder_construct (
 		CAMEL_VEE_FOLDER (vtrash),
 		CAMEL_STORE_FOLDER_PRIVATE |
-		CAMEL_STORE_FOLDER_CREATE |
-		CAMEL_STORE_VEE_FOLDER_AUTO |
-		CAMEL_STORE_VEE_FOLDER_SPECIAL);
+		CAMEL_STORE_FOLDER_CREATE);
 
 	((CamelFolder *) vtrash)->folder_flags |= vdata[type].flags;
 	camel_vee_folder_set_expression ((CamelVeeFolder *) vtrash, vdata[type].expr);

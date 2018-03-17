@@ -3,18 +3,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <glib/gstdio.h>
@@ -85,11 +84,11 @@ system_timezone_read_etc_timezone (GHashTable *ical_zones)
 	GString *reading;
 	gint      c;
 
-        etc_timezone = g_fopen (ETC_TIMEZONE, "r");
+	etc_timezone = g_fopen (ETC_TIMEZONE, "r");
 	if (!etc_timezone)
 		return NULL;
 
-        reading = g_string_new ("");
+	reading = g_string_new ("");
 
 	c = fgetc (etc_timezone);
         /* only get the first line, we'll validate the value later */
@@ -122,11 +121,11 @@ system_timezone_read_key_file (const gchar *filename,
 	if (!g_file_test (filename, G_FILE_TEST_IS_REGULAR))
 		return NULL;
 
-        channel = g_io_channel_new_file (filename, "r", NULL);
+	channel = g_io_channel_new_file (filename, "r", NULL);
 	if (!channel)
 		return NULL;
 
-        key_eq = g_strdup_printf ("%s=", key);
+	key_eq = g_strdup_printf ("%s=", key);
 	retval = NULL;
 
 	while (g_io_channel_read_line (channel, &line, NULL,
@@ -140,21 +139,13 @@ system_timezone_read_key_file (const gchar *filename,
 
 			len = strlen (value);
 
-			if (value[0] == '\"') {
-				if (value[len - 1] == '\"') {
-					if (retval)
-						g_free (retval);
-
-					retval = g_strndup (value + 1,
-							    len - 2);
-				}
-			} else {
-				if (retval)
-					g_free (retval);
-
-				retval = g_strdup (line + strlen (key_eq));
+			if (value[0] == '\"' && value[len - 1] == '\"') {
+				value += 1;
+				len -= 2;
 			}
 
+			g_free (retval);
+			retval = g_strndup (value, len);
 			g_strstrip (retval);
 		}
 
@@ -171,40 +162,40 @@ system_timezone_read_key_file (const gchar *filename,
 static gchar *
 system_timezone_read_etc_sysconfig_clock (GHashTable *ical_zones)
 {
-	return system_timezone_read_key_file (ETC_SYSCONFIG_CLOCK,
-                                              "ZONE");
+	return system_timezone_read_key_file (
+		ETC_SYSCONFIG_CLOCK, "ZONE");
 }
 
 /* This works for openSUSE */
 static gchar *
 system_timezone_read_etc_sysconfig_clock_alt (GHashTable *ical_zones)
 {
-	return system_timezone_read_key_file (ETC_SYSCONFIG_CLOCK,
-                                              "TIMEZONE");
+	return system_timezone_read_key_file (
+		ETC_SYSCONFIG_CLOCK, "TIMEZONE");
 }
 
 /* This works for Solaris/OpenSolaris */
 static gchar *
 system_timezone_read_etc_TIMEZONE (GHashTable *ical_zones)
 {
-	return system_timezone_read_key_file (ETC_TIMEZONE_MAJ,
-                                              "TZ");
+	return system_timezone_read_key_file (
+		ETC_TIMEZONE_MAJ, "TZ");
 }
 
 /* This works for Arch Linux */
 static gchar *
 system_timezone_read_etc_rc_conf (GHashTable *ical_zones)
 {
-	return system_timezone_read_key_file (ETC_RC_CONF,
-                                              "TIMEZONE");
+	return system_timezone_read_key_file (
+		ETC_RC_CONF, "TIMEZONE");
 }
 
 /* This works for old Gentoo */
 static gchar *
 system_timezone_read_etc_conf_d_clock (GHashTable *ical_zones)
 {
-	return system_timezone_read_key_file (ETC_CONF_D_CLOCK,
-                                              "TIMEZONE");
+	return system_timezone_read_key_file (
+		ETC_CONF_D_CLOCK, "TIMEZONE");
 }
 
 static void
@@ -216,8 +207,8 @@ update_fallback (gchar **fallback,
 
 	/* ignore those not available in libical */
 	if (adept && ical_zones) {
-		if (!g_hash_table_lookup (ical_zones, adept) ||
-		    (*fallback && g_hash_table_lookup (ical_zones, *fallback))) {
+		if (!g_hash_table_contains (ical_zones, adept) ||
+		    (*fallback && g_hash_table_contains (ical_zones, *fallback))) {
 			g_free (adept);
 			return;
 		}
@@ -268,12 +259,12 @@ recursive_compare (struct stat *localtime_stat,
 				  file)) {
 			gchar *tz = system_timezone_strip_path_if_valid (file);
 
-			if (deep_level <= 1 || (ical_zones && g_hash_table_lookup (ical_zones, tz))) {
+			if (deep_level <= 1 || (ical_zones && g_hash_table_contains (ical_zones, tz))) {
 				update_fallback (fallback, tz, ical_zones);
 				return NULL;
 			}
 
-			if (ical_zones && !g_hash_table_lookup (ical_zones, tz)) {
+			if (ical_zones && !g_hash_table_contains (ical_zones, tz)) {
 				g_free (tz);
 				return NULL;
 			}
@@ -294,14 +285,15 @@ recursive_compare (struct stat *localtime_stat,
 		while ((subfile = g_dir_read_name (dir)) != NULL) {
 			subpath = g_build_filename (file, subfile, NULL);
 
-			ret = recursive_compare (localtime_stat,
-						 localtime_content,
-						 localtime_content_len,
-						 subpath,
-						 compare_func,
-						 ical_zones,
-						 deep_level + 1,
-						 fallback);
+			ret = recursive_compare (
+				localtime_stat,
+				localtime_content,
+				localtime_content_len,
+				subpath,
+				compare_func,
+				ical_zones,
+				deep_level + 1,
+				fallback);
 
 			g_free (subpath);
 
@@ -335,8 +327,9 @@ files_are_identical_inode (struct stat *a_stat,
 		else
 			filename = b_filename;
 
-		/* There is a 'localtime' soft link to /etc/localtime in the zoneinfo
-		 * directory on Slackware, thus rather skip this file. */
+		/* There is a 'localtime' soft link to /etc/localtime in the
+		 * zoneinfo directory on Slackware, thus rather skip this file.
+		 */
 		res = !g_str_equal (filename, "localtime");
 	}
 
@@ -357,14 +350,15 @@ system_timezone_read_etc_localtime_hardlink (GHashTable *ical_zones)
 	if (!S_ISREG (stat_localtime.st_mode))
 		return NULL;
 
-	retval = recursive_compare (&stat_localtime,
-				  NULL,
-				  0,
-				  SYSTEM_ZONEINFODIR,
-				  files_are_identical_inode,
-				  ical_zones,
-				  0,
-				  &fallback);
+	retval = recursive_compare (
+		&stat_localtime,
+		NULL,
+		0,
+		SYSTEM_ZONEINFODIR,
+		files_are_identical_inode,
+		ical_zones,
+		0,
+		&fallback);
 
 	if (retval)
 		g_free (fallback);
@@ -410,7 +404,7 @@ system_timezone_read_etc_localtime_content (GHashTable *ical_zones)
 	static gchar *last_localtime_content = NULL;
 	static gsize last_localtime_content_len = -1;
 	static gchar *last_timezone = NULL;
-	static GStaticRecMutex mutex = G_STATIC_REC_MUTEX_INIT;
+	static GRecMutex mutex;
 
 	struct stat stat_localtime;
 	gchar *localtime_content = NULL;
@@ -429,7 +423,7 @@ system_timezone_read_etc_localtime_content (GHashTable *ical_zones)
 				  NULL))
 		return NULL;
 
-	g_static_rec_mutex_lock (&mutex);
+	g_rec_mutex_lock (&mutex);
 
 	if (last_localtime_content) {
 		if (localtime_content_len != last_localtime_content_len
@@ -441,21 +435,22 @@ system_timezone_read_etc_localtime_content (GHashTable *ical_zones)
 			last_timezone = NULL;
 		} else {
 			retval = g_strdup (last_timezone);
-			g_static_rec_mutex_unlock (&mutex);
+			g_rec_mutex_unlock (&mutex);
 
 			g_free (localtime_content);
 			return retval;
 		}
 	}
 
-	retval = recursive_compare (&stat_localtime,
-				   localtime_content,
-				   localtime_content_len,
-				   SYSTEM_ZONEINFODIR,
-				   files_are_identical_content,
-				   ical_zones,
-				   0,
-				   &fallback);
+	retval = recursive_compare (
+		&stat_localtime,
+		localtime_content,
+		localtime_content_len,
+		SYSTEM_ZONEINFODIR,
+		files_are_identical_content,
+		ical_zones,
+		0,
+		&fallback);
 
 	if (retval)
 		g_free (fallback);
@@ -470,7 +465,7 @@ system_timezone_read_etc_localtime_content (GHashTable *ical_zones)
 		g_free (localtime_content);
 	}
 
-	g_static_rec_mutex_unlock (&mutex);
+	g_rec_mutex_unlock (&mutex);
 
 	return retval;
 }
@@ -504,7 +499,7 @@ system_timezone_is_valid (const gchar *tz,
 {
 	const gchar *c;
 
-	if (!tz)
+	if (tz == NULL)
 		return FALSE;
 
 	for (c = tz; *c != '\0'; c++) {
@@ -513,10 +508,10 @@ system_timezone_is_valid (const gchar *tz,
 			return FALSE;
 	}
 
-	if (ical_zones && !g_hash_table_lookup (ical_zones, tz))
-		return FALSE;
+	if (ical_zones == NULL)
+		return TRUE;
 
-	return TRUE;
+	return g_hash_table_contains (ical_zones, tz);
 }
 
 static gchar *
@@ -529,7 +524,7 @@ system_timezone_find (void)
 
 	/* return only timezones known to libical */
 	ical_zones = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
-	g_hash_table_insert (ical_zones, g_strdup ("UTC"), GINT_TO_POINTER (1));
+	g_hash_table_add (ical_zones, g_strdup ("UTC"));
 
 	builtin_timezones = icaltimezone_get_builtin_timezones ();
 	for (ii = 0; ii < builtin_timezones->num_elements; ii++) {
@@ -542,7 +537,8 @@ system_timezone_find (void)
 
 		location = icaltimezone_get_location (zone);
 		if (location)
-			g_hash_table_insert (ical_zones, g_strdup (location), GINT_TO_POINTER (1));
+			g_hash_table_add (
+				ical_zones, g_strdup (location));
 	}
 
 	/* softlink is the best option, it points to the correct file */
@@ -557,8 +553,8 @@ system_timezone_find (void)
 	config_tz = NULL;
 
 	/* read correct timezone name from config file; checking
-	   on /etc/localtime content can pick wrong timezone name,
-	   even the file is same
+	 * on /etc/localtime content can pick wrong timezone name,
+	 * even the file is same
 	 */
 	for (ii = 0; get_system_timezone_methods_config[ii] != NULL; ii++) {
 		config_tz = get_system_timezone_methods_config[ii] (ical_zones);
@@ -583,7 +579,10 @@ system_timezone_find (void)
 					 &localtime_content_len,
 					 NULL)) {
 			struct stat stat_config_tz;
-			gchar *filename = g_build_filename (SYSTEM_ZONEINFODIR, config_tz, NULL);
+			gchar *filename;
+
+			filename = g_build_filename (
+				SYSTEM_ZONEINFODIR, config_tz, NULL);
 
 			if (filename &&
 			    g_stat (filename, &stat_config_tz) == 0 &&
@@ -596,10 +595,11 @@ system_timezone_find (void)
 				g_free (localtime_content);
 				g_hash_table_destroy (ical_zones);
 
-				/* corresponding file name to config_tz matches /etc/localtime,
-				   thus that's the correct one - return it as system timezone;
-				   bonus is that it might match configured system timezone name too
-				*/
+				/* Corresponding file name to config_tz matches
+				 * /etc/localtime, thus that's the correct one.
+				 * Return it as system timezone; bonus is that
+				 * it might match configured system timezone
+				 * name too. */
 				return config_tz;
 			}
 			g_free (filename);
@@ -628,8 +628,7 @@ system_timezone_find (void)
 #else /* G_OS_WIN32 */
 #include <windows.h>
 
-struct timezone_map_entry
-{
+struct timezone_map_entry {
 	const gchar *windows_string;
 	const gchar *olson_string;
 };
@@ -832,17 +831,21 @@ system_timezone_win32_query_registry (void)
 	gchar timeZoneStd[MAX_VALUE_NAME] = "";
 	gchar subKey[MAX_VALUE_NAME] = "";
 
-	res = RegOpenKeyExA (HKEY_LOCAL_MACHINE,
-		"SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0, KEY_READ, &reg_key);
+	res = RegOpenKeyExA (
+		HKEY_LOCAL_MACHINE,
+		"SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", 0,
+		KEY_READ, &reg_key);
 	if (res != ERROR_SUCCESS) {
-		g_debug("Could not find system timezone! (1)\n");
+		g_debug ("Could not find system timezone! (1)\n");
 		return NULL;
 	}
 
-	/* On Windows Vista, Windows Server 2008 and later, the Windows timezone name is the value of 'TimeZoneKeyName' */
+	/* On Windows Vista, Windows Server 2008 and later,
+	 * the Windows timezone name is the value of 'TimeZoneKeyName' */
 
 	size = MAX_VALUE_NAME;
-	res = RegQueryValueExA (reg_key, "TimeZoneKeyName", 0, &type, (LPBYTE) timeZone, &size);
+	res = RegQueryValueExA (
+		reg_key, "TimeZoneKeyName", 0, &type, (LPBYTE) timeZone, &size);
 
 	if (type == REG_SZ && res == ERROR_SUCCESS) {
 		RegCloseKey (reg_key);
@@ -852,7 +855,8 @@ system_timezone_win32_query_registry (void)
 
 	/* On older Windows, we must first find the value of 'StandardName' */
 
-	res = RegQueryValueExA (reg_key, "StandardName", 0, &type, (LPBYTE) timeZone, &size);
+	res = RegQueryValueExA (
+		reg_key, "StandardName", 0, &type, (LPBYTE) timeZone, &size);
 
 	if (type != REG_SZ || res != ERROR_SUCCESS) {
 		RegCloseKey (reg_key);
@@ -863,7 +867,8 @@ system_timezone_win32_query_registry (void)
 	RegCloseKey (reg_key);
 
 	/* Windows NT and its family */
-	res = RegOpenKeyExA (HKEY_LOCAL_MACHINE,
+	res = RegOpenKeyExA (
+		HKEY_LOCAL_MACHINE,
 		"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
 		0, KEY_READ, &reg_key);
 	if (res != ERROR_SUCCESS) {
@@ -875,11 +880,13 @@ system_timezone_win32_query_registry (void)
 		size = MAX_VALUE_NAME;
 		res = RegEnumKeyEx (reg_key, i, subKey, &size, NULL, NULL, NULL, NULL);
 		if (res == ERROR_SUCCESS) {
-			res = RegOpenKeyExA (reg_key, subKey, 0, KEY_READ, &reg_subkey);
+			res = RegOpenKeyExA (
+				reg_key, subKey, 0, KEY_READ, &reg_subkey);
 			if (res != ERROR_SUCCESS)
 				continue;
 			size = MAX_VALUE_NAME;
-			res = RegQueryValueExA (reg_subkey, "Std", 0, &type,
+			res = RegQueryValueExA (
+				reg_subkey, "Std", 0, &type,
 				(LPBYTE) timeZoneStd, &size);
 			RegCloseKey (reg_subkey);
 			if (type != REG_SZ || res != ERROR_SUCCESS) {
@@ -903,11 +910,14 @@ system_timezone_win32_query_registry (void)
 /**
  * e_cal_system_timezone_get_location:
  *
- * Returns system timezone location string, NULL on an error.
- * Returned pointer should be freed with g_free().
+ * Fetches the system timezone location string.
  *
  * Note: Since 3.4 the returned timezone location is either NULL or
  * an equivalent within known libical timezones.
+ *
+ * The returned string should be freed with g_free().
+ *
+ * Returns: (transfer full): system timezone location string, or %NULL on an error.
  *
  * Since: 2.28
  **/
@@ -922,11 +932,12 @@ e_cal_system_timezone_get_location (void)
 
 	if (!(windows_timezone_string = system_timezone_win32_query_registry ()))
 		return NULL;
-	olson_timezone_string = windows_timezone_string_to_olson (windows_timezone_string);
+	olson_timezone_string =
+		windows_timezone_string_to_olson (windows_timezone_string);
 	g_free (windows_timezone_string);
 	if (!olson_timezone_string)
 		return NULL;
-	g_debug("Olson Timezone String: %s\n", olson_timezone_string);
+	g_debug ("Olson Timezone String: %s\n", olson_timezone_string);
 	return olson_timezone_string;
 #endif
 }

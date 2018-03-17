@@ -1,18 +1,17 @@
 /*
  * evolution-addressbook-factory.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -21,9 +20,7 @@
 #include <stdlib.h>
 #include <glib/gi18n.h>
 
-#include <dbus/dbus-glib.h>
-
-#ifdef ENABLE_MAINTAINER_MODE
+#if defined (ENABLE_MAINTAINER_MODE) && defined (HAVE_GTK)
 #include <gtk/gtk.h>
 #endif
 
@@ -38,8 +35,7 @@
 #endif
 #endif
 
-#include <libedata-book/e-data-book-factory.h>
-#include <libedataserver/e-gdbus-templates.h>
+#include <libedata-book/libedata-book.h>
 
 static gboolean opt_keep_running = FALSE;
 static gboolean opt_wait_for_client = FALSE;
@@ -52,9 +48,6 @@ static GOptionEntry entries[] = {
 	  N_("Wait running until at least one client is connected"), NULL },
 	{ NULL }
 };
-
-/* Forward Declarations */
-void evolution_addressbook_factory_migrate_basedir (void);
 
 gint
 main (gint argc,
@@ -98,16 +91,12 @@ main (gint argc,
 	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 
-#ifdef ENABLE_MAINTAINER_MODE
-	/* This is only to load gtk-modules, like
-	 * bug-buddy's gnomesegvhandler, if possible */
-	gtk_init_check (&argc, &argv);
-#else
-	g_type_init ();
+#if defined (ENABLE_MAINTAINER_MODE) && defined (HAVE_GTK)
+	if (g_getenv ("EDS_TESTING") == NULL)
+		/* This is only to load gtk-modules, like
+		 * bug-buddy's gnomesegvhandler, if possible */
+		gtk_init_check (&argc, &argv);
 #endif
-
-	/* this is to initialize threading for dbus-glib used by GConf */
-	dbus_g_thread_init ();
 
 	context = g_option_context_new (NULL);
 	g_option_context_add_main_entries (context, entries, GETTEXT_PACKAGE);
@@ -119,9 +108,6 @@ main (gint argc,
 		exit (EXIT_FAILURE);
 	}
 
-	/* Migrate user data from ~/.evolution to XDG base directories. */
-	evolution_addressbook_factory_migrate_basedir ();
-
 	e_gdbus_templates_init_main_thread ();
 
 	server = e_data_book_factory_new (NULL, &error);
@@ -131,7 +117,7 @@ main (gint argc,
 		exit (EXIT_FAILURE);
 	}
 
-	g_print ("Server is up and running...\n");
+	g_debug ("Server is up and running...");
 
 	/* This SHOULD keep the server's use
 	 * count from ever reaching zero. */
@@ -142,7 +128,7 @@ main (gint argc,
 
 	g_object_unref (server);
 
-	g_print ("Bye.\n");
+	g_debug ("Bye.");
 
 	return 0;
 }

@@ -1,26 +1,29 @@
 /*
  * e-data-factory.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+#if !defined (__LIBEBACKEND_H_INSIDE__) && !defined (LIBEBACKEND_COMPILATION)
+#error "Only <libebackend/libebackend.h> should be included directly."
+#endif
 
 #ifndef E_DATA_FACTORY_H
 #define E_DATA_FACTORY_H
 
-#include <libebackend/e-backend.h>
 #include <libebackend/e-dbus-server.h>
+#include <libebackend/e-backend-factory.h>
 
 /* Standard GObject macros */
 #define E_TYPE_DATA_FACTORY \
@@ -63,16 +66,29 @@ struct _EDataFactory {
 struct _EDataFactoryClass {
 	EDBusServerClass parent_class;
 
-	gpointer reserved[16];
+	GType backend_factory_type;
+
+	/* Signals */
+	void		(*backend_created)	(EDataFactory *data_factory,
+						 EBackend *backend);
+
+	gpointer reserved[15];
 };
 
 GType		e_data_factory_get_type		(void) G_GNUC_CONST;
-EBackend *	e_data_factory_get_backend	(EDataFactory *factory,
+EBackend *	e_data_factory_ref_backend	(EDataFactory *data_factory,
 						 const gchar *hash_key,
 						 ESource *source);
-gboolean	e_data_factory_get_online	(EDataFactory *factory);
-void		e_data_factory_set_online	(EDataFactory *factory,
-						 gboolean online);
+EBackend *	e_data_factory_ref_initable_backend
+						(EDataFactory *data_factory,
+						 const gchar *hash_key,
+						 ESource *source,
+						 GCancellable *cancellable,
+						 GError **error);
+EBackendFactory *
+		e_data_factory_ref_backend_factory
+						(EDataFactory *data_factory,
+						 const gchar *hash_key);
 
 G_END_DECLS
 

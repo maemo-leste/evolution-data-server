@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -145,7 +143,7 @@ local_folder_finalize (GObject *object)
 
 	camel_folder_change_info_free (local_folder->changes);
 
-	g_mutex_free (local_folder->priv->search_lock);
+	g_mutex_clear (&local_folder->priv->search_lock);
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (camel_local_folder_parent_class)->finalize (object);
@@ -161,10 +159,13 @@ local_folder_constructed (GObject *object)
 	CamelFolder *folder;
 	CamelStore *parent_store;
 	const gchar *full_name;
-	const gchar *root_path;
 	const gchar *tmp;
 	gchar *description;
+	gchar *root_path;
 	gchar *path;
+
+	/* Chain up to parent's method. */
+	G_OBJECT_CLASS (camel_local_folder_parent_class)->constructed (object);
 
 	folder = CAMEL_FOLDER (object);
 	full_name = camel_folder_get_full_name (folder);
@@ -172,10 +173,13 @@ local_folder_constructed (GObject *object)
 
 	service = CAMEL_SERVICE (parent_store);
 	provider = camel_service_get_provider (service);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
-	root_path = camel_local_settings_get_path (local_settings);
+	root_path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	if (root_path == NULL)
 		return;
@@ -222,12 +226,14 @@ local_folder_constructed (GObject *object)
 	camel_folder_set_description (folder, description);
 
 	g_free (description);
+	g_free (root_path);
 	g_free (path);
 }
 
 static GPtrArray *
 local_folder_search_by_expression (CamelFolder *folder,
                                    const gchar *expression,
+                                   GCancellable *cancellable,
                                    GError **error)
 {
 	CamelLocalFolder *local_folder = CAMEL_LOCAL_FOLDER (folder);
@@ -243,7 +249,7 @@ local_folder_search_by_expression (CamelFolder *folder,
 		camel_folder_search_set_body_index (local_folder->search, local_folder->index);
 	else
 		camel_folder_search_set_body_index (local_folder->search, NULL);
-	matches = camel_folder_search_search (local_folder->search, expression, NULL, error);
+	matches = camel_folder_search_search (local_folder->search, expression, NULL, cancellable, error);
 
 	CAMEL_LOCAL_FOLDER_UNLOCK (folder, search_lock);
 
@@ -254,6 +260,7 @@ static GPtrArray *
 local_folder_search_by_uids (CamelFolder *folder,
                              const gchar *expression,
                              GPtrArray *uids,
+                             GCancellable *cancellable,
                              GError **error)
 {
 	CamelLocalFolder *local_folder = CAMEL_LOCAL_FOLDER (folder);
@@ -272,7 +279,7 @@ local_folder_search_by_uids (CamelFolder *folder,
 		camel_folder_search_set_body_index (local_folder->search, local_folder->index);
 	else
 		camel_folder_search_set_body_index (local_folder->search, NULL);
-	matches = camel_folder_search_search (local_folder->search, expression, uids, error);
+	matches = camel_folder_search_search (local_folder->search, expression, uids, cancellable, error);
 
 	CAMEL_LOCAL_FOLDER_UNLOCK (folder, search_lock);
 
@@ -302,7 +309,7 @@ local_folder_delete (CamelFolder *folder)
 	if (lf->index)
 		camel_index_delete (lf->index);
 
-	CAMEL_FOLDER_CLASS (camel_local_folder_parent_class)->delete (folder);
+	CAMEL_FOLDER_CLASS (camel_local_folder_parent_class)->delete_ (folder);
 }
 
 static void
@@ -317,7 +324,7 @@ local_folder_rename (CamelFolder *folder,
 	parent_store = camel_folder_get_parent_store (folder);
 	ls = CAMEL_LOCAL_STORE (parent_store);
 
-	d(printf("renaming local folder paths to '%s'\n", newname));
+	d (printf ("renaming local folder paths to '%s'\n", newname));
 
 	/* Sync? */
 
@@ -325,8 +332,8 @@ local_folder_rename (CamelFolder *folder,
 	g_free (lf->index_path);
 
 	lf->folder_path = camel_local_store_get_full_path (ls, newname);
-	lf->index_path = camel_local_store_get_meta_path(ls, newname, ".ibex");
-	statepath = camel_local_store_get_meta_path(ls, newname, ".cmeta");
+	lf->index_path = camel_local_store_get_meta_path (ls, newname, ".ibex");
+	statepath = camel_local_store_get_meta_path (ls, newname, ".cmeta");
 	camel_object_set_state_filename (CAMEL_OBJECT (lf), statepath);
 	g_free (statepath);
 
@@ -340,6 +347,7 @@ local_folder_rename (CamelFolder *folder,
 static guint32
 local_folder_count_by_expression (CamelFolder *folder,
                                   const gchar *expression,
+                                  GCancellable *cancellable,
                                   GError **error)
 {
 	CamelLocalFolder *local_folder = CAMEL_LOCAL_FOLDER (folder);
@@ -355,7 +363,7 @@ local_folder_count_by_expression (CamelFolder *folder,
 		camel_folder_search_set_body_index (local_folder->search, local_folder->index);
 	else
 		camel_folder_search_set_body_index (local_folder->search, NULL);
-	matches = camel_folder_search_count (local_folder->search, expression, error);
+	matches = camel_folder_search_count (local_folder->search, expression, cancellable, error);
 
 	CAMEL_LOCAL_FOLDER_UNLOCK (folder, search_lock);
 
@@ -418,7 +426,7 @@ local_folder_synchronize_sync (CamelFolder *folder,
 	CamelLocalFolder *lf = CAMEL_LOCAL_FOLDER (folder);
 	gboolean success;
 
-	d(printf("local sync '%s' , expunge=%s\n", folder->full_name, expunge?"true":"false"));
+	d (printf ("local sync '%s' , expunge=%s\n", folder->full_name, expunge?"true":"false"));
 
 	if (camel_local_folder_lock (lf, CAMEL_LOCK_WRITE, error) == -1)
 		return FALSE;
@@ -472,7 +480,7 @@ camel_local_folder_class_init (CamelLocalFolderClass *class)
 	folder_class->search_by_expression = local_folder_search_by_expression;
 	folder_class->search_by_uids = local_folder_search_by_uids;
 	folder_class->search_free = local_folder_search_free;
-	folder_class->delete = local_folder_delete;
+	folder_class->delete_ = local_folder_delete;
 	folder_class->rename = local_folder_rename;
 	folder_class->count_by_expression = local_folder_count_by_expression;
 	folder_class->get_uncached_uids = local_folder_get_uncached_uids;
@@ -501,10 +509,9 @@ camel_local_folder_init (CamelLocalFolder *local_folder)
 	CamelFolder *folder = CAMEL_FOLDER (local_folder);
 
 	local_folder->priv = CAMEL_LOCAL_FOLDER_GET_PRIVATE (local_folder);
-	local_folder->priv->search_lock = g_mutex_new ();
+	g_mutex_init (&local_folder->priv->search_lock);
 
-	folder->folder_flags |= (CAMEL_FOLDER_HAS_SUMMARY_CAPABILITY |
-				 CAMEL_FOLDER_HAS_SEARCH_CAPABILITY);
+	folder->folder_flags |= CAMEL_FOLDER_HAS_SUMMARY_CAPABILITY;
 
 	folder->permanent_flags = CAMEL_MESSAGE_ANSWERED |
 	    CAMEL_MESSAGE_DELETED | CAMEL_MESSAGE_DRAFT |
@@ -538,7 +545,6 @@ camel_local_folder_construct (CamelLocalFolder *lf,
 	CamelLocalStore *ls;
 	CamelStore *parent_store;
 	const gchar *full_name;
-	const gchar *path;
 	gboolean need_summary_check;
 
 	folder = CAMEL_FOLDER (lf);
@@ -546,19 +552,20 @@ camel_local_folder_construct (CamelLocalFolder *lf,
 	parent_store = camel_folder_get_parent_store (folder);
 
 	service = CAMEL_SERVICE (parent_store);
-	settings = camel_service_get_settings (service);
+
+	settings = camel_service_ref_settings (service);
 
 	local_settings = CAMEL_LOCAL_SETTINGS (settings);
-	path = camel_local_settings_get_path (local_settings);
+	lf->base_path = camel_local_settings_dup_path (local_settings);
+
+	g_object_unref (settings);
 
 	ls = CAMEL_LOCAL_STORE (parent_store);
 	need_summary_check = camel_local_store_get_need_summary_check (ls);
 
-	lf->base_path = g_strdup (path);
-
 	lf->folder_path = camel_local_store_get_full_path (ls, full_name);
-	lf->index_path = camel_local_store_get_meta_path(ls, full_name, ".ibex");
-	statepath = camel_local_store_get_meta_path(ls, full_name, ".cmeta");
+	lf->index_path = camel_local_store_get_meta_path (ls, full_name, ".ibex");
+	statepath = camel_local_store_get_meta_path (ls, full_name, ".cmeta");
 
 	camel_object_set_state_filename (CAMEL_OBJECT (lf), statepath);
 	g_free (statepath);
@@ -612,7 +619,7 @@ camel_local_folder_construct (CamelLocalFolder *lf,
 		lf->index = (CamelIndex *) camel_text_index_new (lf->index_path, flag);
 		if (lf->index == NULL) {
 			/* yes, this isn't fatal at all */
-			g_warning("Could not open/create index file: %s: indexing not performed", g_strerror (errno));
+			g_warning ("Could not open/create index file: %s: indexing not performed", g_strerror (errno));
 			forceindex = FALSE;
 			/* record that we dont have an index afterall */
 			lf->flags &= ~CAMEL_STORE_FOLDER_BODY_INDEX;
@@ -641,7 +648,9 @@ camel_local_folder_construct (CamelLocalFolder *lf,
 	if ((flags & CAMEL_STORE_FOLDER_CREATE) != 0) {
 		CamelFolderInfo *fi;
 
-		fi = camel_store_get_folder_info_sync (parent_store, full_name, 0, NULL, NULL);
+		/* Use 'recursive' mode, even for just created folder, to have set whether
+		   the folder has children or not properly. */
+		fi = camel_store_get_folder_info_sync (parent_store, full_name, CAMEL_STORE_FOLDER_INFO_RECURSIVE, NULL, NULL);
 		g_return_val_if_fail (fi != NULL, lf);
 
 		camel_store_folder_created (parent_store, fi);

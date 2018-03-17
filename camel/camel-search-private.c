@@ -1,23 +1,21 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *	     Michael Zucchi <NotZed@Ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -44,12 +42,13 @@
 
 /* builds the regex into pattern */
 /* taken from camel-folder-search, with added isregex & exception parameter */
-/* Basically, we build a new regex, either based on subset regex's, or substrings,
- * that can be executed once over the whoel body, to match anything suitable.
- * This is more efficient than multiple searches, and probably most (naive) strstr
- * implementations, over long content.
+/* Basically, we build a new regex, either based on subset regex's, or
+ * substrings, that can be executed once over the whoel body, to match
+ * anything suitable.  This is more efficient than multiple searches,
+ * and probably most (naive) strstr implementations, over long content.
  *
- * A small issue is that case-insenstivity wont work entirely correct for utf8 strings. */
+ * A small issue is that case-insenstivity won't work entirely correct
+ * for utf8 strings. */
 gint
 camel_search_build_match_regex (regex_t *pattern,
                                 camel_search_flags_t type,
@@ -57,12 +56,13 @@ camel_search_build_match_regex (regex_t *pattern,
                                 struct _CamelSExpResult **argv,
                                 GError **error)
 {
-	GString *match = g_string_new("");
+	GString *match = g_string_new ("");
 	gint c, i, count = 0, err;
 	gchar *word;
 	gint flags;
 
-	/* build a regex pattern we can use to match the words, we OR them together */
+	/* Build a regex pattern we can use to match the words,
+	 * we OR them together. */
 	if (argc > 1)
 		g_string_append_c (match, '(');
 	for (i = 0; i < argc; i++) {
@@ -72,10 +72,12 @@ camel_search_build_match_regex (regex_t *pattern,
 
 			word = argv[i]->value.string;
 			if (type & CAMEL_SEARCH_MATCH_REGEX) {
-				/* no need to escape because this should already be a valid regex */
+				/* No need to escape because this
+				 * should already be a valid regex. */
 				g_string_append (match, word);
 			} else {
-				/* escape any special chars (not sure if this list is complete) */
+				/* Escape any special chars (not
+				 * sure if this list is complete). */
 				if (type & CAMEL_SEARCH_MATCH_START)
 					g_string_append_c (match, '^');
 				while ((c = *word++)) {
@@ -89,7 +91,7 @@ camel_search_build_match_regex (regex_t *pattern,
 			}
 			count++;
 		} else {
-			g_warning("Invalid type passed to body-contains match function");
+			g_warning ("Invalid type passed to body-contains match function");
 		}
 	}
 	if (argc > 1)
@@ -101,8 +103,8 @@ camel_search_build_match_regex (regex_t *pattern,
 		flags |= REG_NEWLINE;
 	err = regcomp (pattern, match->str, flags);
 	if (err != 0) {
-		/* regerror gets called twice to get the full error string
-		 * length to do proper posix error reporting */
+		/* regerror gets called twice to get the full error
+		 * string length to do proper posix error reporting. */
 		gint len = regerror (err, pattern, NULL, 0);
 		gchar *buffer = g_malloc0 (len + 1);
 
@@ -114,7 +116,7 @@ camel_search_build_match_regex (regex_t *pattern,
 
 		regfree (pattern);
 	}
-	d(printf("Built regex: '%s'\n", match->str));
+	d (printf ("Built regex: '%s'\n", match->str));
 	g_string_free (match, TRUE);
 
 	return err;
@@ -172,11 +174,12 @@ header_soundex (const gchar *header,
 
 	soundexify (match, mcode);
 
-	/* split the header into words, and soundexify and compare each one */
-	/* FIXME: Should this convert to utf8, and split based on that, and what not?
-	 * soundex only makes sense for us-ascii though ... */
+	/* Split the header into words and soundexify and compare each one. */
+	/* FIXME: Should this convert to utf8, and split based on that,
+	 *        and what not?
+	 *        soundex only makes sense for us-ascii though ... */
 
-	word = g_string_new("");
+	word = g_string_new ("");
 	p = header;
 	do {
 		c = *p++;
@@ -218,7 +221,7 @@ camel_ustrstrcase (const gchar *haystack,
 	while ((u = camel_utf8_getc (&p)))
 		*puni++ = g_unichar_tolower (u);
 
-	/* NULL means there was illegal utf-8 sequence */
+	/* NULL means there was illegal utf-8 sequence. */
 	if (!p)
 		return NULL;
 
@@ -227,7 +230,7 @@ camel_ustrstrcase (const gchar *haystack,
 		gunichar c;
 
 		c = g_unichar_tolower (u);
-		/* We have valid stripped gchar */
+		/* We have valid stripped gchar. */
 		if (c == nuni[0]) {
 			const guchar *q = p;
 			gint npos = 1;
@@ -252,14 +255,14 @@ camel_ustrstrcase (const gchar *haystack,
 	return NULL;
 }
 
-#define CAMEL_SEARCH_COMPARE(x, y, z) G_STMT_START {   \
-	if ((x) == (z)) {                              \
-		if ((y) == (z))                        \
-			return 0;                      \
-		else                                   \
-			return -1;                     \
-	} else if ((y) == (z))                         \
-		return 1;                              \
+#define CAMEL_SEARCH_COMPARE(x, y, z) G_STMT_START { \
+	if ((x) == (z)) { \
+		if ((y) == (z)) \
+			return 0; \
+		else \
+			return -1; \
+	} else if ((y) == (z)) \
+		return 1; \
 } G_STMT_END
 
 static gint
@@ -289,7 +292,8 @@ camel_ustrcasecmp (const gchar *ps1,
 	/* end of one of the strings ? */
 	CAMEL_SEARCH_COMPARE (u1, u2, 0);
 
-	/* if we have invalid utf8 sequence ?  */
+	/* if we have invalid utf8 sequence ? */
+	/* coverity[dead_error_begin] */
 	CAMEL_SEARCH_COMPARE (s1, s2, NULL);
 
 	return 0;
@@ -386,13 +390,14 @@ camel_ustrncasecmp (const gchar *ps1,
 	/* end of one of the strings ? */
 	CAMEL_SEARCH_COMPARE (u1, u2, 0);
 
-	/* if we have invalid utf8 sequence ?  */
+	/* if we have invalid utf8 sequence ? */
+	/* coverity[dead_error_begin] */
 	CAMEL_SEARCH_COMPARE (s1, s2, NULL);
 
 	return 0;
 }
 
-/* value is the match value suitable for exact match if required */
+/* Value is the match value suitable for exact match if required. */
 static gint
 header_match (const gchar *value,
               const gchar *match,
@@ -426,8 +431,8 @@ header_match (const gchar *value,
 	return FALSE;
 }
 
-/* searhces for match inside value, if match is mixed case, hten use case-sensitive,
- * else insensitive */
+/* Searches for match inside value.  If match is mixed
+ * case, then use case-sensitive, else insensitive. */
 gboolean
 camel_search_header_match (const gchar *value,
                            const gchar *match,
@@ -448,23 +453,19 @@ camel_search_header_match (const gchar *value,
 
 	switch (type) {
 	case CAMEL_SEARCH_TYPE_ENCODED:
-		v = camel_header_decode_string (value, default_charset); /* FIXME: Find header charset */
+		/* FIXME Find header charset. */
+		v = camel_header_decode_string (value, default_charset);
 		truth = header_match (v, match, how);
 		g_free (v);
 		break;
 	case CAMEL_SEARCH_TYPE_MLIST:
-		/* Special mailing list old-version domain hack
-		 * If one of the mailing list names doesn't have an @ in it, its old-style, so
-		 * only match against the pre-domain part, which should be common */
-
+		/* Special mailing list old-version domain hack.
+		 * If one of the mailing list names doesn't have an @ in it,
+		 * its old-style, so only match against the pre-domain part,
+		 * which should be common. */
 		vdom = strchr (value, '@');
 		mdom = strchr (match, '@');
-		if (mdom == NULL && vdom != NULL) {
-			v = g_alloca (vdom - value + 1);
-			memcpy (v, value, vdom - value);
-			v[vdom - value] = 0;
-			value = (gchar *) v;
-		} else if (mdom != NULL && vdom == NULL) {
+		if (mdom != NULL && vdom == NULL) {
 			v = g_alloca (mdom - match + 1);
 			memcpy (v, match, mdom - match);
 			v[mdom - match] = 0;
@@ -476,11 +477,12 @@ camel_search_header_match (const gchar *value,
 		break;
 	case CAMEL_SEARCH_TYPE_ADDRESS_ENCODED:
 	case CAMEL_SEARCH_TYPE_ADDRESS:
-		/* possible simple case to save some work if we can */
+		/* Possible simple case to save some work if we can. */
 		if (header_match (value, match, how))
 			return TRUE;
 
-		/* Now we decode any addresses, and try asis matches on name and address parts */
+		/* Now we decode any addresses, and try
+		 * as-is matches on name and address parts. */
 		cia = camel_internet_address_new ();
 		if (type == CAMEL_SEARCH_TYPE_ADDRESS_ENCODED)
 			camel_address_decode ((CamelAddress *) cia, value);
@@ -488,7 +490,9 @@ camel_search_header_match (const gchar *value,
 			camel_address_unformat ((CamelAddress *) cia, value);
 
 		for (i = 0; !truth && camel_internet_address_get (cia, i, &name, &addr); i++)
-			truth = (name && header_match (name, match, how)) || (addr && header_match (addr, match, how));
+			truth =
+				(name && header_match (name, match, how)) ||
+				(addr && header_match (addr, match, how));
 
 		g_object_unref (cia);
 		break;
@@ -497,8 +501,8 @@ camel_search_header_match (const gchar *value,
 	return truth;
 }
 
-/* performs a 'slow' content-based match */
-/* there is also an identical copy of this in camel-filter-search.c */
+/* Performs a 'slow' content-based match. */
+/* There is also an identical copy of this in camel-filter-search.c. */
 gboolean
 camel_search_message_body_contains (CamelDataWrapper *object,
                                     regex_t *pattern)
@@ -512,7 +516,7 @@ camel_search_message_body_contains (CamelDataWrapper *object,
 	if (containee == NULL)
 		return FALSE;
 
-	/* using the object types is more accurate than using the mime/types */
+	/* Using the object types is more accurate than using mime/types. */
 	if (CAMEL_IS_MULTIPART (containee)) {
 		parts = camel_multipart_get_number (CAMEL_MULTIPART (containee));
 		for (i = 0; i < parts && truth == FALSE; i++) {
@@ -521,17 +525,18 @@ camel_search_message_body_contains (CamelDataWrapper *object,
 				truth = camel_search_message_body_contains (part, pattern);
 		}
 	} else if (CAMEL_IS_MIME_MESSAGE (containee)) {
-		/* for messages we only look at its contents */
+		/* For messages we only look at its contents. */
 		truth = camel_search_message_body_contains ((CamelDataWrapper *) containee, pattern);
-	} else if (camel_content_type_is(CAMEL_DATA_WRAPPER (containee)->mime_type, "text", "*")
-		|| camel_content_type_is(CAMEL_DATA_WRAPPER (containee)->mime_type, "x-evolution", "evolution-rss-feed")) {
-		/* for all other text parts, we look inside, otherwise we dont care */
+	} else if (camel_content_type_is (CAMEL_DATA_WRAPPER (containee)->mime_type, "text", "*")
+		|| camel_content_type_is (CAMEL_DATA_WRAPPER (containee)->mime_type, "x-evolution", "evolution-rss-feed")) {
+		/* For all other text parts we look
+		 * inside, otherwise we don't care. */
 		CamelStream *stream;
 		GByteArray *byte_array;
 
 		byte_array = g_byte_array_new ();
 		stream = camel_stream_mem_new_with_byte_array (byte_array);
-		camel_data_wrapper_write_to_stream_sync (
+		camel_data_wrapper_decode_to_stream_sync (
 			containee, stream, NULL, NULL);
 		camel_stream_write (stream, "", 1, NULL, NULL);
 		truth = regexec (pattern, (gchar *) byte_array->data, 0, NULL, 0) == 0;
@@ -590,7 +595,7 @@ camel_search_words_split (const guchar *in)
 	gint inquote = 0;
 
 	words = g_malloc0 (sizeof (*words));
-	w = g_string_new("");
+	w = g_string_new ("");
 
 	do {
 		c = camel_utf8_getc (&in);
@@ -628,8 +633,8 @@ camel_search_words_split (const guchar *in)
 	return words;
 }
 
-/* takes an existing 'words' list, and converts it to another consisting of
- * only simple words, with any punctuation etc stripped */
+/* Takes an existing 'words' list, and converts it to another consisting
+ * of only simple words, with any punctuation, etc stripped. */
 struct _camel_search_words *
 camel_search_words_simple (struct _camel_search_words *wordin)
 {

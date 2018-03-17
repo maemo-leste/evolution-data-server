@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -31,7 +29,8 @@
 
 #include <stdarg.h>
 #include <unistd.h>
-#include <camel/camel-object.h>
+
+#include <gio/gio.h>
 
 /* Standard GObject macros */
 #define CAMEL_TYPE_STREAM \
@@ -56,15 +55,17 @@ G_BEGIN_DECLS
 
 typedef struct _CamelStream CamelStream;
 typedef struct _CamelStreamClass CamelStreamClass;
+typedef struct _CamelStreamPrivate CamelStreamPrivate;
 
 struct _CamelStream {
-	CamelObject parent;
+	GObject parent;
+	CamelStreamPrivate *priv;
 
 	gboolean eos;
 };
 
 struct _CamelStreamClass {
-	CamelObjectClass parent_class;
+	GObjectClass parent_class;
 
 	gssize		(*read)			(CamelStream *stream,
 						 gchar *buffer,
@@ -86,6 +87,10 @@ struct _CamelStreamClass {
 };
 
 GType		camel_stream_get_type		(void);
+CamelStream *	camel_stream_new		(GIOStream *base_stream);
+GIOStream *	camel_stream_ref_base_stream	(CamelStream *stream);
+void		camel_stream_set_base_stream	(CamelStream *stream,
+						 GIOStream *base_stream);
 gssize		camel_stream_read		(CamelStream *stream,
 						 gchar *buffer,
 						 gsize n,

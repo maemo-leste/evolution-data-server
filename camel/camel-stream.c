@@ -7,32 +7,111 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include <errno.h>
-#include <string.h>
-
-#include "camel-debug.h"
 #include "camel-stream.h"
 
-G_DEFINE_ABSTRACT_TYPE (CamelStream, camel_stream, CAMEL_TYPE_OBJECT)
+#include <config.h>
+#include <glib/gi18n-lib.h>
+
+#include <camel/camel-debug.h>
+
+#define CAMEL_STREAM_GET_PRIVATE(obj) \
+	(G_TYPE_INSTANCE_GET_PRIVATE \
+	((obj), CAMEL_TYPE_STREAM, CamelStreamPrivate))
+
+struct _CamelStreamPrivate {
+	GIOStream *base_stream;
+	GMutex base_stream_lock;
+};
+
+enum {
+	PROP_0,
+	PROP_BASE_STREAM
+};
+
+/* Forward Declarations */
+static void	camel_stream_seekable_init	(GSeekableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (
+	CamelStream,
+	camel_stream,
+	G_TYPE_OBJECT,
+	G_IMPLEMENT_INTERFACE (
+		G_TYPE_SEEKABLE,
+		camel_stream_seekable_init))
+
+static void
+stream_set_property (GObject *object,
+                     guint property_id,
+                     const GValue *value,
+                     GParamSpec *pspec)
+{
+	switch (property_id) {
+		case PROP_BASE_STREAM:
+			camel_stream_set_base_stream (
+				CAMEL_STREAM (object),
+				g_value_get_object (value));
+			return;
+	}
+
+	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+}
+
+static void
+stream_get_property (GObject *object,
+                     guint property_id,
+                     GValue *value,
+                     GParamSpec *pspec)
+{
+	switch (property_id) {
+		case PROP_BASE_STREAM:
+			g_value_take_object (
+				value,
+				camel_stream_ref_base_stream (
+				CAMEL_STREAM (object)));
+			return;
+	}
+
+	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+}
+
+static void
+stream_dispose (GObject *object)
+{
+	CamelStreamPrivate *priv;
+
+	priv = CAMEL_STREAM_GET_PRIVATE (object);
+
+	g_clear_object (&priv->base_stream);
+
+	/* Chain up to parent's dispose() method. */
+	G_OBJECT_CLASS (camel_stream_parent_class)->dispose (object);
+}
+
+static void
+stream_finalize (GObject *object)
+{
+	CamelStreamPrivate *priv;
+
+	priv = CAMEL_STREAM_GET_PRIVATE (object);
+
+	g_mutex_clear (&priv->base_stream_lock);
+
+	/* Chain up to parent's finalize() method. */
+	G_OBJECT_CLASS (camel_stream_parent_class)->finalize (object);
+}
 
 static gssize
 stream_read (CamelStream *stream,
@@ -41,7 +120,25 @@ stream_read (CamelStream *stream,
              GCancellable *cancellable,
              GError **error)
 {
-	return 0;
+	GIOStream *base_stream;
+	gssize n_bytes_read = 0;
+
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (base_stream != NULL) {
+		GInputStream *input_stream;
+
+		input_stream = g_io_stream_get_input_stream (base_stream);
+
+		n_bytes_read = g_input_stream_read (
+			input_stream, buffer, n, cancellable, error);
+
+		g_object_unref (base_stream);
+	}
+
+	stream->eos = n_bytes_read <= 0;
+
+	return n_bytes_read;
 }
 
 static gssize
@@ -51,7 +148,24 @@ stream_write (CamelStream *stream,
               GCancellable *cancellable,
               GError **error)
 {
-	return n;
+	GIOStream *base_stream;
+	gssize n_bytes_written = (gssize) n;
+
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (base_stream != NULL) {
+		GOutputStream *output_stream;
+
+		output_stream = g_io_stream_get_output_stream (base_stream);
+		stream->eos = FALSE;
+
+		n_bytes_written = g_output_stream_write (
+			output_stream, buffer, n, cancellable, error);
+
+		g_object_unref (base_stream);
+	}
+
+	return n_bytes_written;
 }
 
 static gint
@@ -59,7 +173,19 @@ stream_close (CamelStream *stream,
               GCancellable *cancellable,
               GError **error)
 {
-	return 0;
+	GIOStream *base_stream;
+	gboolean success = TRUE;
+
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (base_stream != NULL) {
+		success = g_io_stream_close (
+			base_stream, cancellable, error);
+
+		g_object_unref (base_stream);
+	}
+
+	return success ? 0 : -1;
 }
 
 static gint
@@ -67,7 +193,23 @@ stream_flush (CamelStream *stream,
               GCancellable *cancellable,
               GError **error)
 {
-	return 0;
+	GIOStream *base_stream;
+	gboolean success = TRUE;
+
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (base_stream != NULL) {
+		GOutputStream *output_stream;
+
+		output_stream = g_io_stream_get_output_stream (base_stream);
+
+		success = g_output_stream_flush (
+			output_stream, cancellable, error);
+
+		g_object_unref (base_stream);
+	}
+
+	return success ? 0 : -1;
 }
 
 static gboolean
@@ -76,19 +218,258 @@ stream_eos (CamelStream *stream)
 	return stream->eos;
 }
 
+static goffset
+stream_tell (GSeekable *seekable)
+{
+	CamelStream *stream;
+	GIOStream *base_stream;
+	goffset position = 0;
+
+	stream = CAMEL_STREAM (seekable);
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (G_IS_SEEKABLE (base_stream)) {
+		position = g_seekable_tell (G_SEEKABLE (base_stream));
+	} else if (base_stream != NULL) {
+		g_critical (
+			"Stream type '%s' is not seekable",
+			G_OBJECT_TYPE_NAME (base_stream));
+	}
+
+	g_clear_object (&base_stream);
+
+	return position;
+}
+
+static gboolean
+stream_can_seek (GSeekable *seekable)
+{
+	CamelStream *stream;
+	GIOStream *base_stream;
+	gboolean can_seek = FALSE;
+
+	stream = CAMEL_STREAM (seekable);
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (G_IS_SEEKABLE (base_stream))
+		can_seek = g_seekable_can_seek (G_SEEKABLE (base_stream));
+
+	g_clear_object (&base_stream);
+
+	return can_seek;
+}
+
+static gboolean
+stream_seek (GSeekable *seekable,
+             goffset offset,
+             GSeekType type,
+             GCancellable *cancellable,
+             GError **error)
+{
+	CamelStream *stream;
+	GIOStream  *base_stream;
+	gboolean success = FALSE;
+
+	stream = CAMEL_STREAM (seekable);
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (G_IS_SEEKABLE (base_stream)) {
+		stream->eos = FALSE;
+		success = g_seekable_seek (
+			G_SEEKABLE (base_stream),
+			offset, type, cancellable, error);
+	} else if (base_stream != NULL) {
+		g_set_error (
+			error, G_IO_ERROR,
+			G_IO_ERROR_NOT_SUPPORTED,
+			_("Stream type '%s' is not seekable"),
+			G_OBJECT_TYPE_NAME (base_stream));
+	} else {
+		g_warn_if_reached ();
+	}
+
+	g_clear_object (&base_stream);
+
+	return success;
+}
+
+static gboolean
+stream_can_truncate (GSeekable *seekable)
+{
+	CamelStream *stream;
+	GIOStream *base_stream;
+	gboolean can_truncate = FALSE;
+
+	stream = CAMEL_STREAM (seekable);
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (G_IS_SEEKABLE (base_stream))
+		can_truncate = g_seekable_can_truncate (
+			G_SEEKABLE (base_stream));
+
+	g_clear_object (&base_stream);
+
+	return can_truncate;
+}
+
+static gboolean
+stream_truncate (GSeekable *seekable,
+                 goffset offset,
+                 GCancellable *cancellable,
+                 GError **error)
+{
+	CamelStream *stream;
+	GIOStream *base_stream;
+	gboolean success = FALSE;
+
+	stream = CAMEL_STREAM (seekable);
+	base_stream = camel_stream_ref_base_stream (stream);
+
+	if (G_IS_SEEKABLE (base_stream)) {
+		success = g_seekable_truncate (
+			G_SEEKABLE (base_stream),
+			offset, cancellable, error);
+	} else if (base_stream != NULL) {
+		g_set_error (
+			error, G_IO_ERROR,
+			G_IO_ERROR_NOT_SUPPORTED,
+			_("Stream type '%s' is not seekable"),
+			G_OBJECT_TYPE_NAME (base_stream));
+	} else {
+		g_warn_if_reached ();
+	}
+
+	g_clear_object (&base_stream);
+
+	return success;
+}
+
 static void
 camel_stream_class_init (CamelStreamClass *class)
 {
+	GObjectClass *object_class;
+
+	g_type_class_add_private (class, sizeof (CamelStreamPrivate));
+
+	object_class = G_OBJECT_CLASS (class);
+	object_class->set_property = stream_set_property;
+	object_class->get_property = stream_get_property;
+	object_class->dispose = stream_dispose;
+	object_class->finalize = stream_finalize;
+
 	class->read = stream_read;
 	class->write = stream_write;
 	class->close = stream_close;
 	class->flush = stream_flush;
 	class->eos = stream_eos;
+
+	g_object_class_install_property (
+		object_class,
+		PROP_BASE_STREAM,
+		g_param_spec_object (
+			"base-stream",
+			"Base Stream",
+			"The base GIOStream",
+			G_TYPE_IO_STREAM,
+			G_PARAM_READWRITE |
+			G_PARAM_STATIC_STRINGS));
+}
+
+static void
+camel_stream_seekable_init (GSeekableIface *iface)
+{
+	iface->tell = stream_tell;
+	iface->can_seek = stream_can_seek;
+	iface->seek = stream_seek;
+	iface->can_truncate = stream_can_truncate;
+	iface->truncate_fn = stream_truncate;
 }
 
 static void
 camel_stream_init (CamelStream *stream)
 {
+	stream->priv = CAMEL_STREAM_GET_PRIVATE (stream);
+
+	g_mutex_init (&stream->priv->base_stream_lock);
+}
+
+/**
+ * camel_stream_new:
+ * @base_stream: a #GIOStream
+ *
+ * Creates a #CamelStream as a thin wrapper for @base_stream.
+ *
+ * Returns: a #CamelStream
+ *
+ * Since: 3.12
+ **/
+CamelStream *
+camel_stream_new (GIOStream *base_stream)
+{
+	g_return_val_if_fail (G_IS_IO_STREAM (base_stream), NULL);
+
+	return g_object_new (
+		CAMEL_TYPE_STREAM, "base-stream", base_stream, NULL);
+}
+
+/**
+ * camel_stream_ref_base_stream:
+ * @stream: a #CamelStream
+ *
+ * Returns the #GIOStream for @stream.  This is only valid if @stream was
+ * created with camel_stream_new().  For all other #CamelStream subclasses
+ * this function returns %NULL.
+ *
+ * The returned #GIOStream is referenced for thread-safety and should be
+ * unreferenced with g_object_unref() when finished with it.
+ *
+ * Returns: a #GIOStream, or %NULL
+ *
+ * Since: 3.12
+ **/
+GIOStream *
+camel_stream_ref_base_stream (CamelStream *stream)
+{
+	GIOStream *base_stream = NULL;
+
+	g_return_val_if_fail (CAMEL_IS_STREAM (stream), NULL);
+
+	g_mutex_lock (&stream->priv->base_stream_lock);
+
+	if (stream->priv->base_stream != NULL)
+		base_stream = g_object_ref (stream->priv->base_stream);
+
+	g_mutex_unlock (&stream->priv->base_stream_lock);
+
+	return base_stream;
+}
+
+/**
+ * camel_stream_set_base_stream:
+ * @stream: a #CamelStream
+ * @base_stream: a #GIOStream
+ *
+ * Replaces the #GIOStream passed to camel_stream_new() with @base_stream.
+ * The new @base_stream should wrap the original #GIOStream, such as when
+ * adding Transport Layer Security after issuing a STARTTLS command.
+ *
+ * Since: 3.12
+ **/
+void
+camel_stream_set_base_stream (CamelStream *stream,
+                              GIOStream *base_stream)
+{
+	g_return_if_fail (CAMEL_IS_STREAM (stream));
+	g_return_if_fail (G_IS_IO_STREAM (base_stream));
+
+	g_mutex_lock (&stream->priv->base_stream_lock);
+
+	g_clear_object (&stream->priv->base_stream);
+	stream->priv->base_stream = g_object_ref (base_stream);
+
+	g_mutex_unlock (&stream->priv->base_stream_lock);
+
+	g_object_notify (G_OBJECT (stream), "base-stream");
 }
 
 /**

@@ -5,19 +5,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -139,6 +137,14 @@ object_finalize (GObject *object)
 	G_OBJECT_CLASS (camel_object_parent_class)->finalize (object);
 }
 
+static void
+object_notify (GObject *object,
+               GParamSpec *pspec)
+{
+	/* Placeholder so subclasses can safely chain up, since
+	 * GObjectClass itself does not implement this method. */
+}
+
 static gint
 object_state_read (CamelObject *object,
                    FILE *fp)
@@ -237,6 +243,13 @@ object_state_read (CamelObject *object,
 			property_set = TRUE;
 			break;
 		}
+
+		/* XXX This tag was used by the old IMAP backend.
+		 *     It may still show up in accounts that were
+		 *     migrated from IMAP to IMAPX.  Silence the
+		 *     warning. */
+		if (tag == 0x2500)
+			property_set = TRUE;
 
 		if (!property_set)
 			g_warning (
@@ -337,6 +350,7 @@ camel_object_class_init (CamelObjectClass *class)
 	object_class->set_property = object_set_property;
 	object_class->get_property = object_get_property;
 	object_class->finalize = object_finalize;
+	object_class->notify = object_notify;
 
 	class->state_read = object_state_read;
 	class->state_write = object_state_write;
@@ -365,18 +379,7 @@ camel_object_init (CamelObject *object)
 	object->priv = CAMEL_OBJECT_GET_PRIVATE (object);
 }
 
-GQuark
-camel_error_quark (void)
-{
-	static GQuark quark = 0;
-
-	if (G_UNLIKELY (quark == 0)) {
-		const gchar *string = "camel-error-quark";
-		quark = g_quark_from_static_string (string);
-	}
-
-	return quark;
-}
+G_DEFINE_QUARK (camel-error-quark, camel_error)
 
 /**
  * camel_object_state_read:
@@ -451,13 +454,14 @@ camel_object_state_write (CamelObject *object)
 		    && class->state_write (object, fp) == 0) {
 			if (fclose (fp) == 0) {
 				res = 0;
-				g_rename (savename, state_filename);
+				if (g_rename (savename, state_filename) == -1)
+					res = -1;
 			}
 		} else {
 			fclose (fp);
 		}
 	} else {
-		g_warning("Could not save object state file to '%s': %s", savename, g_strerror(errno));
+		g_warning ("Could not save object state file to '%s': %s", savename, g_strerror (errno));
 	}
 
 	g_free (savename);
@@ -501,6 +505,9 @@ camel_object_set_state_filename (CamelObject *object,
                                  const gchar *state_filename)
 {
 	g_return_if_fail (CAMEL_IS_OBJECT (object));
+
+	if (g_strcmp0 (object->priv->state_filename, state_filename) == 0)
+		return;
 
 	g_free (object->priv->state_filename);
 	object->priv->state_filename = g_strdup (state_filename);

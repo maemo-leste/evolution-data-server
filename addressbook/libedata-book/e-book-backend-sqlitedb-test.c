@@ -5,24 +5,21 @@
  *
  * Authors: Chenthill Palanisamy <pchenthill@novell.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <config.h>
-#include <glib.h>
-#include <glib-object.h>
-#include <libebook/e-book-query.h>
+#include <libebook-contacts/libebook-contacts.h>
 #include "e-book-backend-sqlitedb.h"
 
 static GMainLoop *main_loop;
@@ -99,7 +96,7 @@ search_db (EBookBackendSqliteDB *ebsdb,
 	g_print ("%s - query: %s \n", type, sexp);
 	op = type;
 	vcards = e_book_backend_sqlitedb_search (ebsdb, folderid, sexp, NULL, NULL, NULL, &error);
-	if (error)
+	if (error || !vcards)
 		return;
 
 	s_data = vcards->data;
@@ -195,8 +192,6 @@ gint
 main (gint argc,
       gchar *argv[])
 {
-	g_type_init ();
-
 	if (argc != 2) {
 		g_print ("Please enter a path to store the cache \n");
 		return -1;

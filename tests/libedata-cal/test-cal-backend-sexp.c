@@ -1,4 +1,4 @@
-#include <libedata-cal/e-cal-backend-sexp.h>
+#include <libedata-cal/libedata-cal.h>
 
 static void
 test_query (const gchar *query)
@@ -9,16 +9,16 @@ test_query (const gchar *query)
 	gboolean generator = e_cal_backend_sexp_evaluate_occur_times (sexp, &start, &end);
 
 	if (generator) {
-		printf ("%s: %ld - %ld\n", query, start, end);
+		printf ("%s: %" G_GINT64_FORMAT "- %" G_GINT64_FORMAT "\n", query, (gint64) start, (gint64) end);
 	} else {
 		printf ("%s: no time prunning possible\n", query);
 	}
 }
 
-gint main (gint argc, gchar **argv)
+gint
+main (gint argc,
+      gchar **argv)
 {
-	g_type_init ();
-
 	/* e_sexp_add_variable(f, 0, "test", NULL); */
 
 	if (argc < 2 || !argv[1])
@@ -35,10 +35,10 @@ gint main (gint argc, gchar **argv)
 		test_query ("(or (occur-in-time-range? (make-time \"20080727T220000Z\") (make-time \"20080907T220000Z\")) (contains? \"substring\"))");
 
 		test_query ("(and (and (occur-in-time-range? (make-time \"20080727T220000Z\") (make-time \"20080907T220000Z\"))"
-			    " (or (contains? \"substring\") (has-categories? \"blah\"))) (has-alarms?))");
+			" (or (contains? \"substring\") (has-categories? \"blah\"))) (has-alarms?))");
 
 		test_query ("(or (and (occur-in-time-range? (make-time \"20080727T220000Z\") (make-time \"20080907T220000Z\"))"
-			    " (or (contains? \"substring\") (has-categories? \"blah\"))) (has-alarms?))");
+			" (or (contains? \"substring\") (has-categories? \"blah\"))) (has-alarms?))");
 	}
 	else
 		test_query (argv[1]);

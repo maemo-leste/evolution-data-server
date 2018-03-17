@@ -1,18 +1,17 @@
 /*
  * e-gdbus-book-view.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  *
  * Copyright (C) 2011 Red Hat, Inc. (www.redhat.com)
@@ -21,9 +20,6 @@
 
 #include <stdio.h>
 #include <gio/gio.h>
-
-#include <libedataserver/e-data-server-util.h>
-#include <libedataserver/e-gdbus-marshallers.h>
 
 #include "e-gdbus-book-view.h"
 
@@ -106,18 +102,58 @@ e_gdbus_book_view_default_init (EGdbusBookViewIface *iface)
 	_signal_name_to_type = g_hash_table_new (g_str_hash, g_str_equal);
 
 	/* GObject signals definitions for D-Bus signals: */
-	E_INIT_GDBUS_SIGNAL_STRV	(EGdbusBookViewIface, "objects_added",		objects_added, __OBJECTS_ADDED_SIGNAL)
-	E_INIT_GDBUS_SIGNAL_STRV	(EGdbusBookViewIface, "objects_modified",	objects_modified, __OBJECTS_MODIFIED_SIGNAL)
-	E_INIT_GDBUS_SIGNAL_STRV	(EGdbusBookViewIface, "objects_removed",	objects_removed, __OBJECTS_REMOVED_SIGNAL)
-	E_INIT_GDBUS_SIGNAL_UINT_STRING	(EGdbusBookViewIface, "progress",		progress, __PROGRESS_SIGNAL)
-	E_INIT_GDBUS_SIGNAL_STRV	(EGdbusBookViewIface, "complete",		complete, __COMPLETE_SIGNAL)
+	E_INIT_GDBUS_SIGNAL_STRV (
+		EGdbusBookViewIface,
+		"objects_added",
+		objects_added,
+		__OBJECTS_ADDED_SIGNAL)
+	E_INIT_GDBUS_SIGNAL_STRV (
+		EGdbusBookViewIface,
+		"objects_modified",
+		objects_modified,
+		__OBJECTS_MODIFIED_SIGNAL)
+	E_INIT_GDBUS_SIGNAL_STRV (
+		EGdbusBookViewIface,
+		"objects_removed",
+		objects_removed,
+		__OBJECTS_REMOVED_SIGNAL)
+	E_INIT_GDBUS_SIGNAL_UINT_STRING (
+		EGdbusBookViewIface,
+		"progress",
+		progress,
+		__PROGRESS_SIGNAL)
+	E_INIT_GDBUS_SIGNAL_STRV (
+		EGdbusBookViewIface,
+		"complete",
+		complete,
+		__COMPLETE_SIGNAL)
 
 	/* GObject signals definitions for D-Bus methods: */
-	E_INIT_GDBUS_METHOD_VOID        (EGdbusBookViewIface, "start",                  start, __START_METHOD)
-	E_INIT_GDBUS_METHOD_VOID        (EGdbusBookViewIface, "stop",                   stop, __STOP_METHOD)
-	E_INIT_GDBUS_METHOD_VOID        (EGdbusBookViewIface, "dispose",                dispose, __DISPOSE_METHOD)
-	E_INIT_GDBUS_METHOD_UINT	(EGdbusBookViewIface, "set_flags",	        set_flags, __SET_FLAGS_METHOD)
-	E_INIT_GDBUS_METHOD_STRV	(EGdbusBookViewIface, "set_fields_of_interest",	set_fields_of_interest, __SET_FIELDS_OF_INTEREST_METHOD)
+	E_INIT_GDBUS_METHOD_VOID (
+		EGdbusBookViewIface,
+		"start",
+		start,
+		__START_METHOD)
+	E_INIT_GDBUS_METHOD_VOID (
+		EGdbusBookViewIface,
+		"stop",
+		stop,
+		__STOP_METHOD)
+	E_INIT_GDBUS_METHOD_VOID (
+		EGdbusBookViewIface,
+		"dispose",
+		dispose,
+		__DISPOSE_METHOD)
+	E_INIT_GDBUS_METHOD_UINT (
+		EGdbusBookViewIface,
+		"set_flags",
+		set_flags,
+		__SET_FLAGS_METHOD)
+	E_INIT_GDBUS_METHOD_STRV (
+		EGdbusBookViewIface,
+		"set_fields_of_interest",
+		set_fields_of_interest,
+		__SET_FIELDS_OF_INTEREST_METHOD)
 }
 
 void
@@ -177,7 +213,7 @@ e_gdbus_book_view_call_set_flags (GDBusProxy *proxy,
                                   GAsyncReadyCallback callback,
                                   gpointer user_data)
 {
-        e_gdbus_proxy_method_call_uint ("set_flags", proxy, in_flags, cancellable, callback, user_data);
+	e_gdbus_proxy_method_call_uint ("set_flags", proxy, in_flags, cancellable, callback, user_data);
 }
 
 gboolean
@@ -285,11 +321,28 @@ e_gdbus_book_view_emit_complete (EGdbusBookView *object,
 	g_signal_emit (object, signals[__COMPLETE_SIGNAL], 0, arg_error);
 }
 
-E_DECLARE_GDBUS_NOTIFY_SIGNAL_1 (book_view, objects_added, objects, "as")
-E_DECLARE_GDBUS_NOTIFY_SIGNAL_1 (book_view, objects_modified, objects, "as")
-E_DECLARE_GDBUS_NOTIFY_SIGNAL_1 (book_view, objects_removed, uids, "as")
-E_DECLARE_GDBUS_NOTIFY_SIGNAL_2 (book_view, progress, percent, "u", message, "s")
-E_DECLARE_GDBUS_NOTIFY_SIGNAL_1 (book_view, complete, error, "as")
+E_DECLARE_GDBUS_NOTIFY_SIGNAL_1 (book_view,
+                                 objects_added,
+                                 objects,
+                                 "as")
+E_DECLARE_GDBUS_NOTIFY_SIGNAL_1 (book_view,
+                                 objects_modified,
+                                 objects,
+                                 "as")
+E_DECLARE_GDBUS_NOTIFY_SIGNAL_1 (book_view,
+                                 objects_removed,
+                                 uids,
+                                 "as")
+E_DECLARE_GDBUS_NOTIFY_SIGNAL_2 (book_view,
+                                 progress,
+                                 percent,
+                                 "u",
+                                 message,
+                                 "s")
+E_DECLARE_GDBUS_NOTIFY_SIGNAL_1 (book_view,
+                                 complete,
+                                 error,
+                                 "as")
 
 E_DECLARE_GDBUS_SYNC_METHOD_0 (book_view,
                                start)
@@ -297,8 +350,14 @@ E_DECLARE_GDBUS_SYNC_METHOD_0 (book_view,
                                stop)
 E_DECLARE_GDBUS_SYNC_METHOD_0 (book_view,
                                dispose)
-E_DECLARE_GDBUS_SYNC_METHOD_1 (book_view, set_flags, flags, "u")
-E_DECLARE_GDBUS_SYNC_METHOD_1	(book_view, set_fields_of_interest, fields_of_interest, "as")
+E_DECLARE_GDBUS_SYNC_METHOD_1 (book_view,
+                               set_flags,
+                               flags,
+                               "u")
+E_DECLARE_GDBUS_SYNC_METHOD_1 (book_view,
+                               set_fields_of_interest,
+                               fields_of_interest,
+                               "as")
 
 static const GDBusMethodInfo * const e_gdbus_book_view_method_info_pointers[] =
 {
@@ -420,16 +479,18 @@ emit_notifications_in_idle (gpointer user_data)
 	}
 
 	if (has_changes) {
-		g_dbus_connection_emit_signal (connection,
-					NULL,
-					path,
-					"org.freedesktop.DBus.Properties",
-					"PropertiesChanged",
-					g_variant_new ("(sa{sv}as)",
-							GDBUS_BOOK_VIEW_INTERFACE_NAME,
-							builder,
-							invalidated_builder),
-					NULL);
+		g_dbus_connection_emit_signal (
+			connection,
+			NULL,
+			path,
+			"org.freedesktop.DBus.Properties",
+			"PropertiesChanged",
+			g_variant_new (
+				"(sa{sv}as)",
+				GDBUS_BOOK_VIEW_INTERFACE_NAME,
+				builder,
+				invalidated_builder),
+			NULL);
 	} else {
 		g_variant_builder_unref (builder);
 		g_variant_builder_unref (invalidated_builder);
@@ -498,13 +559,14 @@ e_gdbus_book_view_register_object (EGdbusBookView *object,
 	g_object_set_data_full (G_OBJECT (object), "gdbus-codegen-path", (gpointer) g_strdup (object_path), g_free);
 	g_object_set_data (G_OBJECT (object), "gdbus-codegen-connection", (gpointer) connection);
 	g_object_set_data_full (G_OBJECT (object), "gdbus-codegen-pvc", (gpointer) pvc, (GDestroyNotify) g_hash_table_unref);
-	return g_dbus_connection_register_object (connection,
-			object_path,
-			(GDBusInterfaceInfo *) &_e_gdbus_book_view_interface_info,
-			&e_gdbus_book_view_interface_vtable,
-			object,
-			(GDestroyNotify) on_object_unregistered,
-			error);
+	return g_dbus_connection_register_object (
+		connection,
+		object_path,
+		(GDBusInterfaceInfo *) &_e_gdbus_book_view_interface_info,
+		&e_gdbus_book_view_interface_vtable,
+		object,
+		(GDestroyNotify) on_object_unregistered,
+		error);
 }
 
 /**
@@ -587,17 +649,18 @@ e_gdbus_book_view_proxy_new (GDBusConnection *connection,
                              GAsyncReadyCallback callback,
                              gpointer user_data)
 {
-	g_async_initable_new_async (E_TYPE_GDBUS_BOOK_VIEW_PROXY,
-				G_PRIORITY_DEFAULT,
-				cancellable,
-				callback,
-				user_data,
-				"g-flags", flags,
-				"g-name", name,
-				"g-connection", connection,
-				"g-object-path", object_path,
-				"g-interface-name", GDBUS_BOOK_VIEW_INTERFACE_NAME,
-				NULL);
+	g_async_initable_new_async (
+		E_TYPE_GDBUS_BOOK_VIEW_PROXY,
+		G_PRIORITY_DEFAULT,
+		cancellable,
+		callback,
+		user_data,
+		"g-flags", flags,
+		"g-name", name,
+		"g-connection", connection,
+		"g-object-path", object_path,
+		"g-interface-name", GDBUS_BOOK_VIEW_INTERFACE_NAME,
+		NULL);
 }
 
 /**
@@ -649,15 +712,16 @@ e_gdbus_book_view_proxy_new_sync (GDBusConnection *connection,
                                   GError **error)
 {
 	GInitable *initable;
-	initable = g_initable_new (E_TYPE_GDBUS_BOOK_VIEW_PROXY,
-				cancellable,
-				error,
-				"g-flags", flags,
-				"g-name", name,
-				"g-connection", connection,
-				"g-object-path", object_path,
-				"g-interface-name", GDBUS_BOOK_VIEW_INTERFACE_NAME,
-				NULL);
+	initable = g_initable_new (
+		E_TYPE_GDBUS_BOOK_VIEW_PROXY,
+		cancellable,
+		error,
+		"g-flags", flags,
+		"g-name", name,
+		"g-connection", connection,
+		"g-object-path", object_path,
+		"g-interface-name", GDBUS_BOOK_VIEW_INTERFACE_NAME,
+		NULL);
 	if (initable != NULL)
 		return E_GDBUS_BOOK_VIEW (initable);
 	else
@@ -687,17 +751,18 @@ e_gdbus_book_view_proxy_new_for_bus (GBusType bus_type,
                                      GAsyncReadyCallback callback,
                                      gpointer user_data)
 {
-	g_async_initable_new_async (E_TYPE_GDBUS_BOOK_VIEW_PROXY,
-				G_PRIORITY_DEFAULT,
-				cancellable,
-				callback,
-				user_data,
-				"g-flags", flags,
-				"g-name", name,
-				"g-bus-type", bus_type,
-				"g-object-path", object_path,
-				"g-interface-name", GDBUS_BOOK_VIEW_INTERFACE_NAME,
-				NULL);
+	g_async_initable_new_async (
+		E_TYPE_GDBUS_BOOK_VIEW_PROXY,
+		G_PRIORITY_DEFAULT,
+		cancellable,
+		callback,
+		user_data,
+		"g-flags", flags,
+		"g-name", name,
+		"g-bus-type", bus_type,
+		"g-object-path", object_path,
+		"g-interface-name", GDBUS_BOOK_VIEW_INTERFACE_NAME,
+		NULL);
 }
 
 /**
@@ -749,15 +814,16 @@ e_gdbus_book_view_proxy_new_for_bus_sync (GBusType bus_type,
                                           GError **error)
 {
 	GInitable *initable;
-	initable = g_initable_new (E_TYPE_GDBUS_BOOK_VIEW_PROXY,
-				cancellable,
-				error,
-				"g-flags", flags,
-				"g-name", name,
-				"g-bus-type", bus_type,
-				"g-object-path", object_path,
-				"g-interface-name", GDBUS_BOOK_VIEW_INTERFACE_NAME,
-				NULL);
+	initable = g_initable_new (
+		E_TYPE_GDBUS_BOOK_VIEW_PROXY,
+		cancellable,
+		error,
+		"g-flags", flags,
+		"g-name", name,
+		"g-bus-type", bus_type,
+		"g-object-path", object_path,
+		"g-interface-name", GDBUS_BOOK_VIEW_INTERFACE_NAME,
+		NULL);
 	if (initable != NULL)
 		return E_GDBUS_BOOK_VIEW (initable);
 	else

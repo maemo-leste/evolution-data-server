@@ -4,19 +4,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_LOCAL_FOLDER_H
@@ -64,9 +62,13 @@ struct _CamelLocalFolder {
 	gchar *folder_path;	/* the path to the folder itself */
 	gchar *index_path;	/* where the index file lives */
 
-	CamelIndex *index;	   /* index for this folder */
-	CamelFolderSearch *search; /* used to run searches, we just use the real thing (tm) */
-	CamelFolderChangeInfo *changes;	/* used to store changes to the folder during processing */
+	CamelIndex *index;	/* index for this folder */
+
+	/* Used to run searches, we just use the real thing (tm). */
+	CamelFolderSearch *search;
+
+	/* Used to store changes to the folder during processing. */
+	CamelFolderChangeInfo *changes;
 };
 
 struct _CamelLocalFolderClass {

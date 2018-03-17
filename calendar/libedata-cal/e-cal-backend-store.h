@@ -5,25 +5,27 @@
  *
  * Authors: Chenthill Palanisamy <pchenthill@novell.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
+#if !defined (__LIBEDATA_CAL_H_INSIDE__) && !defined (LIBEDATA_CAL_COMPILATION)
+#error "Only <libedata-cal/libedata-cal.h> should be included directly."
+#endif
 
 #ifndef E_CAL_BACKEND_STORE_H
 #define E_CAL_BACKEND_STORE_H
 
-#include <libecal/e-cal-component.h>
-#include <libecal/e-cal.h>
+#include <libecal/libecal.h>
 
 /* Standard GObject macros */
 #define E_TYPE_CAL_BACKEND_STORE \
@@ -53,19 +55,47 @@ typedef struct _ECalBackendStorePrivate ECalBackendStorePrivate;
 /**
  * ECalBackendStore:
  *
+ * Contains only private data that should be read and manipulated using the
+ * functions below.
+ *
  * Since: 2.28
  **/
 struct _ECalBackendStore {
+	/*< private >*/
 	GObject parent;
 	ECalBackendStorePrivate *priv;
 };
 
+/**
+ * ECalBackendStoreClass:
+ * @load: FIXME: Doxument me
+ * @clean: FIXME: Doxument me
+ * @get_component: FIXME: Doxument me
+ * @put_component: FIXME: Doxument me
+ * @remove_component: FIXME: Doxument me
+ * @has_component: FIXME: Doxument me
+ * @get_components_by_uid: FIXME: Doxument me
+ * @get_components: FIXME: Doxument me
+ * @get_component_ids: FIXME: Doxument me
+ * @get_default_timezone: FIXME: Doxument me
+ * @set_default_timezone: FIXME: Doxument me
+ * @thaw_changes: FIXME: Doxument me
+ * @freeze_changes: FIXME: Doxument me
+ * @get_key_value: FIXME: Doxument me
+ * @put_key_value: FIXME: Doxument me
+ *
+ * Class structure for the #ECalBackendStore class.
+ *
+ * Since: 2.28
+ */
 struct _ECalBackendStoreClass {
+	/*< private >*/
 	GObjectClass parent_class;
+
+	/*< public >*/
 
 	/* virtual methods */
 	gboolean	(*load)			(ECalBackendStore *store);
-	gboolean	(*remove)		(ECalBackendStore *store);
 	gboolean	(*clean)		(ECalBackendStore *store);
 	ECalComponent *	(*get_component)	(ECalBackendStore *store,
 						 const gchar *uid,
@@ -84,16 +114,9 @@ struct _ECalBackendStoreClass {
 
 	GSList *	(*get_component_ids)	(ECalBackendStore *store);
 	const icaltimezone *
-			(*get_timezone)		(ECalBackendStore *store,
-						 const gchar *tzid);
-	gboolean	(*put_timezone)		(ECalBackendStore *store,
-						 const icaltimezone *zone);
-	gboolean	(*remove_timezone)	(ECalBackendStore *store,
-						 const gchar *tzid);
-	const icaltimezone *
 			(*get_default_timezone)	(ECalBackendStore *store);
 	gboolean	(*set_default_timezone)	(ECalBackendStore *store,
-						 const icaltimezone *zone);
+						 icaltimezone *zone);
 	void		(*thaw_changes)		(ECalBackendStore *store);
 	void		(*freeze_changes)	(ECalBackendStore *store);
 	const gchar *	(*get_key_value)	(ECalBackendStore *store,
@@ -104,10 +127,15 @@ struct _ECalBackendStoreClass {
 };
 
 GType		e_cal_backend_store_get_type	(void);
+ECalBackendStore *
+		e_cal_backend_store_new		(const gchar *path,
+						 ETimezoneCache *cache);
 const gchar *	e_cal_backend_store_get_path	(ECalBackendStore *store);
+ETimezoneCache *
+		e_cal_backend_store_ref_timezone_cache
+						(ECalBackendStore *store);
 gboolean	e_cal_backend_store_load	(ECalBackendStore *store);
 gboolean	e_cal_backend_store_is_loaded	(ECalBackendStore *store);
-gboolean	e_cal_backend_store_remove	(ECalBackendStore *store);
 gboolean	e_cal_backend_store_clean	(ECalBackendStore *store);
 ECalComponent *	e_cal_backend_store_get_component
 						(ECalBackendStore *store,
@@ -130,20 +158,15 @@ gboolean	e_cal_backend_store_has_component
 						 const gchar *uid,
 						 const gchar *rid);
 const icaltimezone *
-		e_cal_backend_store_get_timezone (ECalBackendStore *store,
-						 const gchar *tzid);
-gboolean	e_cal_backend_store_put_timezone (ECalBackendStore *store,
-						 const icaltimezone *zone);
-gboolean	e_cal_backend_store_remove_timezone
-						(ECalBackendStore *store,
-						 const gchar *tzid);
-const icaltimezone *
 		e_cal_backend_store_get_default_timezone
 						(ECalBackendStore *store);
 gboolean	e_cal_backend_store_set_default_timezone
 						(ECalBackendStore *store,
-						 const icaltimezone *zone);
+						 icaltimezone *zone);
 GSList *	e_cal_backend_store_get_components_by_uid
+						(ECalBackendStore *store,
+						 const gchar *uid);
+gchar *		e_cal_backend_store_get_components_by_uid_as_ical_string
 						(ECalBackendStore *store,
 						 const gchar *uid);
 GSList *	e_cal_backend_store_get_components
@@ -167,8 +190,8 @@ void		e_cal_backend_store_freeze_changes
 void		e_cal_backend_store_interval_tree_add_comp
 						(ECalBackendStore *store,
 						 ECalComponent *comp,
-						 time_t start,
-						 time_t end);
+						 time_t occurence_start,
+						 time_t occurence_end);
 
 G_END_DECLS
 

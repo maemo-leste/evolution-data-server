@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8; fill-column: 160 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -160,18 +158,19 @@ summary_header_to_db (CamelFolderSummary *s,
 /* Note: This will be called from camel_nntp_command, so only use camel_nntp_raw_command */
 static gint
 add_range_xover (CamelNNTPSummary *cns,
-                 CamelNNTPStore *store,
+                 CamelNNTPStore *nntp_store,
                  guint high,
                  guint low,
                  CamelFolderChangeInfo *changes,
                  GCancellable *cancellable,
                  GError **error)
 {
+	CamelNNTPCapabilities capability = CAMEL_NNTP_CAPABILITY_OVER;
+	CamelNNTPStream *nntp_stream;
 	CamelNetworkSettings *network_settings;
 	CamelSettings *settings;
 	CamelService *service;
 	CamelFolderSummary *s;
-	CamelMessageInfoBase *mi;
 	struct _camel_header_raw *headers = NULL;
 	gchar *line, *tab;
 	gchar *host;
@@ -185,24 +184,31 @@ add_range_xover (CamelNNTPSummary *cns,
 	folder_filter_recent = camel_folder_summary_get_folder (s) &&
 		(camel_folder_summary_get_folder (s)->folder_flags & CAMEL_FOLDER_FILTER_RECENT) != 0;
 
-	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+	service = CAMEL_SERVICE (nntp_store);
+
+	settings = camel_service_ref_settings (service);
 
 	network_settings = CAMEL_NETWORK_SETTINGS (settings);
 	host = camel_network_settings_dup_host (network_settings);
+
+	g_object_unref (settings);
 
 	camel_operation_push_message (
 		cancellable, _("%s: Scanning new messages"), host);
 
 	g_free (host);
 
-	if ((store->capabilities & NNTP_CAPABILITY_OVER) != 0)
-		ret = camel_nntp_raw_command_auth (store, cancellable, error, &line, "over %r", low, high);
+	if (camel_nntp_store_has_capabilities (nntp_store, capability))
+		ret = camel_nntp_raw_command_auth (
+			nntp_store, cancellable, error,
+			&line, "over %r", low, high);
 	else
 		ret = -1;
 	if (ret != 224) {
-		store->capabilities = store->capabilities & (~NNTP_CAPABILITY_OVER);
-		ret = camel_nntp_raw_command_auth (store, cancellable, error, &line, "xover %r", low, high);
+		camel_nntp_store_remove_capabilities (nntp_store, capability);
+		ret = camel_nntp_raw_command_auth (
+			nntp_store, cancellable, error,
+			&line, "xover %r", low, high);
 	}
 
 	if (ret != 224) {
@@ -214,16 +220,18 @@ add_range_xover (CamelNNTPSummary *cns,
 		return -1;
 	}
 
+	nntp_stream = camel_nntp_store_ref_stream (nntp_store);
+
 	count = 0;
 	total = high - low + 1;
-	while ((ret = camel_nntp_stream_line (store->stream, (guchar **) &line, &len, cancellable, error)) > 0) {
+	while ((ret = camel_nntp_stream_line (nntp_stream, (guchar **) &line, &len, cancellable, error)) > 0) {
 		camel_operation_progress (cancellable, (count * 100) / total);
 		count++;
 		n = strtoul (line, &tab, 10);
 		if (*tab != '\t')
 			continue;
 		tab++;
-		xover = store->xover;
+		xover = nntp_store->xover;
 		size = 0;
 		for (; tab[0] && xover; xover = xover->next) {
 			line = tab;
@@ -259,15 +267,16 @@ add_range_xover (CamelNNTPSummary *cns,
 		/* truncated line? ignore? */
 		if (xover == NULL) {
 			if (!camel_folder_summary_check_uid (s, cns->priv->uid)) {
-				mi = (CamelMessageInfoBase *)
-					camel_folder_summary_add_from_header (s, headers);
-				if (mi) {
-					mi->size = size;
-					cns->high = n;
-					camel_folder_change_info_add_uid (changes, camel_message_info_uid (mi));
-					if (folder_filter_recent)
-						camel_folder_change_info_recent_uid (changes, camel_message_info_uid (mi));
-				}
+				CamelMessageInfo *mi;
+
+				mi = camel_folder_summary_info_new_from_header (s, headers);
+				((CamelMessageInfoBase *) mi)->size = size;
+				camel_folder_summary_add (s, mi);
+
+				cns->high = n;
+				camel_folder_change_info_add_uid (changes, camel_message_info_uid (mi));
+				if (folder_filter_recent)
+					camel_folder_change_info_recent_uid (changes, camel_message_info_uid (mi));
 			}
 		}
 
@@ -279,6 +288,8 @@ add_range_xover (CamelNNTPSummary *cns,
 		camel_header_raw_clear (&headers);
 	}
 
+	g_clear_object (&nntp_stream);
+
 	camel_operation_pop_message (cancellable);
 
 	return ret;
@@ -287,13 +298,14 @@ add_range_xover (CamelNNTPSummary *cns,
 /* Note: This will be called from camel_nntp_command, so only use camel_nntp_raw_command */
 static gint
 add_range_head (CamelNNTPSummary *cns,
-                CamelNNTPStore *store,
+                CamelNNTPStore *nntp_store,
                 guint high,
                 guint low,
                 CamelFolderChangeInfo *changes,
                 GCancellable *cancellable,
                 GError **error)
 {
+	CamelNNTPStream *nntp_stream;
 	CamelNetworkSettings *network_settings;
 	CamelSettings *settings;
 	CamelService *service;
@@ -312,23 +324,29 @@ add_range_head (CamelNNTPSummary *cns,
 
 	mp = camel_mime_parser_new ();
 
-	service = CAMEL_SERVICE (store);
-	settings = camel_service_get_settings (service);
+	service = CAMEL_SERVICE (nntp_store);
+
+	settings = camel_service_ref_settings (service);
 
 	network_settings = CAMEL_NETWORK_SETTINGS (settings);
 	host = camel_network_settings_dup_host (network_settings);
+
+	g_object_unref (settings);
 
 	camel_operation_push_message (
 		cancellable, _("%s: Scanning new messages"), host);
 
 	g_free (host);
 
+	nntp_stream = camel_nntp_store_ref_stream (nntp_store);
+
 	count = 0;
 	total = high - low + 1;
 	for (i = low; i < high + 1; i++) {
 		camel_operation_progress (cancellable, (count * 100) / total);
 		count++;
-		ret = camel_nntp_raw_command_auth (store, cancellable, error, &line, "head %u", i);
+		ret = camel_nntp_raw_command_auth (
+			nntp_store, cancellable, error, &line, "head %u", i);
 		/* unknown article, ignore */
 		if (ret == 423)
 			continue;
@@ -351,9 +369,10 @@ add_range_head (CamelNNTPSummary *cns,
 			line[1] = 0;
 			cns->priv->uid = g_strdup_printf ("%u,%s\n", n, msgid);
 			if (!camel_folder_summary_check_uid (s, cns->priv->uid)) {
-				if (camel_mime_parser_init_with_stream (mp, (CamelStream *) store->stream, error) == -1)
+				if (camel_mime_parser_init_with_stream (mp, CAMEL_STREAM (nntp_stream), error) == -1)
 					goto error;
-				mi = camel_folder_summary_add_from_parser (s, mp);
+				mi = camel_folder_summary_info_new_from_parser (s, mp);
+				camel_folder_summary_add (s, mi);
 				while (camel_mime_parser_step (mp, NULL, NULL) != CAMEL_MIME_PARSER_STATE_EOF)
 					;
 				if (mi == NULL) {
@@ -395,6 +414,8 @@ ioerror:
 	}
 	g_object_unref (mp);
 
+	g_clear_object (&nntp_stream);
+
 	camel_operation_pop_message (cancellable);
 
 	return ret;
@@ -410,12 +431,14 @@ camel_nntp_summary_check (CamelNNTPSummary *cns,
                           GCancellable *cancellable,
                           GError **error)
 {
+	CamelNNTPStoreSummary *nntp_store_summary;
+	CamelStoreSummary *store_summary;
 	CamelFolderSummary *s;
 	gint ret = 0, i;
 	guint n, f, l;
 	gint count;
 	gchar *folder = NULL;
-	CamelNNTPStoreInfo *si;
+	CamelNNTPStoreInfo *si = NULL;
 	CamelStore *parent_store;
 	GList *del = NULL;
 	const gchar *full_name;
@@ -431,13 +454,16 @@ camel_nntp_summary_check (CamelNNTPSummary *cns,
 	l = strtoul (line, &line, 10);
 	if (line[0] == ' ') {
 		gchar *tmp;
+		gsize tmp_len;
 
 		folder = line + 1;
 		tmp = strchr (folder, ' ');
 		if (tmp)
 			*tmp = 0;
-		tmp = g_alloca (strlen (folder) + 1);
-		strcpy (tmp, folder);
+
+		tmp_len = strlen (folder) + 1;
+		tmp = g_alloca (tmp_len);
+		g_strlcpy (tmp, folder, tmp_len);
 		folder = tmp;
 	}
 
@@ -450,7 +476,10 @@ camel_nntp_summary_check (CamelNNTPSummary *cns,
 
 	/* Check for messages no longer on the server */
 	if (cns->low != f) {
+		CamelDataCache *nntp_cache;
 		GPtrArray *known_uids;
+
+		nntp_cache = camel_nntp_store_ref_cache (store);
 
 		known_uids = camel_folder_summary_get_array (s);
 		if (known_uids) {
@@ -458,7 +487,7 @@ camel_nntp_summary_check (CamelNNTPSummary *cns,
 				const gchar *uid;
 				const gchar *msgid;
 
-				uid  = g_ptr_array_index (known_uids, i);
+				uid = g_ptr_array_index (known_uids, i);
 				n = strtoul (uid, NULL, 10);
 
 				if (n < f || n > l) {
@@ -470,14 +499,14 @@ camel_nntp_summary_check (CamelNNTPSummary *cns,
 					 * it is a true cache */
 					msgid = strchr (uid, ',');
 					if (msgid)
-						camel_data_cache_remove (store->cache, "cache", msgid + 1, NULL);
+						camel_data_cache_remove (nntp_cache, "cache", msgid + 1, NULL);
 					camel_folder_change_info_remove_uid (changes, uid);
 					del = g_list_prepend (del, (gpointer) camel_pstring_strdup (uid));
 
 					mi = camel_folder_summary_peek_loaded (s, uid);
 					if (mi) {
 						camel_folder_summary_remove (s, mi);
-						camel_message_info_free (mi);
+						camel_message_info_unref (mi);
 					} else {
 						camel_folder_summary_remove_uid (s, uid);
 					}
@@ -486,6 +515,8 @@ camel_nntp_summary_check (CamelNNTPSummary *cns,
 			camel_folder_summary_free_array (known_uids);
 		}
 		cns->low = f;
+
+		g_clear_object (&nntp_cache);
 	}
 
 	camel_db_delete_uids (parent_store->cdb_w, full_name, del, NULL);
@@ -512,12 +543,21 @@ camel_nntp_summary_check (CamelNNTPSummary *cns,
 
 update:
 	/* update store summary if we have it */
-	if (folder
-	    && (si = (CamelNNTPStoreInfo *) camel_store_summary_path ((CamelStoreSummary *) store->summary, folder))) {
+
+	nntp_store_summary = camel_nntp_store_ref_summary (store);
+
+	store_summary = CAMEL_STORE_SUMMARY (nntp_store_summary);
+
+	if (folder != NULL)
+		si = (CamelNNTPStoreInfo *)
+			camel_store_summary_path (store_summary, folder);
+
+	if (si != NULL) {
 		guint32 unread = 0;
 
 		count = camel_folder_summary_count (s);
-		camel_db_count_unread_message_info (parent_store->cdb_r, full_name, &unread, NULL);
+		camel_db_count_unread_message_info (
+			parent_store->cdb_r, full_name, &unread, NULL);
 
 		if (si->info.unread != unread
 		    || si->info.total != count
@@ -527,16 +567,20 @@ update:
 			si->info.total = count;
 			si->first = f;
 			si->last = l;
-			camel_store_summary_touch ((CamelStoreSummary *) store->summary);
-			camel_store_summary_save ((CamelStoreSummary *) store->summary);
+			camel_store_summary_touch (store_summary);
+			camel_store_summary_save (store_summary);
 		}
-		camel_store_summary_info_free ((CamelStoreSummary *) store->summary, (CamelStoreInfo *) si);
+		camel_store_summary_info_unref (
+			store_summary, (CamelStoreInfo *) si);
+
+	} else if (folder != NULL) {
+		g_warning ("Group '%s' not present in summary", folder);
+
 	} else {
-		if (folder)
-			g_warning ("Group '%s' not present in summary", folder);
-		else
-			g_warning ("Missing group from group response");
+		g_warning ("Missing group from group response");
 	}
+
+	g_clear_object (&nntp_store_summary);
 
 	return ret;
 }

@@ -8,19 +8,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -35,6 +33,7 @@
 #include "camel-charset-map.h"
 #include "camel-debug.h"
 #include "camel-iconv.h"
+#include "camel-filter-output-stream.h"
 #include "camel-mime-filter-basic.h"
 #include "camel-mime-filter-charset.h"
 #include "camel-mime-filter-crlf.h"
@@ -66,7 +65,6 @@ struct _CamelMimePartPrivate {
 };
 
 struct _AsyncContext {
-	/* arguments */
 	CamelMimeParser *parser;
 };
 
@@ -107,14 +105,14 @@ async_context_free (AsyncContext *async_context)
 }
 
 static gssize
-write_header (CamelStream *stream,
+write_header (gpointer stream,
               const gchar *name,
               const gchar *value,
               GCancellable *cancellable,
               GError **error)
 {
 	GString *buffer;
-	gssize n_written;
+	gssize n_written = 0;
 
 	buffer = g_string_new (name);
 	g_string_append_c (buffer, ':');
@@ -123,8 +121,28 @@ write_header (CamelStream *stream,
 	g_string_append (buffer, value);
 	g_string_append_c (buffer, '\n');
 
-	n_written = camel_stream_write (
-		stream, buffer->str, buffer->len, cancellable, error);
+	/* XXX For now we handle both types of streams. */
+
+	if (CAMEL_IS_STREAM (stream)) {
+		n_written = camel_stream_write (
+			CAMEL_STREAM (stream),
+			buffer->str, buffer->len,
+			cancellable, error);
+	} else if (G_IS_OUTPUT_STREAM (stream)) {
+		gboolean success;
+		gsize bytes_written = 0;
+
+		success = g_output_stream_write_all (
+			G_OUTPUT_STREAM (stream),
+			buffer->str, buffer->len,
+			&bytes_written, cancellable, error);
+		if (success)
+			n_written = (gssize) bytes_written;
+		else
+			n_written = -1;
+	} else {
+		g_warn_if_reached ();
+	}
 
 	g_string_free (buffer, TRUE);
 
@@ -132,7 +150,7 @@ write_header (CamelStream *stream,
 }
 
 static gssize
-write_references (CamelStream *stream,
+write_references (gpointer stream,
                   const gchar *name,
                   const gchar *value,
                   GCancellable *cancellable,
@@ -140,7 +158,7 @@ write_references (CamelStream *stream,
 {
 	GString *buffer;
 	const gchar *ids, *ide;
-	gssize n_written;
+	gssize n_written = 0;
 	gsize len;
 
 	/* this is only approximate, based on the next >, this way it retains
@@ -174,8 +192,28 @@ write_references (CamelStream *stream,
 
 	g_string_append_c (buffer, '\n');
 
-	n_written = camel_stream_write (
-		stream, buffer->str, buffer->len, cancellable, error);
+	/* XXX For now we handle both types of streams. */
+
+	if (CAMEL_IS_STREAM (stream)) {
+		n_written = camel_stream_write (
+			CAMEL_STREAM (stream),
+			buffer->str, buffer->len,
+			cancellable, error);
+	} else if (G_IS_OUTPUT_STREAM (stream)) {
+		gboolean success;
+		gsize bytes_written = 0;
+
+		success = g_output_stream_write_all (
+			G_OUTPUT_STREAM (stream),
+			buffer->str, buffer->len,
+			&bytes_written, cancellable, error);
+		if (success)
+			n_written = (gssize) bytes_written;
+		else
+			n_written = -1;
+	} else {
+		g_warn_if_reached ();
+	}
 
 	g_string_free (buffer, TRUE);
 
@@ -409,7 +447,7 @@ mime_part_finalize (GObject *object)
 	g_free (priv->content_md5);
 	g_free (priv->content_location);
 
-	camel_string_list_free (priv->content_languages);
+	g_list_free_full (priv->content_languages, (GDestroyNotify) g_free);
 	camel_content_disposition_unref (priv->disposition);
 
 	camel_header_raw_clear (&CAMEL_MIME_PART (object)->headers);
@@ -534,7 +572,7 @@ mime_part_write_to_stream_sync (CamelDataWrapper *dw,
 	gssize count;
 	gint errnosav;
 
-	d(printf("mime_part::write_to_stream\n"));
+	d (printf ("mime_part::write_to_stream\n"));
 
 	/* FIXME: something needs to be done about this ... */
 	/* TODO: content-languages header? */
@@ -542,18 +580,19 @@ mime_part_write_to_stream_sync (CamelDataWrapper *dw,
 	if (mp->headers) {
 		struct _camel_header_raw *h = mp->headers;
 		gchar *val;
-		gssize		(*writefn)	(CamelStream *stream,
-						 const gchar *name,
-						 const gchar *value,
-						 GCancellable *cancellable,
-						 GError **error);
+		gssize (*writefn) (
+			gpointer stream,
+			const gchar *name,
+			const gchar *value,
+			GCancellable *cancellable,
+			GError **error);
 
 		/* fold/write the headers.   But dont fold headers that are already formatted
 		 * (e.g. ones with parameter-lists, that we know about, and have created) */
 		while (h) {
 			val = h->value;
 			if (val == NULL) {
-				g_warning("h->value is NULL here for %s", h->name);
+				g_warning ("h->value is NULL here for %s", h->name);
 				count = 0;
 			} else if ((writefn = g_hash_table_lookup (header_formatted_table, h->name)) == NULL) {
 				val = camel_header_fold (val, strlen (h->name));
@@ -645,16 +684,6 @@ mime_part_write_to_stream_sync (CamelDataWrapper *dw,
 				g_object_unref (charenc);
 			}
 
-			/* we only re-do crlf on encoded blocks */
-			if (filter && camel_content_type_is (dw->mime_type, "text", "*")) {
-				CamelMimeFilter *crlf = camel_mime_filter_crlf_new (CAMEL_MIME_FILTER_CRLF_ENCODE,
-										   CAMEL_MIME_FILTER_CRLF_MODE_CRLF_ONLY);
-
-				camel_stream_filter_add (
-					CAMEL_STREAM_FILTER (filter_stream), crlf);
-				g_object_unref (crlf);
-			}
-
 			if (filter) {
 				camel_stream_filter_add (
 					CAMEL_STREAM_FILTER (filter_stream), filter);
@@ -693,7 +722,7 @@ mime_part_write_to_stream_sync (CamelDataWrapper *dw,
 			total += count;
 		}
 	} else {
-		g_warning("No content for medium, nothing to write");
+		g_warning ("No content for medium, nothing to write");
 	}
 
 	return total;
@@ -708,7 +737,7 @@ mime_part_construct_from_stream_sync (CamelDataWrapper *dw,
 	CamelMimeParser *parser;
 	gboolean success;
 
-	d(printf("mime_part::construct_from_stream()\n"));
+	d (printf ("mime_part::construct_from_stream()\n"));
 
 	parser = camel_mime_parser_new ();
 	if (camel_mime_parser_init_with_stream (parser, stream, error) == -1) {
@@ -717,6 +746,216 @@ mime_part_construct_from_stream_sync (CamelDataWrapper *dw,
 		success = camel_mime_part_construct_from_parser_sync (
 			CAMEL_MIME_PART (dw), parser, cancellable, error);
 	}
+	g_object_unref (parser);
+
+	return success;
+}
+
+static gssize
+mime_part_write_to_output_stream_sync (CamelDataWrapper *dw,
+                                       GOutputStream *output_stream,
+                                       GCancellable *cancellable,
+                                       GError **error)
+{
+	CamelMimePart *mp = CAMEL_MIME_PART (dw);
+	CamelMedium *medium = CAMEL_MEDIUM (dw);
+	CamelDataWrapper *content;
+	gsize bytes_written;
+	gssize total = 0;
+	gssize result;
+	gboolean success;
+
+	d (printf ("mime_part::write_to_stream\n"));
+
+	/* FIXME: something needs to be done about this ... */
+	/* TODO: content-languages header? */
+
+	if (mp->headers) {
+		struct _camel_header_raw *h = mp->headers;
+		gchar *val;
+		gssize (*writefn) (
+			gpointer stream,
+			const gchar *name,
+			const gchar *value,
+			GCancellable *cancellable,
+			GError **error);
+
+		/* fold/write the headers.   But dont fold headers that are already formatted
+		 * (e.g. ones with parameter-lists, that we know about, and have created) */
+		while (h) {
+			val = h->value;
+			if (val == NULL) {
+				g_warning ("h->value is NULL here for %s", h->name);
+				bytes_written = 0;
+			} else if ((writefn = g_hash_table_lookup (header_formatted_table, h->name)) == NULL) {
+				val = camel_header_fold (val, strlen (h->name));
+				result = write_header (
+					output_stream, h->name, val,
+					cancellable, error);
+				g_free (val);
+			} else {
+				result = writefn (
+					output_stream, h->name, h->value,
+					cancellable, error);
+			}
+			if (result == -1)
+				return -1;
+			total += result;
+			h = h->next;
+		}
+	}
+
+	success = g_output_stream_write_all (
+		output_stream, "\n", 1,
+		&bytes_written, cancellable, error);
+	if (!success)
+		return -1;
+	total += (gssize) bytes_written;
+
+	content = camel_medium_get_content (medium);
+	if (content) {
+		CamelMimeFilter *filter = NULL;
+		GOutputStream *filter_stream;
+		const gchar *content_charset = NULL;
+		const gchar *part_charset = NULL;
+		gboolean content_type_is_text;
+		gboolean uuencoded = FALSE;
+		gboolean reencode = FALSE;
+		const gchar *filename;
+
+		content_type_is_text =
+			camel_content_type_is (dw->mime_type, "text", "*");
+
+		if (content_type_is_text) {
+			content_charset = camel_content_type_param (content->mime_type, "charset");
+			part_charset = camel_content_type_param (dw->mime_type, "charset");
+
+			if (content_charset && part_charset) {
+				content_charset = camel_iconv_charset_name (content_charset);
+				part_charset = camel_iconv_charset_name (part_charset);
+			}
+		}
+
+		if (mp->priv->encoding != content->encoding) {
+			gchar *content;
+
+			switch (mp->priv->encoding) {
+			case CAMEL_TRANSFER_ENCODING_BASE64:
+				filter = camel_mime_filter_basic_new (
+					CAMEL_MIME_FILTER_BASIC_BASE64_ENC);
+				break;
+			case CAMEL_TRANSFER_ENCODING_QUOTEDPRINTABLE:
+				filter = camel_mime_filter_basic_new (
+					CAMEL_MIME_FILTER_BASIC_QP_ENC);
+				break;
+			case CAMEL_TRANSFER_ENCODING_UUENCODE:
+				filename = camel_mime_part_get_filename (mp);
+				if (filename == NULL)
+					filename = "untitled";
+
+				content = g_strdup_printf (
+					"begin 644 %s\n", filename);
+				success = g_output_stream_write_all (
+					output_stream,
+					content, strlen (content),
+					&bytes_written, cancellable, error);
+				g_free (content);
+
+				if (!success)
+					return -1;
+
+				uuencoded = TRUE;
+
+				total += bytes_written;
+				filter = camel_mime_filter_basic_new (
+					CAMEL_MIME_FILTER_BASIC_UU_ENC);
+				break;
+			default:
+				/* content is encoded but the part doesn't want to be... */
+				reencode = TRUE;
+				break;
+			}
+		}
+
+		filter_stream = g_object_ref (output_stream);
+
+		if (content_charset && part_charset && part_charset != content_charset) {
+			CamelMimeFilter *charenc;
+			GOutputStream *temp_stream;
+
+			charenc = camel_mime_filter_charset_new (
+				content_charset, part_charset);
+			temp_stream = camel_filter_output_stream_new (
+				filter_stream, charenc);
+			g_filter_output_stream_set_close_base_stream (
+				G_FILTER_OUTPUT_STREAM (temp_stream), FALSE);
+			g_object_unref (charenc);
+
+			g_object_unref (filter_stream);
+			filter_stream = temp_stream;
+
+			reencode = TRUE;
+		}
+
+		if (filter != NULL) {
+			GOutputStream *temp_stream;
+
+			temp_stream = camel_filter_output_stream_new (
+				filter_stream, filter);
+			g_filter_output_stream_set_close_base_stream (
+				G_FILTER_OUTPUT_STREAM (temp_stream), FALSE);
+			g_object_unref (filter);
+
+			g_object_unref (filter_stream);
+			filter_stream = temp_stream;
+
+			reencode = TRUE;
+		}
+
+		if (reencode)
+			result = camel_data_wrapper_decode_to_output_stream_sync (
+				content, filter_stream, cancellable, error);
+		else
+			result = camel_data_wrapper_write_to_output_stream_sync (
+				content, filter_stream, cancellable, error);
+
+		g_object_unref (filter_stream);
+
+		if (result == -1)
+			return -1;
+
+		total += result;
+
+		if (uuencoded) {
+			success = g_output_stream_write_all (
+				output_stream, "end\n", 4,
+				&bytes_written, cancellable, error);
+			if (!success)
+				return -1;
+			total += (gssize) bytes_written;
+		}
+	} else {
+		g_warning ("No content for medium, nothing to write");
+	}
+
+	return total;
+}
+
+static gboolean
+mime_part_construct_from_input_stream_sync (CamelDataWrapper *dw,
+                                            GInputStream *input_stream,
+                                            GCancellable *cancellable,
+                                            GError **error)
+{
+	CamelMimeParser *parser;
+	gboolean success;
+
+	parser = camel_mime_parser_new ();
+	camel_mime_parser_init_with_input_stream (parser, input_stream);
+
+	success = camel_mime_part_construct_from_parser_sync (
+		CAMEL_MIME_PART (dw), parser, cancellable, error);
+
 	g_object_unref (parser);
 
 	return success;
@@ -742,20 +981,22 @@ mime_part_construct_from_parser_sync (CamelMimePart *mime_part,
 		if (dw->mime_type)
 			camel_content_type_unref (dw->mime_type);
 		dw->mime_type = camel_content_type_decode ("message/rfc822");
+		/* coverity[fallthrough] */
+
 	case CAMEL_MIME_PARSER_STATE_HEADER:
 	case CAMEL_MIME_PARSER_STATE_MULTIPART:
 		/* we have the headers, build them into 'us' */
 		headers = camel_mime_parser_headers_raw (parser);
 
 		/* if content-type exists, process it first, set for fallback charset in headers */
-		content = camel_header_raw_find(&headers, "content-type", NULL);
+		content = camel_header_raw_find (&headers, "content-type", NULL);
 		if (content)
-			mime_part_process_header((CamelMedium *)dw, "content-type", content);
+			mime_part_process_header ((CamelMedium *) dw, "content-type", content);
 
 		while (headers) {
-			if (g_ascii_strcasecmp(headers->name, "content-type") == 0
+			if (g_ascii_strcasecmp (headers->name, "content-type") == 0
 			    && headers->value != content)
-				camel_medium_add_header((CamelMedium *)dw, "X-Invalid-Content-Type", headers->value);
+				camel_medium_add_header ((CamelMedium *) dw, "X-Invalid-Content-Type", headers->value);
 			else
 				camel_medium_add_header ((CamelMedium *) dw, headers->name, headers->value);
 			headers = headers->next;
@@ -765,7 +1006,7 @@ mime_part_construct_from_parser_sync (CamelMimePart *mime_part,
 			mime_part, parser, cancellable, error);
 		break;
 	default:
-		g_warning("Invalid state encountered???: %u", camel_mime_parser_state(parser));
+		g_warning ("Invalid state encountered???: %u", camel_mime_parser_state (parser));
 	}
 
 	err = camel_mime_parser_errno (parser);
@@ -779,70 +1020,6 @@ mime_part_construct_from_parser_sync (CamelMimePart *mime_part,
 	}
 
 	return success;
-}
-
-static void
-mime_part_construct_from_parser_thread (GSimpleAsyncResult *simple,
-                                        GObject *object,
-                                        GCancellable *cancellable)
-{
-	AsyncContext *async_context;
-	GError *error = NULL;
-
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	camel_mime_part_construct_from_parser_sync (
-		CAMEL_MIME_PART (object), async_context->parser,
-		cancellable, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
-}
-
-static void
-mime_part_construct_from_parser (CamelMimePart *mime_part,
-                                 CamelMimeParser *parser,
-                                 gint io_priority,
-                                 GCancellable *cancellable,
-                                 GAsyncReadyCallback callback,
-                                 gpointer user_data)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-
-	async_context = g_slice_new0 (AsyncContext);
-	async_context->parser = g_object_ref (parser);
-
-	simple = g_simple_async_result_new (
-		G_OBJECT (mime_part), callback, user_data,
-		mime_part_construct_from_parser);
-
-	g_simple_async_result_set_op_res_gpointer (
-		simple, async_context, (GDestroyNotify) async_context_free);
-
-	g_simple_async_result_run_in_thread (
-		simple, mime_part_construct_from_parser_thread,
-		io_priority, cancellable);
-
-	g_object_unref (simple);
-}
-
-static gboolean
-mime_part_construct_from_parser_finish (CamelMimePart *mime_part,
-                                        GAsyncResult *result,
-                                        GError **error)
-{
-	GSimpleAsyncResult *simple;
-
-	g_return_val_if_fail (
-		g_simple_async_result_is_valid (
-		result, G_OBJECT (mime_part),
-		mime_part_construct_from_parser), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	/* Assume success unless a GError is set. */
-	return !g_simple_async_result_propagate_error (simple, error);
 }
 
 static void
@@ -871,10 +1048,10 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 	data_wrapper_class = CAMEL_DATA_WRAPPER_CLASS (class);
 	data_wrapper_class->write_to_stream_sync = mime_part_write_to_stream_sync;
 	data_wrapper_class->construct_from_stream_sync = mime_part_construct_from_stream_sync;
+	data_wrapper_class->write_to_output_stream_sync = mime_part_write_to_output_stream_sync;
+	data_wrapper_class->construct_from_input_stream_sync = mime_part_construct_from_input_stream_sync;
 
 	class->construct_from_parser_sync = mime_part_construct_from_parser_sync;
-	class->construct_from_parser = mime_part_construct_from_parser;
-	class->construct_from_parser_finish = mime_part_construct_from_parser_finish;
 
 	g_object_class_install_property (
 		object_class,
@@ -1155,8 +1332,9 @@ camel_mime_part_set_content_languages (CamelMimePart *mime_part,
 {
 	g_return_if_fail (CAMEL_IS_MIME_PART (mime_part));
 
-	if (mime_part->priv->content_languages)
-		camel_string_list_free (mime_part->priv->content_languages);
+	g_list_free_full (
+		mime_part->priv->content_languages,
+		(GDestroyNotify) g_free);
 
 	mime_part->priv->content_languages = content_languages;
 
@@ -1379,7 +1557,7 @@ camel_mime_part_set_filename (CamelMimePart *mime_part,
 
 	if (mime_part->priv->disposition == NULL)
 		mime_part->priv->disposition =
-			camel_content_disposition_decode("attachment");
+			camel_content_disposition_decode ("attachment");
 
 	camel_header_set_param (
 		&mime_part->priv->disposition->params, "filename", filename);
@@ -1433,6 +1611,31 @@ camel_mime_part_construct_from_parser_sync (CamelMimePart *mime_part,
 	return success;
 }
 
+/* Helper for camel_mime_part_construct_from_parser() */
+static void
+mime_part_construct_from_parser_thread (GTask *task,
+                                        gpointer source_object,
+                                        gpointer task_data,
+                                        GCancellable *cancellable)
+{
+	gboolean success;
+	AsyncContext *async_context;
+	GError *local_error = NULL;
+
+	async_context = (AsyncContext *) task_data;
+
+	success = camel_mime_part_construct_from_parser_sync (
+		CAMEL_MIME_PART (source_object),
+		async_context->parser,
+		cancellable, &local_error);
+
+	if (local_error != NULL) {
+		g_task_return_error (task, local_error);
+	} else {
+		g_task_return_boolean (task, success);
+	}
+}
+
 /**
  * camel_mime_part_construct_from_parser:
  * @mime_part: a #CamelMimePart
@@ -1458,17 +1661,26 @@ camel_mime_part_construct_from_parser (CamelMimePart *mime_part,
                                        GAsyncReadyCallback callback,
                                        gpointer user_data)
 {
-	CamelMimePartClass *class;
+	GTask *task;
+	AsyncContext *async_context;
 
 	g_return_if_fail (CAMEL_IS_MIME_PART (mime_part));
 	g_return_if_fail (CAMEL_IS_MIME_PARSER (parser));
 
-	class = CAMEL_MIME_PART_GET_CLASS (mime_part);
-	g_return_if_fail (class->construct_from_parser != NULL);
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->parser = g_object_ref (parser);
 
-	class->construct_from_parser (
-		mime_part, parser, io_priority,
-		cancellable, callback, user_data);
+	task = g_task_new (mime_part, cancellable, callback, user_data);
+	g_task_set_source_tag (task, camel_mime_part_construct_from_parser);
+	g_task_set_priority (task, io_priority);
+
+	g_task_set_task_data (
+		task, async_context,
+		(GDestroyNotify) async_context_free);
+
+	g_task_run_in_thread (task, mime_part_construct_from_parser_thread);
+
+	g_object_unref (task);
 }
 
 /**
@@ -1488,13 +1700,12 @@ camel_mime_part_construct_from_parser_finish (CamelMimePart *mime_part,
                                               GAsyncResult *result,
                                               GError **error)
 {
-	CamelMimePartClass *class;
-
 	g_return_val_if_fail (CAMEL_IS_MIME_PART (mime_part), FALSE);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, mime_part), FALSE);
 
-	class = CAMEL_MIME_PART_GET_CLASS (mime_part);
-	g_return_val_if_fail (class->construct_from_parser_finish != NULL, FALSE);
+	g_return_val_if_fail (
+		g_async_result_is_tagged (
+		result, camel_mime_part_construct_from_parser), FALSE);
 
-	return class->construct_from_parser_finish (mime_part, result, error);
+	return g_task_propagate_boolean (G_TASK (result), error);
 }

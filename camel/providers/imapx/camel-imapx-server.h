@@ -2,19 +2,17 @@
 /*
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_IMAPX_SERVER_H
@@ -23,7 +21,8 @@
 #include <camel/camel.h>
 
 #include "camel-imapx-command.h"
-#include "camel-imapx-stream.h"
+#include "camel-imapx-mailbox.h"
+#include "camel-imapx-namespace-response.h"
 #include "camel-imapx-store-summary.h"
 
 /* Standard GObject macros */
@@ -45,188 +44,237 @@
 	(G_TYPE_INSTANCE_GET_CLASS \
 	((obj), CAMEL_TYPE_IMAPX_SERVER, CamelIMAPXServerClass))
 
-#define IMAPX_MODE_READ (1 << 0)
-#define IMAPX_MODE_WRITE (1 << 1)
+#define CAMEL_IMAPX_SERVER_ERROR (camel_imapx_server_error_quark ())
 
 G_BEGIN_DECLS
 
+typedef enum {
+	CAMEL_IMAPX_SERVER_ERROR_CONCURRENT_CONNECT_FAILED,
+	CAMEL_IMAPX_SERVER_ERROR_TRY_RECONNECT
+} CamelIMAPXServerError;
+
+GQuark		camel_imapx_server_error_quark		(void) G_GNUC_CONST;
+
+/* Avoid a circular reference. */
+struct _CamelIMAPXStore;
+struct _CamelIMAPXSettings;
+struct _CamelIMAPXJob;
+
 typedef struct _CamelIMAPXServer CamelIMAPXServer;
 typedef struct _CamelIMAPXServerClass CamelIMAPXServerClass;
+typedef struct _CamelIMAPXServerPrivate CamelIMAPXServerPrivate;
 
-typedef struct _CamelIMAPXIdle CamelIMAPXIdle;
-struct _IMAPXJobQueueInfo;
+/* untagged response handling */
+typedef gboolean
+		(*CamelIMAPXUntaggedRespHandler)
+					(CamelIMAPXServer *server,
+					 GInputStream *input_stream,
+					 GCancellable *cancellable,
+					 GError **error);
+
+/**
+ * CamelIMAPXUntaggedRespHandlerDesc:
+ * @untagged_response: a string representation of the IMAP
+ *                     untagged response code. Must be
+ *                     all-uppercase with underscores allowed
+ *                     (see RFC 3501)
+ * @handler: an untagged response handler function for #CamelIMAPXServer
+ * @next_response: the IMAP untagged code to call a registered
+ *                 handler for directly after successfully
+ *                 running @handler. If not NULL, @skip_stream_when_done
+ *                 for the current handler has no effect
+ * @skip_stream_when_done: whether or not to skip the current IMAP
+ *                         untagged response in the #GInputStream.
+ *                         Set to TRUE if your handler does not eat
+ *                         the stream up to the next response token
+ *
+ * IMAP untagged response handler function descriptor. Use in conjunction
+ * with camel_imapx_server_register_untagged_handler() to register a new
+ * handler function for a given untagged response code
+ *
+ * Since: 3.6
+ */
+typedef struct _CamelIMAPXUntaggedRespHandlerDesc CamelIMAPXUntaggedRespHandlerDesc;
+struct _CamelIMAPXUntaggedRespHandlerDesc {
+	const gchar *untagged_response;
+	const CamelIMAPXUntaggedRespHandler handler;
+	const gchar *next_response;
+	gboolean skip_stream_when_done;
+};
 
 struct _CamelIMAPXServer {
-	CamelObject parent;
-
-	CamelStore *store;
-	CamelSession *session;
+	GObject parent;
+	CamelIMAPXServerPrivate *priv;
 
 	/* Info about the current connection */
-	CamelIMAPXStream *stream;
 	struct _capability_info *cinfo;
-	gboolean is_process_stream;
-
-	CamelIMAPXNamespaceList *nsl;
 
 	/* incoming jobs */
 	GQueue jobs;
-
-	/* in micro seconds */
-	guint job_timeout;
 
 	gchar tagprefix;
 	gint state : 4;
 
 	/* Current command/work queue.  All commands are stored in one list,
 	 * all the time, so they can be cleaned up in exception cases */
-	GStaticRecMutex queue_lock;
+	GRecMutex queue_lock;
 	CamelIMAPXCommand *literal;
 	CamelIMAPXCommandQueue *queue;
 	CamelIMAPXCommandQueue *active;
 	CamelIMAPXCommandQueue *done;
 
-	/* info on currently selected folder */
-	CamelFolder *select_folder;
-	CamelFolderChangeInfo *changes;
-	CamelFolder *select_pending;
-	guint32 permanentflags;
-	guint32 unseen;
-	guint64 uidvalidity;
-	guint64 highestmodseq;
-	guint32 uidnext;
-	guint32 exists;
-	guint32 recent;
-	guint32 mode;
-
-	/* any expunges that happened from the last command, they are
-	 * processed after the command completes. */
-	GList *expunged;
-
-	GThread *parser_thread;
-	/* Protects the output stream between parser thread (which can disconnect from server) and other threads that issue
-	 * commands. Input stream does not require a lock since only parser_thread can operate on it */
-	GStaticRecMutex ostream_lock;
-	/* Used for canceling operations as well as signaling parser thread to disconnnect/quit */
-	GCancellable *cancellable;
-	gboolean parser_quit;
-
-	/* Idle */
-	CamelIMAPXIdle *idle;
-	gboolean use_idle;
-
 	gboolean use_qresync;
-
-	/* used to synchronize duplicate get_message requests */
-	GCond *fetch_cond;
-	GMutex *fetch_mutex;
-	gint fetch_count;
 };
 
 struct _CamelIMAPXServerClass {
-	CamelObjectClass parent_class;
+	GObjectClass parent_class;
 
 	/* Signals */
-	void	(*select_changed)	(CamelIMAPXServer *is,
-					 const gchar *selected_folder);
-	void	(*shutdown)		(CamelIMAPXServer *is);
-
-	gchar tagprefix;
+	void		(*mailbox_select)	(CamelIMAPXServer *is,
+						 CamelIMAPXMailbox *mailbox);
+	void		(*mailbox_closed)	(CamelIMAPXServer *is,
+						 CamelIMAPXMailbox *mailbox);
+	void		(*shutdown)		(CamelIMAPXServer *is,
+						 const GError *error);
 };
 
 GType		camel_imapx_server_get_type	(void);
 CamelIMAPXServer *
-		camel_imapx_server_new		(CamelStore *store);
+		camel_imapx_server_new		(struct _CamelIMAPXStore *store);
+struct _CamelIMAPXStore *
+		camel_imapx_server_ref_store	(CamelIMAPXServer *is);
+struct _CamelIMAPXSettings *
+		camel_imapx_server_ref_settings	(CamelIMAPXServer *is);
+GInputStream *	camel_imapx_server_ref_input_stream
+						(CamelIMAPXServer *is);
+GOutputStream *	camel_imapx_server_ref_output_stream
+						(CamelIMAPXServer *is);
+CamelIMAPXMailbox *
+		camel_imapx_server_ref_selected	(CamelIMAPXServer *is);
 gboolean	camel_imapx_server_connect	(CamelIMAPXServer *is,
 						 GCancellable *cancellable,
 						 GError **error);
 gboolean	imapx_connect_to_server		(CamelIMAPXServer *is,
 						 GCancellable *cancellable,
 						 GError **error);
+gboolean	camel_imapx_server_is_connected	(CamelIMAPXServer *imapx_server);
 CamelAuthenticationResult
 		camel_imapx_server_authenticate	(CamelIMAPXServer *is,
 						 const gchar *mechanism,
 						 GCancellable *cancellable,
 						 GError **error);
-GPtrArray *	camel_imapx_server_list		(CamelIMAPXServer *is,
-						 const gchar *top,
-						 guint32 flags,
-						 const gchar *ext,
+void		camel_imapx_server_shutdown	(CamelIMAPXServer *is,
+						 const GError *error);
+gboolean	camel_imapx_server_list		(CamelIMAPXServer *is,
+						 const gchar *pattern,
+						 CamelStoreGetFolderInfoFlags flags,
 						 GCancellable *cancellable,
 						 GError **error);
-gboolean	camel_imapx_server_refresh_info	(CamelIMAPXServer *is,
-						 CamelFolder *folder,
+CamelFolderChangeInfo *
+		camel_imapx_server_refresh_info	(CamelIMAPXServer *is,
+						 CamelIMAPXMailbox *mailbox,
 						 GCancellable *cancellable,
 						 GError **error);
 gboolean	camel_imapx_server_sync_changes	(CamelIMAPXServer *is,
-						 CamelFolder *folder,
+						 CamelIMAPXMailbox *mailbox,
 						 GCancellable *cancellable,
 						 GError **error);
 gboolean	camel_imapx_server_expunge	(CamelIMAPXServer *is,
-						 CamelFolder *folder,
-						 GCancellable *cancellable,
-						 GError **error);
-gboolean	camel_imapx_server_fetch_messages
-						(CamelIMAPXServer *is,
-						 CamelFolder *folder,
-						 CamelFetchType type,
-						 gint limit,
+						 CamelIMAPXMailbox *mailbox,
 						 GCancellable *cancellable,
 						 GError **error);
 gboolean	camel_imapx_server_noop		(CamelIMAPXServer *is,
-						 CamelFolder *folder,
+						 CamelIMAPXMailbox *mailbox,
 						 GCancellable *cancellable,
 						 GError **error);
 CamelStream *	camel_imapx_server_get_message	(CamelIMAPXServer *is,
-						 CamelFolder *folder,
-						 const gchar *uid,
+						 CamelIMAPXMailbox *mailbox,
+						 CamelFolderSummary *summary,
+						 CamelDataCache *message_cache,
+						 const gchar *message_uid,
 						 GCancellable *cancellable,
 						 GError **error);
 gboolean	camel_imapx_server_copy_message	(CamelIMAPXServer *is,
-						 CamelFolder *source,
-						 CamelFolder *dest,
+						 CamelIMAPXMailbox *mailbox,
+						 CamelIMAPXMailbox *destination,
 						 GPtrArray *uids,
 						 gboolean delete_originals,
 						 GCancellable *cancellable,
 						 GError **error);
 gboolean	camel_imapx_server_append_message
 						(CamelIMAPXServer *is,
-						 CamelFolder *folder,
+						 CamelIMAPXMailbox *mailbox,
+						 CamelFolderSummary *summary,
+						 CamelDataCache *message_cache,
 						 CamelMimeMessage *message,
 						 const CamelMessageInfo *mi,
+						 gchar **append_uid,
 						 GCancellable *cancellable,
 						 GError **error);
 gboolean	camel_imapx_server_sync_message	(CamelIMAPXServer *is,
-						 CamelFolder *folder,
-						 const gchar *uid,
+						 CamelIMAPXMailbox *mailbox,
+						 CamelFolderSummary *summary,
+						 CamelDataCache *message_cache,
+						 const gchar *message_uid,
 						 GCancellable *cancellable,
 						 GError **error);
-gboolean	camel_imapx_server_manage_subscription
+gboolean	camel_imapx_server_create_mailbox
 						(CamelIMAPXServer *is,
-						 const gchar *folder_name,
-						 gboolean subscribe,
+						 const gchar *mailbox_name,
 						 GCancellable *cancellable,
 						 GError **error);
-gboolean	camel_imapx_server_create_folder
+gboolean	camel_imapx_server_delete_mailbox
 						(CamelIMAPXServer *is,
-						 const gchar *folder_name,
+						 CamelIMAPXMailbox *mailbox,
 						 GCancellable *cancellable,
 						 GError **error);
-gboolean	camel_imapx_server_delete_folder
+gboolean	camel_imapx_server_rename_mailbox
 						(CamelIMAPXServer *is,
-						 const gchar *folder_name,
+						 CamelIMAPXMailbox *mailbox,
+						 const gchar *new_mailbox_name,
 						 GCancellable *cancellable,
 						 GError **error);
-gboolean	camel_imapx_server_rename_folder
+gboolean	camel_imapx_server_subscribe_mailbox
 						(CamelIMAPXServer *is,
-						 const gchar *old_name,
-						 const gchar *new_name,
+						 CamelIMAPXMailbox *mailbox,
 						 GCancellable *cancellable,
 						 GError **error);
-struct _IMAPXJobQueueInfo *
-		camel_imapx_server_get_job_queue_info
-						(CamelIMAPXServer *is);
+gboolean	camel_imapx_server_unsubscribe_mailbox
+						(CamelIMAPXServer *is,
+						 CamelIMAPXMailbox *mailbox,
+						 GCancellable *cancellable,
+						 GError **error);
+gboolean	camel_imapx_server_update_quota_info
+						(CamelIMAPXServer *is,
+						 CamelIMAPXMailbox *mailbox,
+						 GCancellable *cancellable,
+						 GError **error);
+GPtrArray *	camel_imapx_server_uid_search	(CamelIMAPXServer *is,
+						 CamelIMAPXMailbox *mailbox,
+						 const gchar *criteria,
+						 GCancellable *cancellable,
+						 GError **error);
+gboolean	camel_imapx_server_folder_name_in_jobs
+						(CamelIMAPXServer *imapx_server,
+						 const gchar *folder_path);
+gboolean	camel_imapx_server_has_expensive_command
+						(CamelIMAPXServer *imapx_server);
+gint		camel_imapx_server_get_command_count
+						(CamelIMAPXServer *imapx_server);
+const CamelIMAPXUntaggedRespHandlerDesc *
+		camel_imapx_server_register_untagged_handler
+						(CamelIMAPXServer *is,
+						 const gchar *untagged_response,
+						 const CamelIMAPXUntaggedRespHandlerDesc *desc);
+struct _CamelIMAPXJob *
+		camel_imapx_server_ref_job	(CamelIMAPXServer *imapx_server,
+						 CamelIMAPXMailbox *mailbox,
+						 guint32 job_type,
+						 const gchar *uid);
 
+/* for debugging purposes only */
+void		camel_imapx_server_dump_queue_status
+						(CamelIMAPXServer *imapx_server);
 G_END_DECLS
 
 #endif /* CAMEL_IMAPX_SERVER_H */

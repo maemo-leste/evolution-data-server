@@ -5,19 +5,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /* Should this be a subclass of multipart?
@@ -61,41 +59,30 @@ enum {
 };
 
 typedef struct _CamelMultipartSigned CamelMultipartSigned;
+typedef struct _CamelMultipartSignedClass CamelMultipartSignedClass;
+typedef struct _CamelMultipartSignedPrivate CamelMultipartSignedPrivate;
 
-struct _CamelMultipartSigned
-{
+struct _CamelMultipartSigned {
 	CamelMultipart parent;
-
-	/* these are the client visible parts, decoded forms of our data wrapper content */
-	CamelMimePart *content;
-	CamelMimePart *signature;
-
-	/* the raw content which must go over the wire, if we have generated it */
-	/* perhaps this should jsut set data_wrapper->stream and update start1/end1 accordingly, as it is done
-	 * for other parts, or visa versa? */
-	CamelStream *contentraw;
-
-	/*int state;*/
-
-	/* just cache some info we use */
-	gchar *protocol;
-	gchar *micalg;
-
-	/* offset pointers of start of boundary in content object */
-	goffset start1, end1;
-	goffset start2, end2;
+	CamelMultipartSignedPrivate *priv;
 };
 
-typedef struct {
+struct _CamelMultipartSignedClass {
 	CamelMultipartClass parent_class;
-} CamelMultipartSignedClass;
+};
 
-GType camel_multipart_signed_get_type (void);
-
-/* public methods */
-CamelMultipartSigned *camel_multipart_signed_new           (void);
-
-CamelStream *camel_multipart_signed_get_content_stream (CamelMultipartSigned *mps, GError **error);
+GType		camel_multipart_signed_get_type (void) G_GNUC_CONST;
+CamelMultipartSigned *
+		camel_multipart_signed_new	(void);
+CamelStream *	camel_multipart_signed_get_content_stream
+						(CamelMultipartSigned *mps,
+						 GError **error);
+void		camel_multipart_signed_set_content_stream
+						(CamelMultipartSigned *mps,
+						 CamelStream *content_stream);
+void		camel_multipart_signed_set_signature
+						(CamelMultipartSigned *mps,
+						 CamelMimePart *signature);
 
 G_END_DECLS
 

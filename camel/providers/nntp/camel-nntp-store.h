@@ -5,19 +5,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_NNTP_STORE_H
@@ -47,15 +45,6 @@
 	(G_TYPE_INSTANCE_GET_CLASS \
 	((obj), CAMEL_TYPE_NNTP_STORE, CamelNNTPStoreClass))
 
-#define CAMEL_NNTP_EXT_SEARCH     (1 << 0)
-#define CAMEL_NNTP_EXT_SETGET     (1 << 1)
-#define CAMEL_NNTP_EXT_OVER       (1 << 2)
-#define CAMEL_NNTP_EXT_XPATTEXT   (1 << 3)
-#define CAMEL_NNTP_EXT_XACTIVE    (1 << 4)
-#define CAMEL_NNTP_EXT_LISTMOTD   (1 << 5)
-#define CAMEL_NNTP_EXT_LISTSUBSCR (1 << 6)
-#define CAMEL_NNTP_EXT_LISTPNAMES (1 << 7)
-
 G_BEGIN_DECLS
 
 struct _CamelNNTPFolder;
@@ -79,56 +68,63 @@ struct _xover_header {
 };
 
 /* names of supported capabilities on the server */
-enum nntp_capabilities {
-	NNTP_CAPABILITY_OVER = (1 << 0)  /* supports OVER command */
-};
+typedef enum {
+	CAMEL_NNTP_CAPABILITY_OVER = 1 << 0  /* supports OVER command */
+} CamelNNTPCapabilities;
 
 struct _CamelNNTPStore {
-	CamelDiscoStore parent;
+	CamelOfflineStore parent;
 	CamelNNTPStorePrivate *priv;
 
-	guint32 extensions;
-
-	guint posting_allowed : 1;
-	gboolean password_reprompt;
-
-	struct _CamelNNTPStoreSummary *summary;
-
-	struct _CamelNNTPStream *stream;
-	struct _CamelStreamMem *mem;
-
-	struct _CamelDataCache *cache;
-
-	gchar *current_folder;
-
 	struct _xover_header *xover;
-	guint32 capabilities; /* bit-or of nntp_capabilities */
 };
 
 struct _CamelNNTPStoreClass {
-	CamelDiscoStoreClass parent_class;
+	CamelOfflineStoreClass parent_class;
 };
 
 GType		camel_nntp_store_get_type	(void);
-gint		camel_nntp_raw_commandv		(CamelNNTPStore *store,
+CamelDataCache *
+		camel_nntp_store_ref_cache	(CamelNNTPStore *nntp_store);
+CamelNNTPStream *
+		camel_nntp_store_ref_stream	(CamelNNTPStore *nntp_store);
+CamelNNTPStoreSummary *
+		camel_nntp_store_ref_summary	(CamelNNTPStore *nntp_store);
+const gchar *	camel_nntp_store_get_current_group
+						(CamelNNTPStore *nntp_store);
+gchar *		camel_nntp_store_dup_current_group
+						(CamelNNTPStore *nntp_store);
+void		camel_nntp_store_set_current_group
+						(CamelNNTPStore *nntp_store,
+						 const gchar *current_group);
+void		camel_nntp_store_add_capabilities
+						(CamelNNTPStore *nntp_store,
+						 CamelNNTPCapabilities caps);
+gboolean	camel_nntp_store_has_capabilities
+						(CamelNNTPStore *nntp_store,
+						 CamelNNTPCapabilities caps);
+void		camel_nntp_store_remove_capabilities
+						(CamelNNTPStore *nntp_store,
+						 CamelNNTPCapabilities caps);
+gint		camel_nntp_raw_commandv		(CamelNNTPStore *nntp_store,
 						 GCancellable *cancellable,
 						 GError **error,
 						 gchar **line,
 						 const gchar *fmt,
 						 va_list ap);
-gint		camel_nntp_raw_command		(CamelNNTPStore *store,
+gint		camel_nntp_raw_command		(CamelNNTPStore *nntp_store,
 						 GCancellable *cancellable,
 						 GError **error,
 						 gchar **line,
 						 const gchar *fmt,
 						 ...);
-gint		camel_nntp_raw_command_auth	(CamelNNTPStore *store,
+gint		camel_nntp_raw_command_auth	(CamelNNTPStore *nntp_store,
 						 GCancellable *cancellable,
 						 GError **error,
 						 gchar **line,
 						 const gchar *fmt,
 						 ...);
-gint		camel_nntp_command		(CamelNNTPStore *store,
+gint		camel_nntp_command		(CamelNNTPStore *nntp_store,
 						 GCancellable *cancellable,
 						 GError **error,
 						 struct _CamelNNTPFolder *folder,

@@ -1,23 +1,39 @@
 /*
  * e-client.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  *
  * Copyright (C) 2011 Red Hat, Inc. (www.redhat.com)
  *
  */
+
+/* TODO The next time we have a good excuse to break libedataserver's API,
+ *      I'd like to purge all the deprecated cruft here and convert EClient
+ *      from a GObjectClass to a GTypeInterface, implemented by EBookClient
+ *      and ECalClient.  Then we could just bind the "online", "readonly"
+ *      and "capabilities" properties to equivalent GDBusProxy properties
+ *      and kill e-client-private.h.  Would simplify things.  --mbarnes
+ */
+
+/**
+ * SECTION: e-client
+ * @include: libedataserver/libedataserver.h
+ * @short_description: Base class for client handles
+ *
+ * This class provides some base functionality for clients
+ * such as #EBookClient and #ECalClient.
+ **/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -28,8 +44,6 @@
 
 #include <libedataserver/e-data-server-util.h>
 
-#include "e-gdbus-marshallers.h"
-
 #include "e-client.h"
 #include "e-client-private.h"
 
@@ -37,35 +51,36 @@
 	(G_TYPE_INSTANCE_GET_PRIVATE \
 	((obj), E_TYPE_CLIENT, EClientPrivate))
 
+typedef struct _AsyncContext AsyncContext;
+
 struct _EClientPrivate {
-	GStaticRecMutex prop_mutex;
+	GRecMutex prop_mutex;
 
 	ESource *source;
-	gchar *uri;
 	gboolean online;
 	gboolean readonly;
-	gboolean opened;
-	gboolean capabilities_retrieved;
 	GSList *capabilities;
+	GMainContext *main_context;
+};
 
-	GHashTable *backend_property_cache;
-
-	GStaticRecMutex ops_mutex;
-	guint32 last_opid;
-	GHashTable *ops; /* opid to GCancellable */
+struct _AsyncContext {
+	gchar *capabilities;
+	gchar *prop_name;
+	gchar *prop_value;
+	gboolean only_if_exists;
 };
 
 enum {
 	PROP_0,
-	PROP_SOURCE,
 	PROP_CAPABILITIES,
-	PROP_READONLY,
+	PROP_MAIN_CONTEXT,
 	PROP_ONLINE,
-	PROP_OPENED
+	PROP_OPENED,
+	PROP_READONLY,
+	PROP_SOURCE
 };
 
 enum {
-	AUTHENTICATE,
 	OPENED,
 	BACKEND_ERROR,
 	BACKEND_DIED,
@@ -77,7 +92,17 @@ static guint signals[LAST_SIGNAL];
 
 G_DEFINE_ABSTRACT_TYPE (EClient, e_client, G_TYPE_OBJECT)
 
-/**
+static void
+async_context_free (AsyncContext *async_context)
+{
+	g_free (async_context->capabilities);
+	g_free (async_context->prop_name);
+	g_free (async_context->prop_value);
+
+	g_slice_free (AsyncContext, async_context);
+}
+
+/*
  * Well-known client backend properties, which are common for each #EClient:
  * @CLIENT_BACKEND_PROPERTY_OPENED: Is set to "TRUE" or "FALSE" depending
  *   whether the backend is fully opened.
@@ -93,18 +118,9 @@ G_DEFINE_ABSTRACT_TYPE (EClient, e_client, G_TYPE_OBJECT)
  *   of	capabilities supported by the backend. Preferred method of retreiving
  *   and working with capabilities is e_client_get_capabilities() and
  *   e_client_check_capability().
- **/
+ */
 
-GQuark
-e_client_error_quark (void)
-{
-	static GQuark q = 0;
-
-	if (q == 0)
-		q = g_quark_from_static_string ("e-client-error-quark");
-
-	return q;
-}
+G_DEFINE_QUARK (e-client-error-quark, e_client_error)
 
 /**
  * e_client_error_to_string:
@@ -132,8 +148,9 @@ e_client_error_to_string (EClientError code)
 	case E_CLIENT_ERROR_REPOSITORY_OFFLINE:
 		return _("Repository offline");
 	case E_CLIENT_ERROR_OFFLINE_UNAVAILABLE:
-		/* Translators: This means that the EClient does not support offline mode, or
-		   it's not set to by a user, thus it is unavailable while user is not connected. */
+		/* Translators: This means that the EClient does not
+		 * support offline mode, or it's not set to by a user,
+		 * thus it is unavailable while user is not connected. */
 		return _("Offline unavailable");
 	case E_CLIENT_ERROR_PERMISSION_DENIED:
 		return _("Permission denied");
@@ -161,6 +178,8 @@ e_client_error_to_string (EClientError code)
 		return _("Other error");
 	case E_CLIENT_ERROR_NOT_OPENED:
 		return _("Backend is not opened yet");
+	case E_CLIENT_ERROR_OUT_OF_SYNC:
+		return _("Object is out of sync");
 	}
 
 	return _("Unknown error");
@@ -179,93 +198,27 @@ e_client_error_to_string (EClientError code)
  * Returned pointer should be freed with g_error_free().
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Just use the #GError API directly.
  **/
 GError *
 e_client_error_create (EClientError code,
                        const gchar *custom_msg)
 {
-	return g_error_new_literal (E_CLIENT_ERROR, code, custom_msg ? custom_msg : e_client_error_to_string (code));
-}
+	if (custom_msg == NULL)
+		custom_msg = e_client_error_to_string (code);
 
-static void client_set_source (EClient *client, ESource *source);
-static void client_handle_authentication (EClient *client, const ECredentials *credentials);
-
-static void
-e_client_init (EClient *client)
-{
-	client->priv = E_CLIENT_GET_PRIVATE (client);
-
-	client->priv->readonly = TRUE;
-
-	g_static_rec_mutex_init (&client->priv->prop_mutex);
-	client->priv->backend_property_cache = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-
-	g_static_rec_mutex_init (&client->priv->ops_mutex);
-	client->priv->last_opid = 0;
-	client->priv->ops = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, g_object_unref);
+	return g_error_new_literal (E_CLIENT_ERROR, code, custom_msg);
 }
 
 static void
-client_dispose (GObject *object)
+client_set_source (EClient *client,
+                   ESource *source)
 {
-	EClient *client;
+	g_return_if_fail (E_IS_SOURCE (source));
+	g_return_if_fail (client->priv->source == NULL);
 
-	client = E_CLIENT (object);
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (client->priv != NULL);
-
-	e_client_cancel_all (client);
-
-	/* Chain up to parent's dispose() method. */
-	G_OBJECT_CLASS (e_client_parent_class)->dispose (object);
-}
-
-static void
-client_finalize (GObject *object)
-{
-	EClient *client;
-	EClientPrivate *priv;
-
-	client = E_CLIENT (object);
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (client->priv != NULL);
-
-	priv = client->priv;
-
-	g_static_rec_mutex_lock (&priv->prop_mutex);
-
-	if (priv->source) {
-		g_object_unref (priv->source);
-		priv->source = NULL;
-	}
-
-	if (priv->uri) {
-		g_free (priv->uri);
-		priv->uri = NULL;
-	}
-
-	if (priv->capabilities) {
-		g_slist_foreach (priv->capabilities, (GFunc) g_free, NULL);
-		g_slist_free (priv->capabilities);
-		priv->capabilities = NULL;
-	}
-
-	if (priv->backend_property_cache) {
-		g_hash_table_destroy (priv->backend_property_cache);
-		priv->backend_property_cache = NULL;
-	}
-
-	if (priv->ops) {
-		g_hash_table_destroy (priv->ops);
-		priv->ops = NULL;
-	}
-
-	g_static_rec_mutex_unlock (&priv->prop_mutex);
-	g_static_rec_mutex_free (&priv->prop_mutex);
-	g_static_rec_mutex_free (&priv->ops_mutex);
-
-	/* Chain up to parent's finalize() method. */
-	G_OBJECT_CLASS (e_client_parent_class)->finalize (object);
+	client->priv->source = g_object_ref (source);
 }
 
 static void
@@ -275,12 +228,16 @@ client_set_property (GObject *object,
                      GParamSpec *pspec)
 {
 	switch (property_id) {
-		case PROP_SOURCE:
-			client_set_source (E_CLIENT (object), g_value_get_object (value));
+		case PROP_ONLINE:
+			e_client_set_online (
+				E_CLIENT (object),
+				g_value_get_boolean (value));
 			return;
 
-		case PROP_ONLINE:
-			e_client_set_online (E_CLIENT (object), g_value_get_boolean (value));
+		case PROP_SOURCE:
+			client_set_source (
+				E_CLIENT (object),
+				g_value_get_object (value));
 			return;
 	}
 
@@ -294,28 +251,513 @@ client_get_property (GObject *object,
                      GParamSpec *pspec)
 {
 	switch (property_id) {
-		case PROP_SOURCE:
-			g_value_set_object (value, e_client_get_source (E_CLIENT (object)));
-			return;
-
 		case PROP_CAPABILITIES:
-			g_value_set_pointer (value, (gpointer) e_client_get_capabilities (E_CLIENT (object)));
+			g_value_set_pointer (
+				value,
+				(gpointer) e_client_get_capabilities (
+				E_CLIENT (object)));
 			return;
 
-		case PROP_READONLY:
-			g_value_set_boolean (value, e_client_is_readonly (E_CLIENT (object)));
+		case PROP_MAIN_CONTEXT:
+			g_value_take_boxed (
+				value,
+				e_client_ref_main_context (
+				E_CLIENT (object)));
 			return;
 
 		case PROP_ONLINE:
-			g_value_set_boolean (value, e_client_is_online (E_CLIENT (object)));
+			g_value_set_boolean (
+				value,
+				e_client_is_online (
+				E_CLIENT (object)));
 			return;
 
 		case PROP_OPENED:
-			g_value_set_boolean (value, e_client_is_opened (E_CLIENT (object)));
+			g_value_set_boolean (
+				value,
+				e_client_is_opened (
+				E_CLIENT (object)));
+			return;
+
+		case PROP_READONLY:
+			g_value_set_boolean (
+				value,
+				e_client_is_readonly (
+				E_CLIENT (object)));
+			return;
+
+		case PROP_SOURCE:
+			g_value_set_object (
+				value,
+				e_client_get_source (
+				E_CLIENT (object)));
 			return;
 	}
 
 	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+}
+
+static void
+client_dispose (GObject *object)
+{
+	EClientPrivate *priv;
+
+	priv = E_CLIENT_GET_PRIVATE (object);
+
+	if (priv->main_context != NULL) {
+		g_main_context_unref (priv->main_context);
+		priv->main_context = NULL;
+	}
+
+	g_clear_object (&priv->source);
+
+	/* Chain up to parent's dispose() method. */
+	G_OBJECT_CLASS (e_client_parent_class)->dispose (object);
+}
+
+static void
+client_finalize (GObject *object)
+{
+	EClientPrivate *priv;
+
+	priv = E_CLIENT_GET_PRIVATE (object);
+
+	g_slist_free_full (priv->capabilities, (GDestroyNotify) g_free);
+
+	g_rec_mutex_clear (&priv->prop_mutex);
+
+	/* Chain up to parent's finalize() method. */
+	G_OBJECT_CLASS (e_client_parent_class)->finalize (object);
+}
+
+static void
+client_unwrap_dbus_error (EClient *client,
+                          GError *dbus_error,
+                          GError **out_error)
+{
+	/* This method is deprecated.  Make it a no-op. */
+
+	if (out_error != NULL)
+		*out_error = dbus_error;
+}
+
+/* Helper for client_retrieve_capabilities() */
+static void
+client_retrieve_capabilities_thread (GSimpleAsyncResult *simple,
+                                     GObject *source_object,
+                                     GCancellable *cancellable)
+{
+	AsyncContext *async_context;
+	GError *error = NULL;
+
+	async_context = g_simple_async_result_get_op_res_gpointer (simple);
+
+	e_client_retrieve_capabilities_sync (
+		E_CLIENT (source_object),
+		&async_context->capabilities,
+		cancellable, &error);
+
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
+}
+
+static void
+client_retrieve_capabilities (EClient *client,
+                              GCancellable *cancellable,
+                              GAsyncReadyCallback callback,
+                              gpointer user_data)
+{
+	GSimpleAsyncResult *simple;
+	AsyncContext *async_context;
+
+	async_context = g_slice_new0 (AsyncContext);
+
+	simple = g_simple_async_result_new (
+		G_OBJECT (client), callback,
+		user_data, client_retrieve_capabilities);
+
+	g_simple_async_result_set_check_cancellable (simple, cancellable);
+
+	g_simple_async_result_set_op_res_gpointer (
+		simple, async_context, (GDestroyNotify) async_context_free);
+
+	g_simple_async_result_run_in_thread (
+		simple, client_retrieve_capabilities_thread,
+		G_PRIORITY_DEFAULT, cancellable);
+
+	g_object_unref (simple);
+}
+
+static gboolean
+client_retrieve_capabilities_finish (EClient *client,
+                                     GAsyncResult *result,
+                                     gchar **capabilities,
+                                     GError **error)
+{
+	GSimpleAsyncResult *simple;
+	AsyncContext *async_context;
+
+	g_return_val_if_fail (
+		g_simple_async_result_is_valid (
+		result, G_OBJECT (client),
+		client_retrieve_capabilities), FALSE);
+
+	simple = G_SIMPLE_ASYNC_RESULT (result);
+	async_context = g_simple_async_result_get_op_res_gpointer (simple);
+
+	if (g_simple_async_result_propagate_error (simple, error))
+		return FALSE;
+
+	g_return_val_if_fail (async_context->capabilities != NULL, FALSE);
+
+	if (capabilities != NULL) {
+		*capabilities = async_context->capabilities;
+		async_context->capabilities = NULL;
+	}
+
+	return TRUE;
+}
+
+static gboolean
+client_retrieve_capabilities_sync (EClient *client,
+                                   gchar **capabilities,
+                                   GCancellable *cancellable,
+                                   GError **error)
+{
+	return e_client_get_backend_property_sync (
+		client, CLIENT_BACKEND_PROPERTY_CAPABILITIES,
+		capabilities, cancellable, error);
+}
+
+/* Helper for client_get_backend_property() */
+static void
+client_get_backend_property_thread (GSimpleAsyncResult *simple,
+                                    GObject *source_object,
+                                    GCancellable *cancellable)
+{
+	AsyncContext *async_context;
+	GError *error = NULL;
+
+	async_context = g_simple_async_result_get_op_res_gpointer (simple);
+
+	e_client_get_backend_property_sync (
+		E_CLIENT (source_object),
+		async_context->prop_name,
+		&async_context->prop_value,
+		cancellable, &error);
+
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
+}
+
+static void
+client_get_backend_property (EClient *client,
+                             const gchar *prop_name,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
+{
+	GSimpleAsyncResult *simple;
+	AsyncContext *async_context;
+
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->prop_name = g_strdup (prop_name);
+
+	simple = g_simple_async_result_new (
+		G_OBJECT (client), callback,
+		user_data, client_get_backend_property);
+
+	g_simple_async_result_set_check_cancellable (simple, cancellable);
+
+	g_simple_async_result_set_op_res_gpointer (
+		simple, async_context, (GDestroyNotify) async_context_free);
+
+	g_simple_async_result_run_in_thread (
+		simple, client_get_backend_property_thread,
+		G_PRIORITY_DEFAULT, cancellable);
+
+	g_object_unref (simple);
+}
+
+static gboolean
+client_get_backend_property_finish (EClient *client,
+                                    GAsyncResult *result,
+                                    gchar **prop_value,
+                                    GError **error)
+{
+	GSimpleAsyncResult *simple;
+	AsyncContext *async_context;
+
+	g_return_val_if_fail (
+		g_simple_async_result_is_valid (
+		result, G_OBJECT (client),
+		client_get_backend_property), FALSE);
+
+	simple = G_SIMPLE_ASYNC_RESULT (result);
+	async_context = g_simple_async_result_get_op_res_gpointer (simple);
+
+	if (g_simple_async_result_propagate_error (simple, error))
+		return FALSE;
+
+	g_return_val_if_fail (async_context->prop_value != NULL, FALSE);
+
+	if (prop_value != NULL) {
+		*prop_value = async_context->prop_value;
+		async_context->prop_value = NULL;
+	}
+
+	return TRUE;
+}
+
+/* Helper for client_set_backend_property() */
+static void
+client_set_backend_property_thread (GSimpleAsyncResult *simple,
+                                    GObject *source_object,
+                                    GCancellable *cancellable)
+{
+	AsyncContext *async_context;
+	GError *error = NULL;
+
+	async_context = g_simple_async_result_get_op_res_gpointer (simple);
+
+	e_client_set_backend_property_sync (
+		E_CLIENT (source_object),
+		async_context->prop_name,
+		async_context->prop_value,
+		cancellable, &error);
+
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
+}
+
+static void
+client_set_backend_property (EClient *client,
+                             const gchar *prop_name,
+                             const gchar *prop_value,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
+{
+	GSimpleAsyncResult *simple;
+	AsyncContext *async_context;
+
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->prop_name = g_strdup (prop_name);
+	async_context->prop_value = g_strdup (prop_value);
+
+	simple = g_simple_async_result_new (
+		G_OBJECT (client), callback,
+		user_data, client_set_backend_property);
+
+	g_simple_async_result_set_check_cancellable (simple, cancellable);
+
+	g_simple_async_result_set_op_res_gpointer (
+		simple, async_context, (GDestroyNotify) async_context_free);
+
+	g_simple_async_result_run_in_thread (
+		simple, client_set_backend_property_thread,
+		G_PRIORITY_DEFAULT, cancellable);
+
+	g_object_unref (simple);
+}
+
+static gboolean
+client_set_backend_property_finish (EClient *client,
+                                    GAsyncResult *result,
+                                    GError **error)
+{
+	GSimpleAsyncResult *simple;
+
+	g_return_val_if_fail (
+		g_simple_async_result_is_valid (
+		result, G_OBJECT (client),
+		client_set_backend_property), FALSE);
+
+	simple = G_SIMPLE_ASYNC_RESULT (result);
+
+	/* Assume success unless a GError is set. */
+	return !g_simple_async_result_propagate_error (simple, error);
+}
+
+/* Helper for client_open() */
+static void
+client_open_thread (GSimpleAsyncResult *simple,
+                    GObject *source_object,
+                    GCancellable *cancellable)
+{
+	AsyncContext *async_context;
+	GError *error = NULL;
+
+	async_context = g_simple_async_result_get_op_res_gpointer (simple);
+
+	e_client_open_sync (
+		E_CLIENT (source_object),
+		async_context->only_if_exists,
+		cancellable, &error);
+
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
+}
+
+static void
+client_open (EClient *client,
+             gboolean only_if_exists,
+             GCancellable *cancellable,
+             GAsyncReadyCallback callback,
+             gpointer user_data)
+{
+	GSimpleAsyncResult *simple;
+	AsyncContext *async_context;
+
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->only_if_exists = only_if_exists;
+
+	simple = g_simple_async_result_new (
+		G_OBJECT (client), callback, user_data, client_open);
+
+	g_simple_async_result_set_check_cancellable (simple, cancellable);
+
+	g_simple_async_result_set_op_res_gpointer (
+		simple, async_context, (GDestroyNotify) async_context_free);
+
+	g_simple_async_result_run_in_thread (
+		simple, client_open_thread,
+		G_PRIORITY_DEFAULT, cancellable);
+
+	g_object_unref (simple);
+}
+
+static gboolean
+client_open_finish (EClient *client,
+                    GAsyncResult *result,
+                    GError **error)
+{
+	GSimpleAsyncResult *simple;
+
+	g_return_val_if_fail (
+		g_simple_async_result_is_valid (
+		result, G_OBJECT (client), client_open), FALSE);
+
+	simple = G_SIMPLE_ASYNC_RESULT (result);
+
+	/* Assume success unless a GError is set. */
+	return !g_simple_async_result_propagate_error (simple, error);
+}
+
+/* Helper for client_remove() */
+static void
+client_remove_thread (GSimpleAsyncResult *simple,
+                      GObject *source_object,
+                      GCancellable *cancellable)
+{
+	GError *error = NULL;
+
+	e_client_remove_sync (
+		E_CLIENT (source_object), cancellable, &error);
+
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
+}
+
+static void
+client_remove (EClient *client,
+               GCancellable *cancellable,
+               GAsyncReadyCallback callback,
+               gpointer user_data)
+{
+	GSimpleAsyncResult *simple;
+
+	simple = g_simple_async_result_new (
+		G_OBJECT (client), callback, user_data, client_remove);
+
+	g_simple_async_result_set_check_cancellable (simple, cancellable);
+
+	g_simple_async_result_run_in_thread (
+		simple, client_remove_thread,
+		G_PRIORITY_DEFAULT, cancellable);
+
+	g_object_unref (simple);
+}
+
+static gboolean
+client_remove_finish (EClient *client,
+                      GAsyncResult *result,
+                      GError **error)
+{
+	GSimpleAsyncResult *simple;
+
+	g_return_val_if_fail (
+		g_simple_async_result_is_valid (
+		result, G_OBJECT (client), client_remove), FALSE);
+
+	simple = G_SIMPLE_ASYNC_RESULT (result);
+
+	/* Assume success unless a GError is set. */
+	return !g_simple_async_result_propagate_error (simple, error);
+}
+
+static gboolean
+client_remove_sync (EClient *client,
+                    GCancellable *cancellable,
+                    GError **error)
+{
+	ESource *source;
+
+	source = e_client_get_source (client);
+
+	return e_source_remove_sync (source, cancellable, error);
+}
+
+/* Helper for client_refresh() */
+static void
+client_refresh_thread (GSimpleAsyncResult *simple,
+                       GObject *source_object,
+                       GCancellable *cancellable)
+{
+	GError *error = NULL;
+
+	e_client_refresh_sync (
+		E_CLIENT (source_object), cancellable, &error);
+
+	if (error != NULL)
+		g_simple_async_result_take_error (simple, error);
+}
+
+static void
+client_refresh (EClient *client,
+                GCancellable *cancellable,
+                GAsyncReadyCallback callback,
+                gpointer user_data)
+{
+	GSimpleAsyncResult *simple;
+
+	simple = g_simple_async_result_new (
+		G_OBJECT (client), callback, user_data, client_refresh);
+
+	g_simple_async_result_set_check_cancellable (simple, cancellable);
+
+	g_simple_async_result_run_in_thread (
+		simple, client_refresh_thread,
+		G_PRIORITY_DEFAULT, cancellable);
+
+	g_object_unref (simple);
+}
+
+static gboolean
+client_refresh_finish (EClient *client,
+                       GAsyncResult *result,
+                       GError **error)
+{
+	GSimpleAsyncResult *simple;
+
+	g_return_val_if_fail (
+		g_simple_async_result_is_valid (
+		result, G_OBJECT (client), client_refresh), FALSE);
+
+	simple = G_SIMPLE_ASYNC_RESULT (result);
+
+	/* Assume success unless a GError is set. */
+	return !g_simple_async_result_propagate_error (simple, error);
 }
 
 static void
@@ -331,72 +773,136 @@ e_client_class_init (EClientClass *class)
 	object_class->dispose = client_dispose;
 	object_class->finalize = client_finalize;
 
-	g_object_class_install_property (
-		object_class,
-		PROP_SOURCE,
-		g_param_spec_object (
-			"source",
-			NULL,
-			NULL,
-			E_TYPE_SOURCE,
-			G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+	class->unwrap_dbus_error = client_unwrap_dbus_error;
+	class->retrieve_capabilities = client_retrieve_capabilities;
+	class->retrieve_capabilities_finish = client_retrieve_capabilities_finish;
+	class->retrieve_capabilities_sync = client_retrieve_capabilities_sync;
+	class->get_backend_property = client_get_backend_property;
+	class->get_backend_property_finish = client_get_backend_property_finish;
+	class->set_backend_property = client_set_backend_property;
+	class->set_backend_property_finish = client_set_backend_property_finish;
+	class->open = client_open;
+	class->open_finish = client_open_finish;
+	class->remove = client_remove;
+	class->remove_finish = client_remove_finish;
+	class->remove_sync = client_remove_sync;
+	class->refresh = client_refresh;
+	class->refresh_finish = client_refresh_finish;
 
+	/**
+	 * EClient:capabilities:
+	 *
+	 * The capabilities of this client
+	 */
 	g_object_class_install_property (
 		object_class,
 		PROP_CAPABILITIES,
 		g_param_spec_pointer (
 			"capabilities",
-			NULL,
-			NULL,
-			G_PARAM_READABLE));
+			"Capabilities",
+			"The capabilities of this client",
+			G_PARAM_READABLE |
+			G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * EClient:main-context:
+	 *
+	 * The main loop context in which notifications for
+	 * this client will be delivered.
+	 */
 	g_object_class_install_property (
 		object_class,
-		PROP_READONLY,
-		g_param_spec_boolean (
-			"readonly",
-			NULL,
-			NULL,
-			FALSE,
-			G_PARAM_READABLE));
+		PROP_MAIN_CONTEXT,
+		g_param_spec_boxed (
+			"main-context",
+			"Main Context",
+			"The main loop context on "
+			"which to attach event sources",
+			G_TYPE_MAIN_CONTEXT,
+			G_PARAM_READABLE |
+			G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * EClient:online:
+	 *
+	 * Whether this client's backing data is online.
+	 */
 	g_object_class_install_property (
 		object_class,
 		PROP_ONLINE,
 		g_param_spec_boolean (
 			"online",
-			NULL,
-			NULL,
+			"Online",
+			"Whether this client is online",
 			FALSE,
-			G_PARAM_READWRITE));
+			G_PARAM_READWRITE |
+			G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * EClient:opened:
+	 *
+	 * Whether this client is open and ready to use.
+	 *
+	 * Deprecated: 3.8: This property is no longer relevant and
+	 * will always be %TRUE after successfully creating any concrete
+	 * type of #EClient.
+	 */
 	g_object_class_install_property (
 		object_class,
 		PROP_OPENED,
 		g_param_spec_boolean (
 			"opened",
-			NULL,
-			NULL,
+			"Opened",
+			"Whether this client is open and ready to use",
 			FALSE,
-			G_PARAM_READABLE));
+			G_PARAM_READABLE |
+			G_PARAM_STATIC_STRINGS));
 
-	signals[AUTHENTICATE] = g_signal_new (
-		"authenticate",
-		G_OBJECT_CLASS_TYPE (class),
-		G_SIGNAL_RUN_LAST,
-		G_STRUCT_OFFSET (EClientClass, authenticate),
-		NULL, NULL,
-		e_gdbus_marshallers_BOOLEAN__POINTER,
-		G_TYPE_BOOLEAN, 1,
-		G_TYPE_POINTER);
+	/**
+	 * EClient:readonly:
+	 *
+	 * Whether this client's backing data is readonly.
+	 */
+	g_object_class_install_property (
+		object_class,
+		PROP_READONLY,
+		g_param_spec_boolean (
+			"readonly",
+			"Read only",
+			"Whether this client's backing data is readonly",
+			FALSE,
+			G_PARAM_READABLE |
+			G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * EClient:source:
+	 *
+	 * The #ESource for which this client was created.
+	 */
+	g_object_class_install_property (
+		object_class,
+		PROP_SOURCE,
+		g_param_spec_object (
+			"source",
+			"Source",
+			"The ESource for which this client was created",
+			E_TYPE_SOURCE,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * EClient::opened:
+	 *
+	 * Deprecated: 3.8: This signal is no longer emitted.
+	 **/
 	signals[OPENED] = g_signal_new (
 		"opened",
 		G_OBJECT_CLASS_TYPE (class),
-		G_SIGNAL_RUN_LAST,
+		G_SIGNAL_RUN_LAST |
+		G_SIGNAL_DEPRECATED,
 		G_STRUCT_OFFSET (EClientClass, opened),
-		NULL, NULL,
-		g_cclosure_marshal_VOID__BOXED,
+		NULL, NULL, NULL,
 		G_TYPE_NONE, 1,
 		G_TYPE_ERROR);
 
@@ -405,8 +911,7 @@ e_client_class_init (EClientClass *class)
 		G_OBJECT_CLASS_TYPE (class),
 		G_SIGNAL_RUN_FIRST,
 		G_STRUCT_OFFSET (EClientClass, backend_error),
-		NULL, NULL,
-		g_cclosure_marshal_VOID__STRING,
+		NULL, NULL, NULL,
 		G_TYPE_NONE, 1,
 		G_TYPE_STRING);
 
@@ -415,8 +920,7 @@ e_client_class_init (EClientClass *class)
 		G_OBJECT_CLASS_TYPE (class),
 		G_SIGNAL_RUN_LAST,
 		G_STRUCT_OFFSET (EClientClass, backend_died),
-		NULL, NULL,
-		g_cclosure_marshal_VOID__VOID,
+		NULL, NULL, NULL,
 		G_TYPE_NONE, 0);
 
 	signals[BACKEND_PROPERTY_CHANGED] = g_signal_new (
@@ -424,27 +928,21 @@ e_client_class_init (EClientClass *class)
 		G_OBJECT_CLASS_TYPE (class),
 		G_SIGNAL_RUN_LAST,
 		G_STRUCT_OFFSET (EClientClass, backend_property_changed),
-		NULL, NULL,
-		e_gdbus_marshallers_VOID__STRING_STRING,
-		G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_STRING);
+		NULL, NULL, NULL,
+		G_TYPE_NONE, 2,
+		G_TYPE_STRING,
+		G_TYPE_STRING);
 }
 
 static void
-client_set_source (EClient *client,
-                   ESource *source)
+e_client_init (EClient *client)
 {
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
-	g_return_if_fail (source != NULL);
-	g_return_if_fail (E_IS_SOURCE (source));
+	client->priv = E_CLIENT_GET_PRIVATE (client);
 
-	g_object_ref (source);
+	client->priv->readonly = TRUE;
+	client->priv->main_context = g_main_context_ref_thread_default ();
 
-	if (client->priv->source)
-		g_object_unref (client->priv->source);
-
-	client->priv->source = source;
+	g_rec_mutex_init (&client->priv->prop_mutex);
 }
 
 /**
@@ -460,58 +958,27 @@ client_set_source (EClient *client,
 ESource *
 e_client_get_source (EClient *client)
 {
-	g_return_val_if_fail (client != NULL, NULL);
 	g_return_val_if_fail (E_IS_CLIENT (client), NULL);
-	g_return_val_if_fail (client->priv != NULL, NULL);
 
 	return client->priv->source;
-}
-
-/**
- * e_client_get_uri:
- * @client: an #EClient
- *
- * Get the URI that this client has assigned. This string should not be freed.
- *
- * Returns: The URI.
- *
- * Since: 3.2
- **/
-const gchar *
-e_client_get_uri (EClient *client)
-{
-	g_return_val_if_fail (client != NULL, NULL);
-	g_return_val_if_fail (E_IS_CLIENT (client), NULL);
-	g_return_val_if_fail (client->priv != NULL, NULL);
-
-	if (!client->priv->uri)
-		client->priv->uri = e_source_get_uri (e_client_get_source (client));
-
-	return client->priv->uri;
 }
 
 static void
 client_ensure_capabilities (EClient *client)
 {
-	gchar *capabilities;
+	gchar *capabilities = NULL;
 
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 
-	if (client->priv->capabilities_retrieved || client->priv->capabilities)
+	if (client->priv->capabilities != NULL)
 		return;
 
-	g_static_rec_mutex_lock (&client->priv->prop_mutex);
-
-	capabilities = NULL;
-	e_client_retrieve_capabilities_sync (client, &capabilities, NULL, NULL);
-	/* e_client_set_capabilities is called inside the previous function */
+	/* Despite appearances this function does not actually block. */
+	e_client_get_backend_property_sync (
+		client, CLIENT_BACKEND_PROPERTY_CAPABILITIES,
+		&capabilities, NULL, NULL);
+	e_client_set_capabilities (client, capabilities);
 	g_free (capabilities);
-
-	client->priv->capabilities_retrieved = TRUE;
-
-	g_static_rec_mutex_unlock (&client->priv->prop_mutex);
 }
 
 /**
@@ -530,13 +997,33 @@ client_ensure_capabilities (EClient *client)
 const GSList *
 e_client_get_capabilities (EClient *client)
 {
-	g_return_val_if_fail (client != NULL, NULL);
 	g_return_val_if_fail (E_IS_CLIENT (client), NULL);
-	g_return_val_if_fail (client->priv != NULL, NULL);
 
 	client_ensure_capabilities (client);
 
 	return client->priv->capabilities;
+}
+
+/**
+ * e_client_ref_main_context:
+ * @client: an #EClient
+ *
+ * Returns the #GMainContext on which event sources for @client are to
+ * be attached.
+ *
+ * The returned #GMainContext is referenced for thread-safety and must be
+ * unreferenced with g_main_context_unref() when finished with it.
+ *
+ * Returns: (transfer full): a #GMainContext
+ *
+ * Since: 3.8
+ **/
+GMainContext *
+e_client_ref_main_context (EClient *client)
+{
+	g_return_val_if_fail (E_IS_CLIENT (client), NULL);
+
+	return g_main_context_ref (client->priv->main_context);
 }
 
 /**
@@ -557,12 +1044,10 @@ e_client_check_capability (EClient *client,
 {
 	GSList *iter;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 	g_return_val_if_fail (capability, FALSE);
 
-	g_static_rec_mutex_lock (&client->priv->prop_mutex);
+	g_rec_mutex_lock (&client->priv->prop_mutex);
 
 	client_ensure_capabilities (client);
 
@@ -570,12 +1055,12 @@ e_client_check_capability (EClient *client,
 		const gchar *cap = iter->data;
 
 		if (cap && g_ascii_strcasecmp (cap, capability) == 0) {
-			g_static_rec_mutex_unlock (&client->priv->prop_mutex);
+			g_rec_mutex_unlock (&client->priv->prop_mutex);
 			return TRUE;
 		}
 	}
 
-	g_static_rec_mutex_unlock (&client->priv->prop_mutex);
+	g_rec_mutex_unlock (&client->priv->prop_mutex);
 
 	return FALSE;
 }
@@ -594,7 +1079,6 @@ e_client_check_capability (EClient *client,
 gboolean
 e_client_check_refresh_supported (EClient *client)
 {
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
 
 	return e_client_check_capability (client, "refresh-supported");
@@ -605,20 +1089,15 @@ void
 e_client_set_capabilities (EClient *client,
                            const gchar *capabilities)
 {
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 
-	g_static_rec_mutex_lock (&client->priv->prop_mutex);
-
-	if (!capabilities)
-		client->priv->capabilities_retrieved = FALSE;
+	g_rec_mutex_lock (&client->priv->prop_mutex);
 
 	g_slist_foreach (client->priv->capabilities, (GFunc) g_free, NULL);
 	g_slist_free (client->priv->capabilities);
 	client->priv->capabilities = e_client_util_parse_comma_strings (capabilities);
 
-	g_static_rec_mutex_unlock (&client->priv->prop_mutex);
+	g_rec_mutex_unlock (&client->priv->prop_mutex);
 
 	g_object_notify (G_OBJECT (client), "capabilities");
 }
@@ -636,9 +1115,7 @@ e_client_set_capabilities (EClient *client,
 gboolean
 e_client_is_readonly (EClient *client)
 {
-	g_return_val_if_fail (client != NULL, TRUE);
 	g_return_val_if_fail (E_IS_CLIENT (client), TRUE);
-	g_return_val_if_fail (client->priv != NULL, TRUE);
 
 	return client->priv->readonly;
 }
@@ -647,19 +1124,17 @@ void
 e_client_set_readonly (EClient *client,
                        gboolean readonly)
 {
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 
-	g_static_rec_mutex_lock (&client->priv->prop_mutex);
-	if ((readonly ? 1 : 0) == (client->priv->readonly ? 1 : 0)) {
-		g_static_rec_mutex_unlock (&client->priv->prop_mutex);
+	g_rec_mutex_lock (&client->priv->prop_mutex);
+	if (client->priv->readonly == readonly) {
+		g_rec_mutex_unlock (&client->priv->prop_mutex);
 		return;
 	}
 
 	client->priv->readonly = readonly;
 
-	g_static_rec_mutex_unlock (&client->priv->prop_mutex);
+	g_rec_mutex_unlock (&client->priv->prop_mutex);
 
 	g_object_notify (G_OBJECT (client), "readonly");
 }
@@ -677,9 +1152,7 @@ e_client_set_readonly (EClient *client,
 gboolean
 e_client_is_online (EClient *client)
 {
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 
 	return client->priv->online;
 }
@@ -688,22 +1161,20 @@ void
 e_client_set_online (EClient *client,
                      gboolean is_online)
 {
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 
 	/* newly connected/disconnected => make sure capabilities will be correct */
 	e_client_set_capabilities (client, NULL);
 
-	g_static_rec_mutex_lock (&client->priv->prop_mutex);
-	if ((is_online ? 1: 0) == (client->priv->online ? 1 : 0)) {
-		g_static_rec_mutex_unlock (&client->priv->prop_mutex);
+	g_rec_mutex_lock (&client->priv->prop_mutex);
+	if (client->priv->online == is_online) {
+		g_rec_mutex_unlock (&client->priv->prop_mutex);
 		return;
 	}
 
 	client->priv->online = is_online;
 
-	g_static_rec_mutex_unlock (&client->priv->prop_mutex);
+	g_rec_mutex_unlock (&client->priv->prop_mutex);
 
 	g_object_notify (G_OBJECT (client), "online");
 }
@@ -718,68 +1189,19 @@ e_client_set_online (EClient *client,
  * during the opening phase except of authenticate or cancel it.
  * Every other operation results in an %E_CLIENT_ERROR_BUSY error.
  *
- * Returns: %TRUE if this @client is fully opened, otherwise %FALSE.
+ * Returns: always %TRUE
  *
  * Since: 3.2.
+ *
+ * Deprecated: 3.8: Clients don't need to care if they're fully opened
+ *                  anymore.  This function always returns %TRUE.
  **/
 gboolean
 e_client_is_opened (EClient *client)
 {
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 
-	return client->priv->opened;
-}
-
-/*
- * client_cancel_op:
- * @client: an #EClient
- * @opid: asynchronous operation ID
- *
- * Cancels particular asynchronous operation. The @opid is returned from
- * an e_client_register_op(). The function does nothing if the asynchronous
- * operation doesn't exist any more.
- *
- * Since: 3.2
- */
-static void
-client_cancel_op (EClient *client,
-                  guint32 opid)
-{
-	GCancellable *cancellable;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
-	g_return_if_fail (client->priv->ops != NULL);
-
-	g_static_rec_mutex_lock (&client->priv->ops_mutex);
-
-	cancellable = g_hash_table_lookup (client->priv->ops, GINT_TO_POINTER (opid));
-	if (cancellable)
-		g_cancellable_cancel (cancellable);
-
-	g_static_rec_mutex_unlock (&client->priv->ops_mutex);
-}
-
-static void
-gather_opids_cb (gpointer opid,
-                 gpointer cancellable,
-                 gpointer ids_list)
-{
-	GSList **ids = ids_list;
-
-	g_return_if_fail (ids_list != NULL);
-
-	*ids = g_slist_prepend (*ids, opid);
-}
-
-static void
-cancel_op_cb (gpointer opid,
-              gpointer client)
-{
-	client_cancel_op (client, GPOINTER_TO_INT (opid));
+	return TRUE;
 }
 
 /**
@@ -789,277 +1211,13 @@ cancel_op_cb (gpointer opid,
  * Cancels all pending operations started on @client.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: The function no longer does anything.
  **/
 void
 e_client_cancel_all (EClient *client)
 {
-	GSList *opids = NULL;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
-	g_return_if_fail (client->priv->ops != NULL);
-
-	g_static_rec_mutex_lock (&client->priv->ops_mutex);
-
-	g_hash_table_foreach (client->priv->ops, gather_opids_cb, &opids);
-
-	g_slist_foreach (opids, cancel_op_cb, client);
-	g_slist_free (opids);
-
-	g_static_rec_mutex_unlock (&client->priv->ops_mutex);
-}
-
-guint32
-e_client_register_op (EClient *client,
-                      GCancellable *cancellable)
-{
-	guint32 opid;
-
-	g_return_val_if_fail (client != NULL, 0);
-	g_return_val_if_fail (E_IS_CLIENT (client), 0);
-	g_return_val_if_fail (client->priv != NULL, 0);
-	g_return_val_if_fail (client->priv->ops != NULL, 0);
-	g_return_val_if_fail (cancellable != NULL, 0);
-
-	g_static_rec_mutex_lock (&client->priv->ops_mutex);
-
-	client->priv->last_opid++;
-	if (!client->priv->last_opid)
-		client->priv->last_opid++;
-
-	while (g_hash_table_lookup (client->priv->ops, GINT_TO_POINTER (client->priv->last_opid)))
-		client->priv->last_opid++;
-
-	g_return_val_if_fail (client->priv->last_opid != 0, 0);
-
-	opid = client->priv->last_opid;
-	g_hash_table_insert (client->priv->ops, GINT_TO_POINTER (opid), g_object_ref (cancellable));
-
-	g_static_rec_mutex_unlock (&client->priv->ops_mutex);
-
-	return opid;
-}
-
-void
-e_client_unregister_op (EClient *client,
-                        guint32 opid)
-{
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
-	g_return_if_fail (client->priv->ops != NULL);
-
-	g_static_rec_mutex_lock (&client->priv->ops_mutex);
-	g_hash_table_remove (client->priv->ops, GINT_TO_POINTER (opid));
-	g_static_rec_mutex_unlock (&client->priv->ops_mutex);
-}
-
-static void
-client_handle_authentication (EClient *client,
-                              const ECredentials *credentials)
-{
-	EClientClass *class;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (credentials != NULL);
-
-	class = E_CLIENT_GET_CLASS (client);
-	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->handle_authentication != NULL);
-
-	return class->handle_authentication (client, credentials);
-}
-
-struct EClientAuthData {
-	EClient *client;
-	ECredentials *credentials;
-};
-
-static gboolean
-client_process_authentication_idle_cb (gpointer user_data)
-{
-	static gboolean processing_one = FALSE;
-	struct EClientAuthData *auth_data = user_data;
-
-	g_return_val_if_fail (auth_data != NULL, FALSE);
-
-	/* there is one currently processing, postpone this request for later */
-	if (processing_one)
-		return TRUE;
-
-	/* no need for locking, this is always main-thread's idle */
-	processing_one = TRUE;
-
-	if (e_client_emit_authenticate (auth_data->client, auth_data->credentials)) {
-		client_handle_authentication (auth_data->client, auth_data->credentials);
-	} else {
-		/* Always pass credentials to backend to finish opening phase.
-		 * Empty username indicates that either user cancelled password prompt
-		 * or there was no authentication callback set.
-		*/
-		e_credentials_set (auth_data->credentials, E_CREDENTIALS_KEY_USERNAME, NULL);
-		client_handle_authentication (auth_data->client, auth_data->credentials);
-
-		if (g_strcmp0 (e_credentials_peek (auth_data->credentials, E_CREDENTIALS_KEY_FOREIGN_REQUEST), "1") != 0) {
-			GError *error;
-
-			error = e_client_error_create (E_CLIENT_ERROR_AUTHENTICATION_REQUIRED, NULL);
-			e_client_emit_opened (auth_data->client, error);
-			g_error_free (error);
-		}
-	}
-
-	e_credentials_free (auth_data->credentials);
-	g_object_unref (auth_data->client);
-	g_free (auth_data);
-
-	processing_one = FALSE;
-
-	return FALSE;
-}
-
-/* Processes authentication request in idle callback. Usual steps are:
- * a) backend sends an auth - required signal
- * b) EClient implementation calls this function
- * c) a new idle callback is run which emits authenticate signal by e_client_emit_authenticate ()
- * d) if anyone responds (returns true), the EClient::handle_authentication
- *    is called from the same idle callback with new credentials
- * e) EClient implementation passes results to backend in the EClient::handle_authentication
-*/
-void
-e_client_process_authentication (EClient *client,
-                                 const ECredentials *credentials)
-{
-	struct EClientAuthData *auth_data;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-
-	auth_data = g_new0 (struct EClientAuthData, 1);
-	auth_data->client = g_object_ref (client);
-	auth_data->credentials = credentials ? e_credentials_new_clone (credentials) : e_credentials_new ();
-
-	g_idle_add (client_process_authentication_idle_cb, auth_data);
-}
-
-gboolean
-e_client_emit_authenticate (EClient *client,
-                            ECredentials *credentials)
-{
-	gboolean handled = FALSE;
-
-	g_return_val_if_fail (client != NULL, FALSE);
-	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (credentials != NULL, FALSE);
-
-	g_signal_emit (client, signals[AUTHENTICATE], 0, credentials, &handled);
-
-	return handled;
-}
-
-void
-e_client_emit_opened (EClient *client,
-                      const GError *dbus_error)
-{
-	GError *local_error = NULL;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
-
-	client->priv->opened = dbus_error == NULL;
-
-	if (dbus_error) {
-		local_error = g_error_copy (dbus_error);
-		e_client_unwrap_dbus_error (client, local_error, &local_error);
-	}
-
-	g_object_notify (G_OBJECT (client), "opened");
-	g_signal_emit (client, signals[OPENED], 0, local_error);
-
-	if (local_error)
-		g_error_free (local_error);
-}
-
-void
-e_client_emit_backend_error (EClient *client,
-                             const gchar *error_msg)
-{
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (error_msg != NULL);
-
-	g_signal_emit (client, signals[BACKEND_ERROR], 0, error_msg);
-}
-
-void
-e_client_emit_backend_died (EClient *client)
-{
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-
-	g_signal_emit (client, signals[BACKEND_DIED], 0);
-}
-
-void
-e_client_emit_backend_property_changed (EClient *client,
-                                        const gchar *prop_name,
-                                        const gchar *prop_value)
-{
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
-	g_return_if_fail (prop_name != NULL);
-	g_return_if_fail (*prop_name);
-	g_return_if_fail (prop_value != NULL);
-
-	e_client_update_backend_property_cache (client, prop_name, prop_value);
-
-	g_signal_emit (client, signals[BACKEND_PROPERTY_CHANGED], 0, prop_name, prop_value);
-}
-
-void
-e_client_update_backend_property_cache (EClient *client,
-                                        const gchar *prop_name,
-                                        const gchar *prop_value)
-{
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
-	g_return_if_fail (prop_name != NULL);
-	g_return_if_fail (*prop_name);
-	g_return_if_fail (prop_value != NULL);
-
-	g_static_rec_mutex_lock (&client->priv->prop_mutex);
-
-	if (client->priv->backend_property_cache)
-		g_hash_table_insert (client->priv->backend_property_cache, g_strdup (prop_name), g_strdup (prop_value));
-
-	g_static_rec_mutex_unlock (&client->priv->prop_mutex);
-}
-
-gchar *
-e_client_get_backend_property_from_cache (EClient *client,
-                                          const gchar *prop_name)
-{
-	gchar *prop_value = NULL;
-
-	g_return_val_if_fail (client != NULL, NULL);
-	g_return_val_if_fail (E_IS_CLIENT (client), NULL);
-	g_return_val_if_fail (client->priv != NULL, NULL);
-	g_return_val_if_fail (prop_name != NULL, NULL);
-	g_return_val_if_fail (*prop_name, NULL);
-
-	g_static_rec_mutex_lock (&client->priv->prop_mutex);
-
-	if (client->priv->backend_property_cache)
-		prop_value = g_strdup (g_hash_table_lookup (client->priv->backend_property_cache, prop_name));
-
-	g_static_rec_mutex_unlock (&client->priv->prop_mutex);
-
-	return prop_value;
+	/* Do nothing. */
 }
 
 /**
@@ -1077,6 +1235,8 @@ e_client_get_backend_property_from_cache (EClient *client,
  * from the @callback.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_client_get_capabilities() instead.
  **/
 void
 e_client_retrieve_capabilities (EClient *client,
@@ -1086,9 +1246,7 @@ e_client_retrieve_capabilities (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 	g_return_if_fail (callback != NULL);
 
 	class = E_CLIENT_GET_CLASS (client);
@@ -1112,6 +1270,8 @@ e_client_retrieve_capabilities (EClient *client,
  * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_client_get_capabilities() instead.
  **/
 gboolean
 e_client_retrieve_capabilities_finish (EClient *client,
@@ -1122,9 +1282,7 @@ e_client_retrieve_capabilities_finish (EClient *client,
 	EClientClass *class;
 	gboolean res;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 	g_return_val_if_fail (capabilities != NULL, FALSE);
 
 	class = E_CLIENT_GET_CLASS (client);
@@ -1132,7 +1290,8 @@ e_client_retrieve_capabilities_finish (EClient *client,
 	g_return_val_if_fail (class->retrieve_capabilities_finish != NULL, FALSE);
 
 	*capabilities = NULL;
-	res = class->retrieve_capabilities_finish (client, result, capabilities, error);
+	res = class->retrieve_capabilities_finish (
+		client, result, capabilities, error);
 
 	e_client_set_capabilities (client, res ? *capabilities : NULL);
 
@@ -1155,6 +1314,8 @@ e_client_retrieve_capabilities_finish (EClient *client,
  * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_client_get_capabilities() instead.
  **/
 gboolean
 e_client_retrieve_capabilities_sync (EClient *client,
@@ -1165,7 +1326,7 @@ e_client_retrieve_capabilities_sync (EClient *client,
 	EClientClass *class;
 	gboolean res = FALSE;
 
-	g_return_val_if_fail (client != NULL, FALSE);
+	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
 	g_return_val_if_fail (capabilities != NULL, FALSE);
 
 	class = E_CLIENT_GET_CLASS (client);
@@ -1173,7 +1334,8 @@ e_client_retrieve_capabilities_sync (EClient *client,
 	g_return_val_if_fail (class->retrieve_capabilities_sync != NULL, FALSE);
 
 	*capabilities = NULL;
-	res = class->retrieve_capabilities_sync (client, capabilities, cancellable, error);
+	res = class->retrieve_capabilities_sync (
+		client, capabilities, cancellable, error);
 
 	e_client_set_capabilities (client, res ? *capabilities : NULL);
 
@@ -1204,16 +1366,15 @@ e_client_get_backend_property (EClient *client,
 	EClientClass *class;
 
 	g_return_if_fail (callback != NULL);
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 	g_return_if_fail (prop_name != NULL);
 
 	class = E_CLIENT_GET_CLASS (client);
 	g_return_if_fail (class != NULL);
 	g_return_if_fail (class->get_backend_property != NULL);
 
-	class->get_backend_property (client, prop_name, cancellable, callback, user_data);
+	class->get_backend_property (
+		client, prop_name, cancellable, callback, user_data);
 }
 
 /**
@@ -1237,16 +1398,15 @@ e_client_get_backend_property_finish (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 	g_return_val_if_fail (prop_value != NULL, FALSE);
 
 	class = E_CLIENT_GET_CLASS (client);
 	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->get_backend_property_finish != NULL, FALSE);
 
-	return class->get_backend_property_finish (client, result, prop_value, error);
+	return class->get_backend_property_finish (
+		client, result, prop_value, error);
 }
 
 /**
@@ -1272,9 +1432,7 @@ e_client_get_backend_property_sync (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 	g_return_val_if_fail (prop_name != NULL, FALSE);
 	g_return_val_if_fail (prop_value != NULL, FALSE);
 
@@ -1282,7 +1440,8 @@ e_client_get_backend_property_sync (EClient *client,
 	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->get_backend_property_sync != NULL, FALSE);
 
-	return class->get_backend_property_sync (client, prop_name, prop_value, cancellable, error);
+	return class->get_backend_property_sync (
+		client, prop_name, prop_value, cancellable, error);
 }
 
 /**
@@ -1299,6 +1458,9 @@ e_client_get_backend_property_sync (EClient *client,
  * by e_client_set_backend_property_finish() from the @callback.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Clients cannot set backend properties.  Any attempt
+ *                  will fail with an %E_CLIENT_ERROR_NOT_SUPPORTED error.
  **/
 void
 e_client_set_backend_property (EClient *client,
@@ -1311,9 +1473,7 @@ e_client_set_backend_property (EClient *client,
 	EClientClass *class;
 
 	g_return_if_fail (callback != NULL);
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 	g_return_if_fail (prop_name != NULL);
 	g_return_if_fail (prop_value != NULL);
 
@@ -1321,7 +1481,9 @@ e_client_set_backend_property (EClient *client,
 	g_return_if_fail (class != NULL);
 	g_return_if_fail (class->set_backend_property != NULL);
 
-	class->set_backend_property (client, prop_name, prop_value, cancellable, callback, user_data);
+	class->set_backend_property (
+		client, prop_name, prop_value,
+		cancellable, callback, user_data);
 }
 
 /**
@@ -1335,6 +1497,9 @@ e_client_set_backend_property (EClient *client,
  * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Clients cannot set backend properties.  Any attempt
+ *                  will fail with an %E_CLIENT_ERROR_NOT_SUPPORTED error.
  **/
 gboolean
 e_client_set_backend_property_finish (EClient *client,
@@ -1343,9 +1508,7 @@ e_client_set_backend_property_finish (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 
 	class = E_CLIENT_GET_CLASS (client);
 	g_return_val_if_fail (class != NULL, FALSE);
@@ -1368,6 +1531,9 @@ e_client_set_backend_property_finish (EClient *client,
  * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Clients cannot set backend properties.  Any attempt
+ *                  will fail with an %E_CLIENT_ERROR_NOT_SUPPORTED error.
  **/
 gboolean
 e_client_set_backend_property_sync (EClient *client,
@@ -1378,9 +1544,7 @@ e_client_set_backend_property_sync (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 	g_return_val_if_fail (prop_name != NULL, FALSE);
 	g_return_val_if_fail (prop_value != NULL, FALSE);
 
@@ -1388,13 +1552,15 @@ e_client_set_backend_property_sync (EClient *client,
 	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->set_backend_property_sync != NULL, FALSE);
 
-	return class->set_backend_property_sync (client, prop_name, prop_value, cancellable, error);
+	return class->set_backend_property_sync (
+		client, prop_name, prop_value, cancellable, error);
 }
 
 /**
  * e_client_open:
  * @client: an #EClient
- * @only_if_exists: if %TRUE, fail if this book doesn't already exist, otherwise create it first
+ * @only_if_exists: if %TRUE, fail if this book doesn't already exist,
+ *                  otherwise create it first
  * @cancellable: a #GCancellable; can be %NULL
  * @callback: callback to call when a result is ready
  * @user_data: user data for the @callback
@@ -1403,6 +1569,11 @@ e_client_set_backend_property_sync (EClient *client,
  * The call is finished by e_client_open_finish() from the @callback.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_book_client_connect() and
+ *                  e_book_client_connect_finish() or
+ *                  e_cal_client_connect() and
+ *                  e_cal_client_connect_finish() instead.
  **/
 void
 e_client_open (EClient *client,
@@ -1414,9 +1585,7 @@ e_client_open (EClient *client,
 	EClientClass *class;
 
 	g_return_if_fail (callback != NULL);
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 
 	class = E_CLIENT_GET_CLASS (client);
 	g_return_if_fail (class != NULL);
@@ -1436,6 +1605,11 @@ e_client_open (EClient *client,
  * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_book_client_connect() and
+ *                  e_book_client_connect_finish() or
+ *                  e_cal_client_connect() and
+ *                  e_cal_client_connect_finish() instead.
  **/
 gboolean
 e_client_open_finish (EClient *client,
@@ -1444,9 +1618,7 @@ e_client_open_finish (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 
 	class = E_CLIENT_GET_CLASS (client);
 	g_return_val_if_fail (class != NULL, FALSE);
@@ -1458,7 +1630,8 @@ e_client_open_finish (EClient *client,
 /**
  * e_client_open_sync:
  * @client: an #EClient
- * @only_if_exists: if %TRUE, fail if this book doesn't already exist, otherwise create it first
+ * @only_if_exists: if %TRUE, fail if this book doesn't already exist,
+ *                  otherwise create it first
  * @cancellable: a #GCancellable; can be %NULL
  * @error: (out): a #GError to set an error, if any
  *
@@ -1467,6 +1640,9 @@ e_client_open_finish (EClient *client,
  * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_book_client_connect_sync() or
+ *                  e_cal_client_connect_sync() instead.
  **/
 gboolean
 e_client_open_sync (EClient *client,
@@ -1495,6 +1671,8 @@ e_client_open_sync (EClient *client,
  * The call is finished by e_client_remove_finish() from the @callback.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.6: Use e_source_remove() instead.
  **/
 void
 e_client_remove (EClient *client,
@@ -1504,9 +1682,7 @@ e_client_remove (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 	g_return_if_fail (callback != NULL);
 
 	class = E_CLIENT_GET_CLASS (client);
@@ -1527,6 +1703,8 @@ e_client_remove (EClient *client,
  * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.6: Use e_source_remove_finish() instead.
  **/
 gboolean
 e_client_remove_finish (EClient *client,
@@ -1535,9 +1713,7 @@ e_client_remove_finish (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 
 	class = E_CLIENT_GET_CLASS (client);
 	g_return_val_if_fail (class != NULL, FALSE);
@@ -1558,6 +1734,8 @@ e_client_remove_finish (EClient *client,
  * Returns: %TRUE if successful, %FALSE otherwise.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.6: Use e_source_remove_sync() instead.
  **/
 gboolean
 e_client_remove_sync (EClient *client,
@@ -1596,9 +1774,7 @@ e_client_refresh (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (client->priv != NULL);
 	g_return_if_fail (callback != NULL);
 
 	class = E_CLIENT_GET_CLASS (client);
@@ -1627,9 +1803,7 @@ e_client_refresh_finish (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_val_if_fail (client != NULL, FALSE);
 	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (client->priv != NULL, FALSE);
 
 	class = E_CLIENT_GET_CLASS (client);
 	g_return_val_if_fail (class != NULL, FALSE);
@@ -1669,16 +1843,18 @@ e_client_refresh_sync (EClient *client,
 
 /**
  * e_client_util_slist_to_strv:
- * @strings: a #GSList of strings (const gchar *)
+ * @strings: (element-type utf8): a #GSList of strings (const gchar *)
  *
- * Convert list of strings into NULL-terminates array of strings.
+ * Convert a list of strings into a %NULL-terminated array of strings.
  *
- * Returns: (transfer full): Newly allocated NULL-terminated array of strings.
- * Returned pointer should be freed with g_strfreev().
+ * Returns: (transfer full): Newly allocated %NULL-terminated array of strings.
+ * The returned pointer should be freed with g_strfreev().
  *
- * Note: Pair function for this is e_client_util_strv_to_slist().
+ * Note: Paired function for this is e_client_util_strv_to_slist().
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_util_slist_to_strv() instead.
  **/
 gchar **
 e_client_util_slist_to_strv (const GSList *strings)
@@ -1688,16 +1864,19 @@ e_client_util_slist_to_strv (const GSList *strings)
 
 /**
  * e_client_util_strv_to_slist:
- * @strv: a NULL-terminated array of strings (const gchar *)
+ * @strv: a %NULL-terminated array of strings (const gchar *)
  *
- * Convert NULL-terminated array of strings to a list of strings.
+ * Convert a %NULL-terminated array of strings to a list of strings.
  *
- * Returns: (transfer full): Newly allocated #GSList of newly allocated strings.
- * Returned pointer should be freed with e_client_util_free_string_slist().
+ * Returns: (transfer full) (element-type utf8): Newly allocated #GSList of
+ * newly allocated strings. The returned pointer should be freed with
+ * e_client_util_free_string_slist().
  *
- * Note: Pair function for this is e_client_util_slist_to_strv().
+ * Note: Paired function for this is e_client_util_slist_to_strv().
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_util_strv_to_slist() instead.
  **/
 GSList *
 e_client_util_strv_to_slist (const gchar * const *strv)
@@ -1707,15 +1886,17 @@ e_client_util_strv_to_slist (const gchar * const *strv)
 
 /**
  * e_client_util_copy_string_slist:
- * @copy_to: Where to copy; can be NULL
- * @strings: GSList of strings to be copied
+ * @copy_to: (element-type utf8) (allow-none): Where to copy; may be %NULL
+ * @strings: (element-type utf8): #GSList of strings to be copied
  *
- * Copies GSList of strings at the end of @copy_to.
+ * Copies the #GSList of strings to the end of @copy_to.
  *
- * Returns: (transfer full): New head of @copy_to.
- * Returned pointer can be freed with e_client_util_free_string_slist().
+ * Returns: (transfer full) (element-type utf8): New head of @copy_to.
+ * The returned pointer can be freed with e_client_util_free_string_slist().
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_util_copy_string_slist() instead.
  **/
 GSList *
 e_client_util_copy_string_slist (GSList *copy_to,
@@ -1726,15 +1907,17 @@ e_client_util_copy_string_slist (GSList *copy_to,
 
 /**
  * e_client_util_copy_object_slist:
- * @copy_to: Where to copy; can be NULL
- * @objects: GSList of GObject-s to be copied
+ * @copy_to: (element-type GObject) (allow-none): Where to copy; may be %NULL
+ * @objects: (element-type GObject): #GSList of #GObject<!-- -->s to be copied
  *
- * Copies GSList of GObject-s at the end of @copy_to.
+ * Copies a #GSList of #GObject<!-- -->s to the end of @copy_to.
  *
- * Returns: (transfer full): New head of @copy_to.
- * Returned pointer can be freed with e_client_util_free_object_slist().
+ * Returns: (transfer full) (element-type GObject): New head of @copy_to.
+ * The returned pointer can be freed with e_client_util_free_object_slist().
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use e_util_copy_object_slist() instead.
  **/
 GSList *
 e_client_util_copy_object_slist (GSList *copy_to,
@@ -1745,11 +1928,13 @@ e_client_util_copy_object_slist (GSList *copy_to,
 
 /**
  * e_client_util_free_string_slist:
- * @strings: a #GSList of strings (gchar *)
+ * @strings: (element-type utf8): a #GSList of strings (gchar *)
  *
  * Frees memory previously allocated by e_client_util_strv_to_slist().
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use g_slist_free_full() instead.
  **/
 void
 e_client_util_free_string_slist (GSList *strings)
@@ -1759,12 +1944,14 @@ e_client_util_free_string_slist (GSList *strings)
 
 /**
  * e_client_util_free_object_slist:
- * @objects: a #GSList of #GObject-s
+ * @objects: (element-type GObject): a #GSList of #GObject<!-- -->s
  *
- * Calls g_object_unref() on each member of @objects and then frees
- * also @objects itself.
+ * Calls g_object_unref() on each member of @objects and then frees @objects
+ * itself.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use g_slist_free_full() instead.
  **/
 void
 e_client_util_free_object_slist (GSList *objects)
@@ -1778,9 +1965,9 @@ e_client_util_free_object_slist (GSList *objects)
  *
  * Parses comma-separated list of values into #GSList.
  *
- * Returns: (transfer full): Newly allocated #GSList of newly allocated strings
- * corresponding to values parsed from @strings.
- * Free returned pointer with e_client_util_free_string_slist().
+ * Returns: (transfer full) (element-type utf8): Newly allocated #GSList of
+ * newly allocated strings corresponding to values parsed from @strings.
+ * Free the returned pointer with e_client_util_free_string_slist().
  *
  * Since: 3.2
  **/
@@ -1809,241 +1996,6 @@ e_client_util_parse_comma_strings (const gchar *strings)
 	return g_slist_reverse (strs_slist);
 }
 
-/* for each known source calls check_func, which should return TRUE if the required
- * source have been found. Function returns NULL or the source on which was returned
- * TRUE by the check_func. Non - NULL pointer should be unreffed by g_object_unref. */
-static ESource *
-search_known_sources (ESourceList *sources,
-                      gboolean (*check_func) (ESource *source,
-                                              gpointer user_data),
-                      gpointer user_data)
-{
-	ESource *res = NULL;
-	GSList *g;
-
-	g_return_val_if_fail (check_func != NULL, NULL);
-	g_return_val_if_fail (sources != NULL, NULL);
-
-	for (g = e_source_list_peek_groups (sources); g; g = g->next) {
-		ESourceGroup *group = E_SOURCE_GROUP (g->data);
-		GSList *s;
-
-		for (s = e_source_group_peek_sources (group); s; s = s->next) {
-			ESource *source = E_SOURCE (s->data);
-
-			if (check_func (source, user_data)) {
-				res = g_object_ref (source);
-				break;
-			}
-		}
-
-		if (res)
-			break;
-	}
-
-	return res;
-}
-
-static gboolean
-check_uri (ESource *source,
-           gpointer uri)
-{
-	const gchar *suri;
-	gchar *suri2;
-	gboolean res;
-
-	g_return_val_if_fail (source != NULL, FALSE);
-	g_return_val_if_fail (uri != NULL, FALSE);
-
-	suri = e_source_peek_absolute_uri (source);
-
-	if (suri)
-		return g_ascii_strcasecmp (suri, uri) == 0;
-
-	suri2 = e_source_get_uri (source);
-	res = suri2 && g_ascii_strcasecmp (suri2, uri) == 0;
-	g_free (suri2);
-
-	return res;
-}
-
-struct check_system_data
-{
-	const gchar *uri;
-	ESource *uri_source;
-};
-
-static gboolean
-check_system (ESource *source,
-              gpointer data)
-{
-	struct check_system_data *csd = data;
-
-	g_return_val_if_fail (source != NULL, FALSE);
-	g_return_val_if_fail (data != NULL, FALSE);
-
-	if (e_source_get_property (source, "system")) {
-		return TRUE;
-	}
-
-	if (check_uri (source, (gpointer) csd->uri)) {
-		if (csd->uri_source)
-			g_object_unref (csd->uri_source);
-		csd->uri_source = g_object_ref (source);
-	}
-
-	return FALSE;
-}
-
-ESource *
-e_client_util_get_system_source (ESourceList *source_list)
-{
-	struct check_system_data csd;
-	ESource *system_source = NULL;
-
-	g_return_val_if_fail (source_list != NULL, NULL);
-	g_return_val_if_fail (E_IS_SOURCE_LIST (source_list), NULL);
-
-	csd.uri = "local:system";
-	csd.uri_source = NULL;
-
-	system_source = search_known_sources (source_list, check_system, &csd);
-
-	if (!system_source) {
-		system_source = csd.uri_source;
-		csd.uri_source = NULL;
-	}
-
-	if (csd.uri_source)
-		g_object_unref (csd.uri_source);
-
-	if (!system_source) {
-		/* create a new one, if not found */
-		ESourceGroup *on_this_computer;
-
-		on_this_computer = e_source_list_ensure_group (source_list,
-						       _("On This Computer"),
-						       "local:", TRUE);
-		if (on_this_computer) {
-			GError *error = NULL;
-
-			system_source = e_source_new (_("Personal"), "system");
-			e_source_set_color_spec (system_source, "#BECEDD");
-			e_source_group_add_source (on_this_computer, system_source, -1);
-
-			if (!e_source_list_sync (source_list, &error))
-				g_warning ("Cannot add system source to GConf: %s", error ? error->message : "Unknown error");
-
-			if (error)
-				g_error_free (error);
-		}
-	}
-
-	return system_source;
-}
-
-gboolean
-e_client_util_set_default (ESourceList *source_list,
-                           ESource *source)
-{
-	const gchar *uid;
-	GSList *g;
-
-	g_return_val_if_fail (source_list != NULL, FALSE);
-	g_return_val_if_fail (E_IS_SOURCE_LIST (source_list), FALSE);
-	g_return_val_if_fail (source != NULL, FALSE);
-	g_return_val_if_fail (E_IS_SOURCE (source), FALSE);
-
-	uid = e_source_peek_uid (source);
-
-	/* make sure the source is actually in the ESourceList.  If
-	 * it's not we don't bother adding it, just return an error */
-	source = e_source_list_peek_source_by_uid (source_list, uid);
-	if (!source)
-		return FALSE;
-
-	/* loop over all the sources clearing out any "default"
-	 * properties we find */
-	for (g = e_source_list_peek_groups (source_list); g; g = g->next) {
-		GSList *s;
-		for (s = e_source_group_peek_sources (E_SOURCE_GROUP (g->data));
-		     s; s = s->next) {
-			e_source_set_property (E_SOURCE (s->data), "default", NULL);
-		}
-	}
-
-	/* set the "default" property on the source */
-	e_source_set_property (source, "default", "true");
-
-	return TRUE;
-}
-
-ESource *
-e_client_util_get_source_for_uri (ESourceList *source_list,
-                                  const gchar *uri)
-{
-	ESource *source;
-
-	g_return_val_if_fail (source_list != NULL, NULL);
-	g_return_val_if_fail (E_IS_SOURCE_LIST (source_list), NULL);
-	g_return_val_if_fail (uri != NULL, NULL);
-
-	source = search_known_sources (source_list, check_uri, (gpointer) uri);
-	if (!source)
-		source = e_source_new_with_absolute_uri ("", uri);
-
-	return source;
-}
-
-void
-e_client_finish_async_without_dbus (EClient *client,
-                                    GCancellable *cancellable,
-                                    GAsyncReadyCallback callback,
-                                    gpointer user_data,
-                                    gpointer source_tag,
-                                    gpointer op_res,
-                                    GDestroyNotify destroy_op_res)
-{
-	GCancellable *use_cancellable;
-	GSimpleAsyncResult *simple;
-	guint32 opid;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (callback != NULL);
-	g_return_if_fail (source_tag != NULL);
-
-	use_cancellable = cancellable;
-	if (!use_cancellable)
-		use_cancellable = g_cancellable_new ();
-
-	opid = e_client_register_op (client, use_cancellable);
-	g_return_if_fail (opid > 0);
-
-	simple = g_simple_async_result_new (G_OBJECT (client), callback, user_data, source_tag);
-	g_simple_async_result_set_op_res_gpointer (simple, op_res, destroy_op_res);
-	g_simple_async_result_complete_in_idle (simple);
-	g_object_unref (simple);
-
-	if (use_cancellable != cancellable)
-		g_object_unref (use_cancellable);
-}
-
-GDBusProxy *
-e_client_get_dbus_proxy (EClient *client)
-{
-	EClientClass *class;
-
-	g_return_val_if_fail (client != NULL, NULL);
-	g_return_val_if_fail (E_IS_CLIENT (client), NULL);
-
-	class = E_CLIENT_GET_CLASS (client);
-	g_return_val_if_fail (class != NULL, NULL);
-	g_return_val_if_fail (class->get_dbus_proxy != NULL, NULL);
-
-	return class->get_dbus_proxy (client);
-}
-
 /**
  * e_client_unwrap_dbus_error:
  * @client: an #EClient
@@ -2054,6 +2006,8 @@ e_client_get_dbus_proxy (EClient *client)
  * @dbus_erorr and @out_error can point to the same variable.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: Use g_dbus_error_strip_remote_error() instead.
  **/
 void
 e_client_unwrap_dbus_error (EClient *client,
@@ -2062,7 +2016,6 @@ e_client_unwrap_dbus_error (EClient *client,
 {
 	EClientClass *class;
 
-	g_return_if_fail (client != NULL);
 	g_return_if_fail (E_IS_CLIENT (client));
 
 	class = E_CLIENT_GET_CLASS (client);
@@ -2102,6 +2055,8 @@ e_client_unwrap_dbus_error (EClient *client,
  * Note: The @dbus_error is automatically freed if returned %TRUE.
  *
  * Since: 3.2
+ *
+ * Deprecated: 3.8: This function is no longer used.
  **/
 gboolean
 e_client_util_unwrap_dbus_error (GError *dbus_error,
@@ -2139,7 +2094,10 @@ e_client_util_unwrap_dbus_error (GError *dbus_error,
 					g_free (name);
 
 					g_dbus_error_strip_remote_error (dbus_error);
-					*client_error = g_error_new_literal (known_errors_domain, known_errors[ii].err_code, dbus_error->message);
+					*client_error = g_error_new_literal (
+						known_errors_domain,
+						known_errors[ii].err_code,
+						dbus_error->message);
 					g_error_free (dbus_error);
 					return TRUE;
 				}
@@ -2154,1019 +2112,16 @@ e_client_util_unwrap_dbus_error (GError *dbus_error,
 
 	if (g_error_matches (dbus_error, G_IO_ERROR, G_IO_ERROR_DBUS_ERROR)) {
 		g_dbus_error_strip_remote_error (dbus_error);
-		*client_error = g_error_new_literal (E_CLIENT_ERROR, E_CLIENT_ERROR_OTHER_ERROR, dbus_error->message);
+		*client_error = g_error_new_literal (
+			E_CLIENT_ERROR,
+			E_CLIENT_ERROR_OTHER_ERROR,
+			dbus_error->message);
 		g_error_free (dbus_error);
 	} else {
-		if (dbus_error->domain == G_DBUS_ERROR)
-			g_dbus_error_strip_remote_error (dbus_error);
+		g_dbus_error_strip_remote_error (dbus_error);
 		*client_error = dbus_error;
 	}
 
 	return TRUE;
 }
 
-typedef struct _EClientAsyncOpData
-{
-	EClient *client;
-	guint32 opid;
-
-	gpointer source_tag;
-	gchar *res_op_data; /* optional string to set on a GAsyncResult object as "res-op-data" user data */
-	GAsyncReadyCallback callback;
-	gpointer user_data;
-
-	gboolean result; /* result of the finish function call */
-
-	/* only one can be non-NULL, and the type is telling which 'out' value is valid */
-	EClientProxyFinishVoidFunc finish_void;
-	EClientProxyFinishBooleanFunc finish_boolean;
-	EClientProxyFinishStringFunc finish_string;
-	EClientProxyFinishStrvFunc finish_strv;
-	EClientProxyFinishUintFunc finish_uint;
-
-	union {
-		gboolean val_boolean;
-		gchar *val_string;
-		gchar **val_strv;
-		guint val_uint;
-	} out;
-} EClientAsyncOpData;
-
-static void
-async_data_free (EClientAsyncOpData *async_data)
-{
-	g_return_if_fail (async_data != NULL);
-	g_return_if_fail (async_data->client != NULL);
-
-	e_client_unregister_op (async_data->client, async_data->opid);
-
-	if (async_data->finish_string)
-		g_free (async_data->out.val_string);
-	else if (async_data->finish_strv)
-		g_strfreev (async_data->out.val_strv);
-
-	g_object_unref (async_data->client);
-	g_free (async_data->res_op_data);
-	g_free (async_data);
-}
-
-static gboolean
-complete_async_op_in_idle_cb (gpointer user_data)
-{
-	GSimpleAsyncResult *simple = user_data;
-	gint run_main_depth;
-
-	g_return_val_if_fail (simple != NULL, FALSE);
-
-	run_main_depth = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (simple), "run-main-depth"));
-	if (run_main_depth < 1)
-		run_main_depth = 1;
-
-	/* do not receive in higher level than was initially run */
-	if (g_main_depth () > run_main_depth) {
-		return TRUE;
-	}
-
-	g_simple_async_result_complete (simple);
-	g_object_unref (simple);
-
-	return FALSE;
-}
-
-static void
-finish_async_op (EClientAsyncOpData *async_data,
-                 const GError *error,
-                 gboolean in_idle)
-{
-	GSimpleAsyncResult *simple;
-
-	g_return_if_fail (async_data != NULL);
-	g_return_if_fail (async_data->source_tag != NULL);
-	g_return_if_fail (async_data->client != NULL);
-
-	simple = g_simple_async_result_new (G_OBJECT (async_data->client), async_data->callback, async_data->user_data, async_data->source_tag);
-	g_simple_async_result_set_op_res_gpointer (simple, async_data, (GDestroyNotify) async_data_free);
-
-	if (async_data->res_op_data)
-		g_object_set_data_full (G_OBJECT (simple), "res-op-data", g_strdup (async_data->res_op_data), g_free);
-
-	if (error != NULL)
-		g_simple_async_result_set_from_error (simple, error);
-
-	if (in_idle) {
-		g_object_set_data (G_OBJECT (simple), "run-main-depth", GINT_TO_POINTER (g_main_depth ()));
-		g_idle_add (complete_async_op_in_idle_cb, simple);
-	} else {
-		g_simple_async_result_complete (simple);
-		g_object_unref (simple);
-	}
-}
-
-static void
-async_result_ready_cb (GObject *source_object,
-                       GAsyncResult *result,
-                       gpointer user_data)
-{
-	GError *error = NULL;
-	EClientAsyncOpData *async_data;
-	EClient *client;
-
-	g_return_if_fail (result != NULL);
-	g_return_if_fail (source_object != NULL);
-
-	async_data = user_data;
-	g_return_if_fail (async_data != NULL);
-	g_return_if_fail (async_data->client != NULL);
-
-	client = async_data->client;
-	g_return_if_fail (e_client_get_dbus_proxy (client) == G_DBUS_PROXY (source_object));
-
-	if (async_data->finish_void)
-		async_data->result = async_data->finish_void (G_DBUS_PROXY (source_object), result, &error);
-	else if (async_data->finish_boolean)
-		async_data->result = async_data->finish_boolean (G_DBUS_PROXY (source_object), result, &async_data->out.val_boolean, &error);
-	else if (async_data->finish_string)
-		async_data->result = async_data->finish_string (G_DBUS_PROXY (source_object), result, &async_data->out.val_string, &error);
-	else if (async_data->finish_strv)
-		async_data->result = async_data->finish_strv (G_DBUS_PROXY (source_object), result, &async_data->out.val_strv, &error);
-	else if (async_data->finish_uint)
-		async_data->result = async_data->finish_uint (G_DBUS_PROXY (source_object), result, &async_data->out.val_uint, &error);
-	else
-		g_warning ("%s: Do not know how to finish async operation", G_STRFUNC);
-
-	finish_async_op (async_data, error, FALSE);
-
-	if (error != NULL)
-		g_error_free (error);
-}
-
-static EClientAsyncOpData *
-prepare_async_data (EClient *client,
-                    GCancellable *cancellable,
-                    GAsyncReadyCallback callback,
-                    gpointer user_data,
-                    gpointer source_tag,
-                    gboolean error_report_only,
-                    EClientProxyFinishVoidFunc finish_void,
-                    EClientProxyFinishBooleanFunc finish_boolean,
-                    EClientProxyFinishStringFunc finish_string,
-                    EClientProxyFinishStrvFunc finish_strv,
-                    EClientProxyFinishUintFunc finish_uint,
-                    GDBusProxy **proxy,
-                    GCancellable **out_cancellable)
-{
-	EClientAsyncOpData *async_data;
-	GCancellable *use_cancellable;
-	guint32 opid;
-
-	g_return_val_if_fail (client != NULL, NULL);
-	g_return_val_if_fail (callback != NULL, NULL);
-	g_return_val_if_fail (source_tag != NULL, NULL);
-
-	if (!error_report_only) {
-		g_return_val_if_fail (proxy != NULL, NULL);
-		g_return_val_if_fail (out_cancellable != NULL, NULL);
-		g_return_val_if_fail (finish_void || finish_boolean || finish_string || finish_strv || finish_uint, NULL);
-
-		if (finish_void) {
-			g_return_val_if_fail (finish_boolean == NULL, NULL);
-			g_return_val_if_fail (finish_string == NULL, NULL);
-			g_return_val_if_fail (finish_strv == NULL, NULL);
-			g_return_val_if_fail (finish_uint == NULL, NULL);
-		}
-
-		if (finish_boolean) {
-			g_return_val_if_fail (finish_void == NULL, NULL);
-			g_return_val_if_fail (finish_string == NULL, NULL);
-			g_return_val_if_fail (finish_strv == NULL, NULL);
-			g_return_val_if_fail (finish_uint == NULL, NULL);
-		}
-
-		if (finish_string) {
-			g_return_val_if_fail (finish_void == NULL, NULL);
-			g_return_val_if_fail (finish_boolean == NULL, NULL);
-			g_return_val_if_fail (finish_strv == NULL, NULL);
-			g_return_val_if_fail (finish_uint == NULL, NULL);
-		}
-
-		if (finish_strv) {
-			g_return_val_if_fail (finish_void == NULL, NULL);
-			g_return_val_if_fail (finish_boolean == NULL, NULL);
-			g_return_val_if_fail (finish_string == NULL, NULL);
-			g_return_val_if_fail (finish_uint == NULL, NULL);
-		}
-
-		if (finish_uint) {
-			g_return_val_if_fail (finish_void == NULL, NULL);
-			g_return_val_if_fail (finish_boolean == NULL, NULL);
-			g_return_val_if_fail (finish_string == NULL, NULL);
-			g_return_val_if_fail (finish_strv == NULL, NULL);
-		}
-
-		*proxy = e_client_get_dbus_proxy (client);
-		if (!*proxy)
-			return NULL;
-	}
-
-	use_cancellable = cancellable;
-	if (!use_cancellable)
-		use_cancellable = g_cancellable_new ();
-
-	opid = e_client_register_op (client, use_cancellable);
-	async_data = g_new0 (EClientAsyncOpData, 1);
-	async_data->client = g_object_ref (client);
-	async_data->opid = opid;
-	async_data->source_tag = source_tag;
-	async_data->callback = callback;
-	async_data->user_data = user_data;
-	async_data->finish_void = finish_void;
-	async_data->finish_boolean = finish_boolean;
-	async_data->finish_string = finish_string;
-	async_data->finish_strv = finish_strv;
-	async_data->finish_uint = finish_uint;
-
-	/* EClient from e_client_register_op() took ownership of the use_cancellable */
-	if (use_cancellable != cancellable)
-		g_object_unref (use_cancellable);
-
-	if (out_cancellable)
-		*out_cancellable = use_cancellable;
-
-	return async_data;
-}
-
-void
-e_client_proxy_return_async_error (EClient *client,
-                                   const GError *error,
-                                   GAsyncReadyCallback callback,
-                                   gpointer user_data,
-                                   gpointer source_tag)
-{
-	EClientAsyncOpData *async_data;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (error != NULL);
-	g_return_if_fail (callback != NULL);
-
-	async_data = prepare_async_data (client, NULL, callback, user_data, source_tag, TRUE, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-	g_return_if_fail (async_data != NULL);
-
-	finish_async_op (async_data, error, TRUE);
-}
-
-void
-e_client_proxy_call_void (EClient *client,
-                          GCancellable *cancellable,
-                          GAsyncReadyCallback callback,
-                          gpointer user_data,
-                          gpointer source_tag,
-                          void (*func) (GDBusProxy *proxy,
-                                        GCancellable *cancellable,
-                                        GAsyncReadyCallback callback,
-                                        gpointer user_data),
-                          EClientProxyFinishVoidFunc finish_void,
-                          EClientProxyFinishBooleanFunc finish_boolean,
-                          EClientProxyFinishStringFunc finish_string,
-                          EClientProxyFinishStrvFunc finish_strv,
-                          EClientProxyFinishUintFunc finish_uint)
-{
-	EClientAsyncOpData *async_data;
-	GDBusProxy *proxy = NULL;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (callback != NULL);
-	g_return_if_fail (source_tag != NULL);
-	e_client_return_async_if_fail (func != NULL, client, callback, user_data, source_tag);
-
-	async_data = prepare_async_data (client, cancellable, callback, user_data, source_tag, FALSE, finish_void, finish_boolean, finish_string, finish_strv, finish_uint, &proxy, &cancellable);
-	e_client_return_async_if_fail (async_data != NULL, client, callback, user_data, source_tag);
-
-	func (proxy, cancellable, async_result_ready_cb, async_data);
-}
-
-void
-e_client_proxy_call_boolean (EClient *client,
-                             gboolean in_boolean,
-                             GCancellable *cancellable,
-                             GAsyncReadyCallback callback,
-                             gpointer user_data,
-                             gpointer source_tag,
-                             void (*func) (GDBusProxy *proxy,
-                                           gboolean in_boolean,
-                                           GCancellable *cancellable,
-                                           GAsyncReadyCallback callback,
-                                           gpointer user_data),
-                             EClientProxyFinishVoidFunc finish_void,
-                             EClientProxyFinishBooleanFunc finish_boolean,
-                             EClientProxyFinishStringFunc finish_string,
-                             EClientProxyFinishStrvFunc finish_strv,
-                             EClientProxyFinishUintFunc finish_uint)
-{
-	EClientAsyncOpData *async_data;
-	GDBusProxy *proxy = NULL;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (callback != NULL);
-	g_return_if_fail (source_tag != NULL);
-	e_client_return_async_if_fail (func != NULL, client, callback, user_data, source_tag);
-
-	async_data = prepare_async_data (client, cancellable, callback, user_data, source_tag, FALSE, finish_void, finish_boolean, finish_string, finish_strv, finish_uint, &proxy, &cancellable);
-	e_client_return_async_if_fail (async_data != NULL, client, callback, user_data, source_tag);
-
-	func (proxy, in_boolean, cancellable, async_result_ready_cb, async_data);
-}
-
-void
-e_client_proxy_call_string (EClient *client,
-                            const gchar *in_string,
-                            GCancellable *cancellable,
-                            GAsyncReadyCallback callback,
-                            gpointer user_data,
-                            gpointer source_tag,
-                            void (*func) (GDBusProxy *proxy,
-                                          const gchar *in_string,
-                                          GCancellable *cancellable,
-                                          GAsyncReadyCallback callback,
-                                          gpointer user_data),
-                            EClientProxyFinishVoidFunc finish_void,
-                            EClientProxyFinishBooleanFunc finish_boolean,
-                            EClientProxyFinishStringFunc finish_string,
-                            EClientProxyFinishStrvFunc finish_strv,
-                            EClientProxyFinishUintFunc finish_uint)
-{
-	EClientAsyncOpData *async_data;
-	GDBusProxy *proxy = NULL;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (callback != NULL);
-	g_return_if_fail (source_tag != NULL);
-	e_client_return_async_if_fail (func != NULL, client, callback, user_data, source_tag);
-	e_client_return_async_if_fail (in_string != NULL, client, callback, user_data, source_tag);
-
-	async_data = prepare_async_data (client, cancellable, callback, user_data, source_tag, FALSE, finish_void, finish_boolean, finish_string, finish_strv, finish_uint, &proxy, &cancellable);
-	e_client_return_async_if_fail (async_data != NULL, client, callback, user_data, source_tag);
-
-	func (proxy, in_string, cancellable, async_result_ready_cb, async_data);
-}
-
-void
-e_client_proxy_call_string_with_res_op_data (EClient *client,
-                                             const gchar *in_string,
-                                             GCancellable *cancellable,
-                                             GAsyncReadyCallback callback,
-                                             gpointer user_data,
-                                             gpointer source_tag,
-                                             const gchar *res_op_data,
-                                             void (*func) (GDBusProxy *proxy,
-                                                           const gchar *in_string,
-                                                           GCancellable *cancellable,
-                                                           GAsyncReadyCallback callback,
-                                                           gpointer user_data),
-                                             EClientProxyFinishVoidFunc finish_void,
-                                             EClientProxyFinishBooleanFunc finish_boolean,
-                                             EClientProxyFinishStringFunc finish_string,
-                                             EClientProxyFinishStrvFunc finish_strv,
-                                             EClientProxyFinishUintFunc finish_uint)
-{
-	EClientAsyncOpData *async_data;
-	GDBusProxy *proxy = NULL;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (callback != NULL);
-	g_return_if_fail (source_tag != NULL);
-	e_client_return_async_if_fail (func != NULL, client, callback, user_data, source_tag);
-	e_client_return_async_if_fail (in_string != NULL, client, callback, user_data, source_tag);
-
-	async_data = prepare_async_data (client, cancellable, callback, user_data, source_tag, FALSE, finish_void, finish_boolean, finish_string, finish_strv, finish_uint, &proxy, &cancellable);
-	e_client_return_async_if_fail (async_data != NULL, client, callback, user_data, source_tag);
-
-	async_data->res_op_data = g_strdup (res_op_data);
-
-	func (proxy, in_string, cancellable, async_result_ready_cb, async_data);
-}
-
-void
-e_client_proxy_call_strv (EClient *client,
-                          const gchar * const *in_strv,
-                          GCancellable *cancellable,
-                          GAsyncReadyCallback callback,
-                          gpointer user_data,
-                          gpointer source_tag,
-                          void (*func) (GDBusProxy *proxy,
-                                        const gchar * const * in_strv,
-                                        GCancellable *cancellable,
-                                        GAsyncReadyCallback callback,
-                                        gpointer user_data),
-                          EClientProxyFinishVoidFunc finish_void,
-                          EClientProxyFinishBooleanFunc finish_boolean,
-                          EClientProxyFinishStringFunc finish_string,
-                          EClientProxyFinishStrvFunc finish_strv,
-                          EClientProxyFinishUintFunc finish_uint)
-{
-	EClientAsyncOpData *async_data;
-	GDBusProxy *proxy = NULL;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (callback != NULL);
-	g_return_if_fail (source_tag != NULL);
-	e_client_return_async_if_fail (func != NULL, client, callback, user_data, source_tag);
-	e_client_return_async_if_fail (in_strv != NULL, client, callback, user_data, source_tag);
-
-	async_data = prepare_async_data (client, cancellable, callback, user_data, source_tag, FALSE, finish_void, finish_boolean, finish_string, finish_strv, finish_uint, &proxy, &cancellable);
-	e_client_return_async_if_fail (async_data != NULL, client, callback, user_data, source_tag);
-
-	func (proxy, in_strv, cancellable, async_result_ready_cb, async_data);
-}
-
-void
-e_client_proxy_call_uint (EClient *client,
-                          guint in_uint,
-                          GCancellable *cancellable,
-                          GAsyncReadyCallback callback,
-                          gpointer user_data,
-                          gpointer source_tag,
-                          void (*func) (GDBusProxy *proxy,
-                                        guint in_uint,
-                                        GCancellable *cancellable,
-                                        GAsyncReadyCallback callback,
-                                        gpointer user_data),
-                          EClientProxyFinishVoidFunc finish_void,
-                          EClientProxyFinishBooleanFunc finish_boolean,
-                          EClientProxyFinishStringFunc finish_string,
-                          EClientProxyFinishStrvFunc finish_strv,
-                          EClientProxyFinishUintFunc finish_uint)
-{
-	EClientAsyncOpData *async_data;
-	GDBusProxy *proxy = NULL;
-
-	g_return_if_fail (client != NULL);
-	g_return_if_fail (E_IS_CLIENT (client));
-	g_return_if_fail (callback != NULL);
-	g_return_if_fail (source_tag != NULL);
-	e_client_return_async_if_fail (func != NULL, client, callback, user_data, source_tag);
-
-	async_data = prepare_async_data (client, cancellable, callback, user_data, source_tag, FALSE, finish_void, finish_boolean, finish_string, finish_strv, finish_uint, &proxy, &cancellable);
-	e_client_return_async_if_fail (async_data != NULL, client, callback, user_data, source_tag);
-
-	func (proxy, in_uint, cancellable, async_result_ready_cb, async_data);
-}
-
-gboolean
-e_client_proxy_call_finish_void (EClient *client,
-                                 GAsyncResult *result,
-                                 GError **error,
-                                 gpointer source_tag)
-{
-	GSimpleAsyncResult *simple;
-	GError *local_error = NULL;
-	EClientAsyncOpData *async_data;
-
-	g_return_val_if_fail (client != NULL, FALSE);
-	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (result != NULL, FALSE);
-	g_return_val_if_fail (source_tag != NULL, FALSE);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (client), source_tag), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	if (g_simple_async_result_propagate_error (simple, &local_error)) {
-		e_client_unwrap_dbus_error (client, local_error, error);
-		return FALSE;
-	}
-
-	async_data = g_simple_async_result_get_op_res_gpointer (simple);
-	g_return_val_if_fail (async_data != NULL, FALSE);
-
-	return async_data->result;
-}
-
-gboolean
-e_client_proxy_call_finish_boolean (EClient *client,
-                                    GAsyncResult *result,
-                                    gboolean *out_boolean,
-                                    GError **error,
-                                    gpointer source_tag)
-{
-	GSimpleAsyncResult *simple;
-	GError *local_error = NULL;
-	EClientAsyncOpData *async_data;
-
-	g_return_val_if_fail (client != NULL, FALSE);
-	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (result != NULL, FALSE);
-	g_return_val_if_fail (source_tag != NULL, FALSE);
-	g_return_val_if_fail (out_boolean != NULL, FALSE);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (client), source_tag), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	if (g_simple_async_result_propagate_error (simple, &local_error)) {
-		e_client_unwrap_dbus_error (client, local_error, error);
-		return FALSE;
-	}
-
-	async_data = g_simple_async_result_get_op_res_gpointer (simple);
-	g_return_val_if_fail (async_data != NULL, FALSE);
-
-	*out_boolean = async_data->out.val_boolean;
-
-	return async_data->result;
-}
-
-gboolean
-e_client_proxy_call_finish_string (EClient *client,
-                                   GAsyncResult *result,
-                                   gchar **out_string,
-                                   GError **error,
-                                   gpointer source_tag)
-{
-	GSimpleAsyncResult *simple;
-	GError *local_error = NULL;
-	EClientAsyncOpData *async_data;
-
-	g_return_val_if_fail (client != NULL, FALSE);
-	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (result != NULL, FALSE);
-	g_return_val_if_fail (source_tag != NULL, FALSE);
-	g_return_val_if_fail (out_string != NULL, FALSE);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (client), source_tag), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	if (g_simple_async_result_propagate_error (simple, &local_error)) {
-		e_client_unwrap_dbus_error (client, local_error, error);
-		return FALSE;
-	}
-
-	async_data = g_simple_async_result_get_op_res_gpointer (simple);
-	g_return_val_if_fail (async_data != NULL, FALSE);
-
-	*out_string = async_data->out.val_string;
-	async_data->out.val_string = NULL;
-
-	return async_data->result;
-}
-
-gboolean
-e_client_proxy_call_finish_strv (EClient *client,
-                                 GAsyncResult *result,
-                                 gchar ***out_strv,
-                                 GError **error,
-                                 gpointer source_tag)
-{
-	GSimpleAsyncResult *simple;
-	GError *local_error = NULL;
-	EClientAsyncOpData *async_data;
-
-	g_return_val_if_fail (client != NULL, FALSE);
-	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (result != NULL, FALSE);
-	g_return_val_if_fail (source_tag != NULL, FALSE);
-	g_return_val_if_fail (out_strv != NULL, FALSE);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (client), source_tag), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	if (g_simple_async_result_propagate_error (simple, &local_error)) {
-		e_client_unwrap_dbus_error (client, local_error, error);
-		return FALSE;
-	}
-
-	async_data = g_simple_async_result_get_op_res_gpointer (simple);
-	g_return_val_if_fail (async_data != NULL, FALSE);
-
-	*out_strv = async_data->out.val_strv;
-	async_data->out.val_strv = NULL;
-
-	return async_data->result;
-}
-
-gboolean
-e_client_proxy_call_finish_uint (EClient *client,
-                                 GAsyncResult *result,
-                                 guint *out_uint,
-                                 GError **error,
-                                 gpointer source_tag)
-{
-	GSimpleAsyncResult *simple;
-	GError *local_error = NULL;
-	EClientAsyncOpData *async_data;
-
-	g_return_val_if_fail (client != NULL, FALSE);
-	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);
-	g_return_val_if_fail (result != NULL, FALSE);
-	g_return_val_if_fail (source_tag != NULL, FALSE);
-	g_return_val_if_fail (out_uint != NULL, FALSE);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (client), source_tag), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	if (g_simple_async_result_propagate_error (simple, &local_error)) {
-		e_client_unwrap_dbus_error (client, local_error, error);
-		return FALSE;
-	}
-
-	async_data = g_simple_async_result_get_op_res_gpointer (simple);
-	g_return_val_if_fail (async_data != NULL, FALSE);
-
-	*out_uint = async_data->out.val_uint;
-
-	return async_data->result;
-}
-
-#define SYNC_CALL_TEMPLATE(_out_test,_the_call)			\
-	GDBusProxy *proxy;					\
-	GCancellable *use_cancellable;				\
-	guint32 opid;						\
-	gboolean result;					\
-	GError *local_error = NULL;				\
-								\
-	g_return_val_if_fail (client != NULL, FALSE);		\
-	g_return_val_if_fail (E_IS_CLIENT (client), FALSE);	\
-	g_return_val_if_fail (func != NULL, FALSE);		\
-	g_return_val_if_fail (_out_test != NULL, FALSE);	\
-								\
-	proxy = e_client_get_dbus_proxy (client);		\
-	g_return_val_if_fail (proxy != NULL, FALSE);		\
-								\
-	use_cancellable = cancellable;				\
-	if (!use_cancellable)					\
-		use_cancellable = g_cancellable_new ();		\
-								\
-	g_object_ref (client);					\
-	opid = e_client_register_op (client, use_cancellable);	\
-								\
-	result = func _the_call;				\
-								\
-	e_client_unregister_op (client, opid);			\
-	g_object_unref (client);				\
-								\
-	if (use_cancellable != cancellable)			\
-		g_object_unref (use_cancellable);		\
-								\
-	e_client_unwrap_dbus_error (client, local_error, error);\
-								\
-	return result;
-
-gboolean
-e_client_proxy_call_sync_void__void (EClient *client,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (client, (proxy, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_void__boolean (EClient *client,
-                                        gboolean *out_boolean,
-                                        GCancellable *cancellable,
-                                        GError **error,
-                                        gboolean (*func) (GDBusProxy *proxy,
-                                                          gboolean *out_boolean,
-                                                          GCancellable *cancellable,
-                                                          GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_boolean, (proxy, out_boolean, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_void__string (EClient *client,
-                                       gchar **out_string,
-                                       GCancellable *cancellable,
-                                       GError **error,
-                                       gboolean (*func) (GDBusProxy *proxy,
-                                                         gchar **out_string,
-                                                         GCancellable *cancellable,
-                                                         GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_string, (proxy, out_string, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_void__strv (EClient *client,
-                                     gchar ***out_strv,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       gchar ***out_strv,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_strv, (proxy, out_strv, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_void__uint (EClient *client,
-                                     guint *out_uint,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       guint *out_uint,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_uint, (proxy, out_uint, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_boolean__void (EClient *client,
-                                        gboolean in_boolean,
-                                        GCancellable *cancellable,
-                                        GError **error,
-                                        gboolean (*func) (GDBusProxy *proxy,
-                                                          gboolean in_boolean,
-                                                          GCancellable *cancellable,
-                                                          GError **error))
-{
-	SYNC_CALL_TEMPLATE (client, (proxy, in_boolean, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_boolean__boolean (EClient *client,
-                                           gboolean in_boolean,
-                                           gboolean *out_boolean,
-                                           GCancellable *cancellable,
-                                           GError **error,
-                                           gboolean (*func) (GDBusProxy *proxy,
-                                                             gboolean in_boolean,
-                                                             gboolean *out_boolean,
-                                                             GCancellable *cancellable,
-                                                             GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_boolean, (proxy, in_boolean, out_boolean, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_boolean__string (EClient *client,
-                                          gboolean in_boolean,
-                                          gchar **out_string,
-                                          GCancellable *cancellable,
-                                          GError **error,
-                                          gboolean (*func) (GDBusProxy *proxy,
-                                                            gboolean in_boolean,
-                                                            gchar **out_string,
-                                                            GCancellable *cancellable,
-                                                            GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_string, (proxy, in_boolean, out_string, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_boolean__strv (EClient *client,
-                                        gboolean in_boolean,
-                                        gchar ***out_strv,
-                                        GCancellable *cancellable,
-                                        GError **error,
-                                        gboolean (*func) (GDBusProxy *proxy,
-                                                          gboolean in_boolean,
-                                                          gchar ***out_strv,
-                                                          GCancellable *cancellable,
-                                                          GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_strv, (proxy, in_boolean, out_strv, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_boolean__uint (EClient *client,
-                                        gboolean in_boolean,
-                                        guint *out_uint,
-                                        GCancellable *cancellable,
-                                        GError **error,
-                                        gboolean (*func) (GDBusProxy *proxy,
-                                                          gboolean in_boolean,
-                                                          guint *out_uint,
-                                                          GCancellable *cancellable,
-                                                          GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_uint, (proxy, in_boolean, out_uint, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_string__void (EClient *client,
-                                       const gchar *in_string,
-                                       GCancellable *cancellable,
-                                       GError **error,
-                                       gboolean (*func) (GDBusProxy *proxy,
-                                                         const gchar *in_string,
-                                                         GCancellable *cancellable,
-                                                         GError **error))
-{
-	SYNC_CALL_TEMPLATE (client, (proxy, in_string, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_string__boolean (EClient *client,
-                                          const gchar *in_string,
-                                          gboolean *out_boolean,
-                                          GCancellable *cancellable,
-                                          GError **error,
-                                          gboolean (*func) (GDBusProxy *proxy,
-                                                            const gchar *in_string,
-                                                            gboolean *out_boolean,
-                                                            GCancellable *cancellable,
-                                                            GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_boolean, (proxy, in_string, out_boolean, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_string__string (EClient *client,
-                                         const gchar *in_string,
-                                         gchar **out_string,
-                                         GCancellable *cancellable,
-                                         GError **error,
-                                         gboolean (*func) (GDBusProxy *proxy,
-                                                           const gchar *in_string,
-                                                           gchar **out_string,
-                                                           GCancellable *cancellable,
-                                                           GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_string, (proxy, in_string, out_string, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_string__strv (EClient *client,
-                                       const gchar *in_string,
-                                       gchar ***out_strv,
-                                       GCancellable *cancellable,
-                                       GError **error,
-                                       gboolean (*func) (GDBusProxy *proxy,
-                                                         const gchar *in_string,
-                                                         gchar ***out_strv,
-                                                         GCancellable *cancellable,
-                                                         GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_strv, (proxy, in_string, out_strv, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_string__uint (EClient *client,
-                                       const gchar *in_string,
-                                       guint *out_uint,
-                                       GCancellable *cancellable,
-                                       GError **error,
-                                       gboolean (*func) (GDBusProxy *proxy,
-                                                         const gchar *in_string,
-                                                         guint *out_uint,
-                                                         GCancellable *cancellable,
-                                                         GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_uint, (proxy, in_string, out_uint, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_strv__void (EClient *client,
-                                     const gchar * const *in_strv,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       const gchar * const *in_strv,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (client, (proxy, in_strv, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_strv__boolean (EClient *client,
-                                        const gchar * const *in_strv,
-                                        gboolean *out_boolean,
-                                        GCancellable *cancellable,
-                                        GError **error,
-                                        gboolean (*func) (GDBusProxy *proxy,
-                                                          const gchar * const *in_strv,
-                                                          gboolean *out_boolean,
-                                                          GCancellable *cancellable,
-                                                          GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_boolean, (proxy, in_strv, out_boolean, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_strv__string (EClient *client,
-                                       const gchar * const *in_strv,
-                                       gchar **out_string,
-                                       GCancellable *cancellable,
-                                       GError **error,
-                                       gboolean (*func) (GDBusProxy *proxy,
-                                                         const gchar * const *in_strv,
-                                                         gchar **out_string,
-                                                         GCancellable *cancellable,
-                                                         GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_string, (proxy, in_strv, out_string, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_strv__strv (EClient *client,
-                                     const gchar * const *in_strv,
-                                     gchar ***out_strv,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       const gchar * const *in_strv,
-                                                       gchar ***out_strv,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_strv, (proxy, in_strv, out_strv, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_strv__uint (EClient *client,
-                                     const gchar * const *in_strv,
-                                     guint *out_uint,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       const gchar * const *in_strv,
-                                                       guint *out_uint,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_uint, (proxy, in_strv, out_uint, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_uint__void (EClient *client,
-                                     guint in_uint,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       guint in_uint,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (client, (proxy, in_uint, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_uint__boolean (EClient *client,
-                                        guint in_uint,
-                                        gboolean *out_boolean,
-                                        GCancellable *cancellable,
-                                        GError **error,
-                                        gboolean (*func) (GDBusProxy *proxy,
-                                                          guint in_uint,
-                                                          gboolean *out_boolean,
-                                                          GCancellable *cancellable,
-                                                          GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_boolean, (proxy, in_uint, out_boolean, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_uint__string (EClient *client,
-                                       guint in_uint,
-                                       gchar **out_string,
-                                       GCancellable *cancellable,
-                                       GError **error,
-                                       gboolean (*func) (GDBusProxy *proxy,
-                                                         guint in_uint,
-                                                         gchar **out_string,
-                                                         GCancellable *cancellable,
-                                                         GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_string, (proxy, in_uint, out_string, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_uint__strv (EClient *client,
-                                     guint in_uint,
-                                     gchar ***out_strv,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       guint in_uint,
-                                                       gchar ***out_strv,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_strv, (proxy, in_uint, out_strv, use_cancellable, &local_error))
-}
-
-gboolean
-e_client_proxy_call_sync_uint__uint (EClient *client,
-                                     guint in_uint,
-                                     guint *out_uint,
-                                     GCancellable *cancellable,
-                                     GError **error,
-                                     gboolean (*func) (GDBusProxy *proxy,
-                                                       guint in_uint,
-                                                       guint *out_uint,
-                                                       GCancellable *cancellable,
-                                                       GError **error))
-{
-	SYNC_CALL_TEMPLATE (out_uint, (proxy, in_uint, out_uint, use_cancellable, &local_error))
-}
-
-#undef SYNC_CALL_TEMPLATE

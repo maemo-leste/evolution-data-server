@@ -1,31 +1,33 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- * pas-backend-card-sexp.h
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 2012 Intel Corporation
  *
  * Authors:
  *   Chris Lahey <clahey@ximian.com>
+ *   Tristan Van Berkom <tristanvb@openismus.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License, version 2, as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
  * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
+
+#if !defined (__LIBEDATA_BOOK_H_INSIDE__) && !defined (LIBEDATA_BOOK_COMPILATION)
+#error "Only <libedata-book/libedata-book.h> should be included directly."
+#endif
 
 #ifndef E_BOOK_BACKEND_SEXP_H
 #define E_BOOK_BACKEND_SEXP_H
 
-#include <libebook/e-contact.h>
-#include <libedata-book/e-data-book-types.h>
+#include <libebook-contacts/libebook-contacts.h>
 
 /* Standard GObject macros */
 #define E_TYPE_BOOK_BACKEND_SEXP \
@@ -52,18 +54,32 @@ typedef struct _EBookBackendSExp EBookBackendSExp;
 typedef struct _EBookBackendSExpClass EBookBackendSExpClass;
 typedef struct _EBookBackendSExpPrivate EBookBackendSExpPrivate;
 
+/**
+ * EBookBackendSexp:
+ *
+ * Contains only private data that should be read and manipulated using the
+ * functions below.
+ */
 struct _EBookBackendSExp {
-	GObject parent_object;
+	/*< private >*/
+	GObject parent;
 	EBookBackendSExpPrivate *priv;
 };
 
+/**
+ * EBookBackendSexpClass:
+ *
+ * Class structure for the #EBookBackendSexp class.
+ */
 struct _EBookBackendSExpClass {
+	/*< private >*/
 	GObjectClass parent_class;
 };
 
 GType		e_book_backend_sexp_get_type	(void) G_GNUC_CONST;
 EBookBackendSExp *
 		e_book_backend_sexp_new		(const gchar *text);
+const gchar *	e_book_backend_sexp_text	(EBookBackendSExp *sexp);
 gboolean	e_book_backend_sexp_match_vcard	(EBookBackendSExp *sexp,
 						 const gchar *vcard);
 gboolean	e_book_backend_sexp_match_contact

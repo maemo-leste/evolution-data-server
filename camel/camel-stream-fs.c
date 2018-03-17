@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -48,7 +46,7 @@ struct _CamelStreamFsPrivate {
 };
 
 /* Forward Declarations */
-static void camel_stream_fs_seekable_init (GSeekableIface *interface);
+static void camel_stream_fs_seekable_init (GSeekableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (
 	CamelStreamFs, camel_stream_fs, CAMEL_TYPE_STREAM,
@@ -250,13 +248,13 @@ camel_stream_fs_class_init (CamelStreamFsClass *class)
 }
 
 static void
-camel_stream_fs_seekable_init (GSeekableIface *interface)
+camel_stream_fs_seekable_init (GSeekableIface *iface)
 {
-	interface->tell = stream_fs_tell;
-	interface->can_seek = stream_fs_can_seek;
-	interface->seek = stream_fs_seek;
-	interface->can_truncate = stream_fs_can_truncate;
-	interface->truncate_fn = stream_fs_truncate_fn;
+	iface->tell = stream_fs_tell;
+	iface->can_seek = stream_fs_can_seek;
+	iface->seek = stream_fs_seek;
+	iface->can_truncate = stream_fs_can_truncate;
+	iface->truncate_fn = stream_fs_truncate_fn;
 }
 
 static void

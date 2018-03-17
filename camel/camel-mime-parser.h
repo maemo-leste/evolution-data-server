@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -25,8 +23,6 @@
 
 #ifndef CAMEL_MIME_PARSER_H
 #define CAMEL_MIME_PARSER_H
-
-#include <camel/camel-object.h>
 
 #include <camel/camel-mime-utils.h>
 #include <camel/camel-mime-filter.h>
@@ -83,12 +79,12 @@ typedef enum _camel_mime_parser_state_t {
 } camel_mime_parser_state_t;
 
 struct _CamelMimeParser {
-	CamelObject parent;
+	GObject parent;
 	CamelMimeParserPrivate *priv;
 };
 
 struct _CamelMimeParserClass {
-	CamelObjectClass parent_class;
+	GObjectClass parent_class;
 
 	void (*message) (CamelMimeParser *parser, gpointer headers);
 	void (*part) (CamelMimeParser *parser);
@@ -101,13 +97,12 @@ CamelMimeParser *camel_mime_parser_new (void);
 /* quick-fix for parser not erroring, we can find out if it had an error afterwards */
 gint		camel_mime_parser_errno (CamelMimeParser *parser);
 
-/* using an fd will be a little faster, but not much (over a simple stream) */
 gint		camel_mime_parser_init_with_fd (CamelMimeParser *m, gint fd);
 gint		camel_mime_parser_init_with_stream (CamelMimeParser *m, CamelStream *stream, GError **error);
+void		camel_mime_parser_init_with_input_stream (CamelMimeParser *parser, GInputStream *input_stream);
+void		camel_mime_parser_init_with_bytes (CamelMimeParser *parser, GBytes *bytes);
 
-/* get the stream or fd back of the parser */
 CamelStream    *camel_mime_parser_stream (CamelMimeParser *parser);
-gint		camel_mime_parser_fd (CamelMimeParser *parser);
 
 /* scan 'From' separators? */
 void camel_mime_parser_scan_from (CamelMimeParser *parser, gboolean scan_from);

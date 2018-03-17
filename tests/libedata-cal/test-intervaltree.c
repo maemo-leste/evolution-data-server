@@ -1,31 +1,27 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Stanislav Slusny <slusnys@gmail.com>
+ * Authors: Stanislav Slusny <slusnys@gmail.com>
  *
- *  Copyright 2008
+ * Copyright 2008
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <libecal/e-cal-recur.h>
-#include <libecal/e-cal-component.h>
-#include <libical/icalcomponent.h>
-#include <libedata-cal/e-cal-backend-intervaltree.h>
+#include <libical/ical.h>
+#include <libedata-cal/libedata-cal.h>
 
 #define NUM_INTERVALS_CLOSED  100
 #define NUM_INTERVALS_OPEN  100
@@ -168,7 +164,7 @@ create_test_component (time_t start,
 	e_cal_component_set_dtend (comp, &dtend);
 	*/
 
-	summary.value = g_strdup_printf ("%ld - %ld", start, end);
+	summary.value = g_strdup_printf ("%" G_GINT64_FORMAT "- %" G_GINT64_FORMAT, (gint64) start, (gint64) end);
 	summary.altrep = NULL;
 
 	e_cal_component_set_summary (comp, &summary);
@@ -367,8 +363,9 @@ random_test (void)
 			{
 				g_free (rid);
 				e_intervaltree_dump (tree);
-				g_print ("Deleting interval %d - %d ERROR\n", interval->start,
-					 interval->end);
+				g_print (
+					"Deleting interval %d - %d ERROR\n", interval->start,
+					interval->end);
 				exit (-1);
 			}
 
@@ -464,8 +461,6 @@ gint
 main (gint argc,
       gchar **argv)
 {
-	g_type_init ();
-
 	myrand = g_rand_new ();
 	mem_test ();
 	random_test ();

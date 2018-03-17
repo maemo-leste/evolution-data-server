@@ -9,19 +9,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -38,9 +36,9 @@
 #include <glib/gstdio.h>
 
 #include "camel-debug.h"
+#include "camel-enumtypes.h"
 #include "camel-file-utils.h"
 #include "camel-folder.h"
-#include "camel-marshal.h"
 #include "camel-mime-message.h"
 #include "camel-sasl.h"
 #include "camel-session.h"
@@ -53,34 +51,43 @@
 	(G_TYPE_INSTANCE_GET_PRIVATE \
 	((obj), CAMEL_TYPE_SESSION, CamelSessionPrivate))
 
-#define JOB_PRIORITY G_PRIORITY_LOW
+/* Prioritize ahead of GTK+ redraws. */
+#define JOB_PRIORITY G_PRIORITY_HIGH_IDLE
 
 #define d(x)
 
 typedef struct _AsyncContext AsyncContext;
+typedef struct _SignalClosure SignalClosure;
 typedef struct _JobData JobData;
 
 struct _CamelSessionPrivate {
-	GMutex *lock;		/* for locking everything basically */
-	GMutex *thread_lock;	/* locking threads */
-
 	gchar *user_data_dir;
 	gchar *user_cache_dir;
 
 	GHashTable *services;
+	GMutex services_lock;
+
 	GHashTable *junk_headers;
 	CamelJunkFilter *junk_filter;
 
-	GMainContext *context;
+	GMainContext *main_context;
 
-	guint check_junk        : 1;
-	guint network_available : 1;
-	guint online            : 1;
+	guint online : 1;
 };
 
 struct _AsyncContext {
+	CamelFolder *folder;
+	CamelMimeMessage *message;
 	CamelService *service;
+	gchar *address;
 	gchar *auth_mechanism;
+};
+
+struct _SignalClosure {
+	GWeakRef session;
+	CamelService *service;
+	CamelSessionAlertType alert_type;
+	gchar *alert_message;
 };
 
 struct _JobData {
@@ -93,9 +100,8 @@ struct _JobData {
 
 enum {
 	PROP_0,
-	PROP_CHECK_JUNK,
 	PROP_JUNK_FILTER,
-	PROP_NETWORK_AVAILABLE,
+	PROP_MAIN_CONTEXT,
 	PROP_ONLINE,
 	PROP_USER_DATA_DIR,
 	PROP_USER_CACHE_DIR
@@ -104,22 +110,43 @@ enum {
 enum {
 	JOB_STARTED,
 	JOB_FINISHED,
+	USER_ALERT,
 	LAST_SIGNAL
 };
 
 static guint signals[LAST_SIGNAL];
 
-G_DEFINE_TYPE (CamelSession, camel_session, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelSession, camel_session, G_TYPE_OBJECT)
 
 static void
 async_context_free (AsyncContext *async_context)
 {
+	if (async_context->folder != NULL)
+		g_object_unref (async_context->folder);
+
+	if (async_context->message != NULL)
+		g_object_unref (async_context->message);
+
 	if (async_context->service != NULL)
 		g_object_unref (async_context->service);
 
+	g_free (async_context->address);
 	g_free (async_context->auth_mechanism);
 
 	g_slice_free (AsyncContext, async_context);
+}
+
+static void
+signal_closure_free (SignalClosure *signal_closure)
+{
+	g_weak_ref_clear (&signal_closure->session);
+
+	if (signal_closure->service != NULL)
+		g_object_unref (signal_closure->service);
+
+	g_free (signal_closure->alert_message);
+
+	g_slice_free (SignalClosure, signal_closure);
 }
 
 static void
@@ -135,67 +162,96 @@ job_data_free (JobData *job_data)
 }
 
 static void
-session_finish_job_cb (CamelSession *session,
-                       GSimpleAsyncResult *simple)
+session_finish_job_cb (GObject *source_object,
+                       GAsyncResult *result,
+                       gpointer unused)
 {
-	JobData *job_data;
-	GError *error = NULL;
+	GCancellable *cancellable;
+	GError *local_error = NULL;
 
-	g_simple_async_result_propagate_error (simple, &error);
-	job_data = g_simple_async_result_get_op_res_gpointer (simple);
+	cancellable = g_task_get_cancellable (G_TASK (result));
+
+	/* XXX Ignore the return value, this is just
+	 *     to extract the GError if there is one. */
+	g_task_propagate_boolean (G_TASK (result), &local_error);
 
 	g_signal_emit (
-		job_data->session,
+		CAMEL_SESSION (source_object),
 		signals[JOB_FINISHED], 0,
-		job_data->cancellable, error);
+		cancellable, local_error);
 
-	g_clear_error (&error);
+	g_clear_error (&local_error);
 }
 
 static void
-session_do_job_cb (GSimpleAsyncResult *simple,
-                   CamelSession *session,
+session_do_job_cb (GTask *task,
+                   gpointer source_object,
+                   gpointer task_data,
                    GCancellable *cancellable)
 {
 	JobData *job_data;
-	GError *error = NULL;
+	GError *local_error = NULL;
 
-	job_data = g_simple_async_result_get_op_res_gpointer (simple);
+	job_data = (JobData *) task_data;
 
 	job_data->callback (
-		session, cancellable,
-		job_data->user_data, &error);
+		CAMEL_SESSION (source_object),
+		cancellable,
+		job_data->user_data,
+		&local_error);
 
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
+	if (local_error != NULL) {
+		g_task_return_error (task, local_error);
+	} else {
+		g_task_return_boolean (task, TRUE);
+	}
 }
 
 static gboolean
-session_start_job_cb (JobData *job_data)
+session_start_job_cb (gpointer user_data)
 {
-	GSimpleAsyncResult *simple;
+	JobData *job_data = user_data;
+	GTask *task;
 
 	g_signal_emit (
 		job_data->session,
 		signals[JOB_STARTED], 0,
 		job_data->cancellable);
 
-	simple = g_simple_async_result_new (
-		G_OBJECT (job_data->session),
-		(GAsyncReadyCallback) session_finish_job_cb,
-		NULL, camel_session_submit_job);
+	task = g_task_new (
+		job_data->session,
+		job_data->cancellable,
+		session_finish_job_cb, NULL);
 
-	g_simple_async_result_set_op_res_gpointer (
-		simple, job_data, (GDestroyNotify) job_data_free);
+	g_task_set_task_data (
+		task, job_data, (GDestroyNotify) job_data_free);
 
-	g_simple_async_result_run_in_thread (
-		simple, (GSimpleAsyncThreadFunc)
-		session_do_job_cb, JOB_PRIORITY,
-		job_data->cancellable);
+	g_task_run_in_thread (task, session_do_job_cb);
 
-	g_object_unref (simple);
+	g_object_unref (task);
 
 	return FALSE;
+}
+
+static gboolean
+session_emit_user_alert_cb (gpointer user_data)
+{
+	SignalClosure *signal_closure = user_data;
+	CamelSession *session;
+
+	session = g_weak_ref_get (&signal_closure->session);
+
+	if (session != NULL) {
+		g_signal_emit (
+			session,
+			signals[USER_ALERT], 0,
+			signal_closure->service,
+			signal_closure->alert_type,
+			signal_closure->alert_message);
+		g_object_unref (session);
+	}
+
+	return G_SOURCE_REMOVE;
 }
 
 static void
@@ -225,22 +281,10 @@ session_set_property (GObject *object,
                       GParamSpec *pspec)
 {
 	switch (property_id) {
-		case PROP_CHECK_JUNK:
-			camel_session_set_check_junk (
-				CAMEL_SESSION (object),
-				g_value_get_boolean (value));
-			return;
-
 		case PROP_JUNK_FILTER:
 			camel_session_set_junk_filter (
 				CAMEL_SESSION (object),
 				g_value_get_object (value));
-			return;
-
-		case PROP_NETWORK_AVAILABLE:
-			camel_session_set_network_available (
-				CAMEL_SESSION (object),
-				g_value_get_boolean (value));
 			return;
 
 		case PROP_ONLINE:
@@ -272,21 +316,15 @@ session_get_property (GObject *object,
                       GParamSpec *pspec)
 {
 	switch (property_id) {
-		case PROP_CHECK_JUNK:
-			g_value_set_boolean (
-				value, camel_session_get_check_junk (
-				CAMEL_SESSION (object)));
-			return;
-
 		case PROP_JUNK_FILTER:
 			g_value_set_object (
 				value, camel_session_get_junk_filter (
 				CAMEL_SESSION (object)));
 			return;
 
-		case PROP_NETWORK_AVAILABLE:
-			g_value_set_boolean (
-				value, camel_session_get_network_available (
+		case PROP_MAIN_CONTEXT:
+			g_value_take_boxed (
+				value, camel_session_ref_main_context (
 				CAMEL_SESSION (object)));
 			return;
 
@@ -342,11 +380,10 @@ session_finalize (GObject *object)
 
 	g_hash_table_destroy (priv->services);
 
-	if (priv->context != NULL)
-		g_main_context_unref (priv->context);
+	if (priv->main_context != NULL)
+		g_main_context_unref (priv->main_context);
 
-	g_mutex_free (priv->lock);
-	g_mutex_free (priv->thread_lock);
+	g_mutex_clear (&priv->services_lock);
 
 	if (priv->junk_headers) {
 		g_hash_table_remove_all (priv->junk_headers);
@@ -368,7 +405,7 @@ session_add_service (CamelSession *session,
 	CamelProvider *provider;
 	GType service_type = G_TYPE_INVALID;
 
-	service = camel_session_get_service (session, uid);
+	service = camel_session_ref_service (session, uid);
 	if (CAMEL_IS_SERVICE (service))
 		return service;
 
@@ -376,6 +413,9 @@ session_add_service (CamelSession *session,
 	provider = camel_provider_get (protocol, error);
 	if (provider != NULL)
 		service_type = provider->object_types[type];
+
+	if (error && *error)
+		return NULL;
 
 	if (service_type == G_TYPE_INVALID) {
 		g_set_error (
@@ -400,15 +440,15 @@ session_add_service (CamelSession *session,
 		"provider", provider, "session",
 		session, "uid", uid, NULL);
 
-	/* The hash table takes ownership of the new CamelService. */
 	if (service != NULL) {
-		camel_session_lock (session, CAMEL_SESSION_SESSION_LOCK);
+		g_mutex_lock (&session->priv->services_lock);
 
 		g_hash_table_insert (
 			session->priv->services,
-			g_strdup (uid), service);
+			g_strdup (uid),
+			g_object_ref (service));
 
-		camel_session_unlock (session, CAMEL_SESSION_SESSION_LOCK);
+		g_mutex_unlock (&session->priv->services_lock);
 	}
 
 	return service;
@@ -420,22 +460,12 @@ session_remove_service (CamelSession *session,
 {
 	const gchar *uid;
 
-	camel_session_lock (session, CAMEL_SESSION_SESSION_LOCK);
+	g_mutex_lock (&session->priv->services_lock);
 
 	uid = camel_service_get_uid (service);
 	g_hash_table_remove (session->priv->services, uid);
 
-	camel_session_unlock (session, CAMEL_SESSION_SESSION_LOCK);
-}
-
-static void
-session_get_socks_proxy (CamelSession *session,
-                         const gchar *for_host,
-                         gchar **host_ret,
-                         gint *port_ret)
-{
-	*host_ret = NULL;
-	*port_ret = 0;
+	g_mutex_unlock (&session->priv->services_lock);
 }
 
 static gboolean
@@ -543,67 +573,19 @@ retry:
 	return (result == CAMEL_AUTHENTICATION_ACCEPTED);
 }
 
-static void
-session_authenticate_thread (GSimpleAsyncResult *simple,
-                             GObject *object,
-                             GCancellable *cancellable)
-{
-	AsyncContext *async_context;
-	GError *error = NULL;
-
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	camel_session_authenticate_sync (
-		CAMEL_SESSION (object), async_context->service,
-		async_context->auth_mechanism, cancellable, &error);
-
-	if (error != NULL)
-		g_simple_async_result_take_error (simple, error);
-}
-
-static void
-session_authenticate (CamelSession *session,
-                      CamelService *service,
-                      const gchar *mechanism,
-                      gint io_priority,
-                      GCancellable *cancellable,
-                      GAsyncReadyCallback callback,
-                      gpointer user_data)
-{
-	GSimpleAsyncResult *simple;
-	AsyncContext *async_context;
-
-	async_context = g_slice_new0 (AsyncContext);
-	async_context->service = g_object_ref (service);
-	async_context->auth_mechanism = g_strdup (mechanism);
-
-	simple = g_simple_async_result_new (
-		G_OBJECT (session), callback, user_data, session_authenticate);
-
-	g_simple_async_result_set_op_res_gpointer (
-		simple, async_context, (GDestroyNotify) async_context_free);
-
-	g_simple_async_result_run_in_thread (
-		simple, session_authenticate_thread, io_priority, cancellable);
-
-	g_object_unref (simple);
-}
-
 static gboolean
-session_authenticate_finish (CamelSession *session,
-                             GAsyncResult *result,
-                             GError **error)
+session_forward_to_sync (CamelSession *session,
+                         CamelFolder *folder,
+                         CamelMimeMessage *message,
+                         const gchar *address,
+                         GCancellable *cancellable,
+                         GError **error)
 {
-	GSimpleAsyncResult *simple;
+	g_set_error_literal (
+		error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+		_("Forwarding messages is not supported"));
 
-	g_return_val_if_fail (
-		g_simple_async_result_is_valid (
-		result, G_OBJECT (session), session_authenticate), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-
-	/* Assume success unless a GError is set. */
-	return !g_simple_async_result_propagate_error (simple, error);
+	return FALSE;
 }
 
 static void
@@ -621,24 +603,9 @@ camel_session_class_init (CamelSessionClass *class)
 
 	class->add_service = session_add_service;
 	class->remove_service = session_remove_service;
-	class->get_socks_proxy = session_get_socks_proxy;
 
 	class->authenticate_sync = session_authenticate_sync;
-
-	class->authenticate = session_authenticate;
-	class->authenticate_finish = session_authenticate_finish;
-
-	g_object_class_install_property (
-		object_class,
-		PROP_CHECK_JUNK,
-		g_param_spec_boolean (
-			"check-junk",
-			"Check Junk",
-			"Check incoming messages for junk",
-			FALSE,
-			G_PARAM_READWRITE |
-			G_PARAM_CONSTRUCT |
-			G_PARAM_STATIC_STRINGS));
+	class->forward_to_sync = session_forward_to_sync;
 
 	g_object_class_install_property (
 		object_class,
@@ -653,14 +620,14 @@ camel_session_class_init (CamelSessionClass *class)
 
 	g_object_class_install_property (
 		object_class,
-		PROP_NETWORK_AVAILABLE,
-		g_param_spec_boolean (
-			"network-available",
-			"Network Available",
-			"Whether the network is available",
-			TRUE,
-			G_PARAM_READWRITE |
-			G_PARAM_CONSTRUCT |
+		PROP_MAIN_CONTEXT,
+		g_param_spec_boxed (
+			"main-context",
+			"Main Context",
+			"The main loop context on "
+			"which to attach event sources",
+			G_TYPE_MAIN_CONTEXT,
+			G_PARAM_READABLE |
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
@@ -704,8 +671,7 @@ camel_session_class_init (CamelSessionClass *class)
 		G_OBJECT_CLASS_TYPE (class),
 		G_SIGNAL_RUN_LAST,
 		G_STRUCT_OFFSET (CamelSessionClass, job_started),
-		NULL, NULL,
-		g_cclosure_marshal_VOID__OBJECT,
+		NULL, NULL, NULL,
 		G_TYPE_NONE, 1,
 		G_TYPE_CANCELLABLE);
 
@@ -714,11 +680,32 @@ camel_session_class_init (CamelSessionClass *class)
 		G_OBJECT_CLASS_TYPE (class),
 		G_SIGNAL_RUN_LAST,
 		G_STRUCT_OFFSET (CamelSessionClass, job_finished),
-		NULL, NULL,
-		camel_marshal_VOID__OBJECT_POINTER,
+		NULL, NULL, NULL,
 		G_TYPE_NONE, 2,
 		G_TYPE_CANCELLABLE,
 		G_TYPE_POINTER);
+
+	/**
+	 * CamelSession::user-alert:
+	 * @session: the #CamelSession that received the signal
+	 * @service: the #CamelService issuing the alert
+	 * @type: the #CamelSessionAlertType
+	 * @message: the alert message
+	 *
+	 * This purpose of this signal is to propagate a server-issued alert
+	 * message from @service to a user interface.  The @type hints at the
+	 * severity of the alert message.
+	 **/
+	signals[USER_ALERT] = g_signal_new (
+		"user-alert",
+		G_OBJECT_CLASS_TYPE (class),
+		G_SIGNAL_RUN_LAST,
+		G_STRUCT_OFFSET (CamelSessionClass, user_alert),
+		NULL, NULL, NULL,
+		G_TYPE_NONE, 3,
+		CAMEL_TYPE_SERVICE,
+		CAMEL_TYPE_SESSION_ALERT_TYPE,
+		G_TYPE_STRING);
 }
 
 static void
@@ -734,14 +721,30 @@ camel_session_init (CamelSession *session)
 
 	session->priv = CAMEL_SESSION_GET_PRIVATE (session);
 
-	session->priv->lock = g_mutex_new ();
-	session->priv->thread_lock = g_mutex_new ();
 	session->priv->services = services;
+	g_mutex_init (&session->priv->services_lock);
 	session->priv->junk_headers = NULL;
 
-	session->priv->context = g_main_context_get_thread_default ();
-	if (session->priv->context != NULL)
-		g_main_context_ref (session->priv->context);
+	session->priv->main_context = g_main_context_ref_thread_default ();
+}
+
+/**
+ * camel_session_ref_main_context:
+ * @session: a #CamelSession
+ *
+ * Returns the #GMainContext on which event sources for @session are to
+ * be attached.
+ *
+ * Returns: a #GMainContext
+ *
+ * Since: 3.8
+ **/
+GMainContext *
+camel_session_ref_main_context (CamelSession *session)
+{
+	g_return_val_if_fail (CAMEL_IS_SESSION (session), NULL);
+
+	return g_main_context_ref (session->priv->main_context);
 }
 
 /**
@@ -801,6 +804,9 @@ camel_session_get_user_cache_dir (CamelSession *session)
  * if the #CamelProvider does not specify a valid #GType for @type, the
  * function sets @error and returns %NULL.
  *
+ * The returned #CamelService is referenced for thread-safety and must be
+ * unreferenced with g_object_unref() when finished with it.
+ *
  * Returns: a #CamelService instance, or %NULL
  *
  * Since: 3.2
@@ -846,9 +852,6 @@ camel_session_remove_service (CamelSession *session,
 	g_return_if_fail (CAMEL_IS_SESSION (session));
 	g_return_if_fail (CAMEL_IS_SERVICE (service));
 
-	/* Verify the service belongs to this session. */
-	g_return_if_fail (camel_service_get_session (service) == session);
-
 	class = CAMEL_SESSION_GET_CLASS (session);
 	g_return_if_fail (class->remove_service != NULL);
 
@@ -856,17 +859,22 @@ camel_session_remove_service (CamelSession *session,
 }
 
 /**
- * camel_session_get_service:
+ * camel_session_ref_service:
  * @session: a #CamelSession
  * @uid: a unique identifier string
  *
  * Looks up a #CamelService by its unique identifier string.  The service
  * must have been previously added using camel_session_add_service().
  *
+ * The returned #CamelService is referenced for thread-safety and must be
+ * unreferenced with g_object_unref() when finished with it.
+ *
  * Returns: a #CamelService instance, or %NULL
+ *
+ * Since: 3.6
  **/
 CamelService *
-camel_session_get_service (CamelSession *session,
+camel_session_ref_service (CamelSession *session,
                            const gchar *uid)
 {
 	CamelService *service;
@@ -874,17 +882,20 @@ camel_session_get_service (CamelSession *session,
 	g_return_val_if_fail (CAMEL_IS_SESSION (session), NULL);
 	g_return_val_if_fail (uid != NULL, NULL);
 
-	camel_session_lock (session, CAMEL_SESSION_SESSION_LOCK);
+	g_mutex_lock (&session->priv->services_lock);
 
 	service = g_hash_table_lookup (session->priv->services, uid);
 
-	camel_session_unlock (session, CAMEL_SESSION_SESSION_LOCK);
+	if (service != NULL)
+		g_object_ref (service);
+
+	g_mutex_unlock (&session->priv->services_lock);
 
 	return service;
 }
 
 /**
- * camel_session_get_service_by_url:
+ * camel_session_ref_service_by_url:
  * @session: a #CamelSession
  * @url: a #CamelURL
  * @type: a #CamelProviderType
@@ -894,14 +905,17 @@ camel_session_get_service (CamelSession *session,
  * The service must have been previously added using
  * camel_session_add_service().
  *
- * Note this function is significantly slower than camel_session_get_service().
+ * The returned #CamelService is referenced for thread-safety and must be
+ * unreferenced with g_object_unref() when finished with it.
+ *
+ * Note this function is significantly slower than camel_session_ref_service().
  *
  * Returns: a #CamelService instance, or %NULL
  *
- * Since: 3.2
+ * Since: 3.6
  **/
 CamelService *
-camel_session_get_service_by_url (CamelSession *session,
+camel_session_ref_service_by_url (CamelSession *session,
                                   CamelURL *url,
                                   CamelProviderType type)
 {
@@ -938,11 +952,11 @@ camel_session_get_service_by_url (CamelSession *session,
 		switch (type) {
 			case CAMEL_PROVIDER_STORE:
 				if (CAMEL_IS_STORE (service))
-					match = service;
+					match = g_object_ref (service);
 				break;
 			case CAMEL_PROVIDER_TRANSPORT:
 				if (CAMEL_IS_TRANSPORT (service))
-					match = service;
+					match = g_object_ref (service);
 				break;
 			default:
 				g_warn_if_reached ();
@@ -953,7 +967,7 @@ camel_session_get_service_by_url (CamelSession *session,
 			break;
 	}
 
-	g_list_free (list);
+	g_list_free_full (list, (GDestroyNotify) g_object_unref);
 
 	return match;
 }
@@ -963,7 +977,17 @@ camel_session_get_service_by_url (CamelSession *session,
  * @session: a #CamelSession
  *
  * Returns a list of all #CamelService objects previously added using
- * camel_session_add_service().  Free the returned list using g_list_free().
+ * camel_session_add_service().
+ *
+ * The services returned in the list are referenced for thread-safety.
+ * They must each be unreferenced with g_object_unref() when finished
+ * with them.  Free the returned list itself with g_list_free().
+ *
+ * An easy way to free the list property in one step is as follows:
+ *
+ * |[
+ *   g_list_free_full (list, g_object_unref);
+ * ]|
  *
  * Returns: an unsorted list of #CamelService objects
  *
@@ -976,11 +1000,13 @@ camel_session_list_services (CamelSession *session)
 
 	g_return_val_if_fail (CAMEL_IS_SESSION (session), NULL);
 
-	camel_session_lock (session, CAMEL_SESSION_SESSION_LOCK);
+	g_mutex_lock (&session->priv->services_lock);
 
 	list = g_hash_table_get_values (session->priv->services);
 
-	camel_session_unlock (session, CAMEL_SESSION_SESSION_LOCK);
+	g_list_foreach (list, (GFunc) g_object_ref, NULL);
+
+	g_mutex_unlock (&session->priv->services_lock);
 
 	return list;
 }
@@ -1002,11 +1028,11 @@ camel_session_remove_services (CamelSession *session)
 {
 	g_return_if_fail (CAMEL_IS_SESSION (session));
 
-	camel_session_lock (session, CAMEL_SESSION_SESSION_LOCK);
+	g_mutex_lock (&session->priv->services_lock);
 
 	g_hash_table_remove_all (session->priv->services);
 
-	camel_session_unlock (session, CAMEL_SESSION_SESSION_LOCK);
+	g_mutex_unlock (&session->priv->services_lock);
 }
 
 /**
@@ -1105,33 +1131,85 @@ camel_session_forget_password (CamelSession *session,
 }
 
 /**
- * camel_session_alert_user:
+ * camel_session_trust_prompt:
  * @session: a #CamelSession
- * @type: the type of alert (info, warning, or error)
- * @prompt: the message for the user
- * @button_captions: List of button captions to use. If NULL, only "Dismiss" button is shown.
+ * @service: a #CamelService
+ * @certificate: the peer's #GTlsCertificate
+ * @errors: the problems with @certificate
  *
- * Presents the given @prompt to the user, in the style indicated by
- * @type. If @cancel is %TRUE, the user will be able to accept or
- * cancel. Otherwise, the message is purely informational.
+ * Prompts the user whether to accept @certificate for @service.  The
+ * set of flags given in @errors indicate why the @certificate failed
+ * validation.
  *
- * Returns: Index of pressed button from @button_captions, -1 if NULL.
- */
-gint
-camel_session_alert_user (CamelSession *session,
-                          CamelSessionAlertType type,
-                          const gchar *prompt,
-                          GSList *button_captions)
+ * If an error occurs during prompting or if the user declines to respond,
+ * the function returns #CAMEL_CERT_TRUST_UNKNOWN and the certificate will
+ * be rejected.
+ *
+ * Returns: the user's trust level for @certificate
+ *
+ * Since: 3.8
+ **/
+CamelCertTrust
+camel_session_trust_prompt (CamelSession *session,
+                            CamelService *service,
+                            GTlsCertificate *certificate,
+                            GTlsCertificateFlags errors)
 {
 	CamelSessionClass *class;
 
-	g_return_val_if_fail (CAMEL_IS_SESSION (session), -1);
-	g_return_val_if_fail (prompt != NULL, -1);
+	g_return_val_if_fail (
+		CAMEL_IS_SESSION (session), CAMEL_CERT_TRUST_UNKNOWN);
+	g_return_val_if_fail (
+		CAMEL_IS_SERVICE (service), CAMEL_CERT_TRUST_UNKNOWN);
+	g_return_val_if_fail (
+		G_IS_TLS_CERTIFICATE (certificate), CAMEL_CERT_TRUST_UNKNOWN);
 
 	class = CAMEL_SESSION_GET_CLASS (session);
-	g_return_val_if_fail (class->alert_user != NULL, -1);
+	g_return_val_if_fail (
+		class->trust_prompt != NULL, CAMEL_CERT_TRUST_UNKNOWN);
 
-	return class->alert_user (session, type, prompt, button_captions);
+	return class->trust_prompt (session, service, certificate, errors);
+}
+
+/**
+ * camel_session_user_alert:
+ * @session: a #CamelSession
+ * @service: a #CamelService
+ * @type: a #CamelSessionAlertType
+ * @message: the message for the user
+ *
+ * Emits a #CamelSession:user_alert signal from an idle source on the main
+ * loop.  The idle source's priority is #G_PRIORITY_LOW.
+ *
+ * The purpose of the signal is to propagate a server-issued alert message
+ * from @service to a user interface.  The @type hints at the nature of the
+ * alert message.
+ *
+ * Since: 3.12
+ */
+void
+camel_session_user_alert (CamelSession *session,
+                          CamelService *service,
+                          CamelSessionAlertType type,
+                          const gchar *message)
+{
+	SignalClosure *signal_closure;
+
+	g_return_if_fail (CAMEL_IS_SESSION (session));
+	g_return_if_fail (CAMEL_IS_SERVICE (service));
+	g_return_if_fail (message != NULL);
+
+	signal_closure = g_slice_new0 (SignalClosure);
+	g_weak_ref_init (&signal_closure->session, session);
+	signal_closure->service = g_object_ref (service);
+	signal_closure->alert_type = type;
+	signal_closure->alert_message = g_strdup (message);
+
+	camel_session_idle_add (
+		session, G_PRIORITY_LOW,
+		session_emit_user_alert_cb,
+		signal_closure,
+		(GDestroyNotify) signal_closure_free);
 }
 
 /**
@@ -1152,52 +1230,6 @@ camel_session_lookup_addressbook (CamelSession *session,
 	g_return_val_if_fail (class->lookup_addressbook != NULL, FALSE);
 
 	return class->lookup_addressbook (session, name);
-}
-
-/**
- * camel_session_build_password_prompt:
- * @type: account type (e.g. "IMAP")
- * @user: user name for the account
- * @host: host name for the account
- *
- * Constructs a localized password prompt from @type, @user and @host,
- * suitable for passing to camel_session_get_password().  The resulting
- * string contains markup tags.  Use g_free() to free it.
- *
- * Returns: a newly-allocated password prompt string
- *
- * Since: 2.22
- **/
-gchar *
-camel_session_build_password_prompt (const gchar *type,
-                                     const gchar *user,
-                                     const gchar *host)
-{
-	gchar *user_markup;
-	gchar *host_markup;
-	gchar *prompt;
-
-	g_return_val_if_fail (type != NULL, NULL);
-	g_return_val_if_fail (user != NULL, NULL);
-	g_return_val_if_fail (host != NULL, NULL);
-
-	/* Add bold tags to the "user" and "host" strings.  We use
-	 * separate strings here to avoid putting markup tags in the
-	 * translatable string below. */
-	user_markup = g_markup_printf_escaped ("<b>%s</b>", user);
-	host_markup = g_markup_printf_escaped ("<b>%s</b>", host);
-
-	/* Translators: The first argument is the account type
-	 * (e.g. "IMAP"), the second is the user name, and the
-	 * third is the host name. */
-	prompt = g_strdup_printf (
-		_("Please enter the %s password for %s on host %s."),
-		type, user_markup, host_markup);
-
-	g_free (user_markup);
-	g_free (host_markup);
-
-	return prompt;
 }
 
 /**
@@ -1320,6 +1352,61 @@ camel_session_set_junk_filter (CamelSession *session,
 }
 
 /**
+ * camel_session_idle_add:
+ * @session: a #CamelSession
+ * @priority: the priority of the idle source
+ * @function: a function to call
+ * @data: data to pass to @function
+ * @notify: function to call when the idle is removed, or %NULL
+ *
+ * Adds a function to be called whenever there are no higher priority events
+ * pending.  If @function returns %FALSE it is automatically removed from the
+ * list of event sources and will not be called again.
+ *
+ * This internally creates a main loop source using g_idle_source_new()
+ * and attaches it to @session's own #CamelSession:main-context using
+ * g_source_attach().
+ *
+ * The @priority is typically in the range between %G_PRIORITY_DEFAULT_IDLE
+ * and %G_PRIORITY_HIGH_IDLE.
+ *
+ * Returns: the ID (greater than 0) of the event source
+ *
+ * Since: 3.6
+ **/
+guint
+camel_session_idle_add (CamelSession *session,
+                        gint priority,
+                        GSourceFunc function,
+                        gpointer data,
+                        GDestroyNotify notify)
+{
+	GMainContext *main_context;
+	GSource *source;
+	guint source_id;
+
+	g_return_val_if_fail (CAMEL_IS_SESSION (session), 0);
+	g_return_val_if_fail (function != NULL, 0);
+
+	main_context = camel_session_ref_main_context (session);
+
+	source = g_idle_source_new ();
+
+	if (priority != G_PRIORITY_DEFAULT_IDLE)
+		g_source_set_priority (source, priority);
+
+	g_source_set_callback (source, function, data, notify);
+
+	source_id = g_source_attach (source, main_context);
+
+	g_source_unref (source);
+
+	g_main_context_unref (main_context);
+
+	return source_id;
+}
+
+/**
  * camel_session_submit_job:
  * @session: a #CamelSession
  * @callback: a #CamelSessionCallback
@@ -1352,7 +1439,6 @@ camel_session_submit_job (CamelSession *session,
                           gpointer user_data,
                           GDestroyNotify notify)
 {
-	GSource *source;
 	JobData *job_data;
 
 	g_return_if_fail (CAMEL_IS_SESSION (session));
@@ -1365,79 +1451,10 @@ camel_session_submit_job (CamelSession *session,
 	job_data->user_data = user_data;
 	job_data->notify = notify;
 
-	source = g_idle_source_new ();
-	g_source_set_priority (source, JOB_PRIORITY);
-	g_source_set_callback (
-		source, (GSourceFunc) session_start_job_cb,
+	camel_session_idle_add (
+		session, JOB_PRIORITY,
+		session_start_job_cb,
 		job_data, (GDestroyNotify) NULL);
-	g_source_attach (source, job_data->session->priv->context);
-	g_source_unref (source);
-}
-
-/**
- * camel_session_get_check_junk:
- * @session: a #CamelSession
- *
- * Do we have to check incoming messages to be junk?
- *
- * Returns: whether or not we are checking incoming messages for junk
- **/
-gboolean
-camel_session_get_check_junk (CamelSession *session)
-{
-	g_return_val_if_fail (CAMEL_IS_SESSION (session), FALSE);
-
-	return session->priv->check_junk;
-}
-
-/**
- * camel_session_set_check_junk:
- * @session: a #CamelSession
- * @check_junk: whether to check incoming messages for junk
- *
- * Set check_junk flag, if set, incoming mail will be checked for being junk.
- **/
-void
-camel_session_set_check_junk (CamelSession *session,
-                              gboolean check_junk)
-{
-	g_return_if_fail (CAMEL_IS_SESSION (session));
-
-	session->priv->check_junk = check_junk;
-
-	g_object_notify (G_OBJECT (session), "check-junk");
-}
-
-/**
- * camel_session_get_network_available:
- * @session: a #CamelSession
- *
- * Since: 2.32
- **/
-gboolean
-camel_session_get_network_available (CamelSession *session)
-{
-	g_return_val_if_fail (CAMEL_IS_SESSION (session), FALSE);
-
-	return session->priv->network_available;
-}
-
-/**
- * camel_session_set_network_available:
- * @session: a #CamelSession
- * @network_available: whether a network is available
- *
- * Since: 2.32
- **/
-void
-camel_session_set_network_available (CamelSession *session,
-                                     gboolean network_available)
-{
-	g_return_if_fail (CAMEL_IS_SESSION (session));
-
-	session->priv->network_available = network_available;
-
-	g_object_notify (G_OBJECT (session), "network-available");
 }
 
 /**
@@ -1478,127 +1495,6 @@ camel_session_get_junk_headers (CamelSession *session)
 	g_return_val_if_fail (CAMEL_IS_SESSION (session), NULL);
 
 	return session->priv->junk_headers;
-}
-
-/**
- * camel_session_forward_to:
- * Forwards message to some address(es) in a given type. The meaning of the forward_type defines session itself.
- * @session #CameSession.
- * @folder #CamelFolder where is @message located.
- * @message Message to forward.
- * @address Where forward to.
- * @ex Exception.
- *
- * Since: 2.26
- **/
-gboolean
-camel_session_forward_to (CamelSession *session,
-                          CamelFolder *folder,
-                          CamelMimeMessage *message,
-                          const gchar *address,
-                          GError **error)
-{
-	CamelSessionClass *class;
-	gboolean success;
-
-	g_return_val_if_fail (CAMEL_IS_SESSION (session), FALSE);
-	g_return_val_if_fail (CAMEL_IS_FOLDER (folder), FALSE);
-	g_return_val_if_fail (CAMEL_IS_MIME_MESSAGE (message), FALSE);
-	g_return_val_if_fail (address != NULL, FALSE);
-
-	class = CAMEL_SESSION_GET_CLASS (session);
-	g_return_val_if_fail (class->forward_to != NULL, FALSE);
-
-	success = class->forward_to (session, folder, message, address, error);
-	CAMEL_CHECK_GERROR (session, forward_to, success, error);
-
-	return success;
-}
-
-/**
- * camel_session_lock:
- * @session: a #CamelSession
- * @lock: lock type to lock
- *
- * Locks @session's @lock. Unlock it with camel_session_unlock().
- *
- * Since: 2.32
- **/
-void
-camel_session_lock (CamelSession *session,
-                    CamelSessionLock lock)
-{
-	g_return_if_fail (CAMEL_IS_SESSION (session));
-
-	switch (lock) {
-		case CAMEL_SESSION_SESSION_LOCK:
-			g_mutex_lock (session->priv->lock);
-			break;
-		case CAMEL_SESSION_THREAD_LOCK:
-			g_mutex_lock (session->priv->thread_lock);
-			break;
-		default:
-			g_return_if_reached ();
-	}
-}
-
-/**
- * camel_session_unlock:
- * @session: a #CamelSession
- * @lock: lock type to unlock
- *
- * Unlocks @session's @lock, previously locked with camel_session_lock().
- *
- * Since: 2.32
- **/
-void
-camel_session_unlock (CamelSession *session,
-                      CamelSessionLock lock)
-{
-	g_return_if_fail (CAMEL_IS_SESSION (session));
-
-	switch (lock) {
-		case CAMEL_SESSION_SESSION_LOCK:
-			g_mutex_unlock (session->priv->lock);
-			break;
-		case CAMEL_SESSION_THREAD_LOCK:
-			g_mutex_unlock (session->priv->thread_lock);
-			break;
-		default:
-			g_return_if_reached ();
-	}
-}
-
-/**
- * camel_session_get_socks_proxy:
- * @session: A #CamelSession
- * @for_host: Host name to which the connection will be requested
- * @host_ret: Location to return the SOCKS proxy hostname
- * @port_ret: Location to return the SOCKS proxy port
- *
- * Queries the SOCKS proxy that is configured for a @session.  This will
- * put %NULL in @hosts_ret if there is no proxy configured or when
- * the @for_host is listed in proxy ignore list.
- *
- * Since: 2.32
- */
-void
-camel_session_get_socks_proxy (CamelSession *session,
-                               const gchar *for_host,
-                               gchar **host_ret,
-                               gint *port_ret)
-{
-	CamelSessionClass *class;
-
-	g_return_if_fail (CAMEL_IS_SESSION (session));
-	g_return_if_fail (for_host != NULL);
-	g_return_if_fail (host_ret != NULL);
-	g_return_if_fail (port_ret != NULL);
-
-	class = CAMEL_SESSION_GET_CLASS (session);
-	g_return_if_fail (class->get_socks_proxy != NULL);
-
-	class->get_socks_proxy (session, for_host, host_ret, port_ret);
 }
 
 /**
@@ -1645,6 +1541,32 @@ camel_session_authenticate_sync (CamelSession *session,
 	return success;
 }
 
+/* Helper for camel_session_authenticate() */
+static void
+session_authenticate_thread (GTask *task,
+                             gpointer source_object,
+                             gpointer task_data,
+                             GCancellable *cancellable)
+{
+	gboolean success;
+	AsyncContext *async_context;
+	GError *local_error = NULL;
+
+	async_context = (AsyncContext *) task_data;
+
+	success = camel_session_authenticate_sync (
+		CAMEL_SESSION (source_object),
+		async_context->service,
+		async_context->auth_mechanism,
+		cancellable, &local_error);
+
+	if (local_error != NULL) {
+		g_task_return_error (task, local_error);
+	} else {
+		g_task_return_boolean (task, success);
+	}
+}
+
 /**
  * camel_session_authenticate:
  * @session: a #CamelSession
@@ -1676,17 +1598,27 @@ camel_session_authenticate (CamelSession *session,
                             GAsyncReadyCallback callback,
                             gpointer user_data)
 {
-	CamelSessionClass *class;
+	GTask *task;
+	AsyncContext *async_context;
 
 	g_return_if_fail (CAMEL_IS_SESSION (session));
 	g_return_if_fail (CAMEL_IS_SERVICE (service));
 
-	class = CAMEL_SESSION_GET_CLASS (session);
-	g_return_if_fail (class->authenticate != NULL);
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->service = g_object_ref (service);
+	async_context->auth_mechanism = g_strdup (mechanism);
 
-	class->authenticate (
-		session, service, mechanism, io_priority,
-		cancellable, callback, user_data);
+	task = g_task_new (session, cancellable, callback, user_data);
+	g_task_set_source_tag (task, camel_session_authenticate);
+	g_task_set_priority (task, io_priority);
+
+	g_task_set_task_data (
+		task, async_context,
+		(GDestroyNotify) async_context_free);
+
+	g_task_run_in_thread (task, session_authenticate_thread);
+
+	g_object_unref (task);
 }
 
 /**
@@ -1709,14 +1641,168 @@ camel_session_authenticate_finish (CamelSession *session,
                                    GAsyncResult *result,
                                    GError **error)
 {
+	g_return_val_if_fail (CAMEL_IS_SESSION (session), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, session), FALSE);
+
+	g_return_val_if_fail (
+		g_async_result_is_tagged (
+		result, camel_session_authenticate), FALSE);
+
+	return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+/**
+ * camel_session_forward_to_sync:
+ * @session: a #CamelSession
+ * @folder: the #CamelFolder where @message is located
+ * @message: the #CamelMimeMessage to forward
+ * @address: the recipient's email address
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: return location for a #GError, or %NULL
+ *
+ * Forwards @message in @folder to the email address(es) given by @address.
+ *
+ * If an error occurs, the function sets @error and returns %FALSE.
+ *
+ * Returns: %TRUE on success, %FALSE on failure
+ *
+ * Since: 3.6
+ **/
+gboolean
+camel_session_forward_to_sync (CamelSession *session,
+                               CamelFolder *folder,
+                               CamelMimeMessage *message,
+                               const gchar *address,
+                               GCancellable *cancellable,
+                               GError **error)
+{
 	CamelSessionClass *class;
+	gboolean success;
 
 	g_return_val_if_fail (CAMEL_IS_SESSION (session), FALSE);
-	g_return_val_if_fail (G_IS_ASYNC_RESULT (result), FALSE);
+	g_return_val_if_fail (CAMEL_IS_FOLDER (folder), FALSE);
+	g_return_val_if_fail (CAMEL_IS_MIME_MESSAGE (message), FALSE);
+	g_return_val_if_fail (address != NULL, FALSE);
 
 	class = CAMEL_SESSION_GET_CLASS (session);
-	g_return_val_if_fail (class->authenticate_finish != NULL, FALSE);
+	g_return_val_if_fail (class->forward_to_sync != NULL, FALSE);
 
-	return class->authenticate_finish (session, result, error);
+	success = class->forward_to_sync (
+		session, folder, message, address, cancellable, error);
+	CAMEL_CHECK_GERROR (session, forward_to_sync, success, error);
+
+	return success;
+}
+
+/* Helper for camel_session_forward_to() */
+static void
+session_forward_to_thread (GTask *task,
+                           gpointer source_object,
+                           gpointer task_data,
+                           GCancellable *cancellable)
+{
+	gboolean success;
+	AsyncContext *async_context;
+	GError *local_error = NULL;
+
+	async_context = (AsyncContext *) task_data;
+
+	success = camel_session_forward_to_sync (
+		CAMEL_SESSION (source_object),
+		async_context->folder,
+		async_context->message,
+		async_context->address,
+		cancellable, &local_error);
+
+	if (local_error != NULL) {
+		g_task_return_error (task, local_error);
+	} else {
+		g_task_return_boolean (task, success);
+	}
+}
+
+/**
+ * camel_session_forward_to:
+ * @session: a #CamelSession
+ * @folder: the #CamelFolder where @message is located
+ * @message: the #CamelMimeMessage to forward
+ * @address: the recipient's email address
+ * @io_priority: the I/O priority for the request
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @callback: a #GAsyncReadyCallback to call when the request is satisfied
+ * @user_data: data to pass to the callback function
+ *
+ * Asynchronously forwards @message in @folder to the email address(s)
+ * given by @address.
+ *
+ * When the operation is finished, @callback will be called.  You can
+ * then call camel_session_forward_to_finish() to get the result of the
+ * operation.
+ *
+ * Since: 3.6
+ **/
+void
+camel_session_forward_to (CamelSession *session,
+                          CamelFolder *folder,
+                          CamelMimeMessage *message,
+                          const gchar *address,
+                          gint io_priority,
+                          GCancellable *cancellable,
+                          GAsyncReadyCallback callback,
+                          gpointer user_data)
+{
+	GTask *task;
+	AsyncContext *async_context;
+
+	g_return_if_fail (CAMEL_IS_SESSION (session));
+	g_return_if_fail (CAMEL_IS_FOLDER (folder));
+	g_return_if_fail (CAMEL_IS_MIME_MESSAGE (message));
+	g_return_if_fail (address != NULL);
+
+	async_context = g_slice_new0 (AsyncContext);
+	async_context->folder = g_object_ref (folder);
+	async_context->message = g_object_ref (message);
+	async_context->address = g_strdup (address);
+
+	task = g_task_new (session, cancellable, callback, user_data);
+	g_task_set_source_tag (task, camel_session_forward_to);
+	g_task_set_priority (task, io_priority);
+
+	g_task_set_task_data (
+		task, async_context,
+		(GDestroyNotify) async_context_free);
+
+	g_task_run_in_thread (task, session_forward_to_thread);
+
+	g_object_unref (task);
+}
+
+/**
+ * camel_session_forward_to_finish:
+ * @session: a #CamelSession
+ * @result: a #GAsyncResult
+ * @error: return location for a #GError, or %NULL
+ *
+ * Finishes the operation started with camel_session_forward_to().
+ *
+ * If an error occurred, the function sets @error and returns %FALSE.
+ *
+ * Returns: %TRUE on success, %FALSE on failure
+ *
+ * Since: 3.6
+ **/
+gboolean
+camel_session_forward_to_finish (CamelSession *session,
+                                 GAsyncResult *result,
+                                 GError **error)
+{
+	g_return_val_if_fail (CAMEL_IS_SESSION (session), FALSE);
+	g_return_val_if_fail (g_task_is_valid (result, session), FALSE);
+
+	g_return_val_if_fail (
+		g_async_result_is_tagged (
+		result, camel_session_forward_to), FALSE);
+
+	return g_task_propagate_boolean (G_TASK (result), error);
 }
 

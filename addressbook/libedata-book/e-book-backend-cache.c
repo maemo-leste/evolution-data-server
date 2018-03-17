@@ -5,26 +5,32 @@
  *
  * Authors: Sivaiah Nallagatla <snallagatla@novell.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION: e-book-backend-cache
+ * @include: libedata-book/libedata-book.h
+ * @short_description: A utility for storing contact data and searching for contacts
+ *
+ * The #EBookBackendCache is deprecated, use #EBookSqlite instead.
+ */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <string.h>
-#include <libedataserver/e-data-server-util.h>
+
 #include "e-book-backend-cache.h"
 #include "e-book-backend-sexp.h"
 
@@ -58,6 +64,8 @@ e_book_backend_cache_init (EBookBackendCache *cache)
  * #EContact objects, useful for remote backends.
  *
  * Returns: a new #EBookBackendCache
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  */
 EBookBackendCache *
 e_book_backend_cache_new (const gchar *filename)
@@ -79,6 +87,8 @@ e_book_backend_cache_new (const gchar *filename)
  * needed.
  *
  * Returns: A cached #EContact, or %NULL if @uid is not cached.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 EContact *
 e_book_backend_cache_get_contact (EBookBackendCache *cache,
@@ -107,6 +117,8 @@ e_book_backend_cache_get_contact (EBookBackendCache *cache,
  * Adds @contact to @cache.
  *
  * Returns: %TRUE if the contact was cached successfully, %FALSE otherwise.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_cache_add_contact (EBookBackendCache *cache,
@@ -139,6 +151,8 @@ e_book_backend_cache_add_contact (EBookBackendCache *cache,
  * Removes the contact identified by @uid from @cache.
  *
  * Returns: %TRUE if the contact was found and removed, %FALSE otherwise.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_cache_remove_contact (EBookBackendCache *cache,
@@ -162,6 +176,8 @@ e_book_backend_cache_remove_contact (EBookBackendCache *cache,
  * Checks if the contact identified by @uid exists in @cache.
  *
  * Returns: %TRUE if the cache contains the contact, %FALSE otherwise.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_cache_check_contact (EBookBackendCache *cache,
@@ -189,6 +205,8 @@ e_book_backend_cache_check_contact (EBookBackendCache *cache,
  * free the list.
  *
  * Returns: A #GList of pointers to #EContact.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 GList *
 e_book_backend_cache_get_contacts (EBookBackendCache *cache,
@@ -212,10 +230,10 @@ e_book_backend_cache_get_contacts (EBookBackendCache *cache,
 
 	for (; l != NULL; l = g_slist_next (l)) {
 		vcard_str = l->data;
-                if (vcard_str && !strncmp (vcard_str, "BEGIN:VCARD", 11)) {
+		if (vcard_str && !strncmp (vcard_str, "BEGIN:VCARD", 11)) {
 			contact = e_contact_new_from_vcard (vcard_str);
 			uid = e_contact_get_const (contact, E_CONTACT_UID);
-			if (contact && uid && *uid &&(query && e_book_backend_sexp_match_contact (sexp, contact)))
+			if (uid && *uid && (!query || e_book_backend_sexp_match_contact (sexp, contact)))
 				list = g_list_prepend (list, contact);
 			else
 				g_object_unref (contact);
@@ -240,6 +258,8 @@ e_book_backend_cache_get_contacts (EBookBackendCache *cache,
  * free the ID strings and the array.
  *
  * Returns: A #GPtrArray of pointers to contact ID strings.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 GPtrArray *
 e_book_backend_cache_search (EBookBackendCache *cache,
@@ -267,6 +287,8 @@ e_book_backend_cache_search (EBookBackendCache *cache,
  *
  * Flags @cache as being populated - that is, it is up-to-date on the
  * contents of the book it's caching.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 void
 e_book_backend_cache_set_populated (EBookBackendCache *cache)
@@ -282,6 +304,8 @@ e_book_backend_cache_set_populated (EBookBackendCache *cache)
  * Checks if @cache is populated.
  *
  * Returns: %TRUE if @cache is populated, %FALSE otherwise.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_cache_is_populated (EBookBackendCache *cache)

@@ -1,30 +1,25 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_MBOX_SUMMARY_H
 #define CAMEL_MBOX_SUMMARY_H
 
 #include "camel-local-summary.h"
-
-/* Enable the use of elm/pine style "Status" & "X-Status" headers */
-#define STATUS_PINE
 
 /* Standard GObject macros */
 #define CAMEL_TYPE_MBOX_SUMMARY \
@@ -49,10 +44,6 @@ G_BEGIN_DECLS
 
 typedef struct _CamelMboxSummary CamelMboxSummary;
 typedef struct _CamelMboxSummaryClass CamelMboxSummaryClass;
-
-typedef struct _CamelMboxMessageContentInfo {
-	CamelMessageContentInfo info;
-} CamelMboxMessageContentInfo;
 
 typedef struct _CamelMboxMessageInfo {
 	CamelLocalMessageInfo info;

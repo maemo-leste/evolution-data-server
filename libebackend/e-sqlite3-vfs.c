@@ -3,19 +3,17 @@
  *
  * Copyright (C) 1999-2011 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <sqlite3.h>
@@ -27,7 +25,7 @@
 #include <string.h>
 
 #include <glib/gi18n-lib.h>
-#include <libedataserver/e-flag.h>
+#include <libedataserver/libedataserver.h>
 
 #include "e-sqlite3-vfs.h"
 
@@ -39,7 +37,7 @@ static GThreadPool *sync_pool = NULL;
 typedef struct {
 	sqlite3_file parent;
 	sqlite3_file *old_vfs_file; /* pointer to old_vfs' file */
-	GStaticRecMutex sync_mutex;
+	GRecMutex sync_mutex;
 	guint timeout_id;
 	gint flags;
 } ESqlite3File;
@@ -92,7 +90,7 @@ sync_push_request (ESqlite3File *cFile,
 	g_return_if_fail (cFile != NULL);
 	g_return_if_fail (sync_pool != NULL);
 
-	g_static_rec_mutex_lock (&cFile->sync_mutex);
+	g_rec_mutex_lock (&cFile->sync_mutex);
 
 	if (wait_for_finish)
 		sync_op = e_flag_new ();
@@ -104,7 +102,7 @@ sync_push_request (ESqlite3File *cFile,
 
 	cFile->flags = 0;
 
-	g_static_rec_mutex_unlock (&cFile->sync_mutex);
+	g_rec_mutex_unlock (&cFile->sync_mutex);
 
 	g_thread_pool_push (sync_pool, data, &error);
 
@@ -125,32 +123,47 @@ sync_push_request (ESqlite3File *cFile,
 }
 
 static gboolean
-sync_push_request_timeout (ESqlite3File *cFile)
+sync_push_request_timeout (gpointer user_data)
 {
-	g_static_rec_mutex_lock (&cFile->sync_mutex);
+	ESqlite3File *cFile = user_data;
+
+	g_rec_mutex_lock (&cFile->sync_mutex);
 
 	if (cFile->timeout_id != 0) {
 		sync_push_request (cFile, FALSE);
 		cFile->timeout_id = 0;
 	}
 
-	g_static_rec_mutex_unlock (&cFile->sync_mutex);
+	g_rec_mutex_unlock (&cFile->sync_mutex);
 
 	return FALSE;
 }
 
-#define def_subclassed(_nm, _params, _call)			\
-static gint							\
-e_sqlite3_file_ ## _nm _params				\
-{								\
-	ESqlite3File *cFile;				\
-								\
-	g_return_val_if_fail (old_vfs != NULL, SQLITE_ERROR);	\
-	g_return_val_if_fail (pFile != NULL, SQLITE_ERROR);	\
-								\
-	cFile = (ESqlite3File *) pFile;		\
-	g_return_val_if_fail (cFile->old_vfs_file->pMethods != NULL, SQLITE_ERROR);	\
-	return cFile->old_vfs_file->pMethods->_nm _call;	\
+#define def_subclassed(_nm, _params, _call) \
+static gint \
+e_sqlite3_file_ ## _nm _params \
+{ \
+	ESqlite3File *cFile; \
+ \
+	g_return_val_if_fail (old_vfs != NULL, SQLITE_ERROR); \
+	g_return_val_if_fail (pFile != NULL, SQLITE_ERROR); \
+ \
+	cFile = (ESqlite3File *) pFile; \
+	g_return_val_if_fail (cFile->old_vfs_file->pMethods != NULL, SQLITE_ERROR); \
+	return cFile->old_vfs_file->pMethods->_nm _call; \
+}
+#define def_subclassed_void(_nm, _params, _call) \
+static void \
+e_sqlite3_file_ ## _nm _params \
+{ \
+	ESqlite3File *cFile; \
+ \
+	g_return_if_fail (old_vfs != NULL); \
+	g_return_if_fail (pFile != NULL); \
+ \
+	cFile = (ESqlite3File *) pFile; \
+	g_return_if_fail (cFile->old_vfs_file->pMethods != NULL); \
+	cFile->old_vfs_file->pMethods->_nm _call; \
 }
 
 def_subclassed (xRead, (sqlite3_file *pFile, gpointer pBuf, gint iAmt, sqlite3_int64 iOfst), (cFile->old_vfs_file, pBuf, iAmt, iOfst))
@@ -162,6 +175,12 @@ def_subclassed (xUnlock, (sqlite3_file *pFile, gint lockType), (cFile->old_vfs_f
 def_subclassed (xFileControl, (sqlite3_file *pFile, gint op, gpointer pArg), (cFile->old_vfs_file, op, pArg))
 def_subclassed (xSectorSize, (sqlite3_file *pFile), (cFile->old_vfs_file))
 def_subclassed (xDeviceCharacteristics, (sqlite3_file *pFile), (cFile->old_vfs_file))
+def_subclassed (xShmMap, (sqlite3_file *pFile, gint iPg, gint pgsz, gint n, void volatile **arr), (cFile->old_vfs_file, iPg, pgsz, n, arr))
+def_subclassed (xShmLock, (sqlite3_file *pFile, gint offset, gint n, gint flags), (cFile->old_vfs_file, offset, n, flags))
+def_subclassed_void (xShmBarrier, (sqlite3_file *pFile), (cFile->old_vfs_file))
+def_subclassed (xShmUnmap, (sqlite3_file *pFile, gint deleteFlag), (cFile->old_vfs_file, deleteFlag))
+def_subclassed (xFetch, (sqlite3_file *pFile, sqlite3_int64 iOfst, gint iAmt, void **pp), (cFile->old_vfs_file, iOfst, iAmt, pp))
+def_subclassed (xUnfetch, (sqlite3_file *pFile, sqlite3_int64 iOfst, void *p), (cFile->old_vfs_file, iOfst, p))
 
 #undef def_subclassed
 
@@ -195,7 +214,7 @@ e_sqlite3_file_xClose (sqlite3_file *pFile)
 
 	cFile = (ESqlite3File *) pFile;
 
-	g_static_rec_mutex_lock (&cFile->sync_mutex);
+	g_rec_mutex_lock (&cFile->sync_mutex);
 
 	/* Cancel any pending sync requests. */
 	if (cFile->timeout_id > 0) {
@@ -203,7 +222,7 @@ e_sqlite3_file_xClose (sqlite3_file *pFile)
 		cFile->timeout_id = 0;
 	}
 
-	g_static_rec_mutex_unlock (&cFile->sync_mutex);
+	g_rec_mutex_unlock (&cFile->sync_mutex);
 
 	/* Make the last sync. */
 	sync_push_request (cFile, TRUE);
@@ -216,7 +235,7 @@ e_sqlite3_file_xClose (sqlite3_file *pFile)
 	g_free (cFile->old_vfs_file);
 	cFile->old_vfs_file = NULL;
 
-	g_static_rec_mutex_free (&cFile->sync_mutex);
+	g_rec_mutex_clear (&cFile->sync_mutex);
 
 	return res;
 }
@@ -232,7 +251,7 @@ e_sqlite3_file_xSync (sqlite3_file *pFile,
 
 	cFile = (ESqlite3File *) pFile;
 
-	g_static_rec_mutex_lock (&cFile->sync_mutex);
+	g_rec_mutex_lock (&cFile->sync_mutex);
 
 	/* If a sync request is already scheduled, accumulate flags. */
 	cFile->flags |= flags;
@@ -242,11 +261,10 @@ e_sqlite3_file_xSync (sqlite3_file *pFile,
 		g_source_remove (cFile->timeout_id);
 
 	/* Wait SYNC_TIMEOUT_SECONDS before we actually sync. */
-	cFile->timeout_id = g_timeout_add_seconds (
-		SYNC_TIMEOUT_SECONDS, (GSourceFunc)
-		sync_push_request_timeout, cFile);
+	cFile->timeout_id = e_named_timeout_add_seconds (
+		SYNC_TIMEOUT_SECONDS, sync_push_request_timeout, cFile);
 
-	g_static_rec_mutex_unlock (&cFile->sync_mutex);
+	g_rec_mutex_unlock (&cFile->sync_mutex);
 
 	return SQLITE_OK;
 }
@@ -258,7 +276,7 @@ e_sqlite3_vfs_xOpen (sqlite3_vfs *pVfs,
                      gint flags,
                      gint *pOutFlags)
 {
-	static GStaticRecMutex only_once_lock = G_STATIC_REC_MUTEX_INIT;
+	static GRecMutex only_once_lock;
 	static sqlite3_io_methods io_methods = {0};
 	ESqlite3File *cFile;
 	gint res;
@@ -275,9 +293,9 @@ e_sqlite3_vfs_xOpen (sqlite3_vfs *pVfs,
 		return res;
 	}
 
-	g_static_rec_mutex_init (&cFile->sync_mutex);
+	g_rec_mutex_init (&cFile->sync_mutex);
 
-	g_static_rec_mutex_lock (&only_once_lock);
+	g_rec_mutex_lock (&only_once_lock);
 
 	if (!sync_pool)
 		sync_pool = g_thread_pool_new (sync_request_thread_cb, NULL, 2, FALSE, NULL);
@@ -307,10 +325,28 @@ e_sqlite3_vfs_xOpen (sqlite3_vfs *pVfs,
 		use_subclassed (xFileControl);
 		use_subclassed (xSectorSize);
 		use_subclassed (xDeviceCharacteristics);
+
+		if (io_methods.iVersion > 1) {
+			use_subclassed (xShmMap);
+			use_subclassed (xShmLock);
+			use_subclassed (xShmBarrier);
+			use_subclassed (xShmUnmap);
+		}
+
+		if (io_methods.iVersion > 2) {
+			use_subclassed (xFetch);
+			use_subclassed (xUnfetch);
+		}
+
+		if (io_methods.iVersion > 3) {
+			g_warning ("%s: Unchecked IOMethods version %d, downgrading to version 3", G_STRFUNC, io_methods.iVersion);
+			io_methods.iVersion = 3;
+		}
+
 		#undef use_subclassed
 	}
 
-	g_static_rec_mutex_unlock (&only_once_lock);
+	g_rec_mutex_unlock (&only_once_lock);
 
 	cFile->parent.pMethods = &io_methods;
 

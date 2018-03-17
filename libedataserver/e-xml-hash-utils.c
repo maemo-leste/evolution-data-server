@@ -2,19 +2,17 @@
 /*
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "config.h"
@@ -43,7 +41,7 @@
  * %E_XML_HASH_TYPE_OBJECT_UID, then XML objects will be indexed in
  * the hash by their UID (other nodes will still be indexed by name).
  *
- * Returns: (transfer full): The newly-created #GHashTable representation
+ * Returns: (transfer full) (element-type utf8 utf8): The newly-created #GHashTable representation
  * of @doc.
  **/
 GHashTable *
@@ -62,8 +60,8 @@ e_xml_to_hash (xmlDoc *doc,
 			continue;
 
 		if (type == E_XML_HASH_TYPE_OBJECT_UID &&
-		    !strcmp ((gchar *)node->name, "object"))
-			key = xmlGetProp (node, (xmlChar*)"uid");
+		    !strcmp ((gchar *) node->name, "object"))
+			key = xmlGetProp (node, (xmlChar *)"uid");
 		else
 			key = xmlStrdup (node->name);
 
@@ -79,7 +77,10 @@ e_xml_to_hash (xmlDoc *doc,
 			continue;
 		}
 
-		g_hash_table_insert (hash, g_strdup ((gchar *) key), g_strdup ((gchar *) value));
+		g_hash_table_insert (
+			hash, g_strdup ((gchar *) key),
+			g_strdup ((gchar *) value));
+
 		xmlFree (key);
 		xmlFree (value);
 	}
@@ -103,8 +104,8 @@ foreach_save_func (gpointer key,
 	xmlChar *enc;
 
 	if (sd->type == E_XML_HASH_TYPE_OBJECT_UID) {
-		new_node = xmlNewNode (NULL, (xmlChar*)"object");
-		xmlNewProp (new_node, (xmlChar*)"uid", (const xmlChar *) key);
+		new_node = xmlNewNode (NULL, (xmlChar *)"object");
+		xmlNewProp (new_node, (xmlChar *)"uid", (const xmlChar *) key);
 	} else
 		new_node = xmlNewNode (NULL, (const xmlChar *) key);
 
@@ -117,7 +118,7 @@ foreach_save_func (gpointer key,
 
 /**
  * e_xml_from_hash:
- * @hash: The #GHashTable to extract the XML from
+ * @hash: (element-type utf8 utf8): The #GHashTable to extract the XML from
  * @type: The #EXmlHashType used to store the XML
  * @root_name: The name to call the new #xmlDoc
  *
@@ -134,8 +135,8 @@ e_xml_from_hash (GHashTable *hash,
 	xmlDoc *doc;
 	struct save_data sd;
 
-	doc = xmlNewDoc ((xmlChar*)"1.0");
-	doc->encoding = xmlStrdup ((xmlChar*)"UTF-8");
+	doc = xmlNewDoc ((xmlChar *)"1.0");
+	doc->encoding = xmlStrdup ((xmlChar *)"UTF-8");
 	sd.type = type;
 	sd.doc = doc;
 	sd.root = xmlNewDocNode (doc, NULL, (xmlChar *) root_name, NULL);
@@ -156,7 +157,7 @@ free_values (gpointer key,
 
 /**
  * e_xml_destroy_hash:
- * @hash: the #GHashTable to destroy
+ * @hash: (element-type utf8 utf8): the #GHashTable to destroy
  *
  * Frees the memory used by @hash and its contents.
  **/
@@ -248,11 +249,14 @@ e_xmlhash_remove (EXmlHash *hash,
 {
 	gpointer orig_key;
 	gpointer orig_value;
+	gboolean found;
 
 	g_return_if_fail (hash != NULL);
 	g_return_if_fail (key != NULL);
 
-	if (g_hash_table_lookup_extended (hash->objects, key, &orig_key, &orig_value)) {
+	found = g_hash_table_lookup_extended (
+		hash->objects, key, &orig_key, &orig_value);
+	if (found) {
 		g_hash_table_remove (hash->objects, key);
 		g_free (orig_key);
 		g_free (orig_value);

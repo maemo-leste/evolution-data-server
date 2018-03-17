@@ -7,19 +7,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -45,7 +43,8 @@ static CamelProviderConfEntry nntp_conf_entries[] = {
 	{ CAMEL_PROVIDER_CONF_SECTION_START, "folders", NULL,
 	  N_("Folders") },
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "short-folder-names", NULL,
-	  N_("_Show folders in short notation (e.g. c.o.linux rather than comp.os.linux)"), "1" },
+	  N_("_Show folders in short notation (e.g. c.o.linux rather "
+	  "than comp.os.linux)"), "1" },
 	{ CAMEL_PROVIDER_CONF_CHECKBOX, "folder-hierarchy-relative", NULL,
 	  N_("In the subscription _dialog, show relative folder names"), "1" },
 	{ CAMEL_PROVIDER_CONF_SECTION_END },
@@ -80,24 +79,39 @@ static CamelProvider news_provider = {
 	/* ... */
 };
 
+CamelServiceAuthType camel_nntp_anonymous_authtype = {
+	N_("Anonymous"),
+
+	N_("This option will connect to the NNTP server anonymously, without "
+	   "authentication."),
+
+	"ANONYMOUS",
+	FALSE
+};
+
 CamelServiceAuthType camel_nntp_password_authtype = {
 	N_("Password"),
 
 	N_("This option will authenticate with the NNTP server using a "
 	   "plaintext password."),
 
-	"",
+	"PLAIN",
 	TRUE
 };
 
 void
 camel_provider_module_init (void)
 {
+	GList *auth_types;
+
+	auth_types = g_list_append (NULL, &camel_nntp_anonymous_authtype);
+	auth_types = g_list_append (auth_types, &camel_nntp_password_authtype);
+
 	news_provider.object_types[CAMEL_PROVIDER_STORE] = camel_nntp_store_get_type ();
 
 	news_provider.url_hash = nntp_url_hash;
 	news_provider.url_equal = nntp_url_equal;
-	news_provider.authtypes = g_list_append (NULL, &camel_nntp_password_authtype);
+	news_provider.authtypes = auth_types;
 	news_provider.translation_domain = GETTEXT_PACKAGE;
 
 	camel_provider_register (&news_provider);

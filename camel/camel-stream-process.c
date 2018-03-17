@@ -2,25 +2,23 @@
 /* camel-stream-process.c : stream over piped process */
 
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: David Woodhouse <dwmw2@infradead.org>,
+ * Authors: David Woodhouse <dwmw2@infradead.org>,
  *	     Jeffrey Stedfast <fejj@ximian.com>
  *
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,6 +41,12 @@
 
 #include "camel-file-utils.h"
 #include "camel-stream-process.h"
+
+#define CHECK_CALL(x) G_STMT_START { \
+	if ((x) == -1) { \
+		g_debug ("%s: Call of '" #x "' failed: %s", G_STRFUNC, g_strerror (errno)); \
+	} \
+	} G_STMT_END
 
 extern gint camel_verbose_debug;
 
@@ -93,8 +97,10 @@ stream_process_close (CamelStream *object,
 	CamelStreamProcess *stream = CAMEL_STREAM_PROCESS (object);
 
 	if (camel_verbose_debug)
-		fprintf (stderr, "Process stream close. sockfd %d, childpid %d\n",
-			 stream->sockfd, stream->childpid);
+		fprintf (
+			stderr,
+			"Process stream close. sockfd %d, childpid %d\n",
+			stream->sockfd, stream->childpid);
 
 	if (stream->sockfd != -1) {
 		close (stream->sockfd);
@@ -106,21 +112,27 @@ stream_process_close (CamelStream *object,
 		for (i = 0; i < 4; i++) {
 			ret = waitpid (stream->childpid, NULL, WNOHANG);
 			if (camel_verbose_debug)
-				fprintf (stderr, "waitpid() for pid %d returned %d (errno %d)\n",
-					 stream->childpid, ret, ret == -1 ? errno : 0);
+				fprintf (
+					stderr,
+					"waitpid() for pid %d returned %d (errno %d)\n",
+					stream->childpid, ret, ret == -1 ? errno : 0);
 			if (ret == stream->childpid || errno == ECHILD)
 				break;
 			switch (i) {
 			case 0:
 				if (camel_verbose_debug)
-					fprintf (stderr, "Sending SIGTERM to pid %d\n",
-						 stream->childpid);
+					fprintf (
+						stderr,
+						"Sending SIGTERM to pid %d\n",
+						stream->childpid);
 				kill (stream->childpid, SIGTERM);
 				break;
 			case 2:
 				if (camel_verbose_debug)
-					fprintf (stderr, "Sending SIGKILL to pid %d\n",
-						 stream->childpid);
+					fprintf (
+						stderr,
+						"Sending SIGKILL to pid %d\n",
+						stream->childpid);
 				kill (stream->childpid, SIGKILL);
 				break;
 			case 1:
@@ -200,8 +212,9 @@ do_exec_command (gint fd,
 	 * leave it as it is. Perhaps we should close it and reopen /dev/null? */
 
 	maxopen = sysconf (_SC_OPEN_MAX);
-	for (i = 3; i < maxopen; i++)
-		fcntl (i, F_SETFD, FD_CLOEXEC);
+	for (i = 3; i < maxopen; i++) {
+		CHECK_CALL (fcntl (i, F_SETFD, FD_CLOEXEC));
+	}
 
 	setsid ();
 #ifdef TIOCNOTTY

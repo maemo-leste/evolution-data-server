@@ -4,19 +4,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  * Author: Federico Mena-Quintero <federico@novell.com>
  */
@@ -35,7 +33,7 @@
 #define KEY_FILE_DOMAINS_KEY	"enable domains"
 #define KEY_FILE_MAX_LINES_KEY	"max lines"
 
-static GStaticMutex log_mutex = G_STATIC_MUTEX_INIT;
+static GMutex log_mutex;
 
 static GHashTable *domains_hash;
 static gchar **ring_buffer;
@@ -49,13 +47,13 @@ static GSList *milestones_tail;
 static void
 lock (void)
 {
-	g_static_mutex_lock (&log_mutex);
+	g_mutex_lock (&log_mutex);
 }
 
 static void
 unlock (void)
 {
-	g_static_mutex_unlock (&log_mutex);
+	g_mutex_unlock (&log_mutex);
 }
 
 /**
@@ -171,17 +169,17 @@ e_debug_logv (gboolean is_milestone,
 
 	tm = *localtime (&tv.tv_sec);
 
-	debug_str = g_strdup_printf ("%p;%04d/%02d/%02d;%02d:%02d:%02d.%04d;(%s);%s",
-				     g_thread_self (),
-				     tm.tm_year + 1900,
-				     tm.tm_mon + 1,
-				     tm.tm_mday,
-				     tm.tm_hour,
-				     tm.tm_min,
-				     tm.tm_sec,
-				     (gint) (tv.tv_usec / 100),
-				     domain,
-				     str);
+	debug_str = g_strdup_printf (
+		"%p;%04d/%02d/%02d;%02d:%02d:%02d.%04d;(%s);%s",
+		g_thread_self (),
+		tm.tm_year + 1900,
+		tm.tm_mon + 1,
+		tm.tm_mday,
+		tm.tm_hour,
+		tm.tm_min,
+		tm.tm_sec,
+		(gint) (tv.tv_usec / 100),
+		domain, str);
 	g_free (str);
 
 	add_to_ring (debug_str);
@@ -212,7 +210,8 @@ e_debug_log_load_configuration (const gchar *filename,
 
 	key_file = g_key_file_new ();
 
-	if (!g_key_file_load_from_file (key_file, filename, G_KEY_FILE_NONE, error)) {
+	if (!g_key_file_load_from_file (
+		key_file, filename, G_KEY_FILE_NONE, error)) {
 		g_key_file_free (key_file);
 		return FALSE;
 	}
@@ -220,7 +219,9 @@ e_debug_log_load_configuration (const gchar *filename,
 	/* Domains */
 
 	my_error = NULL;
-	strings = g_key_file_get_string_list (key_file, KEY_FILE_GROUP, KEY_FILE_DOMAINS_KEY, &num_strings, &my_error);
+	strings = g_key_file_get_string_list (
+		key_file, KEY_FILE_GROUP,
+		KEY_FILE_DOMAINS_KEY, &num_strings, &my_error);
 	if (my_error)
 		g_error_free (my_error);
 	else {
@@ -229,14 +230,17 @@ e_debug_log_load_configuration (const gchar *filename,
 		for (i = 0; i < num_strings; i++)
 			strings[i] = g_strstrip (strings[i]);
 
-		e_debug_log_enable_domains ((const gchar **) strings, num_strings);
+		e_debug_log_enable_domains (
+			(const gchar **) strings, num_strings);
 		g_strfreev (strings);
 	}
 
 	/* Number of lines */
 
 	my_error = NULL;
-	num = g_key_file_get_integer (key_file, KEY_FILE_GROUP, KEY_FILE_MAX_LINES_KEY, &my_error);
+	num = g_key_file_get_integer (
+		key_file, KEY_FILE_GROUP,
+		KEY_FILE_MAX_LINES_KEY, &my_error);
 	if (my_error)
 		g_error_free (my_error);
 	else
@@ -374,18 +378,27 @@ make_key_file_from_configuration (void)
 			closure.domains = g_new (gchar *, num_domains);
 			closure.num_domains = 0;
 
-			g_hash_table_foreach (domains_hash, domains_foreach_dump_cb, &closure);
+			g_hash_table_foreach (
+				domains_hash,
+				domains_foreach_dump_cb,
+				&closure);
 			g_assert (num_domains == closure.num_domains);
 
-			g_key_file_set_string_list (key_file, KEY_FILE_GROUP, KEY_FILE_DOMAINS_KEY,
-						    (const gchar * const *) closure.domains, closure.num_domains);
+			g_key_file_set_string_list (
+				key_file,
+				KEY_FILE_GROUP,
+				KEY_FILE_DOMAINS_KEY,
+				(const gchar * const *) closure.domains,
+				closure.num_domains);
 			g_free (closure.domains);
 		}
 	}
 
 	/* max lines */
 
-	g_key_file_set_integer (key_file, KEY_FILE_GROUP, KEY_FILE_MAX_LINES_KEY, ring_buffer_max_lines);
+	g_key_file_set_integer (
+		key_file, KEY_FILE_GROUP,
+		KEY_FILE_MAX_LINES_KEY, ring_buffer_max_lines);
 
 	return key_file;
 }
@@ -400,10 +413,11 @@ write_string (const gchar *filename,
 		gint saved_errno;
 
 		saved_errno = errno;
-		g_set_error (error,
-			     G_FILE_ERROR,
-			     g_file_error_from_errno (saved_errno),
-			     "error when writing to log file %s", filename);
+		g_set_error (
+			error,
+			G_FILE_ERROR,
+			g_file_error_from_errno (saved_errno),
+			"error when writing to log file %s", filename);
 
 		return FALSE;
 	}
@@ -421,12 +435,12 @@ dump_configuration (const gchar *filename,
 	gsize length;
 	gboolean success;
 
-	if (!write_string (filename, file,
-			   "\n\n"
-			   "This configuration for the debug log can be re-created\n"
-			   "by putting the following in ~/evolution-data-server-debug-log.conf\n"
-			   "(use ';' to separate domain names):\n\n",
-			   error)) {
+	if (!write_string (
+		filename, file,
+		"\n\n"
+		"This configuration for the debug log can be re-created\n"
+		"by putting the following in ~/evolution-data-server-debug-log.conf\n"
+		"(use ';' to separate domain names):\n\n", error)) {
 		return FALSE;
 	}
 
@@ -529,10 +543,11 @@ e_debug_log_dump (const gchar *filename,
 		gint saved_errno;
 
 		saved_errno = errno;
-		g_set_error (error,
-			     G_FILE_ERROR,
-			     g_file_error_from_errno (saved_errno),
-			     "could not open log file %s", filename);
+		g_set_error (
+			error,
+			G_FILE_ERROR,
+			g_file_error_from_errno (saved_errno),
+			"could not open log file %s", filename);
 		goto out;
 	}
 
@@ -556,10 +571,11 @@ e_debug_log_dump (const gchar *filename,
 			*error = NULL;
 		}
 
-		g_set_error (error,
-			     G_FILE_ERROR,
-			     g_file_error_from_errno (saved_errno),
-			     "error when closing log file %s", filename);
+		g_set_error (
+			error,
+			G_FILE_ERROR,
+			g_file_error_from_errno (saved_errno),
+			"error when closing log file %s", filename);
 		success = FALSE;
 	}
 
@@ -588,13 +604,14 @@ e_debug_log_dump_to_dated_file (GError **error)
 	t = time (NULL);
 	tm = *localtime (&t);
 
-	basename = g_strdup_printf ("e-debug-log-%04d-%02d-%02d-%02d-%02d-%02d.txt",
-				    tm.tm_year + 1900,
-				    tm.tm_mon + 1,
-				    tm.tm_mday,
-				    tm.tm_hour,
-				    tm.tm_min,
-				    tm.tm_sec);
+	basename = g_strdup_printf (
+		"e-debug-log-%04d-%02d-%02d-%02d-%02d-%02d.txt",
+		tm.tm_year + 1900,
+		tm.tm_mon + 1,
+		tm.tm_mday,
+		tm.tm_hour,
+		tm.tm_min,
+		tm.tm_sec);
 	filename = g_build_filename (g_get_home_dir (), basename, NULL);
 
 	retval = e_debug_log_dump (filename, error);
@@ -632,7 +649,10 @@ e_debug_log_set_max_lines (gint num_lines)
 		gint i;
 
 		if (ring_buffer_num_lines == ring_buffer_max_lines)
-			start_index = (ring_buffer_next_index + ring_buffer_max_lines - lines_to_copy) % ring_buffer_max_lines;
+			start_index =
+				(ring_buffer_next_index +
+				ring_buffer_max_lines - lines_to_copy) %
+				ring_buffer_max_lines;
 		else
 			start_index = ring_buffer_num_lines - lines_to_copy;
 

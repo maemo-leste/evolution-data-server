@@ -4,19 +4,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,21 +41,21 @@
 struct _CamelBlockFilePrivate {
 	struct _CamelBlockFile *base;
 
-	GStaticMutex root_lock; /* for modifying the root block */
-	GStaticMutex cache_lock; /* for refcounting, flag manip, cache manip */
-	GStaticMutex io_lock; /* for all io ops */
+	GMutex root_lock; /* for modifying the root block */
+	GMutex cache_lock; /* for refcounting, flag manip, cache manip */
+	GMutex io_lock; /* for all io ops */
 
 	guint deleted : 1;
 };
 
-#define CAMEL_BLOCK_FILE_LOCK(kf, lock) (g_static_mutex_lock(&(kf)->priv->lock))
-#define CAMEL_BLOCK_FILE_TRYLOCK(kf, lock) (g_static_mutex_trylock(&(kf)->priv->lock))
-#define CAMEL_BLOCK_FILE_UNLOCK(kf, lock) (g_static_mutex_unlock(&(kf)->priv->lock))
+#define CAMEL_BLOCK_FILE_LOCK(kf, lock) (g_mutex_lock(&(kf)->priv->lock))
+#define CAMEL_BLOCK_FILE_TRYLOCK(kf, lock) (g_mutex_trylock(&(kf)->priv->lock))
+#define CAMEL_BLOCK_FILE_UNLOCK(kf, lock) (g_mutex_unlock(&(kf)->priv->lock))
 
-#define LOCK(x) g_static_mutex_lock(&x)
-#define UNLOCK(x) g_static_mutex_unlock(&x)
+#define LOCK(x) g_mutex_lock(&x)
+#define UNLOCK(x) g_mutex_unlock(&x)
 
-static GStaticMutex block_file_lock = G_STATIC_MUTEX_INIT;
+static GMutex block_file_lock;
 
 /* lru cache of block files */
 static GQueue block_file_list = G_QUEUE_INIT;
@@ -69,7 +67,7 @@ static gint block_file_threshhold = 10;
 static gint sync_nolock (CamelBlockFile *bs);
 static gint sync_block_nolock (CamelBlockFile *bs, CamelBlock *bl);
 
-G_DEFINE_TYPE (CamelBlockFile, camel_block_file, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelBlockFile, camel_block_file, G_TYPE_OBJECT)
 
 static gint
 block_file_validate_root (CamelBlockFile *bs)
@@ -82,15 +80,29 @@ block_file_validate_root (CamelBlockFile *bs)
 
 	retval = fstat (bs->fd, &st);
 
-	d(printf("Validate root: '%s'\n", bs->path));
-	d(printf("version: %.8s (%.8s)\n", bs->root->version, bs->version));
-	d(printf("block size: %d (%d)%s\n", br->block_size, bs->block_size,
+	d (printf ("Validate root: '%s'\n", bs->path));
+	d (printf ("version: %.8s (%.8s)\n", bs->root->version, bs->version));
+	d (printf (
+		"block size: %d (%d)%s\n",
+		br->block_size, bs->block_size,
 		br->block_size != bs->block_size ? " BAD":" OK"));
-	d(printf("free: %ld (%d add size < %ld)%s\n", (glong)br->free, br->free / bs->block_size * bs->block_size, (glong)st.st_size,
-		(br->free > st.st_size) || (br->free % bs->block_size) != 0 ? " BAD":" OK"));
-	d(printf("last: %ld (%d and size: %ld)%s\n", (glong)br->last, br->last / bs->block_size * bs->block_size, (glong)st.st_size,
-		(br->last != st.st_size) || ((br->last % bs->block_size) != 0) ? " BAD": " OK"));
-	d(printf("flags: %s\n", (br->flags & CAMEL_BLOCK_FILE_SYNC)?"SYNC":"unSYNC"));
+	d (printf (
+		"free: %ld (%d add size < %ld)%s\n",
+		(glong) br->free,
+		br->free / bs->block_size * bs->block_size,
+		(glong) st.st_size,
+		(br->free > st.st_size) ||
+		(br->free % bs->block_size) != 0 ? " BAD":" OK"));
+	d (printf (
+		"last: %ld (%d and size: %ld)%s\n",
+		(glong) br->last,
+		br->last / bs->block_size * bs->block_size,
+		(glong) st.st_size,
+		(br->last != st.st_size) ||
+		((br->last % bs->block_size) != 0) ? " BAD": " OK"));
+	d (printf (
+		"flags: %s\n",
+		(br->flags & CAMEL_BLOCK_FILE_SYNC) ? "SYNC" : "unSYNC"));
 
 	if (br->last == 0
 	    || memcmp (bs->root->version, bs->version, 8) != 0
@@ -101,19 +113,6 @@ block_file_validate_root (CamelBlockFile *bs)
 	    || st.st_size != br->last
 	    || br->free > st.st_size
 	    || (br->flags & CAMEL_BLOCK_FILE_SYNC) == 0) {
-#if 0
-		if (retval != -1 && st.st_size > 0) {
-			g_warning("Invalid root: '%s'", bs->path);
-			g_warning("version: %.8s (%.8s)", bs->root->version, bs->version);
-			g_warning("block size: %d (%d)%s", br->block_size, bs->block_size,
-				  br->block_size != bs->block_size ? " BAD":" OK");
-			g_warning("free: %ld (%d add size < %ld)%s", (glong)br->free, br->free / bs->block_size * bs->block_size, (glong)st.st_size,
-				  (br->free > st.st_size) || (br->free % bs->block_size) != 0 ? " BAD":" OK");
-			g_warning("last: %ld (%d and size: %ld)%s", (glong)br->last, br->last / bs->block_size * bs->block_size, (glong)st.st_size,
-				  (br->last != st.st_size) || ((br->last % bs->block_size) != 0) ? " BAD": " OK");
-			g_warning("flags: %s", (br->flags & CAMEL_BLOCK_FILE_SYNC)?"SYNC":"unSYNC");
-		}
-#endif
 		return -1;
 	}
 
@@ -160,7 +159,7 @@ block_file_finalize (GObject *object)
 
 	while ((bl = g_queue_pop_head (&bs->block_cache)) != NULL) {
 		if (bl->refcount != 0)
-			g_warning("Block '%u' still referenced", bl->id);
+			g_warning ("Block '%u' still referenced", bl->id);
 		g_free (bl);
 	}
 
@@ -172,9 +171,9 @@ block_file_finalize (GObject *object)
 	if (bs->fd != -1)
 		close (bs->fd);
 
-	g_static_mutex_free (&bs->priv->io_lock);
-	g_static_mutex_free (&bs->priv->cache_lock);
-	g_static_mutex_free (&bs->priv->root_lock);
+	g_mutex_clear (&bs->priv->io_lock);
+	g_mutex_clear (&bs->priv->cache_lock);
+	g_mutex_clear (&bs->priv->root_lock);
 
 	g_free (bs->priv);
 
@@ -214,9 +213,9 @@ camel_block_file_init (CamelBlockFile *bs)
 	bs->priv = g_malloc0 (sizeof (*bs->priv));
 	bs->priv->base = bs;
 
-	g_static_mutex_init (&bs->priv->root_lock);
-	g_static_mutex_init (&bs->priv->cache_lock);
-	g_static_mutex_init (&bs->priv->io_lock);
+	g_mutex_init (&bs->priv->root_lock);
+	g_mutex_init (&bs->priv->cache_lock);
+	g_mutex_init (&bs->priv->io_lock);
 
 	/* link into lru list */
 	LOCK (block_file_lock);
@@ -250,7 +249,7 @@ block_file_use (CamelBlockFile *bs)
 		errno = ENOENT;
 		return -1;
 	} else {
-		d(printf("Turning block file online: %s\n", bs->path));
+		d (printf ("Turning block file online: %s\n", bs->path));
 	}
 
 	if ((bs->fd = g_open (bs->path, bs->flags | O_BINARY, 0600)) == -1) {
@@ -283,7 +282,7 @@ block_file_use (CamelBlockFile *bs)
 			if (CAMEL_BLOCK_FILE_TRYLOCK (bf, root_lock)) {
 				if (CAMEL_BLOCK_FILE_TRYLOCK (bf, cache_lock)) {
 					if (CAMEL_BLOCK_FILE_TRYLOCK (bf, io_lock)) {
-						d(printf("[%d] Turning block file offline: %s\n", block_file_count-1, bf->path));
+						d (printf ("[%d] Turning block file offline: %s\n", block_file_count - 1, bf->path));
 						sync_nolock (bf);
 						close (bf->fd);
 						bf->fd = -1;
@@ -370,7 +369,7 @@ camel_block_file_new (const gchar *path,
 
 	/* Do we need to init the root block? */
 	if (class->validate_root (bs) == -1) {
-		d(printf("Initialise root block: %.8s\n", version));
+		d (printf ("Initialise root block: %.8s\n", version));
 
 		class->init_root (bs);
 		camel_block_file_touch_block (bs, bs->root_block);
@@ -457,7 +456,7 @@ camel_block_file_delete (CamelBlockFile *bs)
  * Allocate a new block, return a pointer to it.  Old blocks
  * may be flushed to disk during this call.
  *
- * Returns: The block, or NULL if an error occured.
+ * Returns: The block, or NULL if an error occurred.
  **/
 CamelBlock *
 camel_block_file_new_block (CamelBlockFile *bs)
@@ -530,7 +529,7 @@ camel_block_file_free_block (CamelBlockFile *bs,
  * Retreive a block @id.
  *
  * Returns: The block, or NULL if blockid is invalid or a file error
- * occured.
+ * occurred.
  **/
 CamelBlock *
 camel_block_file_get_block (CamelBlockFile *bs,
@@ -553,7 +552,7 @@ camel_block_file_get_block (CamelBlockFile *bs,
 
 	bl = g_hash_table_lookup (bs->blocks, GUINT_TO_POINTER (id));
 
-	d(printf("Get  block %08x: %s\n", id, bl?"cached":"must read"));
+	d (printf ("Get  block %08x: %s\n", id, bl?"cached":"must read"));
 
 	if (bl == NULL) {
 		GQueue trash = G_QUEUE_INIT;
@@ -612,7 +611,7 @@ camel_block_file_get_block (CamelBlockFile *bs,
 
 	CAMEL_BLOCK_FILE_UNLOCK (bs, cache_lock);
 
-	d(printf("Got  block %08x\n", id));
+	d (printf ("Got  block %08x\n", id));
 
 	return bl;
 }
@@ -687,7 +686,7 @@ camel_block_file_touch_block (CamelBlockFile *bs,
 	bl->flags |= CAMEL_BLOCK_DIRTY;
 
 	if ((bs->root->flags & CAMEL_BLOCK_FILE_SYNC) && bl != bs->root_block) {
-		d(printf("turning off sync flag\n"));
+		d (printf ("turning off sync flag\n"));
 		bs->root->flags &= ~CAMEL_BLOCK_FILE_SYNC;
 		bs->root_block->flags |= CAMEL_BLOCK_DIRTY;
 		camel_block_file_sync_block (bs, bs->root_block);
@@ -729,7 +728,7 @@ static gint
 sync_block_nolock (CamelBlockFile *bs,
                    CamelBlock *bl)
 {
-	d(printf("Sync block %08x: %s\n", bl->id, (bl->flags & CAMEL_BLOCK_DIRTY)?"dirty":"clean"));
+	d (printf ("Sync block %08x: %s\n", bl->id, (bl->flags & CAMEL_BLOCK_DIRTY)?"dirty":"clean"));
 
 	if (bl->flags & CAMEL_BLOCK_DIRTY) {
 		if (lseek (bs->fd, bl->id, SEEK_SET) == -1
@@ -765,7 +764,7 @@ sync_nolock (CamelBlockFile *bs)
 	    && (bs->root->flags & CAMEL_BLOCK_FILE_SYNC) != 0)
 		return 0;
 
-	d(printf("turning on sync flag\n"));
+	d (printf ("turning on sync flag\n"));
 
 	bs->root->flags |= CAMEL_BLOCK_FILE_SYNC;
 	bs->root_block->flags |= CAMEL_BLOCK_DIRTY;
@@ -839,15 +838,15 @@ camel_block_file_sync (CamelBlockFile *bs)
 
 struct _CamelKeyFilePrivate {
 	struct _CamelKeyFile *base;
-	GStaticMutex lock;
+	GMutex lock;
 	guint deleted : 1;
 };
 
-#define CAMEL_KEY_FILE_LOCK(kf, lock) (g_static_mutex_lock(&(kf)->priv->lock))
-#define CAMEL_KEY_FILE_TRYLOCK(kf, lock) (g_static_mutex_trylock(&(kf)->priv->lock))
-#define CAMEL_KEY_FILE_UNLOCK(kf, lock) (g_static_mutex_unlock(&(kf)->priv->lock))
+#define CAMEL_KEY_FILE_LOCK(kf, lock) (g_mutex_lock(&(kf)->priv->lock))
+#define CAMEL_KEY_FILE_TRYLOCK(kf, lock) (g_mutex_trylock(&(kf)->priv->lock))
+#define CAMEL_KEY_FILE_UNLOCK(kf, lock) (g_mutex_unlock(&(kf)->priv->lock))
 
-static GStaticMutex key_file_lock = G_STATIC_MUTEX_INIT;
+static GMutex key_file_lock;
 
 /* lru cache of block files */
 static GQueue key_file_list = G_QUEUE_INIT;
@@ -855,7 +854,7 @@ static GQueue key_file_active_list = G_QUEUE_INIT;
 static gint key_file_count = 0;
 static const gint key_file_threshhold = 10;
 
-G_DEFINE_TYPE (CamelKeyFile, camel_key_file, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelKeyFile, camel_key_file, G_TYPE_OBJECT)
 
 static void
 key_file_finalize (GObject *object)
@@ -879,7 +878,7 @@ key_file_finalize (GObject *object)
 
 	g_free (bs->path);
 
-	g_static_mutex_free (&bs->priv->lock);
+	g_mutex_clear (&bs->priv->lock);
 
 	g_free (bs->priv);
 
@@ -902,7 +901,7 @@ camel_key_file_init (CamelKeyFile *bs)
 	bs->priv = g_malloc0 (sizeof (*bs->priv));
 	bs->priv->base = bs;
 
-	g_static_mutex_init (&bs->priv->lock);
+	g_mutex_init (&bs->priv->lock);
 
 	LOCK (key_file_lock);
 	g_queue_push_head (&key_file_list, bs->priv);
@@ -938,7 +937,7 @@ key_file_use (CamelKeyFile *bs)
 		errno = ENOENT;
 		return -1;
 	} else {
-		d(printf("Turning key file online: '%s'\n", bs->path));
+		d (printf ("Turning key file online: '%s'\n", bs->path));
 	}
 
 	if ((bs->flags & O_ACCMODE) == O_RDONLY)
@@ -976,7 +975,7 @@ key_file_use (CamelKeyFile *bs)
 			/* Need to trylock, as any of these lock levels might be trying
 			 * to lock the key_file_lock, so we need to check and abort if so */
 			if (CAMEL_BLOCK_FILE_TRYLOCK (bf, lock)) {
-				d(printf("Turning key file offline: %s\n", bf->path));
+				d (printf ("Turning key file offline: %s\n", bf->path));
 				fclose (bf->fp);
 				bf->fp = NULL;
 				key_file_count--;
@@ -1029,7 +1028,7 @@ camel_key_file_new (const gchar *path,
 	goffset last;
 	gint err;
 
-	d(printf("New key file '%s'\n", path));
+	d (printf ("New key file '%s'\n", path));
 
 	kf = g_object_new (CAMEL_TYPE_KEY_FILE, NULL);
 	kf->path = g_strdup (path);
@@ -1149,10 +1148,10 @@ camel_key_file_write (CamelKeyFile *kf,
 	g_return_val_if_fail (parent != NULL, -1);
 	g_return_val_if_fail (records != NULL, -1);
 
-	d(printf("write key %08x len = %d\n", *parent, len));
+	d (printf ("write key %08x len = %d\n", *parent, len));
 
 	if (len == 0) {
-		d(printf(" new parent = %08x\n", *parent));
+		d (printf (" new parent = %08x\n", *parent));
 		return 0;
 	}
 
@@ -1164,7 +1163,9 @@ camel_key_file_write (CamelKeyFile *kf,
 
 	/* FIXME: Use io util functions? */
 	next = kf->last;
-	fseek (kf->fp, kf->last, SEEK_SET);
+	if (fseek (kf->fp, kf->last, SEEK_SET) == -1)
+		return -1;
+
 	fwrite (parent, sizeof (*parent), 1, kf->fp);
 	fwrite (&size, sizeof (size), 1, kf->fp);
 	fwrite (records, sizeof (records[0]), len, kf->fp);
@@ -1180,7 +1181,7 @@ camel_key_file_write (CamelKeyFile *kf,
 	/* UNLOCK */
 	key_file_unuse (kf);
 
-	d(printf(" new parent = %08x\n", *parent));
+	d (printf (" new parent = %08x\n", *parent));
 
 	return ret;
 }

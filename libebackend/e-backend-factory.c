@@ -1,25 +1,24 @@
 /*
  * e-backend-factory.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
 /**
  * SECTION: e-backend-factory
- * @short_description: an abstract base class for backend factories
- * @include: libebackend/e-backend-factory.h
+ * @include: libebackend/libebackend.h
+ * @short_description: An abstract base class for backend factories
  *
  * An #EBackendFactory's job is to create an #EBackend instance for a
  * given #ESource.  #EBackendFactory and #EBackend should be subclassed
@@ -65,6 +64,8 @@ e_backend_factory_init (EBackendFactory *factory)
  * Since only one instance of each #EBackendFactory subclass is ever created,
  * the hash key need only be unique among subclasses, not among instances of
  * each subclass.
+ *
+ * Returns: a hash key which uniquely identifies @factory
  *
  * Since: 3.4
  **/

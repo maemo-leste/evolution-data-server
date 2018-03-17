@@ -1,26 +1,30 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- * pas-backend-summary.c
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
  * Authors:
  *   Chris Toshok <toshok@ximian.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License, version 2, as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
  * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION: e-book-backend-summary
+ * @include: libedata-book/libedata-book.h
+ * @short_description: A utility for storing contact data and searching for contacts
+ *
+ * The #EBookBackendSummary is deprecated, use #EBookSqlite instead.
+ */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -33,11 +37,6 @@
 #include <errno.h>
 
 #include <glib/gstdio.h>
-
-#include "libedataserver/e-sexp.h"
-#include "libedataserver/e-data-server-util.h"
-
-#include "libebook/e-contact.h"
 
 #include "e-book-backend-summary.h"
 
@@ -158,6 +157,8 @@ clear_items (EBookBackendSummary *summary)
  * the summary is changed until it is flushed to disk.
  *
  * Returns: A new #EBookBackendSummary.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 EBookBackendSummary *
 e_book_backend_summary_new (const gchar *summary_path,
@@ -271,10 +272,14 @@ e_book_backend_summary_load_header (EBookBackendSummary *summary,
 
 static gchar *
 read_string (FILE *fp,
-             gint len)
+             gsize len)
 {
 	gchar *buf;
 	gint rv;
+
+	/* Avoid overflow for the nul byte. */
+	if (len == G_MAXSIZE)
+		return NULL;
 
 	buf = g_new0 (char, len + 1);
 
@@ -445,7 +450,11 @@ e_book_backend_summary_open (EBookBackendSummary *summary)
 			return FALSE;
 		}
 		else {
-			g_rename (new_filename, summary->priv->summary_path);
+			if (g_rename (new_filename, summary->priv->summary_path) == -1) {
+				g_warning (
+					"%s: Failed to rename '%s' to '%s': %s", G_STRFUNC,
+					new_filename, summary->priv->summary_path, g_strerror (errno));
+			}
 			g_free (new_filename);
 		}
 	}
@@ -485,6 +494,8 @@ e_book_backend_summary_open (EBookBackendSummary *summary)
  * not out of date.
  *
  * Returns: %TRUE if the load succeeded, %FALSE if it failed.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_summary_load (EBookBackendSummary *summary)
@@ -642,6 +653,8 @@ e_book_backend_summary_save_item (EBookBackendSummary *summary,
  * Attempts to save @summary to disk.
  *
  * Returns: %TRUE if the save succeeded, %FALSE otherwise.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_summary_save (EBookBackendSummary *summary)
@@ -692,7 +705,11 @@ e_book_backend_summary_save (EBookBackendSummary *summary)
 
 	/* unlink the old summary and rename the new one */
 	g_unlink (summary->priv->summary_path);
-	g_rename (new_filename, summary->priv->summary_path);
+	if (g_rename (new_filename, summary->priv->summary_path) == -1) {
+		g_warning (
+			"%s: Failed to rename '%s' to '%s': %s", G_STRFUNC,
+			new_filename, summary->priv->summary_path, g_strerror (errno));
+	}
 
 	g_free (new_filename);
 
@@ -722,6 +739,8 @@ e_book_backend_summary_save (EBookBackendSummary *summary)
  *
  * Adds a summary of @contact to @summary. Does not check if
  * the contact already has a summary.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 void
 e_book_backend_summary_add_contact (EBookBackendSummary *summary,
@@ -748,17 +767,17 @@ e_book_backend_summary_add_contact (EBookBackendSummary *summary,
 
 	new_item = g_new0 (EBookBackendSummaryItem, 1);
 
-	new_item->id         = id;
-	new_item->nickname   = e_contact_get (contact, E_CONTACT_NICKNAME);
-	new_item->full_name  = e_contact_get (contact, E_CONTACT_FULL_NAME);
+	new_item->id = id;
+	new_item->nickname = e_contact_get (contact, E_CONTACT_NICKNAME);
+	new_item->full_name = e_contact_get (contact, E_CONTACT_FULL_NAME);
 	new_item->given_name = e_contact_get (contact, E_CONTACT_GIVEN_NAME);
-	new_item->surname    = e_contact_get (contact, E_CONTACT_FAMILY_NAME);
-	new_item->file_as    = e_contact_get (contact, E_CONTACT_FILE_AS);
-	new_item->email_1    = e_contact_get (contact, E_CONTACT_EMAIL_1);
-	new_item->email_2    = e_contact_get (contact, E_CONTACT_EMAIL_2);
-	new_item->email_3    = e_contact_get (contact, E_CONTACT_EMAIL_3);
-	new_item->email_4    = e_contact_get (contact, E_CONTACT_EMAIL_4);
-	new_item->list       = GPOINTER_TO_INT (e_contact_get (contact, E_CONTACT_IS_LIST));
+	new_item->surname = e_contact_get (contact, E_CONTACT_FAMILY_NAME);
+	new_item->file_as = e_contact_get (contact, E_CONTACT_FILE_AS);
+	new_item->email_1 = e_contact_get (contact, E_CONTACT_EMAIL_1);
+	new_item->email_2 = e_contact_get (contact, E_CONTACT_EMAIL_2);
+	new_item->email_3 = e_contact_get (contact, E_CONTACT_EMAIL_3);
+	new_item->email_4 = e_contact_get (contact, E_CONTACT_EMAIL_4);
+	new_item->list = GPOINTER_TO_INT (e_contact_get (contact, E_CONTACT_IS_LIST));
 	new_item->list_show_addresses = GPOINTER_TO_INT (e_contact_get (contact, E_CONTACT_LIST_SHOW_ADDRESSES));
 	new_item->wants_html = GPOINTER_TO_INT (e_contact_get (contact, E_CONTACT_WANTS_HTML));
 
@@ -787,6 +806,8 @@ e_book_backend_summary_add_contact (EBookBackendSummary *summary,
  * @id: a unique contact ID string
  *
  * Removes the summary of the contact identified by @id from @summary.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 void
 e_book_backend_summary_remove_contact (EBookBackendSummary *summary,
@@ -818,6 +839,8 @@ e_book_backend_summary_remove_contact (EBookBackendSummary *summary,
  * exists in @summary.
  *
  * Returns: %TRUE if the summary exists, %FALSE otherwise.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_summary_check_contact (EBookBackendSummary *summary,
@@ -859,6 +882,8 @@ summary_flush_func (gpointer data)
  * @summary: an #EBookBackendSummary
  *
  * Indicates that @summary has changed and should be flushed to disk.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 void
 e_book_backend_summary_touch (EBookBackendSummary *summary)
@@ -867,9 +892,11 @@ e_book_backend_summary_touch (EBookBackendSummary *summary)
 
 	summary->priv->dirty = TRUE;
 	if (!summary->priv->flush_timeout
-	    && summary->priv->flush_timeout_millis)
-		summary->priv->flush_timeout = g_timeout_add (summary->priv->flush_timeout_millis,
-							      summary_flush_func, summary);
+	    && summary->priv->flush_timeout_millis) {
+		summary->priv->flush_timeout = e_named_timeout_add (
+			summary->priv->flush_timeout_millis,
+			summary_flush_func, summary);
+	}
 }
 
 /**
@@ -880,6 +907,8 @@ e_book_backend_summary_touch (EBookBackendSummary *summary)
  * Checks if @summary is more recent than @t.
  *
  * Returns: %TRUE if the summary is up to date, %FALSE otherwise.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_summary_is_up_to_date (EBookBackendSummary *summary,
@@ -904,6 +933,7 @@ func_check (struct _ESExp *f,
 {
 	ESExpResult *r;
 	gint truth = FALSE;
+	gboolean *pretval = data;
 
 	if (argc == 2
 	    && argv[0]->type == ESEXP_RES_STRING
@@ -921,6 +951,9 @@ func_check (struct _ESExp *f,
 	r = e_sexp_result_new (f, ESEXP_RES_BOOL);
 	r->value.boolean = truth;
 
+	if (pretval)
+		*pretval = (*pretval) && truth;
+
 	return r;
 }
 
@@ -935,7 +968,8 @@ static const struct {
 	{ "is", func_check, 0 },
 	{ "beginswith", func_check, 0 },
 	{ "endswith", func_check, 0 },
-	{ "exists", func_check, 0 }
+	{ "exists", func_check, 0 },
+	{ "exists_vcard", func_check, 0 }
 };
 
 /**
@@ -947,6 +981,8 @@ static const struct {
  * stored by @summary.
  *
  * Returns: %TRUE if the query can be satisfied, %FALSE otherwise.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gboolean
 e_book_backend_summary_is_summary_query (EBookBackendSummary *summary,
@@ -954,7 +990,7 @@ e_book_backend_summary_is_summary_query (EBookBackendSummary *summary,
 {
 	ESExp *sexp;
 	ESExpResult *r;
-	gboolean retval;
+	gboolean retval = TRUE;
 	gint i;
 	gint esexp_error;
 
@@ -965,10 +1001,11 @@ e_book_backend_summary_is_summary_query (EBookBackendSummary *summary,
 	for (i = 0; i < G_N_ELEMENTS (check_symbols); i++) {
 		if (check_symbols[i].type == 1) {
 			e_sexp_add_ifunction (sexp, 0, check_symbols[i].name,
-					     (ESExpIFunc *) check_symbols[i].func, summary);
+					     (ESExpIFunc *) check_symbols[i].func, &retval);
 		} else {
-			e_sexp_add_function (sexp, 0, check_symbols[i].name,
-					    check_symbols[i].func, summary);
+			e_sexp_add_function (
+				sexp, 0, check_symbols[i].name,
+				check_symbols[i].func, &retval);
 		}
 	}
 
@@ -976,12 +1013,13 @@ e_book_backend_summary_is_summary_query (EBookBackendSummary *summary,
 	esexp_error = e_sexp_parse (sexp);
 
 	if (esexp_error == -1) {
+		e_sexp_unref (sexp);
 		return FALSE;
 	}
 
 	r = e_sexp_eval (sexp);
 
-	retval = (r && r->type == ESEXP_RES_BOOL && r->value.boolean);
+	retval = retval && (r && r->type == ESEXP_RES_BOOL && r->value.boolean);
 
 	e_sexp_result_free (sexp, r);
 
@@ -1191,6 +1229,8 @@ static const struct {
  * Searches @summary for contacts matching @query.
  *
  * Returns: A #GPtrArray of pointers to contact ID strings.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 GPtrArray *
 e_book_backend_summary_search (EBookBackendSummary *summary,
@@ -1211,8 +1251,9 @@ e_book_backend_summary_search (EBookBackendSummary *summary,
 			e_sexp_add_ifunction (sexp, 0, symbols[i].name,
 					     (ESExpIFunc *) symbols[i].func, summary);
 		} else {
-			e_sexp_add_function (sexp, 0, symbols[i].name,
-					    symbols[i].func, summary);
+			e_sexp_add_function (
+				sexp, 0, symbols[i].name,
+				symbols[i].func, summary);
 		}
 	}
 
@@ -1250,6 +1291,8 @@ e_book_backend_summary_search (EBookBackendSummary *summary,
  * by @id.
  *
  * Returns: A new VCard, or %NULL if the contact summary didn't exist.
+ *
+ * Deprecated: 3.12: Use #EBookSqlite instead
  **/
 gchar *
 e_book_backend_summary_get_summary_vcard (EBookBackendSummary *summary,

@@ -1,18 +1,17 @@
 /*
  * e-gdbus-templates.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  *
  * Copyright (C) 2011 Red Hat, Inc. (www.redhat.com)
@@ -712,10 +711,17 @@ e_gdbus_async_op_keeper_default_init (EGdbusAsyncOpKeeperInterface *iface)
 {
 }
 
-/* Created hash table of pending async operations. This can be freed
- * with g_hash_table_destroy () in dispose. Interface asks for this
- * ponter by call of e_gdbus_async_op_keeper_create_pending_ops ().
-*/
+/**
+ * e_gdbus_async_op_keeper_create_pending_ops:
+ * @object: a #EGdbusAsyncOpKeeper
+ *
+ * Create a hash table of pending async operations. This can be freed
+ * with g_hash_table_unref() in dispose. The interface asks for this
+ * pointer by calling e_gdbus_async_op_keeper_create_pending_ops().
+ *
+ * Returns: (transfer full) (element-type gpointer gpointer): hash table of
+ * pending async operations; free with g_hash_table_unref()
+ */
 GHashTable *
 e_gdbus_async_op_keeper_create_pending_ops (EGdbusAsyncOpKeeper *object)
 {
@@ -725,18 +731,24 @@ e_gdbus_async_op_keeper_create_pending_ops (EGdbusAsyncOpKeeper *object)
 	return g_hash_table_new (g_direct_hash, g_direct_equal);
 }
 
-/* Returns hash table of pending async operations previously created
- * by e_gdbus_async_op_keeper_create_pending_ops ().
-*/
+/**
+ * e_gdbus_async_op_keeper_get_pending_ops:
+ * @object: a #EGdbusAsyncOpKeeper
+ *
+ * Get the hash table of pending async operations previously created
+ * by e_gdbus_async_op_keeper_create_pending_ops().
+ *
+ * Returns: (transfer none): hash table of pending async operations
+ */
 GHashTable *
 e_gdbus_async_op_keeper_get_pending_ops (EGdbusAsyncOpKeeper *object)
 {
 	EGdbusAsyncOpKeeperInterface *iface;
 
-	g_return_val_if_fail (E_IS_GDBUS_ASYNC_OP_KEEPER (object), 0);
+	g_return_val_if_fail (E_IS_GDBUS_ASYNC_OP_KEEPER (object), NULL);
 
 	iface = E_GDBUS_ASYNC_OP_KEEPER_GET_IFACE (object);
-	g_return_val_if_fail (iface->get_pending_ops != NULL, 0);
+	g_return_val_if_fail (iface->get_pending_ops != NULL, NULL);
 
 	return iface->get_pending_ops (object);
 }
@@ -831,6 +843,7 @@ e_gdbus_complete_sync_method_uint (gpointer object,
 
 typedef struct _AsyncOpData
 {
+	gint ref_count;
 	EGdbusAsyncOpKeeper *proxy;
 	guint opid;
 
@@ -858,27 +871,37 @@ async_op_data_free (AsyncOpData *op_data)
 
 	g_return_if_fail (op_data != NULL);
 
+	pending_ops = e_gdbus_async_op_keeper_get_pending_ops (op_data->proxy);
+
 	if (op_data->cancel_idle_id) {
 		GError *error = NULL;
 
 		g_source_remove (op_data->cancel_idle_id);
 		op_data->cancel_idle_id = 0;
 
+		if (pending_ops)
+			g_hash_table_remove (pending_ops, GUINT_TO_POINTER (op_data->opid));
+
 		if (!e_gdbus_async_op_keeper_cancel_op_sync (op_data->proxy, op_data->opid, NULL, &error)) {
 			g_debug ("%s: Failed to cancel operation: %s\n", G_STRFUNC, error ? error->message : "Unknown error");
 			g_clear_error (&error);
 		}
+	} else if (pending_ops) {
+		g_hash_table_remove (pending_ops, GUINT_TO_POINTER (op_data->opid));
 	}
 
 	if (op_data->cancellable) {
-		if (op_data->cancel_id)
+		if (op_data->cancel_id) {
 			g_cancellable_disconnect (op_data->cancellable, op_data->cancel_id);
+			op_data->cancel_id = 0;
+		}
 		g_object_unref (op_data->cancellable);
+		op_data->cancellable = NULL;
 	}
 
-	pending_ops = e_gdbus_async_op_keeper_get_pending_ops (E_GDBUS_ASYNC_OP_KEEPER (op_data->proxy));
-	if (pending_ops)
-		g_hash_table_remove (pending_ops, GUINT_TO_POINTER (op_data->opid));
+	if (!g_atomic_int_dec_and_test (&op_data->ref_count))
+		return;
+
 	g_object_unref (op_data->proxy);
 
 	switch (op_data->result_type) {
@@ -906,6 +929,7 @@ async_op_complete (AsyncOpData *op_data,
 
 	g_return_if_fail (op_data != NULL);
 
+	g_atomic_int_inc (&op_data->ref_count);
 	simple = g_simple_async_result_new (G_OBJECT (op_data->proxy), op_data->async_callback, op_data->async_user_data, op_data->async_source_tag);
 	g_simple_async_result_set_op_res_gpointer (simple, op_data, (GDestroyNotify) async_op_data_free);
 	if (error)
@@ -919,13 +943,43 @@ async_op_complete (AsyncOpData *op_data,
 	g_object_unref (simple);
 }
 
+typedef struct _CancelData
+{
+	EGdbusAsyncOpKeeper *proxy;
+	guint opid;
+	AsyncOpData *op_data;
+} CancelData;
+
+static void
+cancel_data_free (gpointer ptr)
+{
+	CancelData *cd = ptr;
+
+	if (!cd)
+		return;
+
+	g_object_unref (cd->proxy);
+	g_free (cd);
+}
+
 static gboolean
 e_gdbus_op_cancelled_idle_cb (gpointer user_data)
 {
-	AsyncOpData *op_data = user_data;
+	CancelData *cd = user_data;
+	AsyncOpData *op_data;
+	GHashTable *pending_ops;
 	GCancellable *cancellable;
 	GError *error = NULL;
 
+	g_return_val_if_fail (cd != NULL, FALSE);
+
+	pending_ops = e_gdbus_async_op_keeper_get_pending_ops (cd->proxy);
+	if (pending_ops && !g_hash_table_lookup (pending_ops, GUINT_TO_POINTER (cd->opid))) {
+		/* got served already */
+		return FALSE;
+	}
+
+	op_data = cd->op_data;
 	g_return_val_if_fail (op_data != NULL, FALSE);
 
 	cancellable = op_data->cancellable;
@@ -948,12 +1002,21 @@ static void
 e_gdbus_op_cancelled_cb (GCancellable *cancellable,
                          AsyncOpData *op_data)
 {
+	CancelData *cd;
+
 	g_return_if_fail (op_data != NULL);
 	g_return_if_fail (op_data->cancellable == cancellable);
 
+	cd = g_new0 (CancelData, 1);
+	cd->proxy = g_object_ref (op_data->proxy);
+	cd->opid = op_data->opid;
+	cd->op_data = op_data;
+
 	/* do this on idle, because this callback should be left
-	   as soon as possible, with no sync calls being done */
-	op_data->cancel_idle_id = g_idle_add (e_gdbus_op_cancelled_idle_cb, op_data);
+	 * as soon as possible, with no sync calls being done;
+	 * also schedule with priority higher than gtk+ uses
+	 * for animations (check docs for G_PRIORITY_HIGH_IDLE) */
+	op_data->cancel_idle_id = g_idle_add_full (G_PRIORITY_DEFAULT, e_gdbus_op_cancelled_idle_cb, cd, cancel_data_free);
 }
 
 static void
@@ -1352,14 +1415,31 @@ typedef struct _SyncOpData
 	gboolean finish_result;
 } SyncOpData;
 
+#define SYNC_DATA_HASH_KEY "EGdbusTemplates-SyncOp-Hash"
+static GMutex sync_data_hash_mutex;
+
 static void
 e_gdbus_proxy_sync_ready_cb (GObject *proxy,
                              GAsyncResult *result,
                              gpointer user_data)
 {
-	SyncOpData *sync_data = user_data;
+	gint sync_opid = GPOINTER_TO_INT (user_data);
+	SyncOpData *sync_data = NULL;
+	GHashTable *sync_data_hash;
 
-	g_return_if_fail (sync_data != NULL);
+	g_mutex_lock (&sync_data_hash_mutex);
+	sync_data_hash = g_object_get_data (proxy, SYNC_DATA_HASH_KEY);
+	if (sync_data_hash)
+		sync_data = g_hash_table_lookup (sync_data_hash, GINT_TO_POINTER (sync_opid));
+	g_mutex_unlock (&sync_data_hash_mutex);
+
+	if (!sync_data) {
+		/* already finished operation; it can happen when the operation is cancelled,
+		 * but the result is already waiting in an idle queue.
+		*/
+		return;
+	}
+
 	g_return_if_fail (sync_data->flag != NULL);
 
 	switch (sync_data->out_type) {
@@ -1402,11 +1482,17 @@ e_gdbus_proxy_call_sync (GDBusProxy *proxy,
                          guint out_type,
                          gpointer out_value)
 {
+	static volatile gint sync_op_counter = 0;
+	gint sync_opid;
+	gpointer sync_opid_ident;
 	SyncOpData sync_data = { 0 };
+	GHashTable *sync_data_hash;
 
 	g_return_val_if_fail (proxy != NULL, FALSE);
 	g_return_val_if_fail (start_func != NULL, FALSE);
 	g_return_val_if_fail (finish_func != NULL, FALSE);
+
+	g_object_ref (proxy);
 
 	switch (out_type) {
 	case E_GDBUS_TYPE_VOID:
@@ -1430,6 +1516,7 @@ e_gdbus_proxy_call_sync (GDBusProxy *proxy,
 		break;
 	default:
 		g_warning ("%s: Unknown 'out' E_GDBUS_TYPE %x", G_STRFUNC, out_type);
+		g_object_unref (proxy);
 		return FALSE;
 	}
 
@@ -1437,30 +1524,48 @@ e_gdbus_proxy_call_sync (GDBusProxy *proxy,
 	sync_data.error = error;
 	sync_data.out_type = out_type;
 
+	sync_opid = g_atomic_int_add (&sync_op_counter, 1);
+
+	g_mutex_lock (&sync_data_hash_mutex);
+	sync_data_hash = g_object_get_data (G_OBJECT (proxy), SYNC_DATA_HASH_KEY);
+	if (!sync_data_hash) {
+		sync_data_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
+		g_object_set_data_full (
+			G_OBJECT (proxy), SYNC_DATA_HASH_KEY, sync_data_hash,
+			(GDestroyNotify) g_hash_table_destroy);
+	}
+	sync_opid_ident = GINT_TO_POINTER (sync_opid);
+	g_hash_table_insert (sync_data_hash, sync_opid_ident, &sync_data);
+	g_mutex_unlock (&sync_data_hash_mutex);
+
 	switch (in_type) {
 	case E_GDBUS_TYPE_VOID: {
 		EGdbusCallStartVoid start = start_func;
-		start (proxy, cancellable, e_gdbus_proxy_sync_ready_cb, &sync_data);
+		start (proxy, cancellable, e_gdbus_proxy_sync_ready_cb, GINT_TO_POINTER (sync_opid));
 	} break;
 	case E_GDBUS_TYPE_BOOLEAN: {
 		EGdbusCallStartBoolean start = start_func;
-		start (proxy, * ((gboolean *) in_value), cancellable, e_gdbus_proxy_sync_ready_cb, &sync_data);
+		start (proxy, * ((gboolean *) in_value), cancellable, e_gdbus_proxy_sync_ready_cb, GINT_TO_POINTER (sync_opid));
 	} break;
 	case E_GDBUS_TYPE_STRING: {
 		EGdbusCallStartString start = start_func;
-		start (proxy, (const gchar *) in_value, cancellable, e_gdbus_proxy_sync_ready_cb, &sync_data);
+		start (proxy, (const gchar *) in_value, cancellable, e_gdbus_proxy_sync_ready_cb, GINT_TO_POINTER (sync_opid));
 	} break;
 	case E_GDBUS_TYPE_STRV: {
 		EGdbusCallStartStrv start = start_func;
-		start (proxy, (const gchar * const *) in_value, cancellable, e_gdbus_proxy_sync_ready_cb, &sync_data);
+		start (proxy, (const gchar * const *) in_value, cancellable, e_gdbus_proxy_sync_ready_cb, GINT_TO_POINTER (sync_opid));
 	} break;
 	case E_GDBUS_TYPE_UINT: {
 		EGdbusCallStartUint start = start_func;
-		start (proxy, * ((guint *) in_value), cancellable, e_gdbus_proxy_sync_ready_cb, &sync_data);
+		start (proxy, * ((guint *) in_value), cancellable, e_gdbus_proxy_sync_ready_cb, GINT_TO_POINTER (sync_opid));
 	} break;
 	default:
 		g_warning ("%s: Unknown 'in' E_GDBUS_TYPE %x", G_STRFUNC, in_type);
 		e_flag_free (sync_data.flag);
+		g_mutex_lock (&sync_data_hash_mutex);
+		g_hash_table_remove (sync_data_hash, sync_opid_ident);
+		g_mutex_unlock (&sync_data_hash_mutex);
+		g_object_unref (proxy);
 		return FALSE;
 	}
 
@@ -1489,7 +1594,14 @@ e_gdbus_proxy_call_sync (GDBusProxy *proxy,
 		/* is called in a dedicated thread */
 		e_flag_wait (sync_data.flag);
 	}
+
+	g_mutex_lock (&sync_data_hash_mutex);
+	g_hash_table_remove (sync_data_hash, sync_opid_ident);
+	g_mutex_unlock (&sync_data_hash_mutex);
+
 	e_flag_free (sync_data.flag);
+
+	g_object_unref (proxy);
 
 	return sync_data.finish_result;
 }
@@ -1508,6 +1620,17 @@ e_gdbus_proxy_call_sync_void__void (GDBusProxy *proxy,
 	return e_gdbus_proxy_call_sync (proxy, cancellable, error, start_func, finish_func, E_GDBUS_TYPE_VOID, NULL, E_GDBUS_TYPE_VOID, NULL);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_void__boolean:
+ * @proxy:
+ * @out_boolean:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_call_sync_void__boolean (GDBusProxy *proxy,
                                        gboolean *out_boolean,
@@ -1524,6 +1647,17 @@ e_gdbus_proxy_call_sync_void__boolean (GDBusProxy *proxy,
 	return e_gdbus_proxy_call_sync (proxy, cancellable, error, start_func, finish_func, E_GDBUS_TYPE_VOID, NULL, E_GDBUS_TYPE_BOOLEAN, out_boolean);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_void__string:
+ * @proxy:
+ * @out_string:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_call_sync_void__string (GDBusProxy *proxy,
                                       gchar **out_string,
@@ -1540,6 +1674,17 @@ e_gdbus_proxy_call_sync_void__string (GDBusProxy *proxy,
 	return e_gdbus_proxy_call_sync (proxy, cancellable, error, start_func, finish_func, E_GDBUS_TYPE_VOID, NULL, E_GDBUS_TYPE_STRING, out_string);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_void__strv:
+ * @proxy:
+ * @out_strv:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_call_sync_void__strv (GDBusProxy *proxy,
                                     gchar ***out_strv,
@@ -1556,6 +1701,17 @@ e_gdbus_proxy_call_sync_void__strv (GDBusProxy *proxy,
 	return e_gdbus_proxy_call_sync (proxy, cancellable, error, start_func, finish_func, E_GDBUS_TYPE_VOID, NULL, E_GDBUS_TYPE_STRV, out_strv);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_void__uint:
+ * @proxy:
+ * @out_uint:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_call_sync_void__uint (GDBusProxy *proxy,
                                     guint *out_uint,
@@ -1587,6 +1743,17 @@ e_gdbus_proxy_call_sync_boolean__void (GDBusProxy *proxy,
 	return e_gdbus_proxy_call_sync (proxy, cancellable, error, start_func, finish_func, E_GDBUS_TYPE_BOOLEAN, &in_boolean, E_GDBUS_TYPE_VOID, NULL);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_string__void:
+ * @proxy:
+ * @in_string:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_call_sync_string__void (GDBusProxy *proxy,
                                       const gchar *in_string,
@@ -1619,6 +1786,17 @@ e_gdbus_proxy_call_sync_strv__void (GDBusProxy *proxy,
 	return e_gdbus_proxy_call_sync (proxy, cancellable, error, start_func, finish_func, E_GDBUS_TYPE_STRV, in_strv, E_GDBUS_TYPE_VOID, NULL);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_uint__void:
+ * @proxy:
+ * @in_uint:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_call_sync_uint__void (GDBusProxy *proxy,
                                     guint in_uint,
@@ -1652,6 +1830,16 @@ e_gdbus_proxy_call_sync_string__string (GDBusProxy *proxy,
 	return e_gdbus_proxy_call_sync (proxy, cancellable, error, start_func, finish_func, E_GDBUS_TYPE_STRING, in_string, E_GDBUS_TYPE_STRING, out_string);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_string__strv:
+ * @proxy:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_call_sync_string__strv (GDBusProxy *proxy,
                                       const gchar *in_string,
@@ -1688,6 +1876,18 @@ e_gdbus_proxy_call_sync_strv__string (GDBusProxy *proxy,
 	return e_gdbus_proxy_call_sync (proxy, cancellable, error, start_func, finish_func, E_GDBUS_TYPE_STRV, in_strv, E_GDBUS_TYPE_STRING, out_string);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_strv__strv:
+ * @proxy:
+ * @in_strv:
+ * @out_strv:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_call_sync_strv__strv (GDBusProxy *proxy,
                                     const gchar * const *in_strv,
@@ -1969,6 +2169,16 @@ proxy_method_call_sync (const gchar *method_name,
 	return process_result (G_STRFUNC, out_type, out_value, g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy), method_name, params, G_DBUS_CALL_FLAGS_NONE, e_data_server_util_get_dbus_call_timeout (), cancellable, error));
 }
 
+/**
+ * e_gdbus_proxy_call_sync_void__void:
+ * @proxy:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_method_call_sync_void__void (const gchar *method_name,
                                            GDBusProxy *proxy,
@@ -1978,6 +2188,17 @@ e_gdbus_proxy_method_call_sync_void__void (const gchar *method_name,
 	return proxy_method_call_sync (method_name, E_GDBUS_TYPE_VOID, NULL, E_GDBUS_TYPE_VOID, NULL, proxy, cancellable, error);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_boolean__void:
+ * @proxy:
+ * @in_boolean:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_method_call_sync_boolean__void (const gchar *method_name,
                                               GDBusProxy *proxy,
@@ -1998,6 +2219,17 @@ e_gdbus_proxy_method_call_sync_string__void (const gchar *method_name,
 	return proxy_method_call_sync (method_name, E_GDBUS_TYPE_STRING, in_string, E_GDBUS_TYPE_VOID, NULL, proxy, cancellable, error);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_strv__void:
+ * @proxy:
+ * @in_strv:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_method_call_sync_strv__void (const gchar *method_name,
                                            GDBusProxy *proxy,
@@ -2018,6 +2250,18 @@ e_gdbus_proxy_method_call_sync_uint__void (const gchar *method_name,
 	return proxy_method_call_sync (method_name, E_GDBUS_TYPE_UINT, &in_uint, E_GDBUS_TYPE_VOID, NULL, proxy, cancellable, error);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_string__string:
+ * @proxy:
+ * @in_string:
+ * @out_string:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_method_call_sync_string__string (const gchar *method_name,
                                                GDBusProxy *proxy,
@@ -2029,6 +2273,18 @@ e_gdbus_proxy_method_call_sync_string__string (const gchar *method_name,
 	return proxy_method_call_sync (method_name, E_GDBUS_TYPE_STRING, in_string, E_GDBUS_TYPE_STRING, out_string, proxy, cancellable, error);
 }
 
+/**
+ * e_gdbus_proxy_call_sync_strv__string:
+ * @proxy:
+ * @in_strv:
+ * @out_string:
+ * @cancellable: (allow-none):
+ * @error:
+ * @start_func: (scope call):
+ * @finish_func: (scope call):
+ *
+ * Returns:
+ */
 gboolean
 e_gdbus_proxy_method_call_sync_strv__string (const gchar *method_name,
                                              GDBusProxy *proxy,
@@ -2040,7 +2296,13 @@ e_gdbus_proxy_method_call_sync_strv__string (const gchar *method_name,
 	return proxy_method_call_sync (method_name, E_GDBUS_TYPE_STRV, in_strv, E_GDBUS_TYPE_STRING, out_string, proxy, cancellable, error);
 }
 
-/* free returned pointer with g_strfreev() */
+/**
+ * e_gdbus_templates_encode_error:
+ * @in_error: (allow-none):
+ *
+ * Returns: (transfer full): a %NULL-terminated array of strings; free with
+ * g_strfreev()
+ */
 gchar **
 e_gdbus_templates_encode_error (const GError *in_error)
 {
@@ -2088,7 +2350,14 @@ e_gdbus_templates_decode_error (const gchar * const *in_strv,
 	return TRUE;
 }
 
-/* free returned pointer with g_strfreev() */
+/**
+ * e_gdbus_templates_encode_two_strings:
+ * @in_str1: (allow-none):
+ * @in_str2: (allow-none):
+ *
+ * Returns: (transfer full): a %NULL-terminated array of strings; free with
+ * g_strfreev()
+ */
 gchar **
 e_gdbus_templates_encode_two_strings (const gchar *in_str1,
                                       const gchar *in_str2)

@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Authors: Jeffrey Stedfast <fejj@ximian.com>
+ * Authors: Jeffrey Stedfast <fejj@ximian.com>
  *
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -39,10 +37,12 @@ struct _CamelMimeFilterToHTMLPrivate {
 
 	CamelUrlScanner *scanner;
 
-	guint32 flags;
+	CamelMimeFilterToHTMLFlags flags;
 	guint32 color;
 
-	guint32 column   : 31;
+	guint blockquote_depth;
+
+	guint32 column : 31;
 	guint32 pre_open : 1;
 };
 
@@ -62,7 +62,7 @@ struct _CamelMimeFilterToHTMLPrivate {
 #define CONVERT_ADDRSPEC  CAMEL_MIME_FILTER_TOHTML_CONVERT_ADDRESSES
 
 static struct {
-	guint mask;
+	CamelMimeFilterToHTMLFlags mask;
 	urlpattern_t pattern;
 } patterns[] = {
 	{ CONVERT_WEB_URLS, { "file://",   "",        camel_url_file_start,     camel_url_file_end     } },
@@ -123,29 +123,43 @@ append_string_verbatim (CamelMimeFilter *mime_filter,
 
 static gint
 citation_depth (const gchar *in,
-                const gchar *inend)
+                const gchar *inend,
+                goffset *out_skip)
 {
 	register const gchar *inptr = in;
-	gint depth = 1;
+	gint depth = 0;
+	goffset skip = 0;
+
+	if (out_skip != NULL)
+		*out_skip = 0;
 
 	if (*inptr++ != '>')
-		return 0;
+		goto exit;
 
 #if FOOLISHLY_UNMUNGE_FROM
 	/* check that it isn't an escaped From line */
-	if (!strncmp (inptr, "From", 4))
-		return 0;
+	if (!strncmp (inptr, "From", 4)) {
+		goto exit;
 #endif
 
+	depth = 1;
+
 	while (inptr < inend && *inptr != '\n') {
-		if (*inptr == ' ')
+		if (*inptr == ' ') {
 			inptr++;
+			skip++;
+		}
 
 		if (inptr >= inend || *inptr++ != '>')
 			break;
 
 		depth++;
+		skip++;
 	}
+
+exit:
+	if (out_skip != NULL)
+		*out_skip = (depth > 0) ? skip : 0;
 
 	return depth;
 }
@@ -170,7 +184,11 @@ writeln (CamelMimeFilter *mime_filter,
 		u = camel_utf8_getc_limit (&inptr, inend);
 		switch (u) {
 		case 0xffff:
-			g_warning("Truncated utf8 buffer");
+			g_warning (
+				"Truncated UTF-8 buffer (The cause might "
+				"be missing character encoding information "
+				"in the message header. Try a different "
+				"character encoding.)");
 			return outptr;
 		case '<':
 			outptr = g_stpcpy (outptr, "&lt;");
@@ -213,7 +231,7 @@ writeln (CamelMimeFilter *mime_filter,
 				if (priv->flags & CAMEL_MIME_FILTER_TOHTML_ESCAPE_8BIT)
 					*outptr++ = '?';
 				else
-					outptr += sprintf(outptr, "&#%u;", u);
+					outptr += sprintf (outptr, "&#%u;", u);
 			}
 			priv->column++;
 			break;
@@ -243,21 +261,33 @@ html_convert (CamelMimeFilter *mime_filter,
 	priv = CAMEL_MIME_FILTER_TOHTML_GET_PRIVATE (mime_filter);
 
 	if (inlen == 0) {
-		if (priv->pre_open) {
-			/* close the pre-tag */
-			outend = mime_filter->outbuf + mime_filter->outsize;
-			outptr = check_size (mime_filter, mime_filter->outbuf, &outend, 10);
-			outptr = g_stpcpy (outptr, "</pre>");
-			priv->pre_open = FALSE;
-
-			*out = mime_filter->outbuf;
-			*outlen = outptr - mime_filter->outbuf;
-			*outprespace = mime_filter->outpre;
-		} else {
+		if (!priv->pre_open && priv->blockquote_depth == 0) {
+			/* No closing tags needed. */
 			*out = (gchar *) in;
 			*outlen = 0;
 			*outprespace = 0;
+			return;
 		}
+
+		outptr = mime_filter->outbuf;
+		outend = mime_filter->outbuf + mime_filter->outsize;
+
+		while (priv->blockquote_depth > 0) {
+			outptr = check_size (mime_filter, outptr, &outend, 15);
+			outptr = g_stpcpy (outptr, "</blockquote>");
+			priv->blockquote_depth--;
+		}
+
+		if (priv->pre_open) {
+			/* close the pre-tag */
+			outptr = check_size (mime_filter, outptr, &outend, 10);
+			outptr = g_stpcpy (outptr, "</pre>");
+			priv->pre_open = FALSE;
+		}
+
+		*out = mime_filter->outbuf;
+		*outlen = outptr - mime_filter->outbuf;
+		*outprespace = mime_filter->outpre;
 
 		return;
 	}
@@ -286,11 +316,13 @@ html_convert (CamelMimeFilter *mime_filter,
 		depth = 0;
 
 		if (priv->flags & CAMEL_MIME_FILTER_TOHTML_MARK_CITATION) {
-			if ((depth = citation_depth (start, inend)) > 0) {
+			depth = citation_depth (start, inend, NULL);
+
+			if (depth > 0) {
 				/* FIXME: we could easily support multiple color depths here */
 
 				outptr = check_size (mime_filter, outptr, &outend, 25);
-				outptr += sprintf(outptr, "<font color=\"#%06x\">", (priv->color & 0xffffff));
+				outptr += sprintf (outptr, "<font color=\"#%06x\">", (priv->color & 0xffffff));
 			}
 #if FOOLISHLY_UNMUNGE_FROM
 			else if (*start == '>') {
@@ -298,6 +330,29 @@ html_convert (CamelMimeFilter *mime_filter,
 				start++;
 			}
 #endif
+
+		} else if (priv->flags & CAMEL_MIME_FILTER_TOHTML_QUOTE_CITATION) {
+			goffset skip = 0;
+
+			depth = citation_depth (start, inend, &skip);
+			while (priv->blockquote_depth < depth) {
+				outptr = check_size (mime_filter, outptr, &outend, 30);
+				outptr = g_stpcpy (outptr, "<blockquote type=\"cite\">\n");
+				priv->blockquote_depth++;
+			}
+			while (priv->blockquote_depth > depth) {
+				outptr = check_size (mime_filter, outptr, &outend, 15);
+				outptr = g_stpcpy (outptr, "</blockquote>\n");
+				priv->blockquote_depth--;
+			}
+#if FOOLISHLY_UNMUNGE_FROM
+			if (depth == 0 && *start == '>') {
+				/* >From line */
+				skip = 1;
+			}
+#endif
+			start += skip;
+
 		} else if (priv->flags & CAMEL_MIME_FILTER_TOHTML_CITE) {
 			outptr = check_size (mime_filter, outptr, &outend, 6);
 			outptr = g_stpcpy (outptr, "&gt; ");
@@ -314,8 +369,12 @@ html_convert (CamelMimeFilter *mime_filter,
 			do {
 				if (camel_url_scanner_scan (priv->scanner, start, len - (len > 0 && start[len - 1] == 0 ? 1 : 0), &match)) {
 					/* write out anything before the first regex match */
-					outptr = writeln (mime_filter, (const guchar *) start, (const guchar *) start + match.um_so,
-							  outptr, &outend);
+					outptr = writeln (
+						mime_filter,
+						(const guchar *) start,
+						(const guchar *) start +
+						match.um_so,
+						outptr, &outend);
 
 					start += match.um_so;
 					len -= match.um_so;
@@ -325,35 +384,53 @@ html_convert (CamelMimeFilter *mime_filter,
 					/* write out the href tag */
 					outptr = append_string_verbatim (mime_filter, "<a href=\"", outptr, &outend);
 					/* prefix shouldn't need escaping, but let's be safe */
-					outptr = writeln (mime_filter,
-							(const guchar *) match.prefix,
-							(const guchar *) match.prefix + strlen (match.prefix),
-							outptr, &outend);
-					outptr = writeln (mime_filter,
-							(const guchar *) start,
-							(const guchar *) start + matchlen,
-							outptr, &outend);
-					outptr = append_string_verbatim (mime_filter, "\">", outptr, &outend);
+					outptr = writeln (
+						mime_filter,
+						(const guchar *) match.prefix,
+						(const guchar *) match.prefix +
+						strlen (match.prefix),
+						outptr, &outend);
+					outptr = writeln (
+						mime_filter,
+						(const guchar *) start,
+						(const guchar *) start +
+						matchlen,
+						outptr, &outend);
+					outptr = append_string_verbatim (
+						mime_filter, "\">",
+						outptr, &outend);
 
 					/* now write the matched string */
-					outptr = writeln (mime_filter,
-							(const guchar *) start,
-							(const guchar *) start + matchlen,
-							outptr, &outend);
+					outptr = writeln (
+						mime_filter,
+						(const guchar *) start,
+						(const guchar *) start +
+						matchlen,
+						outptr, &outend);
 					priv->column += matchlen;
 					start += matchlen;
 					len -= matchlen;
 
 					/* close the href tag */
-					outptr = append_string_verbatim (mime_filter, "</a>", outptr, &outend);
+					outptr = append_string_verbatim (
+						mime_filter, "</a>",
+						outptr, &outend);
 				} else {
 					/* nothing matched so write out the remainder of this line buffer */
-					outptr = writeln (mime_filter, (const guchar *) start, (const guchar *) start + len, outptr, &outend);
+					outptr = writeln (
+						mime_filter,
+						(const guchar *) start,
+						(const guchar *) start + len,
+						outptr, &outend);
 					break;
 				}
 			} while (len > 0);
 		} else {
-			outptr = writeln (mime_filter, (const guchar *) start, (const guchar *) inptr, outptr, &outend);
+			outptr = writeln (
+				mime_filter,
+				(const guchar *) start,
+				(const guchar *) inptr,
+				outptr, &outend);
 		}
 
 		if ((priv->flags & CAMEL_MIME_FILTER_TOHTML_MARK_CITATION) && depth > 0) {
@@ -367,7 +444,7 @@ html_convert (CamelMimeFilter *mime_filter,
 				outptr = g_stpcpy (outptr, "<br>");
 			}
 
-			*outptr++ = '\n';
+			outptr = append_string_verbatim (mime_filter, "\n", outptr, &outend);
 		}
 
 		start = ++inptr;
@@ -376,7 +453,17 @@ html_convert (CamelMimeFilter *mime_filter,
 	if (flush) {
 		/* flush the rest of our input buffer */
 		if (start < inend)
-			outptr = writeln (mime_filter, (const guchar *) start, (const guchar *) inend, outptr, &outend);
+			outptr = writeln (
+				mime_filter,
+				(const guchar *) start,
+				(const guchar *) inend,
+				outptr, &outend);
+
+		while (priv->blockquote_depth > 0) {
+			outptr = check_size (mime_filter, outptr, &outend, 15);
+			outptr = g_stpcpy (outptr, "</blockquote>");
+			priv->blockquote_depth--;
+		}
 
 		if (priv->pre_open) {
 			/* close the pre-tag */
@@ -385,7 +472,8 @@ html_convert (CamelMimeFilter *mime_filter,
 		}
 	} else if (start < inend) {
 		/* backup */
-		camel_mime_filter_backup (mime_filter, start, (unsigned) (inend - start));
+		camel_mime_filter_backup (
+			mime_filter, start, (gsize) (inend - start));
 	}
 
 	*out = mime_filter->outbuf;
@@ -480,7 +568,7 @@ camel_mime_filter_tohtml_init (CamelMimeFilterToHTML *filter)
  * Returns: a new #CamelMimeFilterToHTML object
  **/
 CamelMimeFilter *
-camel_mime_filter_tohtml_new (guint32 flags,
+camel_mime_filter_tohtml_new (CamelMimeFilterToHTMLFlags flags,
                               guint32 color)
 {
 	CamelMimeFilter *filter;
@@ -515,7 +603,7 @@ camel_mime_filter_tohtml_new (guint32 flags,
  **/
 gchar *
 camel_text_to_html (const gchar *in,
-                    guint32 flags,
+                    CamelMimeFilterToHTMLFlags flags,
                     guint32 color)
 {
 	CamelMimeFilter *filter;
@@ -526,8 +614,9 @@ camel_text_to_html (const gchar *in,
 
 	filter = camel_mime_filter_tohtml_new (flags, color);
 
-	camel_mime_filter_complete (filter, (gchar *) in, strlen (in), 0,
-				    &outbuf, &outlen, &outpre);
+	camel_mime_filter_complete (
+		filter, (gchar *) in, strlen (in), 0,
+		&outbuf, &outlen, &outpre);
 
 	outbuf = g_strndup (outbuf, outlen);
 

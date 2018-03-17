@@ -6,19 +6,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_H
@@ -27,6 +25,7 @@
 #define __CAMEL_H_INSIDE__
 
 #include <camel/camel-address.h>
+#include <camel/camel-async-closure.h>
 #include <camel/camel-block-file.h>
 #include <camel/camel-certdb.h>
 #include <camel/camel-charset-map.h>
@@ -35,13 +34,12 @@
 #include <camel/camel-data-wrapper.h>
 #include <camel/camel-db.h>
 #include <camel/camel-debug.h>
-#include <camel/camel-disco-diary.h>
-#include <camel/camel-disco-folder.h>
-#include <camel/camel-disco-store.h>
 #include <camel/camel-enums.h>
 #include <camel/camel-enumtypes.h>
 #include <camel/camel-file-utils.h>
 #include <camel/camel-filter-driver.h>
+#include <camel/camel-filter-input-stream.h>
+#include <camel/camel-filter-output-stream.h>
 #include <camel/camel-filter-search.h>
 #include <camel/camel-folder.h>
 #include <camel/camel-folder-search.h>
@@ -49,7 +47,6 @@
 #include <camel/camel-folder-thread.h>
 #include <camel/camel-gpg-context.h>
 #include <camel/camel-html-parser.h>
-#include <camel/camel-http-stream.h>
 #include <camel/camel-iconv.h>
 #include <camel/camel-index.h>
 #include <camel/camel-internet-address.h>
@@ -75,7 +72,6 @@
 #include <camel/camel-mime-filter-linewrap.h>
 #include <camel/camel-mime-filter-pgp.h>
 #include <camel/camel-mime-filter-progress.h>
-#include <camel/camel-mime-filter-save.h>
 #include <camel/camel-mime-filter-tohtml.h>
 #include <camel/camel-mime-filter-windows.h>
 #include <camel/camel-mime-filter-yenc.h>
@@ -92,10 +88,10 @@
 #include <camel/camel-net-utils.h>
 #include <camel/camel-network-service.h>
 #include <camel/camel-nntp-address.h>
+#include <camel/camel-null-output-stream.h>
 #include <camel/camel-object.h>
 #include <camel/camel-object-bag.h>
 #include <camel/camel-offline-folder.h>
-#include <camel/camel-offline-journal.h>
 #include <camel/camel-offline-settings.h>
 #include <camel/camel-offline-store.h>
 #include <camel/camel-operation.h>
@@ -125,12 +121,8 @@
 #include <camel/camel-stream-mem.h>
 #include <camel/camel-stream-null.h>
 #include <camel/camel-stream-process.h>
-#include <camel/camel-stream-vfs.h>
 #include <camel/camel-string-utils.h>
 #include <camel/camel-subscribable.h>
-#include <camel/camel-tcp-stream.h>
-#include <camel/camel-tcp-stream-raw.h>
-#include <camel/camel-tcp-stream-ssl.h>
 #include <camel/camel-text-index.h>
 #include <camel/camel-transport.h>
 #include <camel/camel-trie.h>
@@ -138,6 +130,7 @@
 #include <camel/camel-url.h>
 #include <camel/camel-url-scanner.h>
 #include <camel/camel-utf8.h>
+#include <camel/camel-vee-data-cache.h>
 #include <camel/camel-vee-folder.h>
 #include <camel/camel-vee-store.h>
 #include <camel/camel-vee-summary.h>

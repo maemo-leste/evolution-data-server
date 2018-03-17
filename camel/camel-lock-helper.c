@@ -4,19 +4,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /* lock helper process */
@@ -62,7 +60,10 @@ static uid_t lock_real_uid = -1;
 
 /* utility functions */
 
-static gint read_n (gint fd, gpointer buffer, gint inlen)
+static gint
+read_n (gint fd,
+        gpointer buffer,
+        gint inlen)
 {
 	gchar *p = buffer;
 	gint len, left = inlen;
@@ -81,7 +82,10 @@ static gint read_n (gint fd, gpointer buffer, gint inlen)
 	return inlen - left;
 }
 
-static gint write_n (gint fd, gpointer buffer, gint inlen)
+static gint
+write_n (gint fd,
+         gpointer buffer,
+         gint inlen)
 {
 	gchar *p = buffer;
 	gint len, left = inlen;
@@ -108,13 +112,15 @@ gettext (const gchar *msgid)
 	return NULL;
 }
 
-static gint lock_path (const gchar *path, guint32 *lockid)
+static gint
+lock_path (const gchar *path,
+           guint32 *lockid)
 {
 	struct _lock_info *info = NULL;
 	gint res = CAMEL_LOCK_HELPER_STATUS_OK;
 	struct stat st;
 
-	d(fprintf(stderr, "locking path '%s' id = %d\n", path, lock_id));
+	d (fprintf (stderr, "locking path '%s' id = %d\n", path, lock_id));
 
 	/* check to see if we have it locked already, make the lock 'recursive' */
 	/* we could also error i suppose, but why bother */
@@ -147,11 +153,15 @@ static gint lock_path (const gchar *path, guint32 *lockid)
 		if (lock_real_uid != lock_root_uid) {
 			if (seteuid (lock_root_uid) != -1) {
 				if (camel_lock_dot (path, NULL) == -1) {
-					seteuid (lock_real_uid);
+					if (seteuid (lock_real_uid) == -1) {
+						g_warn_if_reached ();
+					}
 					res = CAMEL_LOCK_HELPER_STATUS_SYSTEM;
 					goto fail;
 				}
-				seteuid (lock_real_uid);
+				if (seteuid (lock_real_uid) == -1) {
+					g_warn_if_reached ();
+				}
 			} else {
 				res = CAMEL_LOCK_HELPER_STATUS_SYSTEM;
 				goto fail;
@@ -168,7 +178,7 @@ static gint lock_path (const gchar *path, guint32 *lockid)
 		info->uid = lock_real_uid;
 	}
 
-	strcpy (info->path, path);
+	g_strlcpy (info->path, path, strlen (path) + 1);
 	info->id = lock_id;
 	info->depth = 1;
 	info->next = lock_info_list;
@@ -180,11 +190,11 @@ static gint lock_path (const gchar *path, guint32 *lockid)
 
 	lock_id++;
 
-	d(fprintf(stderr, "lock ok\n"));
+	d (fprintf (stderr, "lock ok\n"));
 
 	return res;
 fail:
-	d(fprintf(stderr, "lock failed\n"));
+	d (fprintf (stderr, "lock failed\n"));
 
 	if (info)
 		free (info);
@@ -192,24 +202,29 @@ fail:
 	return res;
 }
 
-static gint unlock_id (guint32 lockid)
+static gint
+unlock_id (guint32 lockid)
 {
 	struct _lock_info *info, *p;
 
-	d(fprintf(stderr, "unlocking id '%d'\n", lockid));
+	d (fprintf (stderr, "unlocking id '%d'\n", lockid));
 
 	p = (struct _lock_info *) &lock_info_list;
 	info = p->next;
 	while (info) {
 		if (info->id == lockid) {
-			d(fprintf(stderr, "found id %d path '%s'\n", lockid, info->path));
+			d (fprintf (stderr, "found id %d path '%s'\n", lockid, info->path));
 			info->depth--;
 			if (info->depth <= 0) {
 #ifdef SETEUID_SAVES
 				if (info->uid != lock_real_uid) {
-					seteuid (lock_root_uid);
+					if (seteuid (lock_root_uid) == -1) {
+						g_warn_if_reached ();
+					}
 					camel_unlock_dot (info->path);
-					seteuid (lock_real_uid);
+					if (seteuid (lock_real_uid) == -1) {
+						g_warn_if_reached ();
+					}
 				} else
 #endif
 					camel_unlock_dot (info->path);
@@ -224,24 +239,28 @@ static gint unlock_id (guint32 lockid)
 		info = info->next;
 	}
 
-	d(fprintf(stderr, "unknown id asked to be unlocked %d\n", lockid));
+	d (fprintf (stderr, "unknown id asked to be unlocked %d\n", lockid));
 	return CAMEL_LOCK_HELPER_STATUS_PROTOCOL;
 }
 
-static void lock_touch (const gchar *path)
+static void
+lock_touch (const gchar *path)
 {
 	gchar *name;
+	gsize name_len;
 
 	/* we could also check that we haven't had our lock stolen from us here */
 
-	name = alloca (strlen (path) + 10);
-	sprintf(name, "%s.lock", path);
+	name_len = strlen (path) + 10;
+	name = alloca (name_len);
+	g_snprintf (name, name_len, "%s.lock", path);
 
-	d(fprintf(stderr, "Updating lock %s\n", name));
+	d (fprintf (stderr, "Updating lock %s\n", name));
 	utime (name, NULL);
 }
 
-static void setup_process (void)
+static void
+setup_process (void)
 {
 	struct sigaction sa;
 	sigset_t sigset;
@@ -266,12 +285,17 @@ static void setup_process (void)
 	 * portable so may need configure checks */
 	lock_real_uid = getuid ();
 	lock_root_uid = geteuid ();
-	if (lock_real_uid != lock_root_uid)
-		seteuid (lock_real_uid);
+	if (lock_real_uid != lock_root_uid) {
+		if (seteuid (lock_real_uid) == -1) {
+			g_warn_if_reached ();
+		}
+	}
 #endif
 }
 
-gint main (gint argc, gchar **argv)
+gint
+main (gint argc,
+      gchar **argv)
 {
 	struct _CamelLockHelperMsg msg;
 	gint len;
@@ -306,7 +330,7 @@ gint main (gint argc, gchar **argv)
 			tv.tv_usec = 0;
 		}
 
-		d(fprintf(stderr, "lock helper waiting for input\n"));
+		d (fprintf (stderr, "lock helper waiting for input\n"));
 		if (select (STDIN_FILENO + 1, &rset, NULL, NULL, lock_info_list ? &tv : NULL) == -1) {
 			if (errno == EINTR)
 				break;
@@ -319,7 +343,7 @@ gint main (gint argc, gchar **argv)
 			time_t now = time (NULL);
 			time_t left;
 
-			d(fprintf(stderr, "Got a timeout, checking locks\n"));
+			d (fprintf (stderr, "Got a timeout, checking locks\n"));
 
 			info = lock_info_list;
 			while (info) {
@@ -360,13 +384,13 @@ gint main (gint argc, gchar **argv)
 				break;
 			}
 		}
-		d(fprintf(stderr, "returning result %d\n", res));
+		d (fprintf (stderr, "returning result %d\n", res));
 		msg.id = res;
 		msg.magic = CAMEL_LOCK_HELPER_RETURN_MAGIC;
 		write_n (STDOUT_FILENO, &msg, sizeof (msg));
 	} while (1);
 
-	d(fprintf(stderr, "parent exited, clsoing down remaining id's\n"));
+	d (fprintf (stderr, "parent exited, clsoing down remaining id's\n"));
 	while (lock_info_list)
 		unlock_id (lock_info_list->id);
 

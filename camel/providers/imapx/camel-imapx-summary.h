@@ -1,23 +1,21 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors:
+ * Authors:
  *    Michael Zucchi <notzed@ximian.com>
  *    Dan Winship <danw@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_IMAPX_SUMMARY_H
@@ -45,9 +43,12 @@
 	((obj), CAMEL_TYPE_IMAPX_SUMMARY, CamelIMAPXSummaryClass))
 
 #define CAMEL_IMAPX_SERVER_FLAGS \
-	(CAMEL_MESSAGE_ANSWERED | CAMEL_MESSAGE_DELETED | \
-	 CAMEL_MESSAGE_DRAFT | CAMEL_MESSAGE_FLAGGED | \
-	 CAMEL_MESSAGE_JUNK | CAMEL_MESSAGE_NOTJUNK | \
+	(CAMEL_MESSAGE_ANSWERED | \
+	 CAMEL_MESSAGE_DELETED | \
+	 CAMEL_MESSAGE_DRAFT | \
+	 CAMEL_MESSAGE_FLAGGED | \
+	 CAMEL_MESSAGE_JUNK | \
+	 CAMEL_MESSAGE_NOTJUNK | \
 	 CAMEL_MESSAGE_SEEN)
 
 G_BEGIN_DECLS
@@ -85,14 +86,6 @@ struct _CamelIMAPXSummaryClass {
 GType		camel_imapx_summary_get_type	(void);
 CamelFolderSummary *
 		camel_imapx_summary_new		(CamelFolder *folder);
-void		camel_imapx_summary_add_offline	(CamelFolderSummary *summary,
-						 const gchar *uid,
-						 CamelMimeMessage *message,
-						 const CamelMessageInfo *info);
-void		camel_imapx_summary_add_offline_uncached
-						(CamelFolderSummary *summary,
-						 const gchar *uid,
-						 const CamelMessageInfo *info);
 
 G_END_DECLS
 

@@ -4,19 +4,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -32,6 +30,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <glib/gi18n-lib.h>
 
 #include "camel-lock-client.h"
 #include "camel-lock-helper.h"
@@ -39,13 +38,15 @@
 
 #define d(x)
 
-/* dunno where this thing is got from */
-/* see also camel-lock.c */
-#define _(x) (x)
+#define CHECK_CALL(x) G_STMT_START { \
+	if ((x) == -1) { \
+		g_debug ("%s: Call of '" #x "' failed: %s", G_STRFUNC, g_strerror (errno)); \
+	} \
+	} G_STMT_END
 
-static GStaticMutex lock_lock = G_STATIC_MUTEX_INIT;
-#define LOCK() g_static_mutex_lock(&lock_lock)
-#define UNLOCK() g_static_mutex_unlock(&lock_lock)
+static GMutex lock_lock;
+#define LOCK() g_mutex_lock(&lock_lock)
+#define UNLOCK() g_mutex_unlock(&lock_lock)
 
 static gint lock_sequence;
 static gint lock_helper_pid = -1;
@@ -92,7 +93,7 @@ static gint write_n (gint fd, gpointer buffer, gint inlen)
 static gint
 lock_helper_init (GError **error)
 {
-	gint i;
+	gint i, dupfd1, dupfd2;
 
 	lock_stdin_pipe[0] = -1;
 	lock_stdin_pipe[1] = -1;
@@ -132,16 +133,22 @@ lock_helper_init (GError **error)
 		return -1;
 	case 0:
 		close (STDIN_FILENO);
-		dup (lock_stdin_pipe[0]);
+		dupfd1 = dup (lock_stdin_pipe[0]);
 		close (STDOUT_FILENO);
-		dup (lock_stdout_pipe[1]);
+		dupfd2 = dup (lock_stdout_pipe[1]);
 		close (lock_stdin_pipe[0]);
 		close (lock_stdin_pipe[1]);
 		close (lock_stdout_pipe[0]);
 		close (lock_stdout_pipe[1]);
 		for (i = 3; i < 255; i++)
 			     close (i);
-		execl(CAMEL_LIBEXECDIR "/camel-lock-helper-" API_VERSION, "camel-lock-helper", NULL);
+		execl (CAMEL_LIBEXECDIR "/camel-lock-helper-" API_VERSION, "camel-lock-helper", NULL);
+
+		if (dupfd1 != -1)
+			close (dupfd1);
+		if (dupfd2 != -1)
+			close (dupfd2);
+
 		/* it'll pick this up when it tries to use us */
 		exit (255);
 	default:
@@ -149,8 +156,8 @@ lock_helper_init (GError **error)
 		close (lock_stdout_pipe[1]);
 
 		/* so the child knows when we vanish */
-		fcntl (lock_stdin_pipe[1], F_SETFD, FD_CLOEXEC);
-		fcntl (lock_stdout_pipe[0], F_SETFD, FD_CLOEXEC);
+		CHECK_CALL (fcntl (lock_stdin_pipe[1], F_SETFD, FD_CLOEXEC));
+		CHECK_CALL (fcntl (lock_stdout_pipe[0], F_SETFD, FD_CLOEXEC));
 	}
 
 	return 0;
@@ -204,7 +211,7 @@ again:
 		if (msg->magic != CAMEL_LOCK_HELPER_RETURN_MAGIC
 		    || msg->seq > lock_sequence) {
 			res = CAMEL_LOCK_HELPER_STATUS_PROTOCOL;
-			d(printf("lock child protocol error\n"));
+			d (printf ("lock child protocol error\n"));
 			g_set_error (
 				error, CAMEL_ERROR,
 				CAMEL_ERROR_GENERIC,
@@ -217,7 +224,7 @@ again:
 	if (msg->seq == lock_sequence) {
 		switch (msg->id) {
 		case CAMEL_LOCK_HELPER_STATUS_OK:
-			d(printf("lock child locked ok, id is %d\n", msg->data));
+			d (printf ("lock child locked ok, id is %d\n", msg->data));
 			res = msg->data;
 			break;
 		default:
@@ -225,11 +232,11 @@ again:
 				error, CAMEL_ERROR,
 				CAMEL_ERROR_GENERIC,
 				_("Could not lock '%s'"), path);
-			d(printf("locking failed ! status = %d\n", msg->id));
+			d (printf ("locking failed ! status = %d\n", msg->id));
 			break;
 		}
 	} else if (retry > 0) {
-		d(printf("sequence failure, lost message? retry?\n"));
+		d (printf ("sequence failure, lost message? retry?\n"));
 		retry--;
 		goto again;
 	} else {
@@ -255,7 +262,7 @@ gint camel_lock_helper_unlock (gint lockid)
 	gint retry = 3;
 	gint len;
 
-	d(printf("unlocking lock id %d\n", lockid));
+	d (printf ("unlocking lock id %d\n", lockid));
 
 	LOCK ();
 
@@ -299,15 +306,15 @@ again:
 	if (msg->seq == lock_sequence) {
 		switch (msg->id) {
 		case CAMEL_LOCK_HELPER_STATUS_OK:
-			d(printf("lock child unlocked ok\n"));
+			d (printf ("lock child unlocked ok\n"));
 			res = 0;
 			break;
 		default:
-			d(printf("locking failed !\n"));
+			d (printf ("locking failed !\n"));
 			break;
 		}
 	} else if (retry > 0) {
-		d(printf("sequence failure, lost message? retry?\n"));
+		d (printf ("sequence failure, lost message? retry?\n"));
 		lock_sequence++;
 		retry--;
 		goto again;
@@ -326,22 +333,22 @@ gint main (gint argc, gchar **argv)
 {
 	gint id1, id2;
 
-	d(printf("locking started\n"));
+	d (printf ("locking started\n"));
 	lock_helper_init ();
 
-	id1 = camel_lock_helper_lock("1 path 1");
+	id1 = camel_lock_helper_lock ("1 path 1");
 	if (id1 != -1) {
-		d(printf("lock ok, unlock\n"));
+		d (printf ("lock ok, unlock\n"));
 		camel_lock_helper_unlock (id1);
 	}
 
-	id1 = camel_lock_helper_lock("2 path 1");
-	id2 = camel_lock_helper_lock("2 path 2");
+	id1 = camel_lock_helper_lock ("2 path 1");
+	id2 = camel_lock_helper_lock ("2 path 2");
 	camel_lock_helper_unlock (id2);
 	camel_lock_helper_unlock (id1);
 
-	id1 = camel_lock_helper_lock("3 path 1");
-	id2 = camel_lock_helper_lock("3 path 2");
+	id1 = camel_lock_helper_lock ("3 path 1");
+	id2 = camel_lock_helper_lock ("3 path 2");
 	camel_lock_helper_unlock (id1);
 }
 #endif

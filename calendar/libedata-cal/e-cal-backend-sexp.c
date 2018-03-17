@@ -1,21 +1,27 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- * cal-backend-card-sexp.c
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License, version 2, as published by the Free Software Foundation.
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
  * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Library General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * SECTION: e-cal-backend-sexp
+ * @include: libedata-cal/libedata-cal.h
+ * @short_description: A utility for comparing #ECalComponents with search expressions.
+ *
+ * This API is an all purpose utility for comparing #ECalComponents with search expressions
+ * and is used by various backends to implement component filtering and searching.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -24,8 +30,6 @@
 
 #include <string.h>
 #include <glib/gi18n-lib.h>
-#include <libedataserver/e-data-server-util.h>
-#include <libecal/e-cal-time-util.h>
 
 #include "e-cal-backend-sexp.h"
 
@@ -41,11 +45,12 @@ struct _ECalBackendSExpPrivate {
 	ESExp *search_sexp;
 	gchar *text;
 	SearchContext *search_context;
+	GMutex search_context_lock;
 };
 
 struct _SearchContext {
 	ECalComponent *comp;
-	ECalBackend *backend;
+	ETimezoneCache *cache;
 	gboolean occurs;
 	gint occurrences_count;
 
@@ -55,242 +60,6 @@ struct _SearchContext {
 };
 
 static ESExpResult *func_is_completed (ESExp *esexp, gint argc, ESExpResult **argv, gpointer data);
-
-/**
- * e_cal_backend_sexp_func_time_now:
- * @esexp: An #ESExp object.
- * @argc: Number of arguments.
- * @argv: The arguments.
- * @data: Closure data.
- *
- * Processes the (time-now) sexp expression.
- *
- * Returns: The result of the function.
- */
-ESExpResult *
-e_cal_backend_sexp_func_time_now (ESExp *esexp,
-                                  gint argc,
-                                  ESExpResult **argv,
-                                  gpointer data)
-{
-	ESExpResult *result;
-
-	if (argc != 0) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects no arguments"),
-				    "time-now");
-		return NULL;
-	}
-
-	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
-	result->value.time = time (NULL);
-
-	return result;
-}
-
-/**
- * e_cal_backend_sexp_func_make_time:
- * @esexp: An #ESExp object.
- * @argc: Number of arguments.
- * @argv: The arguments.
- * @data: Closure data.
- *
- * (make-time ISODATE)
- * ISODATE - string, ISO 8601 date/time representation
- *
- * Constructs a time_t value for the specified date.
- *
- * Returns: The result of the function.
- */
-ESExpResult *
-e_cal_backend_sexp_func_make_time (ESExp *esexp,
-                                   gint argc,
-                                   ESExpResult **argv,
-                                   gpointer data)
-{
-	const gchar *str;
-	time_t t;
-	ESExpResult *result;
-
-	if (argc != 1) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects one argument"),
-				    "make-time");
-		return NULL;
-	}
-
-	if (argv[0]->type != ESEXP_RES_STRING) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a string"),
-				    "make-time");
-		return NULL;
-	}
-	str = argv[0]->value.string;
-	if (!str || !*str) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a string"),
-				    "make-time");
-		return NULL;
-	}
-
-	t = time_from_isodate (str);
-	if (t == -1) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be an ISO 8601 "
-					     "date/time string"),
-				    "make-time");
-		return NULL;
-	}
-
-	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
-	result->value.time = t;
-
-	return result;
-}
-
-/**
- * e_cal_backend_sexp_func_time_add_day:
- * @esexp: An #ESExp object.
- * @argc: Number of arguments.
- * @argv: The arguments.
- * @data: Closure data.
- *
- * (time-add-day TIME N)
- * TIME - time_t, base time
- * N - int, number of days to add
- *
- * Adds the specified number of days to a time value.
- *
- * FIXME: TIMEZONES - need to use a timezone or daylight saving changes will
- * make the result incorrect.
- *
- * Returns: The result of the function.
- */
-ESExpResult *
-e_cal_backend_sexp_func_time_add_day (ESExp *esexp,
-                                      gint argc,
-                                      ESExpResult **argv,
-                                      gpointer data)
-{
-	ESExpResult *result;
-	time_t t;
-	gint n;
-
-	if (argc != 2) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects two arguments"),
-				    "time-add-day");
-		return NULL;
-	}
-
-	if (argv[0]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a time_t"),
-				    "time-add-day");
-		return NULL;
-	}
-	t = argv[0]->value.time;
-
-	if (argv[1]->type != ESEXP_RES_INT) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the second "
-					     "argument to be an integer"),
-				    "time-add-day");
-		return NULL;
-	}
-	n = argv[1]->value.number;
-
-	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
-	result->value.time = time_add_day (t, n);
-
-	return result;
-}
-
-/**
- * e_cal_backend_sexp_func_time_day_begin:
- * @esexp: An #ESExp object.
- * @argc: Number of arguments.
- * @argv: The arguments.
- * @data: Closure data.
- *
- * (time-day-begin TIME)
- * TIME - time_t, base time
- *
- * Returns the start of the day, according to the local time.
- *
- * FIXME: TIMEZONES - this uses the current Unix timezone.
- *
- * Returns: The result of the function.
- */
-ESExpResult *
-e_cal_backend_sexp_func_time_day_begin (ESExp *esexp,
-                                        gint argc,
-                                        ESExpResult **argv,
-                                        gpointer data)
-{
-	time_t t;
-	ESExpResult *result;
-
-	if (argc != 1) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects one argument"),
-				    "time-day-begin");
-		return NULL;
-	}
-
-	if (argv[0]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a time_t"),
-				    "time-day-begin");
-		return NULL;
-	}
-	t = argv[0]->value.time;
-
-	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
-	result->value.time = time_day_begin (t);
-
-	return result;
-}
-
-/**
- * e_cal_backend_sexp_func_time_day_end:
- * @esexp: An #ESExp object.
- * @argc: Number of arguments.
- * @argv: The arguments.
- * @data: Closure data.
- *
- * (time-day-end TIME)
- * TIME - time_t, base time
- *
- * Returns the end of the day, according to the local time.
- *
- * FIXME: TIMEZONES - this uses the current Unix timezone.
- *
- * Returns: The result of the function.
- */
-ESExpResult *
-e_cal_backend_sexp_func_time_day_end (ESExp *esexp,
-                                      gint argc,
-                                      ESExpResult **argv,
-                                      gpointer data)
-{
-	time_t t;
-	ESExpResult *result;
-
-	if (argc != 1) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects one argument"),
-				    "time-day-end");
-		return NULL;
-	}
-
-	if (argv[0]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a time_t"),
-				    "time-day-end");
-		return NULL;
-	}
-	t = argv[0]->value.time;
-
-	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
-	result->value.time = time_day_end (t);
-
-	return result;
-}
 
 /* (uid? UID)
  *
@@ -312,15 +81,17 @@ func_uid (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 1) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects one argument"),
-				    "uid");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects one argument"),
+			"uid");
 		return NULL;
 	}
 
 	if (argv[0]->type != ESEXP_RES_STRING) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a string"),
-				    "uid");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a string"),
+			"uid");
 		return NULL;
 	}
 
@@ -362,12 +133,10 @@ resolve_tzid (const gchar *tzid,
 {
 	SearchContext *ctx = user_data;
 
-	if (!tzid || !tzid[0])
+	if (tzid == NULL || *tzid == '\0')
 		return NULL;
-        else if (!strcmp (tzid, "UTC"))
-		return icaltimezone_get_utc_timezone ();
 
-	return e_cal_backend_internal_get_timezone (ctx->backend, tzid);
+	return e_timezone_cache_get_timezone (ctx->cache, tzid);
 }
 
 /* (occur-in-time-range? START END TZLOC)
@@ -394,32 +163,36 @@ func_occur_in_time_range (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 2 && argc != 3) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects two or three arguments"),
-				    "occur-in-time-range");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects two or three arguments"),
+			"occur-in-time-range");
 		return NULL;
 	}
 
 	if (argv[0]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a time_t"),
-				    "occur-in-time-range");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a time_t"),
+			"occur-in-time-range");
 		return NULL;
 	}
 	start = argv[0]->value.time;
 
 	if (argv[1]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the second "
-					     "argument to be a time_t"),
-				    "occur-in-time-range");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the second "
+			"argument to be a time_t"),
+			"occur-in-time-range");
 		return NULL;
 	}
 	end = argv[1]->value.time;
 
 	if (argc == 3) {
 		if (argv[2]->type != ESEXP_RES_STRING) {
-			e_sexp_fatal_error (esexp, _("\"%s\" expects the third "
-						     "argument to be a string"),
-					    "occur-in-time-range");
+			e_sexp_fatal_error (
+				esexp, _("\"%s\" expects the third "
+				"argument to be a string"),
+				"occur-in-time-range");
 			return NULL;
 		}
 
@@ -431,10 +204,11 @@ func_occur_in_time_range (ESExp *esexp,
 
 	/* See if the object occurs in the specified time range */
 	ctx->occurs = FALSE;
-	e_cal_recur_generate_instances (ctx->comp, start, end,
-					(ECalRecurInstanceFn) check_instance_time_range_cb,
-					ctx, resolve_tzid, ctx,
-					default_zone);
+	e_cal_recur_generate_instances (
+		ctx->comp, start, end,
+		(ECalRecurInstanceFn) check_instance_time_range_cb,
+		ctx, resolve_tzid, ctx,
+		default_zone);
 
 	result = e_sexp_result_new (esexp, ESEXP_RES_BOOL);
 	result->value.boolean = ctx->occurs;
@@ -477,19 +251,25 @@ func_occurrences_count (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 2 && argc != 0) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects none or two arguments"), "occurrences-count");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects none or two arguments"),
+			"occurrences-count");
 		return NULL;
 	}
 
 	if (argc == 2) {
 		if (argv[0]->type != ESEXP_RES_TIME) {
-			e_sexp_fatal_error (esexp, _("\"%s\" expects the first argument to be a time_t"), "occurrences-count");
+			e_sexp_fatal_error (
+				esexp, _("\"%s\" expects the first argument to be a time_t"),
+				"occurrences-count");
 			return NULL;
 		}
 		start = argv[0]->value.time;
 
 		if (argv[1]->type != ESEXP_RES_TIME) {
-			e_sexp_fatal_error (esexp, _("\"%s\" expects the second argument to be a time_t"), "occurrences-count");
+			e_sexp_fatal_error (
+				esexp, _("\"%s\" expects the second argument to be a time_t"),
+				"occurrences-count");
 			return NULL;
 		}
 		end = argv[1]->value.time;
@@ -506,10 +286,10 @@ func_occurrences_count (ESExp *esexp,
 	default_zone = icaltimezone_get_utc_timezone ();
 
 	ctx->occurrences_count = 0;
-	e_cal_recur_generate_instances (ctx->comp, start, end,
-					count_instances_time_range_cb, ctx,
-					resolve_tzid, ctx,
-					default_zone);
+	e_cal_recur_generate_instances (
+		ctx->comp, start, end,
+		count_instances_time_range_cb, ctx,
+		resolve_tzid, ctx, default_zone);
 
 	result = e_sexp_result_new (esexp, ESEXP_RES_INT);
 	result->value.number = ctx->occurrences_count;
@@ -534,24 +314,27 @@ func_due_in_time_range (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 2) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects two arguments"),
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects two arguments"),
 				"due-in-time-range");
 		return NULL;
 	}
 
 	if (argv[0]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					"argument to be a time_t"),
-				"due-in-time-range");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a time_t"),
+			"due-in-time-range");
 		return NULL;
 	}
 
 	start = argv[0]->value.time;
 
 	if (argv[1]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the second "
-					"argument to be a time_t"),
-				"due-in-time-range");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the second "
+			"argument to be a time_t"),
+			"due-in-time-range");
 		return NULL;
 	}
 
@@ -790,17 +573,17 @@ matches_status (ECalComponent *comp ,const gchar *str)
 			return TRUE;
 	else if (g_str_equal (str, "CANCELLED") && status == ICAL_STATUS_CANCELLED)
 			return TRUE;
-	else if (g_str_equal (str, "IN PROGRESS")  && status == ICAL_STATUS_INPROCESS)
+	else if (g_str_equal (str, "IN PROGRESS") && status == ICAL_STATUS_INPROCESS)
 			return TRUE;
-	else if (g_str_equal (str, "NEEDS ACTION")  && status == ICAL_STATUS_NEEDSACTION)
+	else if (g_str_equal (str, "NEEDS ACTION") && status == ICAL_STATUS_NEEDSACTION)
 			return TRUE;
-	else if (g_str_equal (str, "TENTATIVE")  && status == ICAL_STATUS_TENTATIVE)
+	else if (g_str_equal (str, "TENTATIVE") && status == ICAL_STATUS_TENTATIVE)
 			return TRUE;
-	else if (g_str_equal (str, "CONFIRMED")  && status == ICAL_STATUS_CONFIRMED)
+	else if (g_str_equal (str, "CONFIRMED") && status == ICAL_STATUS_CONFIRMED)
 			return TRUE;
-	else if (g_str_equal (str, "DRAFT")  && status == ICAL_STATUS_DRAFT)
+	else if (g_str_equal (str, "DRAFT") && status == ICAL_STATUS_DRAFT)
 			return TRUE;
-	else if (g_str_equal (str, "FINAL")  && status == ICAL_STATUS_FINAL)
+	else if (g_str_equal (str, "FINAL") && status == ICAL_STATUS_FINAL)
 			return TRUE;
 
 	return FALSE;
@@ -816,7 +599,8 @@ func_has_attachment (ESExp *esexp,
 	ESExpResult *result;
 
 	if (argc != 0) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects no arguments"),
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects no arguments"),
 				"has-attachments?");
 		return NULL;
 	}
@@ -838,7 +622,8 @@ func_percent_complete (ESExp *esexp,
 	gint *percent;
 
 	if (argc != 0) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects no arguments"),
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects no arguments"),
 				"percent-completed");
 		return NULL;
 	}
@@ -856,7 +641,8 @@ func_percent_complete (ESExp *esexp,
 
 /* (contains? FIELD STR)
  *
- * FIELD - string, name of field to match (any, comment, description, summary, location)
+ * FIELD - string, name of field to match
+ *         (any, comment, description, summary, location)
  * STR - string, match string
  *
  * Returns a boolean indicating whether the specified field contains the
@@ -877,23 +663,26 @@ func_contains (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 2) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects two arguments"),
-				    "contains");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects two arguments"),
+			"contains");
 		return NULL;
 	}
 
 	if (argv[0]->type != ESEXP_RES_STRING) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a string"),
-				    "contains");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a string"),
+			"contains");
 		return NULL;
 	}
 	field = argv[0]->value.string;
 
 	if (argv[1]->type != ESEXP_RES_STRING) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the second "
-					     "argument to be a string"),
-				    "contains");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the second "
+			"argument to be a string"),
+			"contains");
 		return NULL;
 	}
 	str = argv[1]->value.string;
@@ -921,10 +710,13 @@ func_contains (ESExp *esexp,
 	else if (strcmp (field, "priority") == 0)
 		matches = matches_priority (ctx->comp, str);
 	else {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be either \"any\", "
-					"\"summary\", or \"description\", or \"location\", or \"attendee\", or \"organizer\", or \"classification\""),
-				    "contains");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be either \"any\", "
+			"\"summary\", or \"description\", or "
+			"\"location\", or \"attendee\", or "
+			"\"organizer\", or \"classification\""),
+			"contains");
 		return NULL;
 	}
 
@@ -938,7 +730,7 @@ func_contains (ESExp *esexp,
  *
  * A boolean value for components that have/don't have filled start date/time.
  *
- * Returns: a boolean indicating whether the component has start date/time filled or not.
+ * Returns: whether the component has start date/time filled
  */
 static ESExpResult *
 func_has_start (ESExp *esexp,
@@ -953,8 +745,9 @@ func_has_start (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 0) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects no arguments"),
-				    "has-start");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects no arguments"),
+			"has-start");
 		return NULL;
 	}
 
@@ -984,8 +777,9 @@ func_has_alarms (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 0) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects no arguments"),
-				    "has-alarms");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects no arguments"),
+			"has-alarms");
 		return NULL;
 	}
 
@@ -1019,23 +813,26 @@ func_has_alarms_in_range (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 2) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects two arguments"),
-				    "has-alarms-in-range");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects two arguments"),
+			"has-alarms-in-range");
 		return NULL;
 	}
 
 	if (argv[0]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a time_t"),
-				    "has-alarms-in-range");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a time_t"),
+			"has-alarms-in-range");
 		return NULL;
 	}
 	start = argv[0]->value.time;
 
 	if (argv[1]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the second "
-					     "argument to be a time_t"),
-				    "has-alarms-in-range");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the second "
+			"argument to be a time_t"),
+			"has-alarms-in-range");
 		return NULL;
 	}
 	end = argv[1]->value.time;
@@ -1043,9 +840,10 @@ func_has_alarms_in_range (ESExp *esexp,
 	/* See if the object has alarms in the given time range */
 	default_zone = icaltimezone_get_utc_timezone ();
 
-	alarms = e_cal_util_generate_alarms_for_comp (ctx->comp, start, end,
-						      omit, resolve_tzid,
-						      ctx, default_zone);
+	alarms = e_cal_util_generate_alarms_for_comp (
+		ctx->comp, start, end,
+		omit, resolve_tzid,
+		ctx, default_zone);
 
 	result = e_sexp_result_new (esexp, ESEXP_RES_BOOL);
 	if (alarms) {
@@ -1083,9 +881,10 @@ func_has_categories (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc < 1) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects at least one "
-					     "argument"),
-				    "has-categories");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects at least one "
+			"argument"),
+			"has-categories");
 		return NULL;
 	}
 
@@ -1097,14 +896,15 @@ func_has_categories (ESExp *esexp,
 	if (!unfiled)
 		for (i = 0; i < argc; i++)
 			if (argv[i]->type != ESEXP_RES_STRING) {
-				e_sexp_fatal_error (esexp, _("\"%s\" expects "
-							     "all arguments to "
-							     "be strings or "
-							     "one and only one "
-							     "argument to be a "
-							     "boolean false "
-							     "(#f)"),
-						    "has-categories");
+				e_sexp_fatal_error (
+					esexp, _("\"%s\" expects "
+					"all arguments to "
+					"be strings or "
+					"one and only one "
+					"argument to be a "
+					"boolean false "
+					"(#f)"),
+					"has-categories");
 				return NULL;
 			}
 
@@ -1184,13 +984,16 @@ func_has_recurrences (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 0) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects no arguments"),
-				    "has-recurrences");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects no arguments"),
+			"has-recurrences");
 		return NULL;
 	}
 
 	result = e_sexp_result_new (esexp, ESEXP_RES_BOOL);
-	result->value.boolean = (e_cal_component_has_recurrences (ctx->comp) || e_cal_component_is_instance (ctx->comp));
+	result->value.boolean =
+		e_cal_component_has_recurrences (ctx->comp) ||
+		e_cal_component_is_instance (ctx->comp);
 
 	return result;
 }
@@ -1214,8 +1017,9 @@ func_is_completed (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 0) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects no arguments"),
-				    "is-completed");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects no arguments"),
+			"is-completed");
 		return NULL;
 	}
 
@@ -1255,15 +1059,17 @@ func_completed_before (ESExp *esexp,
 	/* Check argument types */
 
 	if (argc != 1) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects one argument"),
-				    "completed-before");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects one argument"),
+			"completed-before");
 		return NULL;
 	}
 
 	if (argv[0]->type != ESEXP_RES_TIME) {
-		e_sexp_fatal_error (esexp, _("\"%s\" expects the first "
-					     "argument to be a time_t"),
-				    "completed-before");
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a time_t"),
+			"completed-before");
 		return NULL;
 	}
 	before_time = argv[0]->value.time;
@@ -1274,17 +1080,9 @@ func_completed_before (ESExp *esexp,
 		zone = icaltimezone_get_utc_timezone ();
 		completed_time = icaltime_as_timet_with_zone (*tt, zone);
 
-#if 0
-		g_print ("Query Time    : %s", ctime (&before_time));
-		g_print ("Completed Time: %s", ctime (&completed_time));
-#endif
-
 		/* We want to return TRUE if before_time is after
 		 * completed_time. */
 		if (difftime (before_time, completed_time) > 0) {
-#if 0
-			g_print ("  Returning TRUE\n");
-#endif
 			retval = TRUE;
 		}
 
@@ -1297,128 +1095,49 @@ func_completed_before (ESExp *esexp,
 	return result;
 }
 
-#if 0
-static struct prop_info {
-	ECardSimpleField field_id;
-	const gchar *query_prop;
-	const gchar *ecard_prop;
-#define PROP_TYPE_NORMAL   0x01
-#define PROP_TYPE_LIST     0x02
-#define PROP_TYPE_LISTITEM 0x03
-#define PROP_TYPE_ID 0x04
-	gint prop_type;
-	gboolean (*list_compare)(ECardSimple *ecard, const gchar *str,
-				 gchar *(*compare)(const gchar *, const gchar *));
-
-} prop_info_table[] = {
-#define NORMAL_PROP(f,q,e) {f, q, e, PROP_TYPE_NORMAL, NULL}
-#define ID_PROP {0, "id", NULL, PROP_TYPE_ID, NULL}
-#define LIST_PROP(q,e,c) {0, q, e, PROP_TYPE_LIST, c}
-
-	/* query prop,  ecard prop,   type,              list compare function */
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_FILE_AS, "file_as", "file_as" ),
-	LIST_PROP ( "full_name", "full_name", compare_name), /* not really a list, but we need to compare both full and surname */
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_URL, "url", "url" ),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_MAILER, "mailer", "mailer"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_ORG, "org", "org"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_ORG_UNIT, "org_unit", "org_unit"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_OFFICE, "office", "office"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_TITLE, "title", "title"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_ROLE, "role", "role"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_MANAGER, "manager", "manager"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_ASSISTANT, "assistant", "assistant"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_NICKNAME, "nickname", "nickname"),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_SPOUSE, "spouse", "spouse" ),
-	NORMAL_PROP ( E_CARD_SIMPLE_FIELD_NOTE, "note", "note"),
-	ID_PROP,
-	LIST_PROP ( "email", "email", compare_email ),
-	LIST_PROP ( "phone", "phone", compare_phone ),
-	LIST_PROP ( "address", "address", compare_address ),
-	LIST_PROP ( "category", "category", compare_category ),
-	LIST_PROP ( "arbitrary", "arbitrary", compare_arbitrary )
-};
-
-static ESExpResult *
-entry_compare (SearchContext *ctx,
-               struct _ESExp *f,
-               gint argc,
-               struct _ESExpResult **argv,
-               gchar *(*compare)(const gchar *, const gchar *))
+static void
+cal_backend_sexp_finalize (GObject *object)
 {
-	ESExpResult *r;
-	gint truth = FALSE;
+	ECalBackendSExpPrivate *priv;
 
-	if (argc == 2
-	    && argv[0]->type == ESEXP_RES_STRING
-	    && argv[1]->type == ESEXP_RES_STRING) {
-		gchar *propname;
-		struct prop_info *info = NULL;
-		gint i;
-		gboolean any_field;
+	priv = E_CAL_BACKEND_SEXP_GET_PRIVATE (object);
 
-		propname = argv[0]->value.string;
+	e_sexp_unref (priv->search_sexp);
+	g_free (priv->text);
+	g_free (priv->search_context);
+	g_mutex_clear (&priv->search_context_lock);
 
-		any_field = !strcmp(propname, "x-evolution-any-field");
-		for (i = 0; i < G_N_ELEMENTS (prop_info_table); i++) {
-			if (any_field
-			    || !strcmp (prop_info_table[i].query_prop, propname)) {
-				info = &prop_info_table[i];
-
-				if (info->prop_type == PROP_TYPE_NORMAL) {
-					gchar *prop = NULL;
-					/* searches where the query's property
-					 * maps directly to an ecard property */
-
-					prop = e_card_simple_get (ctx->card, info->field_id);
-
-					if (prop && compare (prop, argv[1]->value.string)) {
-						truth = TRUE;
-					}
-					if ((!prop) && compare("", argv[1]->value.string)) {
-						truth = TRUE;
-					}
-					g_free (prop);
-				} else if (info->prop_type == PROP_TYPE_LIST) {
-				/* the special searches that match any of the list elements */
-					truth = info->list_compare (ctx->card, argv[1]->value.string, compare);
-				} else if (info->prop_type == PROP_TYPE_ID) {
-					const gchar *prop = NULL;
-					/* searches where the query's property
-					 * maps directly to an ecard property */
-
-					prop = e_card_get_id (ctx->card->card);
-
-					if (prop && compare (prop, argv[1]->value.string)) {
-						truth = TRUE;
-					}
-					if ((!prop) && compare("", argv[1]->value.string)) {
-						truth = TRUE;
-					}
-				}
-
-				/* if we're looking at all fields and find a match,
-				 * or if we're just looking at this one field,
-				 * break. */
-				if ((any_field && truth)
-				    || !any_field)
-					break;
-			}
-		}
-
-	}
-	r = e_sexp_result_new (f, ESEXP_RES_BOOL);
-	r->value.boolean = truth;
-
-	return r;
+	/* Chain up to parent's finalize() method. */
+	G_OBJECT_CLASS (e_cal_backend_sexp_parent_class)->finalize (object);
 }
-#endif
+
+static void
+e_cal_backend_sexp_class_init (ECalBackendSExpClass *class)
+{
+	GObjectClass *object_class;
+
+	g_type_class_add_private (class, sizeof (ECalBackendSExpPrivate));
+
+	object_class = G_OBJECT_CLASS (class);
+	object_class->finalize = cal_backend_sexp_finalize;
+}
+
+static void
+e_cal_backend_sexp_init (ECalBackendSExp *sexp)
+{
+	sexp->priv = E_CAL_BACKEND_SEXP_GET_PRIVATE (sexp);
+	sexp->priv->search_context = g_new (SearchContext, 1);
+
+	g_mutex_init (&sexp->priv->search_context_lock);
+}
 
 /* 'builtin' functions */
 static struct {
 	const gchar *name;
 	ESExpFunc *func;
-	gint type;		/* set to 1 if a function can perform shortcut evaluation, or
-				   doesn't execute everything, 0 otherwise */
+	gint type;	/* set to 1 if a function can perform shortcut
+			 * evaluation, or doesn't execute everything,
+			 * 0 otherwise */
 } symbols[] = {
 	/* Time-related functions */
 	{ "time-now", e_cal_backend_sexp_func_time_now, 0 },
@@ -1444,6 +1163,416 @@ static struct {
 };
 
 /**
+ * e_cal_backend_card_sexp_new:
+ * @text: The expression to use.
+ *
+ * Creates a new #ECalBackendSExp from @text.
+ *
+ * Returns: a new #ECalBackendSExp
+ */
+ECalBackendSExp *
+e_cal_backend_sexp_new (const gchar *text)
+{
+	ECalBackendSExp *sexp;
+	gint ii;
+
+	g_return_val_if_fail (text != NULL, NULL);
+
+	sexp = g_object_new (E_TYPE_CAL_BACKEND_SEXP, NULL);
+	sexp->priv->search_sexp = e_sexp_new ();
+	sexp->priv->text = g_strdup (text);
+
+	for (ii = 0; ii < G_N_ELEMENTS (symbols); ii++) {
+		if (symbols[ii].type == 1) {
+			e_sexp_add_ifunction (
+				sexp->priv->search_sexp, 0,
+				symbols[ii].name,
+				(ESExpIFunc *) symbols[ii].func,
+				sexp->priv->search_context);
+		} else {
+			e_sexp_add_function (
+				sexp->priv->search_sexp, 0,
+				symbols[ii].name,
+				symbols[ii].func,
+				sexp->priv->search_context);
+		}
+	}
+
+	e_sexp_input_text (sexp->priv->search_sexp, text, strlen (text));
+
+	if (e_sexp_parse (sexp->priv->search_sexp) == -1) {
+		g_warning (
+			"%s: Error in parsing: %s",
+			G_STRFUNC, sexp->priv->search_sexp->error);
+		g_object_unref (sexp);
+		sexp = NULL;
+	}
+
+	if (sexp != NULL) {
+		SearchContext *ctx = sexp->priv->search_context;
+
+		ctx->expr_range_set = e_sexp_evaluate_occur_times (
+			sexp->priv->search_sexp,
+			&ctx->expr_range_start,
+			&ctx->expr_range_end);
+	}
+
+	return sexp;
+}
+
+/**
+ * e_cal_backend_sexp_text:
+ * @sexp: An #ECalBackendSExp object.
+ *
+ * Retrieve the text expression for the given #ECalBackendSExp object.
+ *
+ * Returns: the text expression
+ */
+const gchar *
+e_cal_backend_sexp_text (ECalBackendSExp *sexp)
+{
+	g_return_val_if_fail (E_IS_CAL_BACKEND_SEXP (sexp), NULL);
+
+	return sexp->priv->text;
+}
+
+/**
+ * e_cal_backend_sexp_match_comp:
+ * @sexp: An #ESExp object.
+ * @comp: Component to match against the expression.
+ * @cache: an #ETimezoneCache
+ *
+ * Checks if @comp matches @sexp.
+ *
+ * Returns: %TRUE if the component matches, %FALSE otherwise
+ */
+gboolean
+e_cal_backend_sexp_match_comp (ECalBackendSExp *sexp,
+                               ECalComponent *comp,
+                               ETimezoneCache *cache)
+{
+	ESExpResult *r;
+	gboolean retval;
+
+	g_return_val_if_fail (E_IS_CAL_BACKEND_SEXP (sexp), FALSE);
+	g_return_val_if_fail (E_IS_CAL_COMPONENT (comp), FALSE);
+	g_return_val_if_fail (E_IS_TIMEZONE_CACHE (cache), FALSE);
+
+	g_mutex_lock (&sexp->priv->search_context_lock);
+
+	sexp->priv->search_context->comp = g_object_ref (comp);
+	sexp->priv->search_context->cache = g_object_ref (cache);
+
+	r = e_sexp_eval (sexp->priv->search_sexp);
+
+	retval = (r && r->type == ESEXP_RES_BOOL && r->value.boolean);
+
+	g_object_unref (sexp->priv->search_context->comp);
+	g_object_unref (sexp->priv->search_context->cache);
+
+	e_sexp_result_free (sexp->priv->search_sexp, r);
+
+	g_mutex_unlock (&sexp->priv->search_context_lock);
+
+	return retval;
+}
+
+/**
+ * e_cal_backend_sexp_match_object:
+ * @sexp: An #ESExp object.
+ * @object: An iCalendar string.
+ * @cache: an #ETimezoneCache
+ *
+ * Checks if @object matches @sexp.
+ *
+ * Returns: %TRUE if the object matches, %FALSE otherwise
+ */
+gboolean
+e_cal_backend_sexp_match_object (ECalBackendSExp *sexp,
+                                 const gchar *object,
+                                 ETimezoneCache *cache)
+{
+	ECalComponent *comp;
+	icalcomponent *icalcomp;
+	gboolean retval;
+
+	g_return_val_if_fail (E_IS_CAL_BACKEND_SEXP (sexp), FALSE);
+	g_return_val_if_fail (object != NULL, FALSE);
+	g_return_val_if_fail (E_IS_TIMEZONE_CACHE (cache), FALSE);
+
+	icalcomp = icalcomponent_new_from_string ((gchar *) object);
+	if (!icalcomp)
+		return FALSE;
+
+	comp = e_cal_component_new ();
+	e_cal_component_set_icalcomponent (comp, icalcomp);
+
+	retval = e_cal_backend_sexp_match_comp (sexp, comp, cache);
+
+	g_object_unref (comp);
+
+	return retval;
+}
+
+/**
+ * e_cal_backend_sexp_func_time_now:
+ * @esexp: An #ESExp object.
+ * @argc: Number of arguments.
+ * @argv: The arguments.
+ * @data: Closure data.
+ *
+ * Processes the (time-now) sexp expression.
+ *
+ * Returns: The result of the function.
+ */
+ESExpResult *
+e_cal_backend_sexp_func_time_now (ESExp *esexp,
+                                  gint argc,
+                                  ESExpResult **argv,
+                                  gpointer data)
+{
+	ESExpResult *result;
+
+	g_return_val_if_fail (esexp != NULL, NULL);
+
+	if (argc != 0) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects no arguments"),
+			"time-now");
+		return NULL;
+	}
+
+	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
+	result->value.time = time (NULL);
+
+	return result;
+}
+
+/**
+ * e_cal_backend_sexp_func_make_time:
+ * @esexp: An #ESExp object.
+ * @argc: Number of arguments.
+ * @argv: The arguments.
+ * @data: Closure data.
+ *
+ * (make-time ISODATE)
+ * ISODATE - string, ISO 8601 date/time representation
+ *
+ * Constructs a time_t value for the specified date.
+ *
+ * Returns: The result of the function.
+ */
+ESExpResult *
+e_cal_backend_sexp_func_make_time (ESExp *esexp,
+                                   gint argc,
+                                   ESExpResult **argv,
+                                   gpointer data)
+{
+	const gchar *str;
+	time_t t;
+	ESExpResult *result;
+
+	g_return_val_if_fail (esexp != NULL, NULL);
+
+	if (argc != 1) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects one argument"),
+			"make-time");
+		return NULL;
+	}
+
+	if (argv[0]->type != ESEXP_RES_STRING) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a string"),
+			"make-time");
+		return NULL;
+	}
+	str = argv[0]->value.string;
+	if (!str || !*str) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a string"),
+			"make-time");
+		return NULL;
+	}
+
+	t = time_from_isodate (str);
+	if (t == -1) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be an ISO 8601 "
+			"date/time string"),
+			"make-time");
+		return NULL;
+	}
+
+	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
+	result->value.time = t;
+
+	return result;
+}
+
+/**
+ * e_cal_backend_sexp_func_time_add_day:
+ * @esexp: An #ESExp object.
+ * @argc: Number of arguments.
+ * @argv: The arguments.
+ * @data: Closure data.
+ *
+ * (time-add-day TIME N)
+ * TIME - time_t, base time
+ * N - int, number of days to add
+ *
+ * Adds the specified number of days to a time value.
+ *
+ * FIXME: TIMEZONES - need to use a timezone or daylight saving changes will
+ * make the result incorrect.
+ *
+ * Returns: The result of the function.
+ */
+ESExpResult *
+e_cal_backend_sexp_func_time_add_day (ESExp *esexp,
+                                      gint argc,
+                                      ESExpResult **argv,
+                                      gpointer data)
+{
+	ESExpResult *result;
+	time_t t;
+	gint n;
+
+	g_return_val_if_fail (esexp != NULL, NULL);
+
+	if (argc != 2) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects two arguments"),
+			"time-add-day");
+		return NULL;
+	}
+
+	if (argv[0]->type != ESEXP_RES_TIME) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a time_t"),
+			"time-add-day");
+		return NULL;
+	}
+	t = argv[0]->value.time;
+
+	if (argv[1]->type != ESEXP_RES_INT) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the second "
+			"argument to be an integer"),
+			"time-add-day");
+		return NULL;
+	}
+	n = argv[1]->value.number;
+
+	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
+	result->value.time = time_add_day (t, n);
+
+	return result;
+}
+
+/**
+ * e_cal_backend_sexp_func_time_day_begin:
+ * @esexp: An #ESExp object.
+ * @argc: Number of arguments.
+ * @argv: The arguments.
+ * @data: Closure data.
+ *
+ * (time-day-begin TIME)
+ * TIME - time_t, base time
+ *
+ * Returns the start of the day, according to the local time.
+ *
+ * FIXME: TIMEZONES - this uses the current Unix timezone.
+ *
+ * Returns: The result of the function.
+ */
+ESExpResult *
+e_cal_backend_sexp_func_time_day_begin (ESExp *esexp,
+                                        gint argc,
+                                        ESExpResult **argv,
+                                        gpointer data)
+{
+	time_t t;
+	ESExpResult *result;
+
+	g_return_val_if_fail (esexp != NULL, NULL);
+
+	if (argc != 1) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects one argument"),
+			"time-day-begin");
+		return NULL;
+	}
+
+	if (argv[0]->type != ESEXP_RES_TIME) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a time_t"),
+			"time-day-begin");
+		return NULL;
+	}
+	t = argv[0]->value.time;
+
+	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
+	result->value.time = time_day_begin (t);
+
+	return result;
+}
+
+/**
+ * e_cal_backend_sexp_func_time_day_end:
+ * @esexp: An #ESExp object.
+ * @argc: Number of arguments.
+ * @argv: The arguments.
+ * @data: Closure data.
+ *
+ * (time-day-end TIME)
+ * TIME - time_t, base time
+ *
+ * Returns the end of the day, according to the local time.
+ *
+ * FIXME: TIMEZONES - this uses the current Unix timezone.
+ *
+ * Returns: The result of the function.
+ */
+ESExpResult *
+e_cal_backend_sexp_func_time_day_end (ESExp *esexp,
+                                      gint argc,
+                                      ESExpResult **argv,
+                                      gpointer data)
+{
+	time_t t;
+	ESExpResult *result;
+
+	g_return_val_if_fail (esexp != NULL, NULL);
+
+	if (argc != 1) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects one argument"),
+			"time-day-end");
+		return NULL;
+	}
+
+	if (argv[0]->type != ESEXP_RES_TIME) {
+		e_sexp_fatal_error (
+			esexp, _("\"%s\" expects the first "
+			"argument to be a time_t"),
+			"time-day-end");
+		return NULL;
+	}
+	t = argv[0]->value.time;
+
+	result = e_sexp_result_new (esexp, ESEXP_RES_TIME);
+	result->value.time = time_day_end (t);
+
+	return result;
+}
+
+/**
  * e_cal_backend_sexp_evaluate_occur_times:
  * @sexp: An #ESExp object.
  * @start: Start of the time window will be stored here.
@@ -1458,7 +1587,7 @@ e_cal_backend_sexp_evaluate_occur_times (ECalBackendSExp *sexp,
                                          time_t *start,
                                          time_t *end)
 {
-	g_return_val_if_fail (sexp != NULL, FALSE);
+	g_return_val_if_fail (E_IS_CAL_BACKEND_SEXP (sexp), FALSE);
 	g_return_val_if_fail (start != NULL, FALSE);
 	g_return_val_if_fail (end != NULL, FALSE);
 
@@ -1471,178 +1600,3 @@ e_cal_backend_sexp_evaluate_occur_times (ECalBackendSExp *sexp,
 	return TRUE;
 }
 
-/**
- * e_cal_backend_sexp_match_comp:
- * @sexp: An #ESExp object.
- * @comp: Component to match against the expression.
- * @backend: Backend.
- *
- * Matches the given ECalComponent against the expression.
- *
- * Returns: TRUE if the component matched the expression, FALSE if not.
- */
-gboolean
-e_cal_backend_sexp_match_comp (ECalBackendSExp *sexp,
-                               ECalComponent *comp,
-                               ECalBackend *backend)
-{
-	ESExpResult *r;
-	gboolean retval;
-
-	g_return_val_if_fail (E_IS_CAL_BACKEND_SEXP (sexp), FALSE);
-	g_return_val_if_fail (E_IS_CAL_COMPONENT (comp), FALSE);
-	g_return_val_if_fail (E_IS_CAL_BACKEND (backend), FALSE);
-
-	sexp->priv->search_context->comp = g_object_ref (comp);
-	sexp->priv->search_context->backend = g_object_ref (backend);
-
-	/* if it's not a valid vcard why is it in our db? :) */
-	if (!sexp->priv->search_context->comp)  {
-		g_object_unref (sexp->priv->search_context->backend);
-		return FALSE;
-	}
-	r = e_sexp_eval (sexp->priv->search_sexp);
-
-	retval = (r && r->type == ESEXP_RES_BOOL && r->value.boolean);
-
-	g_object_unref (sexp->priv->search_context->comp);
-	g_object_unref (sexp->priv->search_context->backend);
-
-	e_sexp_result_free (sexp->priv->search_sexp, r);
-
-	return retval;
-}
-
-/**
- * e_cal_backend_sexp_match_object:
- * @sexp: An #ESExp object.
- * @object: An iCalendar string.
- * @backend: A backend.
- *
- * Match an iCalendar expression against the expression.
- *
- * Returns: TRUE if the object matches the expression, FALSE if not.
- */
-gboolean
-e_cal_backend_sexp_match_object (ECalBackendSExp *sexp,
-                                 const gchar *object,
-                                 ECalBackend *backend)
-{
-	ECalComponent *comp;
-	icalcomponent *icalcomp;
-	gboolean retval;
-
-	icalcomp = icalcomponent_new_from_string ((gchar *) object);
-	if (!icalcomp)
-		return FALSE;
-
-	comp = e_cal_component_new ();
-	e_cal_component_set_icalcomponent (comp, icalcomp);
-
-	retval = e_cal_backend_sexp_match_comp (sexp, comp, backend);
-
-	g_object_unref (comp);
-
-	return retval;
-}
-
-
-
-/**
- * e_cal_backend_card_sexp_new:
- * @text: The expression to use.
- *
- * Creates a new #EXCalBackendSExp object.
- *
- * Returns: The newly created ECalBackendSExp object.
- */
-ECalBackendSExp *
-e_cal_backend_sexp_new (const gchar *text)
-{
-	ECalBackendSExp *sexp = g_object_new (E_TYPE_CAL_BACKEND_SEXP, NULL);
-	gint esexp_error;
-	gint i;
-
-	sexp->priv->search_sexp = e_sexp_new ();
-	sexp->priv->text = g_strdup (text);
-
-	for (i = 0; i < G_N_ELEMENTS (symbols); i++) {
-		if (symbols[i].type == 1) {
-			e_sexp_add_ifunction (sexp->priv->search_sexp, 0, symbols[i].name,
-					     (ESExpIFunc *) symbols[i].func, sexp->priv->search_context);
-		} else {
-			e_sexp_add_function (sexp->priv->search_sexp, 0, symbols[i].name,
-					    symbols[i].func, sexp->priv->search_context);
-		}
-	}
-
-	e_sexp_input_text (sexp->priv->search_sexp, text, strlen (text));
-	esexp_error = e_sexp_parse (sexp->priv->search_sexp);
-
-	if (esexp_error == -1) {
-		g_object_unref (sexp);
-		sexp = NULL;
-	}
-
-	if (sexp) {
-		SearchContext *ctx = sexp->priv->search_context;
-
-		ctx->expr_range_set = e_sexp_evaluate_occur_times (sexp->priv->search_sexp, &ctx->expr_range_start, &ctx->expr_range_end);
-	}
-
-	return sexp;
-}
-
-/**
- * e_cal_backend_sexp_text:
- * @sexp: An #ECalBackendSExp object.
- *
- * Retrieve the text expression for the given ECalBackendSExp object.
- *
- * Returns: The text expression.
- */
-const gchar *
-e_cal_backend_sexp_text (ECalBackendSExp *sexp)
-{
-	ECalBackendSExpPrivate *priv;
-
-	g_return_val_if_fail (sexp != NULL, NULL);
-	g_return_val_if_fail (E_IS_CAL_BACKEND_SEXP (sexp), NULL);
-
-	priv = sexp->priv;
-
-	return priv->text;
-}
-
-static void
-e_cal_backend_sexp_finalize (GObject *object)
-{
-	ECalBackendSExpPrivate *priv;
-
-	priv = E_CAL_BACKEND_SEXP_GET_PRIVATE (object);
-
-	e_sexp_unref (priv->search_sexp);
-	g_free (priv->text);
-	g_free (priv->search_context);
-
-	/* Chain up to parent's finalize() method. */
-	G_OBJECT_CLASS (e_cal_backend_sexp_parent_class)->finalize (object);
-}
-
-static void
-e_cal_backend_sexp_class_init (ECalBackendSExpClass *class)
-{
-	GObjectClass *object_class;
-
-	g_type_class_add_private (class, sizeof (ECalBackendSExpPrivate));
-
-	object_class = G_OBJECT_CLASS (class);
-	object_class->finalize = e_cal_backend_sexp_finalize;
-}
-
-static void
-e_cal_backend_sexp_init (ECalBackendSExp *sexp)
-{
-	sexp->priv = E_CAL_BACKEND_SEXP_GET_PRIVATE (sexp);
-	sexp->priv->search_context = g_new (SearchContext, 1);
-}

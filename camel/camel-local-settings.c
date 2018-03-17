@@ -1,18 +1,17 @@
 /*
  * camel-local-settings.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -25,7 +24,7 @@
 	((obj), CAMEL_TYPE_LOCAL_SETTINGS, CamelLocalSettingsPrivate))
 
 struct _CamelLocalSettingsPrivate {
-	GMutex *property_lock;
+	GMutex property_lock;
 	gchar *path;
 };
 
@@ -81,7 +80,7 @@ local_settings_finalize (GObject *object)
 
 	priv = CAMEL_LOCAL_SETTINGS_GET_PRIVATE (object);
 
-	g_mutex_free (priv->property_lock);
+	g_mutex_clear (&priv->property_lock);
 
 	g_free (priv->path);
 
@@ -118,7 +117,7 @@ static void
 camel_local_settings_init (CamelLocalSettings *settings)
 {
 	settings->priv = CAMEL_LOCAL_SETTINGS_GET_PRIVATE (settings);
-	settings->priv->property_lock = g_mutex_new ();
+	g_mutex_init (&settings->priv->property_lock);
 }
 
 /**
@@ -144,7 +143,7 @@ camel_local_settings_get_path (CamelLocalSettings *settings)
  * @settings: a #CamelLocalSettings
  *
  * Thread-safe variation of camel_local_settings_get_path().
- * Use this function when accessing @settings from a worker thread.
+ * Use this function when accessing @settings from multiple threads.
  *
  * The returned string should be freed with g_free() when no longer needed.
  *
@@ -160,12 +159,12 @@ camel_local_settings_dup_path (CamelLocalSettings *settings)
 
 	g_return_val_if_fail (CAMEL_IS_LOCAL_SETTINGS (settings), NULL);
 
-	g_mutex_lock (settings->priv->property_lock);
+	g_mutex_lock (&settings->priv->property_lock);
 
 	protected = camel_local_settings_get_path (settings);
 	duplicate = g_strdup (protected);
 
-	g_mutex_unlock (settings->priv->property_lock);
+	g_mutex_unlock (&settings->priv->property_lock);
 
 	return duplicate;
 }
@@ -186,6 +185,7 @@ camel_local_settings_set_path (CamelLocalSettings *settings,
                                const gchar *path)
 {
 	gsize length = 0;
+	gchar *new_path;
 
 	g_return_if_fail (CAMEL_IS_LOCAL_SETTINGS (settings));
 
@@ -200,12 +200,20 @@ camel_local_settings_set_path (CamelLocalSettings *settings,
 		}
 	}
 
-	g_mutex_lock (settings->priv->property_lock);
+	g_mutex_lock (&settings->priv->property_lock);
+
+	new_path = g_strndup (path, length);
+
+	if (g_strcmp0 (settings->priv->path, new_path) == 0) {
+		g_mutex_unlock (&settings->priv->property_lock);
+		g_free (new_path);
+		return;
+	}
 
 	g_free (settings->priv->path);
-	settings->priv->path = g_strndup (path, length);
+	settings->priv->path = new_path;
 
-	g_mutex_unlock (settings->priv->property_lock);
+	g_mutex_unlock (&settings->priv->property_lock);
 
 	g_object_notify (G_OBJECT (settings), "path");
 }

@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -66,7 +64,7 @@ mime_filter_from_filter (CamelMimeFilter *mime_filter,
 	inptr = in;
 	inend = inptr + len;
 
-	d(printf("Filtering '%.*s'\n", len, in));
+	d (printf ("Filtering '%.*s'\n", len, in));
 
 	/* first, see if we need to escape any from's */
 	while (inptr < inend) {
@@ -88,7 +86,7 @@ mime_filter_from_filter (CamelMimeFilter *mime_filter,
 						break;
 					}
 				} else {
-					if (!strncmp(inptr, "From ", 5)) {
+					if (!strncmp (inptr, "From ", 5)) {
 						fromcount++;
 						/* yes, we do alloc them on the stack ... at most we're going to get
 						 * len / 7 of them anyway */
@@ -125,13 +123,13 @@ mime_filter_from_filter (CamelMimeFilter *mime_filter,
 		*outlen = outptr - mime_filter->outbuf;
 		*outprespace = mime_filter->outbuf - mime_filter->outreal;
 
-		d(printf("Filtered '%.*s'\n", *outlen, *out));
+		d (printf ("Filtered '%.*s'\n", *outlen, *out));
 	} else {
 		*out = (gchar *) in;
 		*outlen = inend - in;
 		*outprespace = prespace;
 
-		d(printf("Filtered '%.*s'\n", *outlen, *out));
+		d (printf ("Filtered '%.*s'\n", *outlen, *out));
 	}
 }
 
@@ -198,14 +196,14 @@ gint main (gint argc, gchar **argv)
 	len = strlen (buffer);
 	prespace = 0;
 
-	printf("input = '%.*s'\n", len, buffer);
+	printf ("input = '%.*s'\n", len, buffer);
 	camel_mime_filter_filter (f, buffer, len, prespace, &buffer, &len, &prespace);
-	printf("output = '%.*s'\n", len, buffer);
+	printf ("output = '%.*s'\n", len, buffer);
 	buffer = "";
 	len = 0;
 	prespace = 0;
 	camel_mime_filter_complete (f, buffer, len, prespace, &buffer, &len, &prespace);
-	printf("complete = '%.*s'\n", len, buffer);
+	printf ("complete = '%.*s'\n", len, buffer);
 
 	return 0;
 }

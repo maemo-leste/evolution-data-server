@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8; fill-column: 160 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -51,7 +49,7 @@ struct _CamelIndexPrivate {
 /* CamelIndex */
 /* ********************************************************************** */
 
-G_DEFINE_TYPE (CamelIndex, camel_index, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelIndex, camel_index, G_TYPE_OBJECT)
 
 static void
 index_finalize (GObject *object)
@@ -80,18 +78,6 @@ camel_index_init (CamelIndex *index)
 {
 	index->priv = CAMEL_INDEX_GET_PRIVATE (index);
 	index->version = CAMEL_INDEX_VERSION;
-}
-
-CamelIndex *
-camel_index_new (const gchar *path,
-                 gint flags)
-{
-	CamelIndex *idx;
-
-	idx = g_object_new (CAMEL_TYPE_INDEX, NULL);
-	camel_index_construct (idx, path, flags);
-
-	return idx;
 }
 
 void
@@ -187,10 +173,10 @@ camel_index_delete (CamelIndex *idx)
 	g_return_val_if_fail (CAMEL_IS_INDEX (idx), -1);
 
 	class = CAMEL_INDEX_GET_CLASS (idx);
-	g_return_val_if_fail (class->delete != NULL, -1);
+	g_return_val_if_fail (class->delete_ != NULL, -1);
 
 	if ((idx->state & CAMEL_INDEX_DELETED) == 0) {
-		ret = class->delete (idx);
+		ret = class->delete_ (idx);
 		idx->state |= CAMEL_INDEX_DELETED;
 	} else {
 		errno = ENOENT;
@@ -328,27 +314,11 @@ camel_index_words (CamelIndex *idx)
 		return NULL;
 }
 
-CamelIndexCursor *
-camel_index_names (CamelIndex *idx)
-{
-	CamelIndexClass *class;
-
-	g_return_val_if_fail (CAMEL_IS_INDEX (idx), NULL);
-
-	class = CAMEL_INDEX_GET_CLASS (idx);
-	g_return_val_if_fail (class->names != NULL, NULL);
-
-	if ((idx->state & CAMEL_INDEX_DELETED) == 0)
-		return class->names (idx);
-	else
-		return NULL;
-}
-
 /* ********************************************************************** */
 /* CamelIndexName */
 /* ********************************************************************** */
 
-G_DEFINE_TYPE (CamelIndexName, camel_index_name, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelIndexName, camel_index_name, G_TYPE_OBJECT)
 
 static void
 index_name_dispose (GObject *object)
@@ -376,18 +346,6 @@ camel_index_name_class_init (CamelIndexNameClass *class)
 static void
 camel_index_name_init (CamelIndexName *index_name)
 {
-}
-
-CamelIndexName *
-camel_index_name_new (CamelIndex *idx,
-                      const gchar *name)
-{
-	CamelIndexName *idn;
-
-	idn = g_object_new (CAMEL_TYPE_INDEX_NAME, NULL);
-	idn->index = g_object_ref (idx);
-
-	return idn;
 }
 
 void
@@ -430,7 +388,7 @@ camel_index_name_add_buffer (CamelIndexName *idn,
 /* CamelIndexCursor */
 /* ********************************************************************** */
 
-G_DEFINE_TYPE (CamelIndexCursor, camel_index_cursor, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelIndexCursor, camel_index_cursor, G_TYPE_OBJECT)
 
 static void
 index_cursor_dispose (GObject *object)
@@ -460,18 +418,6 @@ camel_index_cursor_init (CamelIndexCursor *index_cursor)
 {
 }
 
-CamelIndexCursor *
-camel_index_cursor_new (CamelIndex *idx,
-                        const gchar *name)
-{
-	CamelIndexCursor *idc;
-
-	idc = g_object_new (CAMEL_TYPE_INDEX_CURSOR, NULL);
-	idc->index = g_object_ref (idx);
-
-	return idc;
-}
-
 const gchar *
 camel_index_cursor_next (CamelIndexCursor *idc)
 {
@@ -485,15 +431,3 @@ camel_index_cursor_next (CamelIndexCursor *idc)
 	return class->next (idc);
 }
 
-void
-camel_index_cursor_reset (CamelIndexCursor *idc)
-{
-	CamelIndexCursorClass *class;
-
-	g_return_if_fail (CAMEL_IS_INDEX_CURSOR (idc));
-
-	class = CAMEL_INDEX_CURSOR_GET_CLASS (idc);
-	g_return_if_fail (class->reset != NULL);
-
-	class->reset (idc);
-}

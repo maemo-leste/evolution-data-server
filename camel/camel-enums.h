@@ -1,18 +1,17 @@
 /*
  * camel-enums.h
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -44,12 +43,11 @@ typedef enum {
 
 typedef enum { /*< flags >*/
 	CAMEL_FOLDER_HAS_SUMMARY_CAPABILITY = 1 << 0,
-	CAMEL_FOLDER_HAS_SEARCH_CAPABILITY  = 1 << 1,
-	CAMEL_FOLDER_FILTER_RECENT          = 1 << 2,
-	CAMEL_FOLDER_HAS_BEEN_DELETED       = 1 << 3,
-	CAMEL_FOLDER_IS_TRASH               = 1 << 4,
-	CAMEL_FOLDER_IS_JUNK                = 1 << 5,
-	CAMEL_FOLDER_FILTER_JUNK            = 1 << 6
+	CAMEL_FOLDER_FILTER_RECENT = 1 << 2,
+	CAMEL_FOLDER_HAS_BEEN_DELETED = 1 << 3,
+	CAMEL_FOLDER_IS_TRASH = 1 << 4,
+	CAMEL_FOLDER_IS_JUNK = 1 << 5,
+	CAMEL_FOLDER_FILTER_JUNK = 1 << 6
 } CamelFolderFlags;
 
 #define CAMEL_FOLDER_TYPE_BIT (10)
@@ -107,51 +105,96 @@ typedef enum { /*< flags >*/
 /* WARNING: This enum and CamelStoreInfoFlags must stay in sync.
  * FIXME: Eliminate the need for two separate types. */
 typedef enum { /*< flags >*/
-	CAMEL_FOLDER_NOSELECT      = 1 << 0,
-	CAMEL_FOLDER_NOINFERIORS   = 1 << 1,
-	CAMEL_FOLDER_CHILDREN      = 1 << 2,
-	CAMEL_FOLDER_NOCHILDREN    = 1 << 3,
-	CAMEL_FOLDER_SUBSCRIBED    = 1 << 4,
-	CAMEL_FOLDER_VIRTUAL       = 1 << 5,
-	CAMEL_FOLDER_SYSTEM        = 1 << 6,
-	CAMEL_FOLDER_VTRASH        = 1 << 7,
-	CAMEL_FOLDER_SHARED_TO_ME  = 1 << 8,
-	CAMEL_FOLDER_SHARED_BY_ME  = 1 << 9,
-	CAMEL_FOLDER_TYPE_NORMAL   = 0 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_TYPE_INBOX    = 1 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_TYPE_OUTBOX   = 2 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_TYPE_TRASH    = 3 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_TYPE_JUNK     = 4 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_TYPE_SENT     = 5 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_NOSELECT = 1 << 0,
+	CAMEL_FOLDER_NOINFERIORS = 1 << 1,
+	CAMEL_FOLDER_CHILDREN = 1 << 2,
+	CAMEL_FOLDER_NOCHILDREN = 1 << 3,
+	CAMEL_FOLDER_SUBSCRIBED = 1 << 4,
+	CAMEL_FOLDER_VIRTUAL = 1 << 5,
+	CAMEL_FOLDER_SYSTEM = 1 << 6,
+	CAMEL_FOLDER_VTRASH = 1 << 7,
+	CAMEL_FOLDER_SHARED_TO_ME = 1 << 8,
+	CAMEL_FOLDER_SHARED_BY_ME = 1 << 9,
+	CAMEL_FOLDER_TYPE_NORMAL = 0 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_TYPE_INBOX = 1 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_TYPE_OUTBOX = 2 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_TYPE_TRASH = 3 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_TYPE_JUNK = 4 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_TYPE_SENT = 5 << CAMEL_FOLDER_TYPE_BIT,
 	CAMEL_FOLDER_TYPE_CONTACTS = 6 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_TYPE_EVENTS   = 7 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_TYPE_MEMOS    = 8 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_TYPE_TASKS    = 9 << CAMEL_FOLDER_TYPE_BIT,
-	CAMEL_FOLDER_READONLY      = 1 << 16,
-	CAMEL_FOLDER_CHECK_FOR_NEW = 1 << 17,
-	CAMEL_FOLDER_FLAGGED       = 1 << 18,
+	CAMEL_FOLDER_TYPE_EVENTS = 7 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_TYPE_MEMOS = 8 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_TYPE_TASKS = 9 << CAMEL_FOLDER_TYPE_BIT,
+	CAMEL_FOLDER_READONLY = 1 << 16,
+	/* empty gap from unused flag removal */
+	CAMEL_FOLDER_FLAGGED = 1 << 18,
 
 	CAMEL_FOLDER_FLAGS_LAST    = 1 << 24  /*< skip >*/
 } CamelFolderInfoFlags;
 
 #define CAMEL_FOLDER_TYPE_MASK (63 << CAMEL_FOLDER_TYPE_BIT)
 
+/* Note: The HTML elements are escaped in the doc comment intentionally,
+ *       to have them shown as expected in generated documentation. */
+/**
+ * CamelMimeFilterToHTMLFlags:
+ * @CAMEL_MIME_FILTER_TOHTML_PRE:
+ *     Enclose the content in &lt;pre&gt; ... &lt;/pre&gt; tags.
+ * @CAMEL_MIME_FILTER_TOHTML_CONVERT_NL:
+ *     Convert newline characters to &lt;br&gt; tags.
+ * @CAMEL_MIME_FILTER_TOHTML_CONVERT_SPACES:
+ *     Convert space and tab characters to a non-breaking space (&amp;nbsp;).
+ * @CAMEL_MIME_FILTER_TOHTML_CONVERT_URLS:
+ *     Convert recognized URLs to &lt;a href="foo"&gt;foo&lt;/a&gt;.
+ * @CAMEL_MIME_FILTER_TOHTML_MARK_CITATION:
+ *     Color quoted lines (lines beginning with '&gt;').
+ * @CAMEL_MIME_FILTER_TOHTML_CONVERT_ADDRESSES:
+ *     Convert mailto: URLs to &lt;a href="mailto:foo"&gt;mailto:foo&lt;/a&gt;.
+ * @CAMEL_MIME_FILTER_TOHTML_ESCAPE_8BIT:
+ *     Convert 8-bit characters to escaped hexdecimal (&amp;#nnn;).
+ * @CAMEL_MIME_FILTER_TOHTML_CITE:
+ *     Prefix each line with "&gt; ".
+ * @CAMEL_MIME_FILTER_TOHTML_PRESERVE_8BIT:
+ *     This flag is not used by #CamelMimeFilterToHTML.
+ * @CAMEL_MIME_FILTER_TOHTML_FORMAT_FLOWED:
+ *     This flag is not used by #CamelMimeFilterToHTML.
+ * @CAMEL_MIME_FILTER_TOHTML_QUOTE_CITATION:
+ *     Group lines beginning with one or more '&gt;' characters in
+ *     &lt;blockquote type="cite"&gt; ... &lt;/blockquote&gt; tags. The tags
+ *     are nested according to the number of '&gt;' characters.
+ *
+ * Flags for converting text/plain content into text/html.
+ **/
+typedef enum { /*< flags >*/
+	CAMEL_MIME_FILTER_TOHTML_PRE = 1 << 0,
+	CAMEL_MIME_FILTER_TOHTML_CONVERT_NL = 1 << 1,
+	CAMEL_MIME_FILTER_TOHTML_CONVERT_SPACES = 1 << 2,
+	CAMEL_MIME_FILTER_TOHTML_CONVERT_URLS = 1 << 3,
+	CAMEL_MIME_FILTER_TOHTML_MARK_CITATION = 1 << 4,
+	CAMEL_MIME_FILTER_TOHTML_CONVERT_ADDRESSES = 1 << 5,
+	CAMEL_MIME_FILTER_TOHTML_ESCAPE_8BIT = 1 << 6,
+	CAMEL_MIME_FILTER_TOHTML_CITE = 1 << 7,
+	CAMEL_MIME_FILTER_TOHTML_PRESERVE_8BIT = 1 << 8,
+	CAMEL_MIME_FILTER_TOHTML_FORMAT_FLOWED = 1 << 9,
+	CAMEL_MIME_FILTER_TOHTML_QUOTE_CITATION = 1 << 10
+} CamelMimeFilterToHTMLFlags;
+
 /* WARNING: This enum and CamelFolderInfoFlags must stay in sync.
  * FIXME: Eliminate the need for two separate types. */
 typedef enum { /*< flags >*/
-	CAMEL_STORE_INFO_FOLDER_NOSELECT      = 1 << 0,
-	CAMEL_STORE_INFO_FOLDER_NOINFERIORS   = 1 << 1,
-	CAMEL_STORE_INFO_FOLDER_CHILDREN      = 1 << 2,
-	CAMEL_STORE_INFO_FOLDER_NOCHILDREN    = 1 << 3,
-	CAMEL_STORE_INFO_FOLDER_SUBSCRIBED    = 1 << 4,
-	CAMEL_STORE_INFO_FOLDER_VIRTUAL       = 1 << 5,
-	CAMEL_STORE_INFO_FOLDER_SYSTEM        = 1 << 6,
-	CAMEL_STORE_INFO_FOLDER_VTRASH        = 1 << 7,
-	CAMEL_STORE_INFO_FOLDER_SHARED_TO_ME  = 1 << 8,
-	CAMEL_STORE_INFO_FOLDER_SHARED_BY_ME  = 1 << 9,
-	CAMEL_STORE_INFO_FOLDER_READONLY      = 1 << 16,
-	CAMEL_STORE_INFO_FOLDER_CHECK_FOR_NEW = 1 << 17,
-	CAMEL_STORE_INFO_FOLDER_FLAGGED       = 1 << 18,
+	CAMEL_STORE_INFO_FOLDER_NOSELECT = 1 << 0,
+	CAMEL_STORE_INFO_FOLDER_NOINFERIORS = 1 << 1,
+	CAMEL_STORE_INFO_FOLDER_CHILDREN = 1 << 2,
+	CAMEL_STORE_INFO_FOLDER_NOCHILDREN = 1 << 3,
+	CAMEL_STORE_INFO_FOLDER_SUBSCRIBED = 1 << 4,
+	CAMEL_STORE_INFO_FOLDER_VIRTUAL = 1 << 5,
+	CAMEL_STORE_INFO_FOLDER_SYSTEM = 1 << 6,
+	CAMEL_STORE_INFO_FOLDER_VTRASH = 1 << 7,
+	CAMEL_STORE_INFO_FOLDER_SHARED_TO_ME = 1 << 8,
+	CAMEL_STORE_INFO_FOLDER_SHARED_BY_ME = 1 << 9,
+	CAMEL_STORE_INFO_FOLDER_READONLY = 1 << 16,
+	/* empty gap from unused flag removal */
+	CAMEL_STORE_INFO_FOLDER_FLAGGED = 1 << 18,
 
 	CAMEL_STORE_INFO_FOLDER_LAST          = 1 << 24  /*< skip >*/
 } CamelStoreInfoFlags;
@@ -177,6 +220,8 @@ typedef enum {
 
 /**
  * CamelJunkStatus:
+ * @CAMEL_JUNK_STATUS_ERROR:
+ *     An error occurred while invoking the junk filter.
  * @CAMEL_JUNK_STATUS_INCONCLUSIVE:
  *     The junk filter could not determine whether the message is junk.
  * @CAMEL_JUNK_STATUS_MESSAGE_IS_JUNK:
@@ -187,6 +232,7 @@ typedef enum {
  * These are result codes used when passing messages through a junk filter.
  **/
 typedef enum {
+	CAMEL_JUNK_STATUS_ERROR,
 	CAMEL_JUNK_STATUS_INCONCLUSIVE,
 	CAMEL_JUNK_STATUS_MESSAGE_IS_JUNK,
 	CAMEL_JUNK_STATUS_MESSAGE_IS_NOT_JUNK
@@ -285,18 +331,18 @@ typedef enum {
  *
  **/
 typedef enum { /*< flags >*/
-	CAMEL_PROVIDER_IS_REMOTE               = 1 << 0,
-	CAMEL_PROVIDER_IS_LOCAL                = 1 << 1,
-	CAMEL_PROVIDER_IS_EXTERNAL             = 1 << 2,
-	CAMEL_PROVIDER_IS_SOURCE               = 1 << 3,
-	CAMEL_PROVIDER_IS_STORAGE              = 1 << 4,
-	CAMEL_PROVIDER_SUPPORTS_SSL            = 1 << 5,
-	CAMEL_PROVIDER_HAS_LICENSE             = 1 << 6,
-	CAMEL_PROVIDER_DISABLE_SENT_FOLDER     = 1 << 7,
+	CAMEL_PROVIDER_IS_REMOTE = 1 << 0,
+	CAMEL_PROVIDER_IS_LOCAL = 1 << 1,
+	CAMEL_PROVIDER_IS_EXTERNAL = 1 << 2,
+	CAMEL_PROVIDER_IS_SOURCE = 1 << 3,
+	CAMEL_PROVIDER_IS_STORAGE = 1 << 4,
+	CAMEL_PROVIDER_SUPPORTS_SSL = 1 << 5,
+	CAMEL_PROVIDER_HAS_LICENSE = 1 << 6,
+	CAMEL_PROVIDER_DISABLE_SENT_FOLDER = 1 << 7,
 	CAMEL_PROVIDER_ALLOW_REAL_TRASH_FOLDER = 1 << 8,
-	CAMEL_PROVIDER_ALLOW_REAL_JUNK_FOLDER  = 1 << 9,
+	CAMEL_PROVIDER_ALLOW_REAL_JUNK_FOLDER = 1 << 9,
 	CAMEL_PROVIDER_SUPPORTS_MOBILE_DEVICES = 1 << 10,
-	CAMEL_PROVIDER_SUPPORTS_BATCH_FETCH    = 1 << 11,
+	CAMEL_PROVIDER_SUPPORTS_BATCH_FETCH = 1 << 11,
 	CAMEL_PROVIDER_SUPPORTS_PURGE_MESSAGE_CACHE = 1 << 12
 } CamelProviderFlags;
 
@@ -312,6 +358,21 @@ typedef enum {
 	CAMEL_SASL_ANON_TRACE_EMPTY
 } CamelSaslAnonTraceType;
 
+/**
+ * CamelServiceConnectionStatus:
+ * @CAMEL_SERVICE_DISCONNECTED:
+ *   #CamelService is disconnected from a remote server.
+ * @CAMEL_SERVICE_CONNECTING:
+ *   #CamelService is connecting to a remote server.
+ * @CAMEL_SERVICE_CONNECTED:
+ *   #CamelService is connected to a remote server.
+ * @CAMEL_SERVICE_DISCONNECTING:
+ *   #CamelService is disconnecting from a remote server.
+ *
+ * Connection status returned by camel_service_get_connection_status().
+ *
+ * Since: 3.6
+ **/
 typedef enum {
 	CAMEL_SERVICE_DISCONNECTED,
 	CAMEL_SERVICE_CONNECTING,
@@ -342,13 +403,14 @@ typedef enum {
 } CamelSortType;
 
 typedef enum { /*< flags >*/
-	CAMEL_STORE_VTRASH           = 1 << 0,
-	CAMEL_STORE_VJUNK            = 1 << 1,
-	CAMEL_STORE_PROXY            = 1 << 2,
-	CAMEL_STORE_IS_MIGRATING     = 1 << 3,
+	CAMEL_STORE_VTRASH = 1 << 0,
+	CAMEL_STORE_VJUNK = 1 << 1,
+	CAMEL_STORE_PROXY = 1 << 2,
+	CAMEL_STORE_IS_MIGRATING = 1 << 3,
 	CAMEL_STORE_REAL_JUNK_FOLDER = 1 << 4,
 	CAMEL_STORE_CAN_EDIT_FOLDERS = 1 << 5,
-	CAMEL_STORE_USE_CACHE_DIR    = 1 << 6
+	CAMEL_STORE_USE_CACHE_DIR = 1 << 6,
+	CAMEL_STORE_CAN_DELETE_FOLDERS_AT_ONCE = 1 << 7
 } CamelStoreFlags;
 
 /**
@@ -365,23 +427,17 @@ typedef enum { /*< flags >*/
  *   folder fetching.
  **/
 typedef enum { /*< flags >*/
-	CAMEL_STORE_FOLDER_INFO_FAST              = 1 << 0,
-	CAMEL_STORE_FOLDER_INFO_RECURSIVE         = 1 << 1,
-	CAMEL_STORE_FOLDER_INFO_SUBSCRIBED        = 1 << 2,
-	CAMEL_STORE_FOLDER_INFO_NO_VIRTUAL        = 1 << 3,
+	CAMEL_STORE_FOLDER_INFO_FAST = 1 << 0,
+	CAMEL_STORE_FOLDER_INFO_RECURSIVE = 1 << 1,
+	CAMEL_STORE_FOLDER_INFO_SUBSCRIBED = 1 << 2,
+	CAMEL_STORE_FOLDER_INFO_NO_VIRTUAL = 1 << 3,
 	CAMEL_STORE_FOLDER_INFO_SUBSCRIPTION_LIST = 1 << 4
 } CamelStoreGetFolderInfoFlags;
 
 typedef enum { /*< flags >*/
-	CAMEL_STORE_READ  = 1 << 0,
+	CAMEL_STORE_READ = 1 << 0,
 	CAMEL_STORE_WRITE = 1 << 1
 } CamelStorePermissionFlags;
-
-typedef enum { /*< flags >*/
-	CAMEL_TCP_STREAM_SSL_ENABLE_SSL2 = 1 << 0,
-	CAMEL_TCP_STREAM_SSL_ENABLE_SSL3 = 1 << 1,
-	CAMEL_TCP_STREAM_SSL_ENABLE_TLS  = 1 << 2
-} CamelTcpStreamSSLFlags;
 
 /* Note: If you change this, make sure you change the
  *       'encodings' array in camel-mime-part.c. */
@@ -395,22 +451,5 @@ typedef enum {
 	CAMEL_TRANSFER_ENCODING_UUENCODE,
 	CAMEL_TRANSFER_NUM_ENCODINGS
 } CamelTransferEncoding;
-
-/**
- * CamelStreamVFSOpenMethod:
- * CAMEL_STREAM_VFS_CREATE:
- *	Writable, creates new file or replaces old file.
- * CAMEL_STREAM_VFS_APPEND:
- *	Writable, creates new file or appends at the end of the old file.
- * CAMEL_STREAM_VFS_READ:
- *	Readable, opens existing file for reading.
- *
- * Since: 2.24
- **/
-typedef enum {
-	CAMEL_STREAM_VFS_CREATE,
-	CAMEL_STREAM_VFS_APPEND,
-	CAMEL_STREAM_VFS_READ
-} CamelStreamVFSOpenMethod;
 
 #endif /* CAMEL_ENUMS_H */

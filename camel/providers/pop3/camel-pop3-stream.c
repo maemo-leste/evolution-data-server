@@ -1,23 +1,20 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8; fill-column: 160 -*-
- *
+/*
  * Author:
  *  Michael Zucchi <notzed@ximian.com>
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /* This is *identical* to the camel-nntp-stream, so should probably
@@ -35,7 +32,7 @@
 #define dd(x) (camel_debug ("pop3")?(x):0)
 
 #define CAMEL_POP3_STREAM_SIZE (4096)
-#define CAMEL_POP3_STREAM_LINE (1024) /* maximum line size */
+#define CAMEL_POP3_STREAM_LINE_SIZE (1024) /* maximum line size */
 
 G_DEFINE_TYPE (CamelPOP3Stream, camel_pop3_stream, CAMEL_TYPE_STREAM)
 
@@ -83,7 +80,6 @@ stream_fill (CamelPOP3Stream *is,
 			CAMEL_POP3_STREAM_SIZE - (is->end - is->buf),
 			cancellable, &local_error);
 		if (local_error) {
-			dd (printf ("POP3_STREAM_FILL: Failed to read bytes: %s\n", local_error->message));
 			g_propagate_error (error, local_error);
 		}
 
@@ -136,7 +132,6 @@ stream_read (CamelStream *stream,
 				is->ptr = p + 3;
 				is->mode = CAMEL_POP3_STREAM_EOD;
 				is->state = 0;
-				dd (printf ("POP3_STREAM_READ (%d):\n%.*s\n", (gint)(o-buffer), (gint)(o-buffer), buffer));
 				return o - buffer;
 			}
 			p++;
@@ -169,8 +164,6 @@ stream_read (CamelStream *stream,
 	is->ptr = p;
 	is->state = state;
 
-	dd (printf ("POP3_STREAM_READ (%d):\n%.*s\n", (gint)(o-buffer), (gint)(o-buffer), buffer));
-
 	return o - buffer;
 }
 
@@ -184,9 +177,9 @@ stream_write (CamelStream *stream,
 	CamelPOP3Stream *is = (CamelPOP3Stream *) stream;
 
 	if (strncmp (buffer, "PASS ", 5) != 0)
-		dd (printf ("POP3_STREAM_WRITE (%d):\n%.*s\n", (gint)n, (gint)n, buffer));
+		dd (printf ("POP3_STREAM_WRITE (%d):\n%.*s\n", (gint) n, (gint) n, buffer));
 	else
-		dd (printf ("POP3_STREAM_WRITE (%d):\nPASS xxxxxxxx\n", (gint)n));
+		dd (printf ("POP3_STREAM_WRITE (%d):\nPASS xxxxxxxx\n", (gint) n));
 
 	return camel_stream_write (is->source, buffer, n, cancellable, error);
 }
@@ -240,8 +233,8 @@ camel_pop3_stream_init (CamelPOP3Stream *is)
 {
 	/* +1 is room for appending a 0 if we need to for a line */
 	is->ptr = is->end = is->buf = g_malloc (CAMEL_POP3_STREAM_SIZE + 1);
-	is->lineptr = is->linebuf = g_malloc (CAMEL_POP3_STREAM_LINE + 1);
-	is->lineend = is->linebuf + CAMEL_POP3_STREAM_LINE;
+	is->lineptr = is->linebuf = g_malloc (CAMEL_POP3_STREAM_LINE_SIZE + 1);
+	is->lineend = is->linebuf + CAMEL_POP3_STREAM_LINE_SIZE;
 
 	/* init sentinal */
 	is->ptr[0] = '\n';
@@ -292,7 +285,8 @@ camel_pop3_stream_line (CamelPOP3Stream *is,
 	p = is->ptr;
 	e = is->end;
 
-	/* Data mode, convert leading '..' to '.', and stop when we reach a solitary '.' */
+	/* Data mode, convert leading '..' to '.',
+	 * and stop when we reach a solitary '.' */
 	if (is->mode == CAMEL_POP3_STREAM_DATA) {
 		/* need at least 3 chars in buffer */
 		while (e - p < 3) {
@@ -412,12 +406,11 @@ camel_pop3_stream_getd (CamelPOP3Stream *is,
 					is->mode = CAMEL_POP3_STREAM_EOD;
 					is->state = 0;
 
-					dd (printf ("POP3_STREAM_GETD (%s,%d): '%.*s'\n", "last", *len, (gint)*len, *start));
-
 					return 0;
 				}
 
-				/* If at start, just skip '.', else return data upto '.' but skip it */
+				/* If at start, just skip '.', else
+				 * return data upto '.' but skip it. */
 				if (p == s) {
 					s++;
 					p++;
@@ -427,12 +420,11 @@ camel_pop3_stream_getd (CamelPOP3Stream *is,
 					*start = s;
 					is->state = 1;
 
-					dd (printf ("POP3_STREAM_GETD (%s,%d): '%.*s'\n", "more", *len, (gint)*len, *start));
-
 					return 1;
 				}
 			}
 			state = 1;
+			break;
 		case 1:
 			/* Scan for sentinal */
 			while ((*p++) != '\n')
@@ -451,8 +443,6 @@ camel_pop3_stream_getd (CamelPOP3Stream *is,
 	is->ptr = p;
 	*len = p-s;
 	*start = s;
-
-	dd (printf ("POP3_STREAM_GETD (%s,%d): '%.*s'\n", "more", *len, (gint)*len, *start));
 
 	return 1;
 }

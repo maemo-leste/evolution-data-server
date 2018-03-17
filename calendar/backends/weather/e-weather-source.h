@@ -4,18 +4,17 @@
  *
  * Authors: David Trowbridge <trowbrds@cs.colorado.edu>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef E_WEATHER_SOURCE_H
@@ -25,7 +24,7 @@
 #include <time.h>
 
 #define GWEATHER_I_KNOW_THIS_IS_UNSTABLE
-#include <libgweather/weather.h>
+#include <libgweather/gweather-weather.h>
 #undef GWEATHER_I_KNOW_THIS_IS_UNSTABLE
 
 /* Standard GObject macros */
@@ -49,58 +48,23 @@
 
 G_BEGIN_DECLS
 
-typedef enum {
-	WEATHER_FAIR,
-	WEATHER_SNOW_SHOWERS,
-	WEATHER_SNOW,
-	WEATHER_PARTLY_CLOUDY,
-	WEATHER_SMOKE,
-	WEATHER_THUNDERSTORMS,
-	WEATHER_CLOUDY,
-	WEATHER_DRIZZLE,
-	WEATHER_SUNNY,
-	WEATHER_DUST,
-	WEATHER_CLEAR,
-	WEATHER_MOSTLY_CLOUDY,
-	WEATHER_WINDY,
-	WEATHER_RAIN_SHOWERS,
-	WEATHER_FOGGY,
-	WEATHER_RAIN_OR_SNOW_MIXED,
-	WEATHER_SLEET,
-	WEATHER_VERY_HOT_OR_HOT_HUMID,
-	WEATHER_BLIZZARD,
-	WEATHER_FREEZING_RAIN,
-	WEATHER_HAZE,
-	WEATHER_BLOWING_SNOW,
-	WEATHER_FREEZING_DRIZZLE,
-	WEATHER_VERY_COLD_WIND_CHILL,
-	WEATHER_RAIN,
-} WeatherConditions;
-
-typedef void (*EWeatherSourceFinished)(WeatherInfo *result, gpointer data);
+typedef void (*EWeatherSourceFinished)(GWeatherInfo *result, gpointer data);
 
 typedef struct _EWeatherSource EWeatherSource;
 typedef struct _EWeatherSourceClass EWeatherSourceClass;
+typedef struct _EWeatherSourcePrivate EWeatherSourcePrivate;
 
-/* This class is an abstract base-class for any weather data source.
- * All the URL fetching is handled outside of this, and all this has
- * to know how to do is parse the specific format. */
 struct _EWeatherSource {
 	GObject parent;
+	EWeatherSourcePrivate *priv;
 };
 
 struct _EWeatherSourceClass {
 	GObjectClass parent_class;
-
-	/* Returns a list of WeatherForecast objects containing the
-	 * data for the forecast. */
-	void		(*parse)	(EWeatherSource *source,
-					 EWeatherSourceFinished done,
-					 gpointer data);
 };
 
 GType		e_weather_source_get_type	(void);
-EWeatherSource *e_weather_source_new		(const gchar *uri);
+EWeatherSource *e_weather_source_new		(const gchar *location);
 void		e_weather_source_parse		(EWeatherSource *source,
 						 EWeatherSourceFinished done,
 						 gpointer data);

@@ -1,18 +1,17 @@
 /*
  * camel-imapx-command.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -42,9 +41,15 @@ struct _CamelIMAPXRealCommand {
 	/* For building the part. */
 	GString *buffer;
 
+	/* Mailbox to select before running command. */
+	GWeakRef mailbox;
+
+	/* For network/parse errors. */
+	GError *error;
+
 	/* Used for running some commands synchronously. */
-	GCond *done_sync_cond;
-	GMutex *done_sync_mutex;
+	GCond done_sync_cond;
+	GMutex done_sync_mutex;
 	gboolean done_sync_flag;
 };
 
@@ -56,7 +61,7 @@ struct _CamelIMAPXCommandQueue {
 CamelIMAPXCommand *
 camel_imapx_command_new (CamelIMAPXServer *is,
                          const gchar *name,
-                         CamelFolder *select,
+                         CamelIMAPXMailbox *mailbox,
                          const gchar *format,
                          ...)
 {
@@ -69,14 +74,14 @@ camel_imapx_command_new (CamelIMAPXServer *is,
 	/* Initialize private bits. */
 	real_ic->ref_count = 1;
 	real_ic->buffer = g_string_sized_new (512);
-	real_ic->done_sync_cond = g_cond_new ();
-	real_ic->done_sync_mutex = g_mutex_new ();
+	g_weak_ref_init (&real_ic->mailbox, mailbox);
+	g_cond_init (&real_ic->done_sync_cond);
+	g_mutex_init (&real_ic->done_sync_mutex);
 
 	/* Initialize public bits. */
 	real_ic->public.is = is;
 	real_ic->public.tag = tag++;
 	real_ic->public.name = name;
-	real_ic->public.select = select;
 	g_queue_init (&real_ic->public.parts);
 
 	if (format != NULL && *format != '\0') {
@@ -141,8 +146,12 @@ camel_imapx_command_unref (CamelIMAPXCommand *ic)
 
 		g_string_free (real_ic->buffer, TRUE);
 
-		g_cond_free (real_ic->done_sync_cond);
-		g_mutex_free (real_ic->done_sync_mutex);
+		g_weak_ref_clear (&real_ic->mailbox);
+
+		g_clear_error (&real_ic->error);
+
+		g_cond_clear (&real_ic->done_sync_cond);
+		g_mutex_clear (&real_ic->done_sync_mutex);
 
 		/* Do NOT try to free the GError.  If set it should have been
 		 * propagated to the CamelIMAPXJob, so it's either NULL or the
@@ -217,6 +226,18 @@ camel_imapx_command_set_job (CamelIMAPXCommand *ic,
 	real_ic->job = job;
 }
 
+CamelIMAPXMailbox *
+camel_imapx_command_ref_mailbox (CamelIMAPXCommand *ic)
+{
+	CamelIMAPXRealCommand *real_ic;
+
+	g_return_val_if_fail (CAMEL_IS_IMAPX_COMMAND (ic), NULL);
+
+	real_ic = (CamelIMAPXRealCommand *) ic;
+
+	return g_weak_ref_get (&real_ic->mailbox);
+}
+
 void
 camel_imapx_command_add (CamelIMAPXCommand *ic,
                          const gchar *format,
@@ -249,19 +270,17 @@ camel_imapx_command_addv (CamelIMAPXCommand *ic,
 	glong l;
 	guint32 f;
 	CamelFlag *F;
-	CamelStream *S;
 	CamelDataWrapper *D;
 	CamelSasl *A;
 	gchar literal_format[16];
-	CamelFolder *folder;
-	CamelStore *parent_store;
+	CamelIMAPXMailbox *mailbox;
 	GString *buffer;
-	gchar *fname = NULL, *encoded = NULL;
-	const gchar *full_name;
+	gchar *utf7_name = NULL;
+	const gchar *name;
 
 	g_return_if_fail (CAMEL_IS_IMAPX_COMMAND (ic));
 
-	c(ic->is->tagprefix, "adding command, format = '%s'\n", format);
+	c (ic->is->tagprefix, "adding command, format = '%s'\n", format);
 
 	buffer = ((CamelIMAPXRealCommand *) ic)->buffer;
 
@@ -309,19 +328,14 @@ camel_imapx_command_addv (CamelIMAPXCommand *ic,
 				A = va_arg (ap, CamelSasl *);
 				camel_imapx_command_add_part (ic, CAMEL_IMAPX_COMMAND_AUTH, A);
 				break;
-			case 'S': /* stream */
-				S = va_arg (ap, CamelStream *);
-				c(ic->is->tagprefix, "got stream '%p'\n", S);
-				camel_imapx_command_add_part (ic, CAMEL_IMAPX_COMMAND_STREAM, S);
-				break;
 			case 'D': /* datawrapper */
 				D = va_arg (ap, CamelDataWrapper *);
-				c(ic->is->tagprefix, "got data wrapper '%p'\n", D);
+				c (ic->is->tagprefix, "got data wrapper '%p'\n", D);
 				camel_imapx_command_add_part (ic, CAMEL_IMAPX_COMMAND_DATAWRAPPER, D);
 				break;
 			case 'P': /* filename path */
 				P = va_arg (ap, gchar *);
-				c(ic->is->tagprefix, "got file path '%s'\n", P);
+				c (ic->is->tagprefix, "got file path '%s'\n", P);
 				camel_imapx_command_add_part (ic, CAMEL_IMAPX_COMMAND_FILE, P);
 				break;
 			case 't': /* token */
@@ -330,7 +344,7 @@ camel_imapx_command_addv (CamelIMAPXCommand *ic,
 				break;
 			case 's': /* simple string */
 				s = va_arg (ap, gchar *);
-				c(ic->is->tagprefix, "got string '%s'\n", g_str_has_prefix (format, "LOGIN") ? "***" : s);
+				c (ic->is->tagprefix, "got string '%s'\n", g_str_has_prefix (format, "LOGIN") ? "***" : s);
 			output_string:
 				if (s && *s) {
 					guchar mask = imapx_is_mask (s);
@@ -358,30 +372,20 @@ camel_imapx_command_addv (CamelIMAPXCommand *ic,
 				} else {
 					g_string_append (buffer, "\"\"");
 				}
-				if (encoded) {
-					g_free (encoded);
-					encoded = NULL;
-				}
+				g_free (utf7_name);
+				utf7_name = NULL;
 				break;
-			case 'f': /* imap folder name */
-				folder = va_arg (ap, CamelFolder *);
-				full_name = camel_folder_get_full_name (folder);
-				c(ic->is->tagprefix, "got folder '%s'\n", full_name);
-				parent_store = camel_folder_get_parent_store (folder);
-				fname = camel_imapx_store_summary_full_from_path (((CamelIMAPXStore *) parent_store)->summary, full_name);
-				if (fname) {
-					encoded = camel_utf8_utf7 (fname);
-					g_free (fname);
-				} else
-					encoded = camel_utf8_utf7 (full_name);
-
-				if (encoded) {
-					s = encoded;
-					goto output_string;
-				} else
-					g_string_append (buffer, "\"\"");
-
-				break;
+			case 'M': /* CamelIMAPXMailbox */
+				mailbox = va_arg (ap, CamelIMAPXMailbox *);
+				name = camel_imapx_mailbox_get_name (mailbox);
+				utf7_name = camel_utf8_utf7 (name);
+				s = utf7_name;
+				goto output_string;
+			case 'm': /* UTF-8 mailbox name */
+				name = va_arg (ap, gchar *);
+				utf7_name = camel_utf8_utf7 (name);
+				s = utf7_name;
+				goto output_string;
 			case 'F': /* IMAP flags set */
 				f = va_arg (ap, guint32);
 				F = va_arg (ap, CamelFlag *);
@@ -396,19 +400,19 @@ camel_imapx_command_addv (CamelIMAPXCommand *ic,
 			case 'u':
 				if (llong == 1) {
 					l = va_arg (ap, glong);
-					c(ic->is->tagprefix, "got glong '%d'\n", (gint)l);
+					c (ic->is->tagprefix, "got glong '%d'\n", (gint) l);
 					memcpy (literal_format, start, p - start);
 					literal_format[p - start] = 0;
 					g_string_append_printf (buffer, literal_format, l);
 				} else if (llong == 2) {
 					guint64 i64 = va_arg (ap, guint64);
-					c(ic->is->tagprefix, "got guint64 '%d'\n", (gint)i64);
+					c (ic->is->tagprefix, "got guint64 '%d'\n", (gint) i64);
 					memcpy (literal_format, start, p - start);
 					literal_format[p - start] = 0;
 					g_string_append_printf (buffer, literal_format, i64);
 				} else {
 					d = va_arg (ap, gint);
-					c(ic->is->tagprefix, "got gint '%d'\n", d);
+					c (ic->is->tagprefix, "got gint '%d'\n", d);
 					memcpy (literal_format, start, p - start);
 					literal_format[p - start] = 0;
 					g_string_append_printf (buffer, literal_format, d);
@@ -439,7 +443,6 @@ camel_imapx_command_add_part (CamelIMAPXCommand *ic,
                               gpointer data)
 {
 	CamelIMAPXCommandPart *cp;
-	CamelStreamNull *null;
 	GString *buffer;
 	guint ob_size = 0;
 
@@ -448,23 +451,18 @@ camel_imapx_command_add_part (CamelIMAPXCommand *ic,
 	/* TODO: literal+? */
 
 	switch (type & CAMEL_IMAPX_COMMAND_MASK) {
-	case CAMEL_IMAPX_COMMAND_DATAWRAPPER:
-	case CAMEL_IMAPX_COMMAND_STREAM: {
+	case CAMEL_IMAPX_COMMAND_DATAWRAPPER: {
 		CamelObject *ob = data;
+		GOutputStream *stream;
 
-		/* TODO: seekable streams we could just seek to the end and back */
-		null = (CamelStreamNull *) camel_stream_null_new ();
-		if ( (type & CAMEL_IMAPX_COMMAND_MASK) == CAMEL_IMAPX_COMMAND_DATAWRAPPER) {
-			camel_data_wrapper_write_to_stream_sync ((CamelDataWrapper *) ob, (CamelStream *) null, NULL, NULL);
-		} else {
-			g_seekable_seek (G_SEEKABLE (ob), 0, G_SEEK_SET, NULL, NULL);
-			camel_stream_write_to_stream ((CamelStream *) ob, (CamelStream *) null, NULL, NULL);
-			g_seekable_seek (G_SEEKABLE (ob), 0, G_SEEK_SET, NULL, NULL);
-		}
+		stream = camel_null_output_stream_new ();
+		camel_data_wrapper_write_to_output_stream_sync (
+			CAMEL_DATA_WRAPPER (ob), stream, NULL, NULL);
 		type |= CAMEL_IMAPX_COMMAND_LITERAL_PLUS;
 		g_object_ref (ob);
-		ob_size = null->written;
-		g_object_unref (null);
+		ob_size = camel_null_output_stream_get_bytes_written (
+			CAMEL_NULL_OUTPUT_STREAM (stream));
+		g_object_unref (stream);
 		break;
 	}
 	case CAMEL_IMAPX_COMMAND_AUTH: {
@@ -504,7 +502,7 @@ camel_imapx_command_add_part (CamelIMAPXCommand *ic,
 	if (type & CAMEL_IMAPX_COMMAND_LITERAL_PLUS) {
 		g_string_append_c (buffer, '{');
 		g_string_append_printf (buffer, "%u", ob_size);
-		if (ic->is->cinfo && ic->is->cinfo->capa & IMAPX_CAPABILITY_LITERALPLUS) {
+		if (CAMEL_IMAPX_HAVE_CAPABILITY (ic->is->cinfo, LITERALPLUS)) {
 			g_string_append_c (buffer, '+');
 		} else {
 			type &= ~CAMEL_IMAPX_COMMAND_LITERAL_PLUS;
@@ -535,9 +533,9 @@ camel_imapx_command_close (CamelIMAPXCommand *ic)
 	buffer = ((CamelIMAPXRealCommand *) ic)->buffer;
 
 	if (buffer->len > 5 && g_ascii_strncasecmp (buffer->str, "LOGIN", 5) == 0) {
-		c(ic->is->tagprefix, "completing command buffer is [%d] 'LOGIN...'\n", (gint) buffer->len);
+		c (ic->is->tagprefix, "completing command buffer is [%d] 'LOGIN...'\n", (gint) buffer->len);
 	} else {
-		c(ic->is->tagprefix, "completing command buffer is [%d] '%.*s'\n", (gint) buffer->len, (gint) buffer->len, buffer->str);
+		c (ic->is->tagprefix, "completing command buffer is [%d] '%.*s'\n", (gint) buffer->len, (gint) buffer->len, buffer->str);
 	}
 	if (buffer->len > 0)
 		camel_imapx_command_add_part (ic, CAMEL_IMAPX_COMMAND_SIMPLE, NULL);
@@ -554,12 +552,12 @@ camel_imapx_command_wait (CamelIMAPXCommand *ic)
 
 	real_ic = (CamelIMAPXRealCommand *) ic;
 
-	g_mutex_lock (real_ic->done_sync_mutex);
+	g_mutex_lock (&real_ic->done_sync_mutex);
 	while (!real_ic->done_sync_flag)
 		g_cond_wait (
-			real_ic->done_sync_cond,
-			real_ic->done_sync_mutex);
-	g_mutex_unlock (real_ic->done_sync_mutex);
+			&real_ic->done_sync_cond,
+			&real_ic->done_sync_mutex);
+	g_mutex_unlock (&real_ic->done_sync_mutex);
 }
 
 void
@@ -571,19 +569,72 @@ camel_imapx_command_done (CamelIMAPXCommand *ic)
 
 	real_ic = (CamelIMAPXRealCommand *) ic;
 
-	g_mutex_lock (real_ic->done_sync_mutex);
+	g_mutex_lock (&real_ic->done_sync_mutex);
 	real_ic->done_sync_flag = TRUE;
-	g_cond_broadcast (real_ic->done_sync_cond);
-	g_mutex_unlock (real_ic->done_sync_mutex);
+	g_cond_broadcast (&real_ic->done_sync_cond);
+	g_mutex_unlock (&real_ic->done_sync_mutex);
+}
+
+/**
+ * camel_imapx_command_failed:
+ * @ic: a #CamelIMAPXCommand
+ * @error: the error which caused the failure
+ *
+ * Copies @error to be returned in camel_imapx_command_set_error_if_failed().
+ * Call this function if a networking or parsing error occurred to force all
+ * active IMAP commands to abort processing.
+ *
+ * Since: 3.10
+ **/
+void
+camel_imapx_command_failed (CamelIMAPXCommand *ic,
+                            const GError *error)
+{
+	CamelIMAPXRealCommand *real_ic;
+
+	g_return_if_fail (CAMEL_IS_IMAPX_COMMAND (ic));
+	g_return_if_fail (error != NULL);
+
+	real_ic = (CamelIMAPXRealCommand *) ic;
+
+	/* Do not overwrite errors, the first passed in wins */
+	if (real_ic->error != NULL)
+		return;
+
+	real_ic->error = g_error_copy (error);
 }
 
 gboolean
 camel_imapx_command_set_error_if_failed (CamelIMAPXCommand *ic,
                                          GError **error)
 {
+	CamelIMAPXRealCommand *real_ic;
+
 	g_return_val_if_fail (CAMEL_IS_IMAPX_COMMAND (ic), FALSE);
 
+	real_ic = (CamelIMAPXRealCommand *) ic;
+
+	/* Check for a networking or parsing error. */
+	if (real_ic->error != NULL) {
+		g_propagate_error (error, real_ic->error);
+		real_ic->error = NULL;
+		return TRUE;
+	}
+
+	/* Check if the IMAP server rejected the command. */
 	if (ic->status != NULL && ic->status->result != IMAPX_OK) {
+
+		/* FIXME Map IMAP response codes to more
+		 *       meaningful GError domains/codes.
+		 *
+		 *       switch (ic->status->condition) {
+		 *               case IMAPX_AUTHENTICATIONFAILED:
+		 *                      g_set_error (...);
+		 *                      break;
+		 *               ...
+		 *       }
+		 */
+
 		if (ic->status->text != NULL)
 			g_set_error (
 				error, CAMEL_IMAPX_ERROR, 1,
@@ -594,6 +645,9 @@ camel_imapx_command_set_error_if_failed (CamelIMAPXCommand *ic,
 				"%s", _("Unknown error"));
 		return TRUE;
 	}
+
+	if (real_ic->job)
+		return camel_imapx_job_set_error_if_failed (real_ic->job, error);
 
 	return FALSE;
 }
@@ -720,5 +774,41 @@ camel_imapx_command_queue_delete_link (CamelIMAPXCommandQueue *queue,
 
 	camel_imapx_command_unref ((CamelIMAPXCommand *) link->data);
 	g_queue_delete_link ((GQueue *) queue, link);
+}
+
+/**
+ * camel_imapx_command_queue_ref_by_tag:
+ * @queue: a #CamelIMAPXCommandQueue
+ * @tag: a #CamelIMAPXCommand tag
+ *
+ * Returns the #CamelIMAPXCommand in @queue with a matching @tag, or %NULL
+ * if no match is found.
+ *
+ * The returned #CamelIMAPXCommand is referenced for thread-safety and should
+ * be unreferenced with camel_imapx_command_unref() when finished with it.
+ *
+ * Since: 3.10
+ **/
+CamelIMAPXCommand *
+camel_imapx_command_queue_ref_by_tag (CamelIMAPXCommandQueue *queue,
+                                      guint32 tag)
+{
+	CamelIMAPXCommand *match = NULL;
+	GList *head, *link;
+
+	g_return_val_if_fail (queue != NULL, NULL);
+
+	head = camel_imapx_command_queue_peek_head_link (queue);
+
+	for (link = head; link != NULL; link = g_list_next (link)) {
+		CamelIMAPXCommand *command = link->data;
+
+		if (command->tag == tag) {
+			match = camel_imapx_command_ref (command);
+			break;
+		}
+	}
+
+	return match;
 }
 

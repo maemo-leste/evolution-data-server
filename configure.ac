@@ -1,8 +1,8 @@
 
 dnl Evolution-Data-Server version
 m4_define([eds_major_version], [3])
-m4_define([eds_minor_version], [4])
-m4_define([eds_micro_version], [4])
+m4_define([eds_minor_version], [12])
+m4_define([eds_micro_version], [9])
 
 m4_define([eds_version],
 	[eds_major_version.eds_minor_version.eds_micro_version])
@@ -11,8 +11,8 @@ dnl Base Version: This is for API/version tracking for things like
 dnl Bonobo server files.  This should always be the major/minor of
 dnl the stable version or stable version to be.  Note, this is set
 dnl the way it is so that GETTEXT_PACKAGE will be parsed correctly.
-BASE_VERSION=3.4
-m4_define([base_version], [3.4])
+BASE_VERSION=3.12
+m4_define([base_version], [3.12])
 
 dnl This number is meaningless, but we're now stuck with it in our
 dnl library names for backward compatibility.
@@ -21,7 +21,7 @@ m4_define([api_version], [1.2])
 dnl Autoconf / Automake Initialization
 AC_PREREQ(2.62)
 AC_INIT([evolution-data-server],[eds_version],[http://bugzilla.gnome.org/enter_bug.cgi?product=Evolution-Data-Server])
-AM_INIT_AUTOMAKE([gnu 1.10 tar-ustar dist-xz no-dist-gzip -Wall -Wno-portability -Werror foreign])
+AM_INIT_AUTOMAKE([gnu 1.10 tar-ustar dist-xz no-dist-gzip -Wall -Wno-portability foreign])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(README)
 AC_CONFIG_HEADERS(config.h)
@@ -33,18 +33,31 @@ dnl Automake 1.11 - Silent Build Rules
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl Required Package Versions
-m4_define([glib_minimum_version], [2.30])
-m4_define([gtk_minimum_version], [3.2])
-m4_define([gconf_minimum_version], [2.0.0])		dnl XXX Just a Guess
-m4_define([gnome_keyring_minimum_version], [2.20.1])
-m4_define([goa_minimum_version], [3.1.1])
+
+dnl Keep these two definitions in agreement.
+m4_define([glib_minimum_version], [2.36])
+m4_define([glib_encoded_version], [GLIB_VERSION_2_36])
+
+dnl Keep these two definitions in agreement.
+m4_define([gdk_minimum_version], [3.2])
+m4_define([gdk_encoded_version], [GDK_VERSION_3_2])
+
+dnl Keep these two definitions in agreement.
+m4_define([soup_minimum_version], [2.42])
+m4_define([soup_encoded_version], [SOUP_VERSION_2_42])
+
+m4_define([gcr_minimum_version], [3.4])
+m4_define([libsecret_minimum_version], [0.5])
 m4_define([libxml_minimum_version], [2.0.0])		dnl XXX Just a Guess
-m4_define([libsoup_minimum_version], [2.31.2])
 m4_define([libgdata_minimum_version], [0.10])
-m4_define([oauth_minimum_version], [0.9.4])
 m4_define([sqlite_minimum_version], [3.5])
 m4_define([libical_minimum_version], [0.43])
-m4_define([gweather_minimum_version], [2.90.0])
+
+dnl Optional Packages
+m4_define([goa_minimum_version], [3.8])
+m4_define([gweather_minimum_version], [3.8])
+m4_define([libaccounts_glib_minimum_version], [1.4])
+m4_define([libsignon_glib_minimum_version], [1.8])
 
 AC_SUBST([BASE_VERSION],[base_version])
 AC_SUBST([API_VERSION],[api_version])
@@ -60,8 +73,10 @@ GLIB_GSETTINGS
 dnl ******************************
 dnl D-Bus versioning
 dnl ******************************
-ADDRESS_BOOK_DBUS_SERVICE_NAME="org.gnome.evolution.dataserver.AddressBook3"
-CALENDAR_DBUS_SERVICE_NAME="org.gnome.evolution.dataserver.Calendar1"
+ADDRESS_BOOK_DBUS_SERVICE_NAME="org.gnome.evolution.dataserver.AddressBook6"
+CALENDAR_DBUS_SERVICE_NAME="org.gnome.evolution.dataserver.Calendar4"
+SOURCES_DBUS_SERVICE_NAME="org.gnome.evolution.dataserver.Sources3"
+USER_PROMPTER_DBUS_SERVICE_NAME="org.gnome.evolution.dataserver.UserPrompter0"
 
 AC_DEFINE_UNQUOTED(
        ADDRESS_BOOK_DBUS_SERVICE_NAME,
@@ -73,41 +88,53 @@ AC_DEFINE_UNQUOTED(
        ["$CALENDAR_DBUS_SERVICE_NAME"],
        [D-Bus service name for the calendar factory])
 
+AC_DEFINE_UNQUOTED(
+	SOURCES_DBUS_SERVICE_NAME,
+	["$SOURCES_DBUS_SERVICE_NAME"],
+	[D-Bus service name for the source registry])
+
+AC_DEFINE_UNQUOTED(
+	USER_PROMPTER_DBUS_SERVICE_NAME,
+	["$USER_PROMPTER_DBUS_SERVICE_NAME"],
+	[D-Bus service name for the user prompter])
+
 AC_SUBST(ADDRESS_BOOK_DBUS_SERVICE_NAME)
 AC_SUBST(CALENDAR_DBUS_SERVICE_NAME)
+AC_SUBST(SOURCES_DBUS_SERVICE_NAME)
+AC_SUBST(USER_PROMPTER_DBUS_SERVICE_NAME)
 
 dnl ******************************
 dnl Libtool versioning
 dnl ******************************
-LIBEDATASERVER_CURRENT=16
+LIBEDATASERVER_CURRENT=18
 LIBEDATASERVER_REVISION=0
 LIBEDATASERVER_AGE=0
 
-LIBEDATASERVERUI_CURRENT=1
-LIBEDATASERVERUI_REVISION=0
-LIBEDATASERVERUI_AGE=0
+LIBECAL_CURRENT=16
+LIBECAL_REVISION=0
+LIBECAL_AGE=0
 
-LIBECAL_CURRENT=13
-LIBECAL_REVISION=2
-LIBECAL_AGE=2
-
-LIBEDATACAL_CURRENT=15
+LIBEDATACAL_CURRENT=23
 LIBEDATACAL_REVISION=0
 LIBEDATACAL_AGE=0
 
-LIBEDATABOOK_CURRENT=13
+LIBEDATABOOK_CURRENT=20
 LIBEDATABOOK_REVISION=0
 LIBEDATABOOK_AGE=0
 
-LIBEBOOK_CURRENT=16
+LIBEBOOK_CURRENT=17
 LIBEBOOK_REVISION=1
 LIBEBOOK_AGE=3
 
-LIBCAMEL_CURRENT=33
+LIBEBOOK_CONTACTS_CURRENT=0
+LIBEBOOK_CONTACTS_REVISION=0
+LIBEBOOK_CONTACTS_AGE=0
+
+LIBCAMEL_CURRENT=49
 LIBCAMEL_REVISION=0
 LIBCAMEL_AGE=0
 
-LIBEBACKEND_CURRENT=2
+LIBEBACKEND_CURRENT=7
 LIBEBACKEND_REVISION=0
 LIBEBACKEND_AGE=0
 
@@ -117,9 +144,6 @@ AC_SUBST(EDS_MICRO_VERSION)
 AC_SUBST(LIBEDATASERVER_CURRENT)
 AC_SUBST(LIBEDATASERVER_REVISION)
 AC_SUBST(LIBEDATASERVER_AGE)
-AC_SUBST(LIBEDATASERVERUI_CURRENT)
-AC_SUBST(LIBEDATASERVERUI_REVISION)
-AC_SUBST(LIBEDATASERVERUI_AGE)
 AC_SUBST(LIBECAL_CURRENT)
 AC_SUBST(LIBECAL_REVISION)
 AC_SUBST(LIBECAL_AGE)
@@ -129,6 +153,9 @@ AC_SUBST(LIBEDATACAL_AGE)
 AC_SUBST(LIBEBOOK_CURRENT)
 AC_SUBST(LIBEBOOK_REVISION)
 AC_SUBST(LIBEBOOK_AGE)
+AC_SUBST(LIBEBOOK_CONTACTS_CURRENT)
+AC_SUBST(LIBEBOOK_CONTACTS_REVISION)
+AC_SUBST(LIBEBOOK_CONTACTS_AGE)
 AC_SUBST(LIBEDATABOOK_CURRENT)
 AC_SUBST(LIBEDATABOOK_REVISION)
 AC_SUBST(LIBEDATABOOK_AGE)
@@ -144,27 +171,36 @@ dnl Put the ACLOCAL flags in the Makefile
 dnl **************************************
 ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
+dnl *********************************************
+dnl Figure out early if we'll need a C++ compiler
+dnl *********************************************
+
+EVO_PHONENUMBER_ARGS
+
 dnl ******************************
 dnl Compiler Warning Flags
 dnl ******************************
-AS_COMPILER_FLAGS(WARNING_FLAGS,
-	"-Wall -Wextra
-	-Wno-missing-field-initializers
-	-Wno-sign-compare
-	-Wno-unused-parameter
-	-Wno-deprecated-declarations
-	-Wdeclaration-after-statement
+proposed_warning_flags="-Wall -Wextra
+	-Wdeprecated-declarations
 	-Werror-implicit-function-declaration
 	-Wformat-security -Winit-self
 	-Wmissing-declarations -Wmissing-include-dirs
-	-Wmissing-noreturn -Wnested-externs -Wpointer-arith
-	-Wredundant-decls -Wundef -Wwrite-strings")
+	-Wmissing-noreturn -Wpointer-arith
+	-Wredundant-decls -Wundef -Wwrite-strings"
+
+proposed_c_warning_flags="$proposed_warning_flags
+	-Wdeclaration-after-statement
+	-Wno-missing-field-initializers
+	-Wno-sign-compare
+	-Wno-unused-parameter
+	-Wnested-externs"
+
+proposed_cxx_warning_flags="$proposed_warning_flags
+	-Wabi -Wnoexcept"
+
+AS_COMPILER_FLAGS(WARNING_FLAGS, [$proposed_c_warning_flags])
 AC_SUBST(WARNING_FLAGS)
 
-dnl	More depracation from EBook/ECal:
-dnl	-DE_BOOK_DISABLE_DEPRECATED
-dnl	-DE_CAL_DISABLE_DEPRECATED
-dnl
 dnl Other useful compiler warnings for test builds only.
 dnl These may produce warnings we have no control over,
 dnl or false positives we don't always want to see.
@@ -174,28 +210,39 @@ dnl	-Wmissing-format-attribute
 dnl	-Wshadow
 dnl	-Wstrict-aliasing=2
 
-AM_CPPFLAGS="$WARNING_FLAGS -fno-strict-aliasing"
+AM_CFLAGS="$WARNING_FLAGS -fno-strict-aliasing"
+AC_SUBST(AM_CFLAGS)
+
+dnl C++ Compiler flags, needed for ICU C++ access and libphonenumber usage
+AC_PROG_CXX
+
+AC_LANG_PUSH([C++])
+AS_COMPILER_FLAGS(CXX_WARNING_FLAGS, [$proposed_cxx_warning_flags])
+AC_SUBST(CXX_WARNING_FLAGS)
+AM_CXXFLAGS="$CXX_WARNING_FLAGS"
+AC_SUBST(AM_CXXFLAGS)
+AC_LANG_POP([C++])
+
+dnl Permits linking of C++ based libraries using the C linker if needed.
+AC_SUBST([predeps_CXX])
+AC_SUBST([postdeps_CXX])
+
+AM_CPPFLAGS=
+
+dnl Warn about API usage that violates our minimum requirements.
+AM_CPPFLAGS="$AM_CPPFLAGS -DGLIB_VERSION_MAX_ALLOWED=glib_encoded_version"
+AM_CPPFLAGS="$AM_CPPFLAGS -DGDK_VERSION_MAX_ALLOWED=gdk_encoded_version"
+AM_CPPFLAGS="$AM_CPPFLAGS -DSOUP_VERSION_MAX_ALLOWED=soup_encoded_version"
+
+dnl These will suppress warnings about newly-deprecated symbols.  Ideally
+dnl these settings should match our minimum requirements and we will clean
+dnl up any new deprecation warnings after bumping our minimum requirements.
+dnl But if the warnings get to be overwhelming, use fixed versions instead.
+AM_CPPFLAGS="$AM_CPPFLAGS -DGLIB_VERSION_MIN_REQUIRED=glib_encoded_version"
+AM_CPPFLAGS="$AM_CPPFLAGS -DGDK_VERSION_MIN_REQUIRED=gdk_encoded_version"
+AM_CPPFLAGS="$AM_CPPFLAGS -DSOUP_VERSION_MIN_REQUIRED=soup_encoded_version"
+
 AC_SUBST(AM_CPPFLAGS)
-
-
-dnl define disable deprecated for EBook and ECal .am files
-case "$WARNING_FLAGS" in
-*E_BOOK_DISABLE_DEPRECATED*)
-	AM_CONDITIONAL(HAVE_E_BOOK_DISABLE_DEPRECATED, [ test 1 == 1 ])
-	;;
-*)
-	AM_CONDITIONAL(HAVE_E_BOOK_DISABLE_DEPRECATED, [ test 0 == 1 ])
-	;;
-esac
-
-case "$WARNING_FLAGS" in
-*E_CAL_DISABLE_DEPRECATED*)
-	AM_CONDITIONAL(HAVE_E_CAL_DISABLE_DEPRECATED, [ test 1 == 1 ])
-	;;
-*)
-	AM_CONDITIONAL(HAVE_E_CAL_DISABLE_DEPRECATED, [ test 0 == 1 ])
-	;;
-esac
 
 dnl ******************************
 dnl Initialize maintainer mode
@@ -213,13 +260,9 @@ AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AM_PROG_LEX
-AC_PROG_YACC
-case $YACC in
-*yacc*)
-	AC_MSG_ERROR([You need bison to build evolution-data-server])
-	;;
-esac
+
+dnl For gen-western-table.py
+AM_PATH_PYTHON
 
 dnl GCC 4.4 got more aggressive in its aliasing optimizations, changing
 dnl behavior that -- according to the C99 standard -- is supposed to be
@@ -233,31 +276,13 @@ if test "x${GCC}" = "xyes"; then
 fi
 
 dnl ******************************
-dnl Test whether jw is installed
-dnl ******************************
-AC_PATH_PROG(JW,jw,no)
-if test "x$JW" = "xno"; then
-	HAVE_JW="no"
-else
-	HAVE_JW="yes"
-fi
-AM_CONDITIONAL(HAVE_JW, test "x$HAVE_JW" = "xyes")
-AC_SUBST(HAVE_JW)
-
-dnl ******************************
 dnl I18N stuff
 dnl ******************************
 IT_PROG_INTLTOOL([0.35.5])
 
-AM_GNU_GETTEXT_VERSION([0.17])
-AM_GNU_GETTEXT([external])
-
 GETTEXT_PACKAGE=evolution-data-server-$BASE_VERSION
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Package name for gettext])
-
-localedir='$(prefix)/$(DATADIRNAME)/locale'
-AC_SUBST(localedir)
 
 dnl ******************************
 dnl Initialize libtool
@@ -267,10 +292,25 @@ LT_INIT(disable-static win32-dll)
 
 PKG_PROG_PKG_CONFIG
 
+dnl This relies on $SED, which is defined in ltmain.sh, which
+dnl is invoked by LT_INIT (at least I think that's how it works).
+GNOME_CODE_COVERAGE
+
+dnl Add the option install unit tests
+EDS_INSTALLED_TESTS
+
 dnl ******************************
 dnl Gtk Doc stuff
 dnl ******************************
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
+
+dnl The private D-Bus documentation is for developers only.
+AC_ARG_WITH([private-docs],
+	AS_HELP_STRING([--with-private-docs],
+	[Build documentation for private libraries ]
+	[(requires --enable-gtk-doc) [default=no]],),
+	[with_private_docs="$withval"],[with_private_docs="no"])
+AM_CONDITIONAL(WITH_PRIVATE_DOCS, [test x$with_private_docs = xyes])
 
 dnl This must appear after AC_CANONICAL_HOST, which defines $host.
 case "$host" in
@@ -294,7 +334,6 @@ case "$host" in
 	DL_LIB=''
 	LIBEXECDIR_IN_SERVER_FILE='../../../libexec'
 	AC_CACHE_VAL(ac_cv_have_addrinfo, [ac_cv_have_addrinfo=yes])
-	AC_DEFINE(_WIN32_WINNT, 0x501, [To get getaddrinfo etc declarations])
 	;;
 *openbsd*|*freebsd*)
 	os_win32='no'
@@ -338,24 +377,110 @@ dnl ***********************************
 PKG_CHECK_MODULES(GNOME_PLATFORM,
 	[gio-2.0 >= glib_minimum_version
 	gmodule-2.0 >= glib_minimum_version
-	gtk+-3.0 >= gtk_minimum_version
-	gconf-2.0 >= gconf_minimum_version
 	libxml-2.0 >= libxml_minimum_version
-	libsoup-2.4 >= libsoup_minimum_version
-	libgdata >= libgdata_minimum_version])
+	libsoup-2.4 >= soup_minimum_version])
 
 if test x$os_win32 = xno; then
 	PKG_CHECK_MODULES(GIO_UNIX, [gio-unix-2.0])
+else
+	PKG_CHECK_MODULES(GIO_UNIX, [gio-windows-2.0])
 fi
 
 dnl ******************************
-dnl DBus-glib stuff, to initialize thread for GConf, which is using it
-dnl this is returned back only temporarily and wil lbe removed as soon
-dnl as eds will stop using GConf completely
+dnl Check for libphonenumber
 dnl ******************************
-PKG_CHECK_MODULES(DBUS_GLIB, dbus-glib-1 >= 0.6)
-AC_SUBST(DBUS_GLIB_CFLAGS)
-AC_SUBST(DBUS_GLIB_LIBS)
+
+EVO_PHONENUMBER_SUPPORT
+
+dnl *******************
+dnl Check for ICU
+dnl *******************
+dnl
+dnl ICU recently started shipping pkg-config files but it's
+dnl not present on many systems, if we don't find the pkg-config
+dnl file then let's fallback on a manual check
+enable_icu=no
+PKG_CHECK_MODULES(ICU, icu-i18n, enable_icu=yes, [
+        enable_icu=yes
+	AC_CHECK_HEADERS(unicode/ucol.h,, enable_icu=no)
+	AC_MSG_CHECKING([for libicui18n])
+	LIBS_old=$LIBS
+	LIBS="$LIBS -licui18n -licuuc -licudata"
+	AC_TRY_LINK([#include <unicode/ucol.h>],
+		[ucol_open ("", NULL);],
+        	AC_MSG_RESULT(yes),
+        	AC_MSG_RESULT(no); enable_icu=no)
+	LIBS=$LIBS_old
+	if [test x$enable_icu = xyes]; then
+		ICU_CFLAGS=-D_REENTRANT
+		ICU_LIBS="-licui18n -licuuc -licudata"
+		AC_SUBST(ICU_CFLAGS)
+		AC_SUBST(ICU_LIBS)
+	else
+		AC_MSG_ERROR([ICU libs not found, icu-i18n is required.])
+	fi
+])
+
+dnl *************************
+dnl Check for GTK+
+dnl *************************
+AC_ARG_ENABLE([gtk],
+	[AS_HELP_STRING([--enable-gtk],
+	[enable GTK+ (default=yes)])],
+	[enable_gtk=$enableval], [enable_gtk=yes])
+AC_MSG_CHECKING([if GTK+ support is enabled])
+AC_MSG_RESULT([$enable_gtk])
+if test "x$enable_gtk" = xyes; then
+	PKG_CHECK_MODULES(
+		[GTK], [gtk+-3.0 >= gdk_minimum_version],,
+		[AC_MSG_ERROR([
+
+	gtk+-3.0 not found (or version < gdk_minimum_version)
+
+	If you want to disable GTK+ support,
+	please append --disable-gtk to configure.
+
+	])])
+
+	PKG_CHECK_MODULES(
+		[GCR], [gcr-3 >= gcr_minimum_version],,
+		[AC_MSG_ERROR([
+
+	gcr-3.0 not found (or version < gcr_minimum_version)
+
+	If you want to disable gcr-3.0's GTK+ widgets,
+	please append --disable-gtk to configure.
+
+	])])
+
+	AC_DEFINE(HAVE_GTK, 1, [Define to 1 if you have the gtk+-3.0 package.])
+fi
+AM_CONDITIONAL(HAVE_GTK, [test x$enable_gtk = xyes])
+
+
+dnl ******************************************
+dnl Check whether to build examples/demos
+dnl ******************************************
+AC_ARG_ENABLE([examples],
+	[AS_HELP_STRING([--enable-examples],
+	[enable the building examples (default=yes)])],
+	[enable_examples=$enableval], [enable_examples=yes])
+AC_MSG_CHECKING([if examples should be built])
+AC_MSG_RESULT([$enable_examples])
+if test "x$enable_examples" = xyes; then
+	PKG_CHECK_MODULES([EXAMPLES],
+		[gtk+-3.0 >= 3.10 glib-2.0 >= 2.38],,
+	[AC_MSG_ERROR([
+	Some packages were not available to build the example program(s).
+
+	If you want to disable examples, please
+	append --disable-examples to configure.
+	])])
+
+	AC_DEFINE(BUILD_EXAMPLES, 1, [Define to 1 if the examples should be built.])
+fi
+AM_CONDITIONAL(BUILD_EXAMPLES, [test x$enable_examples = xyes])
+
 
 dnl *******************************
 dnl Check for GNOME Online Accounts
@@ -367,35 +492,97 @@ AC_ARG_ENABLE([goa],
 AC_MSG_CHECKING([if GNOME Online Accounts support is enabled])
 AC_MSG_RESULT([$enable_goa])
 if test "x$enable_goa" = xyes; then
-	PKG_CHECK_MODULES([GOA], [goa-1.0 >= goa_minimum_version],,
-	[AC_MSG_ERROR([goa-1.0 not found (or version < goa_minimum_version),
-	If you want to disable GNOME Online Accounts support,
-	please append --disable-goa to configure.])])
+	PKG_CHECK_MODULES(
+		[GOA], [goa-1.0 >= goa_minimum_version],,
+		[AC_MSG_ERROR([
 
-	PKG_CHECK_MODULES([OAUTH], [oauth >= oauth_minimum_version],,
-	[AC_MSG_ERROR([oauth not found (or version < oauth_minimum_version),
-	If you want to disable GNOME Online Accounts support,
-	please append --disable-goa to configure.])])
+	goa-1.0 not found (or version < goa_minimum_version)
 
-	if `$PKG_CONFIG --atleast-version=0.9.1 libgdata`; then
-		AC_DEFINE(HAVE_GOA,1,[Have goa-1.0 and libgdata >= 0.9.1])
-	else
-		AC_MSG_ERROR([
-	libgdata >= 0.9.1 is required for GNOME Online Accounts support.
-	If you want to disable GNOME Online Accounts support, please
-	append --disable-goa to configure.])
-	fi
+	If you want to disable GNOME Online Accounts support,
+	please append --disable-goa to configure.
+
+	])])
+
+	AC_DEFINE(HAVE_GOA, 1, [Define to 1 if you have the goa-1.0 package.])
 fi
 AM_CONDITIONAL(HAVE_GOA, [test x$enable_goa = xyes])
 
-if test x$os_win32 = xno; then
-  dnl ***********************************
-  dnl Check for GNOME Keyring.
-  dnl ***********************************
-  PKG_CHECK_MODULES(GNOME_KEYRING,
-	[gnome-keyring-1 >= gnome_keyring_minimum_version])
-fi
+dnl ********************************
+dnl Check for Ubuntu Online Accounts
+dnl ********************************
+AC_ARG_ENABLE([uoa],
+	[AS_HELP_STRING([--enable-uoa],
+	[enable Ubuntu Online Accounts support (default=yes)])],
+	[enable_uoa=$enableval], [enable_uoa=yes])
+AC_MSG_CHECKING([if Ubuntu Online Accounts support is enabled])
+AC_MSG_RESULT([$enable_uoa])
+if test "x$enable_uoa" = xyes; then
+	PKG_CHECK_MODULES(
+		[LIBACCOUNTS_GLIB],
+		[libaccounts-glib >= libaccounts_glib_minimum_version],,
+		[AC_MSG_ERROR([
 
+	libaccounts-glib not found (or version < libaccounts_glib_minimum_version)
+
+	If you want to disable Ubuntu Online Accounts support,
+	please append --disable-uoa to configure.
+
+	])])
+
+	PKG_CHECK_MODULES(
+		[LIBSIGNON_GLIB],
+		[libsignon-glib >= libsignon_glib_minimum_version],,
+		[AC_MSG_ERROR([
+
+	libsignon-glib not found (or version < libsignon_glib_minimum_version)
+
+	If you want to disable Ubuntu Online Accounts support,
+	please append --disable-uoa to configure.
+
+	])])
+
+	PKG_CHECK_MODULES(
+		[JSON_GLIB], [json-glib-1.0],,
+		[AC_MSG_ERROR([
+
+	json-glib-1.0 not found
+
+	If you want to disable Ubuntu Online Accounts support,
+	please append --disable-uoa to configure.
+
+	])])
+
+	PKG_CHECK_MODULES(
+		[REST], [rest-0.7],,
+		[AC_MSG_ERROR([
+
+	librest-0.7 not found
+
+	If you want to disable Ubuntu Online Accounts support,
+	please append --disable-uoa to configure.
+
+	])])
+
+	AC_DEFINE(HAVE_UOA, 1, [Have libaccounts-glib])
+fi
+AM_CONDITIONAL(HAVE_UOA, [test x$enable_uoa = xyes])
+
+dnl ***********************************
+dnl Check for GNOME Keyring.
+dnl ***********************************
+if test x$os_win32 = xno; then
+	PKG_CHECK_MODULES(LIBSECRET,
+		[libsecret-unstable >= libsecret_minimum_version])
+fi
+AC_SUBST(LIBSECRET_CFLAGS)
+AC_SUBST(LIBSECRET_LIBS)
+
+dnl **********************************************************
+dnl gcr-base is needed for secure password exchange over D-Bus
+dnl **********************************************************
+PKG_CHECK_MODULES(GCR_BASE, [gcr-base-3 >= gcr_minimum_version])
+AC_SUBST(GCR_BASE_CFLAGS)
+AC_SUBST(GCR_BASE_LIBS)
 
 LIBICAL_REQUIRED=libical_minimum_version
 AC_SUBST(LIBICAL_REQUIRED)
@@ -415,23 +602,49 @@ dnl ******************************
 AC_ARG_WITH([libdb],
 	AS_HELP_STRING([--with-libdb=PREFIX],
 	[Prefix where libdb is installed]),
-	[libdb_prefix="$withval"], [libdb_prefix='${prefix}'])
+	[with_libdb=$withval],[with_libdb=yes])
 
-DB_CFLAGS="-I$libdb_prefix/include"
-DB_LIBS="-L$libdb_prefix/lib -ldb"
+if test "x$with_libdb" != "xno" ; then
+	if test "x$with_libdb" != "xyes" ; then
+		DB_CFLAGS="-I$with_libdb/include"
+		DB_LIBS="-L$with_libdb/lib -ldb"
+	else
+		if test -z "$DB_CFLAGS" -a -z "$DB_LIBS"; then
+			DB_CFLAGS=""
+			DB_LIBS="-ldb"
+		fi
+	fi
 
-AC_MSG_CHECKING([Berkeley DB])
-save_cflags=$CFLAGS; CFLAGS=$DB_CFLAGS
-save_libs=$LIBS; LIBS="$DB_LIBS"
-AC_LINK_IFELSE([AC_LANG_PROGRAM(
-	[[#include <db.h>]],
-	[[db_create(NULL, NULL, 0)]])],
-	[AC_MSG_RESULT([yes])],
-	[AC_MSG_ERROR([Cannot find libdb])])
-CFLAGS=$save_cflags
-LIBS=$save_libs
-AC_SUBST(DB_CFLAGS)
-AC_SUBST(DB_LIBS)
+	AC_MSG_CHECKING([Berkeley DB])
+	save_cflags=$CFLAGS; CFLAGS=$DB_CFLAGS
+	save_libs=$LIBS; LIBS="$DB_LIBS"
+	AC_LINK_IFELSE([AC_LANG_PROGRAM(
+		[[#include <db.h>]],
+		[[db_create(NULL, NULL, 0)]])],
+		[AC_MSG_RESULT([yes])],
+		[AC_MSG_ERROR([Cannot find libdb])])
+	CFLAGS=$save_cflags
+	LIBS=$save_libs
+	AC_SUBST(DB_CFLAGS)
+	AC_SUBST(DB_LIBS)
+
+	AC_DEFINE(HAVE_LIBDB, 1, [Have libdb])
+fi
+AM_CONDITIONAL(HAVE_LIBDB, [test x$with_libdb != xno])
+
+
+dnl ******************************
+dnl db_load checking
+dnl ******************************
+have_db_load=no
+AC_PATH_PROG(DB_LOAD, [db_load])
+if test -z "$DB_LOAD"; then
+   AC_MSG_WARN([db_load not found, some unit tests will not be run.])
+else
+   have_db_load=yes
+fi
+
+AM_CONDITIONAL(HAVE_DB_LOAD, test x"$have_db_load" = "xyes")
 
 dnl ******************************
 dnl iconv checking
@@ -546,7 +759,7 @@ LIBS="$save_LIBS"
 
 AC_ARG_ENABLE([backtraces],
 	[AS_HELP_STRING([--enable-backtraces],
-	[enable backtraces for e_pointer_tracker (default=no)])],
+	[enable backtraces for camel_pointer_tracker (default=no)])],
 	[enable_backtraces=$enableval], [enable_backtraces=no])
 
 if test "x$enable_backtraces" = xyes; then
@@ -596,18 +809,11 @@ if test "x$enable_backtraces" = xyes; then
 	fi
 fi
 
-dnl **********************************
-dnl Check for nl_langinfo and CODESET
-dnl **********************************
-AC_MSG_CHECKING([for nl_langinfo (CODESET)])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-	[[#include <langinfo.h>]],
-	[[char *codeset = nl_langinfo (CODESET);]]
-	)],[ac_cv_langinfo_codeset=yes],[ac_cv_langinfo_codeset=no])
-if test "x$ac_cv_langinfo_codeset" = "xyes"; then
-	AC_DEFINE(HAVE_CODESET, 1, [Have nl_langinfo (CODESET)])
-fi
-AC_MSG_RESULT([$ac_cv_langinfo_codeset])
+dnl ******************************
+dnl Check for nl_langinfo features
+dnl ******************************
+EVO_CHECK_LANGINFO([CODESET])
+EVO_CHECK_LANGINFO([_NL_ADDRESS_COUNTRY_AB2])
 
 dnl *******************************************************
 dnl Check to see if strftime supports the use of %l and %k
@@ -1089,25 +1295,18 @@ AC_ARG_ENABLE([weather],
 
 AC_MSG_RESULT([$use_gweather])
 if test "x$use_gweather" = "xyes"; then
-	PKG_CHECK_MODULES([LIBGWEATHER], [gweather-3.0 >= gweather_minimum_version],[],
-	[AC_MSG_ERROR([The weather calendar backend requires GWeather >= gweather_minimum_version. Alternatively, you may specify --disable-weather as a configure option to avoid building the backend.])])
+	PKG_CHECK_MODULES(
+		[LIBGWEATHER], [gweather-3.0 >= gweather_minimum_version],[],
+		[AC_MSG_ERROR([
+
+	gweather-3.0 not found (or version < gweather_minimum_version)
+
+	If you want to disable weather calendar support,
+	please append --disable-weather to configure.
+
+	])])
 fi
 AM_CONDITIONAL(ENABLE_WEATHER, [test $use_gweather = yes])
-
-dnl ******************************
-dnl NNTP support.
-dnl ******************************
-AC_ARG_ENABLE([nntp],
-	AS_HELP_STRING([--enable-nntp],
-	[Build Usenet news (NNTP) backend]),
-	[enable_nntp=$enableval],[enable_nntp=yes])
-if test "x$enable_nntp" = "xyes"; then
-	AC_DEFINE(ENABLE_NNTP,1,[Build NNTP backend])
-	msg_nntp="yes"
-else
-	msg_nntp="no"
-fi
-AM_CONDITIONAL(ENABLE_NNTP, [test x$enable_nntp = xyes])
 
 AC_DEFINE(HANDLE_LIBICAL_MEMORY, 1, [Define it once memory returned by libical is free'ed properly])
 
@@ -1162,18 +1361,6 @@ fi
 
 AC_MSG_RESULT([$with_broken_spool])
 
-dnl ******************************
-dnl DBus call timeout
-dnl ******************************
-
-AC_ARG_WITH([dbus-call-timeout],
-	AS_HELP_STRING([--with-dbus-call-timeout=miliseconds],
-	[Default timeout used when invoking g_dbus_proxy_call() family functions in EBook and ECal library (default=-1)]),
-	[ac_cv_dbus_call_timeout=$withval],[ac_cv_dbus_call_timeout=-1])
-
-DEFAULT_EDS_DBUS_TIMEOUT=$ac_cv_dbus_call_timeout
-AC_SUBST(DEFAULT_EDS_DBUS_TIMEOUT)
-
 dnl ***********
 dnl Kerberos 5
 dnl ***********
@@ -1187,66 +1374,45 @@ EVO_PURIFY_SUPPORT
 dnl ******************************
 dnl LDAP support.
 dnl ******************************
-if test "x$os_win32" != "xyes"; then
-	EVO_LDAP_CHECK(no)
-	case $with_openldap in
-	no)
-		msg_ldap="no"
-	;;
+EVO_LDAP_CHECK(no)
+case $with_openldap in
+no)
+	msg_ldap="no"
+;;
+*)
+	case $with_static_ldap in
+	yes)
+		msg_ldap="$with_openldap (static)"
+		;;
 	*)
-		case $with_static_ldap in
-		yes)
-			msg_ldap="$with_openldap (static)"
-			;;
-		*)
-			msg_ldap="$with_openldap (dynamic)"
-			;;
-		esac
+		msg_ldap="$with_openldap (dynamic)"
+		;;
 	esac
+esac
 
 dnl SunLDAP support, but if OpenLDAP support, skip check SunLDAP.
-	if test "x$with_openldap" = "xno" ; then
-		EVO_SUNLDAP_CHECK(no)
-		case $with_sunldap in
-		no)
-			msg_ldap="no"
+if test "x$with_openldap" = "xno" ; then
+	EVO_SUNLDAP_CHECK(no)
+	case $with_sunldap in
+	no)
+		msg_ldap="no"
+		;;
+	*)
+		case $with_static_sunldap in
+		yes)
+			msg_ldap="$with_sunldap (static)"
 			;;
 		*)
-			case $with_static_sunldap in
-			yes)
-				msg_ldap="$with_sunldap (static)"
-				;;
-			*)
-				msg_ldap="$with_sunldap (dynamic)"
-				;;
-		esac
+			msg_ldap="$with_sunldap (dynamic)"
+			;;
 	esac
-	else
-		with_sunldap="no"
-	fi
-	AM_CONDITIONAL(SUNLDAP, [test "$with_sunldap" != no])
-
-	LDAP_CFLAGS="$LDAP_CFLAGS -DLDAP_DEPRECATED"
+esac
 else
-	dnl Win32 LDAP support
-	LDAP_CFLAGS="-DLDAP_DEPRECATED"
-	LDAP_LIBS="-lwldap32"
-	AC_SUBST(LDAP_CFLAGS)
-	AC_SUBST(LDAP_LIBS)
-	AC_DEFINE(HAVE_LDAP,1,[Define if you have LDAP support])
-	AM_CONDITIONAL(ENABLE_LDAP, true)
-	AM_CONDITIONAL(SUNLDAP, false)
-	msg_ldap="yes"
+	with_sunldap="no"
 fi
+AM_CONDITIONAL(SUNLDAP, [test "$with_sunldap" != no])
 
-dnl ******************************
-dnl GObject marshalling
-dnl ******************************
-AM_PATH_GLIB_2_0
-
-dnl We use AC_SUBST_FILE because AC_SUBST won't deal with newlines
-EVO_MARSHAL_RULE=$srcdir/marshal.mk
-AC_SUBST_FILE(EVO_MARSHAL_RULE)
+LDAP_CFLAGS="$LDAP_CFLAGS -DLDAP_DEPRECATED"
 
 dnl ******************************
 dnl Utility macro to set compiler flags for a specific lib.
@@ -1263,36 +1429,26 @@ dnl sqlite3 flags
 dnl ******************************
 PKG_CHECK_MODULES(SQLITE3, [sqlite3 >= sqlite_minimum_version])
 
+if test "x$enable_maintainer_mode" = "xyes" ; then
+	EVO_SET_COMPILE_FLAGS(FACTORY_GTK, "gtk+-3.0")
+	AC_SUBST(FACTORY_GTK_CFLAGS)
+	AC_SUBST(FACTORY_GTK_LIBS)
+fi
+
 dnl ******************************
 dnl libedataserver flags
 dnl ******************************
-E_DATA_SERVER_DEPS="gio-2.0 gmodule-2.0 libxml-2.0 libsoup-2.4 gconf-2.0 $mozilla_nspr"
+E_DATA_SERVER_DEPS="gio-2.0 gmodule-2.0 libsecret-1 libxml-2.0 libsoup-2.4 $mozilla_nspr"
 
 EVO_SET_COMPILE_FLAGS(E_DATA_SERVER, $E_DATA_SERVER_DEPS, $MANUAL_NSPR_CFLAGS, $MANUAL_NSPR_LIBS)
 AC_SUBST(E_DATA_SERVER_CFLAGS)
 AC_SUBST(E_DATA_SERVER_LIBS)
 
 dnl ******************************
-dnl libedataserverui
-dnl ******************************
-E_DATA_SERVER_UI_DEPS="gtk+-3.0 libxml-2.0 gconf-2.0"
-
-EVO_SET_COMPILE_FLAGS(E_DATA_SERVER_UI, $E_DATA_SERVER_UI_DEPS, , )
-AC_SUBST(E_DATA_SERVER_UI_CFLAGS)
-AC_SUBST(E_DATA_SERVER_UI_LIBS)
-
-if test "x$enable_maintainer_mode" = "xyes" ; then
-	FACTORY_GTK_CFLAGS=$E_DATA_SERVER_UI_CFLAGS
-	FACTORY_GTK_LIBS=$E_DATA_SERVER_UI_LIBS
-	AC_SUBST(FACTORY_GTK_CFLAGS)
-	AC_SUBST(FACTORY_GTK_LIBS)
-fi
-
-E_BACKEND_DEPS="gio-2.0 gmodule-2.0 libxml-2.0 gconf-2.0"
-
-dnl ******************************
 dnl libebackend flags
 dnl ******************************
+E_BACKEND_DEPS="gio-2.0 gmodule-2.0 libsecret-1 libsoup-2.4 libxml-2.0"
+
 EVO_SET_COMPILE_FLAGS(E_BACKEND, $E_BACKEND_DEPS)
 AC_SUBST(E_BACKEND_CFLAGS)
 AC_SUBST(E_BACKEND_LIBS)
@@ -1300,7 +1456,7 @@ AC_SUBST(E_BACKEND_LIBS)
 dnl ******************************
 dnl evolution-addressbook flags
 dnl ******************************
-EVOLUTION_ADDRESSBOOK_DEPS="gio-2.0 libxml-2.0 gconf-2.0"
+EVOLUTION_ADDRESSBOOK_DEPS="gio-2.0 libxml-2.0 libsoup-2.4 libsecret-1"
 
 EVO_SET_COMPILE_FLAGS(EVOLUTION_ADDRESSBOOK, $EVOLUTION_ADDRESSBOOK_DEPS)
 AC_SUBST(EVOLUTION_ADDRESSBOOK_CFLAGS)
@@ -1309,7 +1465,7 @@ AC_SUBST(EVOLUTION_ADDRESSBOOK_LIBS)
 dnl ******************************
 dnl evolution-calendar flags
 dnl ******************************
-EVOLUTION_CALENDAR_DEPS="gio-2.0 libical >= libical_minimum_version libxml-2.0 gconf-2.0"
+EVOLUTION_CALENDAR_DEPS="gio-2.0 libical >= libical_minimum_version libsoup-2.4 libxml-2.0 libsecret-1"
 
 dnl *****
 dnl libical.pc from libical-0.43 has a bug in it's CFlags.
@@ -1344,18 +1500,28 @@ dnl *****
 dnl ******************************
 dnl Google flags
 dnl ******************************
+have_gdata_0_15_1=no
 LIBGDATA_REQUIRED=libgdata_minimum_version
 AC_SUBST(LIBGDATA_REQUIRED)
+AC_ARG_ENABLE([google],
+	[AS_HELP_STRING([--enable-google],
+	[enable Google Contacts support (default=yes)])],
+	[enable_google=$enableval], [enable_google=yes])
+AC_MSG_CHECKING([if Google Contacts support is enabled])
+AC_MSG_RESULT([$enable_google])
+if test "x$enable_google" = xyes; then
+	EVO_SET_COMPILE_FLAGS(GDATA, libgdata >= libgdata_minimum_version)
+	AC_SUBST(GDATA_CFLAGS)
+	AC_SUBST(GDATA_LIBS)
 
-EVO_SET_COMPILE_FLAGS(GDATA, libgdata)
-AC_SUBST(GDATA_CFLAGS)
-AC_SUBST(GDATA_LIBS)
+	AC_DEFINE(HAVE_GOOGLE, 1, [Define to 1 if you have the google-1.0 package.])
 
-dnl ******************************
-dnl Groupwise flags
-dnl ******************************
-LIBSOUP_REQUIRED=libsoup_minimum_version
-AC_SUBST(LIBSOUP_REQUIRED)
+	if `$PKG_CONFIG --atleast-version=0.15.1 libgdata`; then
+		have_gdata_0_15_1=yes
+	fi
+fi
+AM_CONDITIONAL(HAVE_GOOGLE, [test x$enable_google = xyes])
+AM_CONDITIONAL(HAVE_GDATA_0_15_1, [test x$have_gdata_0_15_1 = xyes])
 
 EVO_SET_COMPILE_FLAGS(SOUP, libsoup-2.4)
 AC_SUBST(SOUP_CFLAGS)
@@ -1380,7 +1546,7 @@ dnl Checks for large file support
 dnl ******************************
 AC_ARG_ENABLE([largefile],
 	AS_HELP_STRING([--enable-largefile],
-	[enable support for large files [[default=no]]]),
+	[enable support for large files [[default=yes]]]),
 	[],[enable_largefile="yes"])
 
 if test "x$enable_largefile" != "xno"; then
@@ -1428,7 +1594,7 @@ fi
 
 AM_CONDITIONAL(ENABLE_LARGEFILE, [test "x$enable_largefile" = "xyes"])
 
-EVO_SET_COMPILE_FLAGS(CAMEL, gio-2.0 gmodule-2.0 $mozilla_nss sqlite3 >= sqlite_minimum_version, $KRB5_CFLAGS $MANUAL_NSS_CFLAGS $LARGEFILE_CFLAGS, -lz $KRB5_LIBS $MANUAL_NSS_LIBS)
+EVO_SET_COMPILE_FLAGS(CAMEL, gio-2.0 gmodule-2.0 $mozilla_nss $mozilla_nspr sqlite3 >= sqlite_minimum_version, $KRB5_CFLAGS $MANUAL_NSS_CFLAGS $MANUAL_NSPR_CFLAGS $LARGEFILE_CFLAGS $ICU_CFLAGS, -lz $KRB5_LIBS $MANUAL_NSS_LIBS $MANUAL_NSPR_LIBS $ICU_LIBS)
 AC_SUBST(CAMEL_CFLAGS)
 AC_SUBST(CAMEL_LIBS)
 
@@ -1440,23 +1606,32 @@ dnl If you add something here, consider whether or not you also
 dnl need to add it to one or more .pc.in files (for Connector,
 dnl etc)
 
-privdatadir='${datadir}'/evolution-data-server-$BASE_VERSION
+privdatadir='${datadir}'/evolution-data-server
 AC_SUBST(privdatadir)
 
-privincludedir='${includedir}'/evolution-data-server-$BASE_VERSION
+privincludedir='${includedir}'/evolution-data-server
 AC_SUBST(privincludedir)
 
-privlibdir='${libdir}'/evolution-data-server-$BASE_VERSION
+privlibdir='${libdir}'/evolution-data-server
 AC_SUBST(privlibdir)
 
 imagesdir='${datadir}'/pixmaps/evolution-data-server
 AC_SUBST(imagesdir)
 
-ebook_backenddir='${libdir}'/evolution-data-server/addressbook-backends
+moduledir='${privlibdir}'/registry-modules
+AC_SUBST(moduledir)
+
+ebook_backenddir='${privlibdir}'/addressbook-backends
 AC_SUBST(ebook_backenddir)
 
-ecal_backenddir='${libdir}'/evolution-data-server/calendar-backends
+ecal_backenddir='${privlibdir}'/calendar-backends
 AC_SUBST(ecal_backenddir)
+
+ro_sourcesdir='${privdatadir}'/ro-sources
+AC_SUBST(ro_sourcesdir)
+
+rw_sourcesdir='${privdatadir}'/rw-sources
+AC_SUBST(rw_sourcesdir)
 
 if test "x$use_gweather" = "xyes"; then
 	weatherdatadir="$privdatadir/weather"
@@ -1464,21 +1639,21 @@ if test "x$use_gweather" = "xyes"; then
 fi
 
 dnl separate camel from e-d-s? or should it be under the same spot? same for now.
-camel_providerdir='${libdir}'/evolution-data-server/camel-providers
+camel_providerdir='${privlibdir}'/camel-providers
 AC_SUBST(camel_providerdir)
 
 dnl *******************
 dnl D-BUS service stuff
 dnl *******************
 m4_pattern_allow([AM_V_GEN])
-EVO_SUBST_SERVICE_RULE='%.service: %.service.in Makefile ; $(AM_V_GEN) sed -e "s|\@libexecdir\@|$(libexecdir)|" -e s"|\@ADDRESS_BOOK_DBUS_SERVICE_NAME\@|$(ADDRESS_BOOK_DBUS_SERVICE_NAME)|" -e "s|\@CALENDAR_DBUS_SERVICE_NAME\@|$(CALENDAR_DBUS_SERVICE_NAME)|" $< > $@'
+EVO_SUBST_SERVICE_RULE='%.service: %.service.in Makefile ; $(AM_V_GEN) sed -e "s|\@libexecdir\@|$(libexecdir)|" -e s"|\@ADDRESS_BOOK_DBUS_SERVICE_NAME\@|$(ADDRESS_BOOK_DBUS_SERVICE_NAME)|" -e "s|\@CALENDAR_DBUS_SERVICE_NAME\@|$(CALENDAR_DBUS_SERVICE_NAME)|" -e "s|\@SOURCES_DBUS_SERVICE_NAME\@|$(SOURCES_DBUS_SERVICE_NAME)|" -e "s|\@USER_PROMPTER_DBUS_SERVICE_NAME\@|$(USER_PROMPTER_DBUS_SERVICE_NAME)|" $< > $@'
 AC_SUBST(EVO_SUBST_SERVICE_RULE)
 
 dnl ******************************
-dnl GConf stuff
+dnl GLib stuff
 dnl ******************************
-AC_PATH_PROG(GCONFTOOL, gconftool-2, [no])
-AM_GCONF_SOURCE_2
+GLIB_GSETTINGS
+AM_PATH_GLIB_2_0
 
 dnl ******************************
 dnl gperf stuff
@@ -1532,19 +1707,20 @@ export privdatadir
 
 AC_CONFIG_FILES([
 Makefile
-evolution-data-server-zip
 evolution-data-server.pc
 addressbook/Makefile
 addressbook/libebook/Makefile
 addressbook/libebook/libebook.pc
+addressbook/libebook-contacts/Makefile
+addressbook/libebook-contacts/libebook-contacts.pc
 addressbook/libedata-book/Makefile
 addressbook/libedata-book/libedata-book.pc
 addressbook/libegdbus/Makefile
 addressbook/backends/Makefile
 addressbook/backends/file/Makefile
-addressbook/backends/vcf/Makefile
 addressbook/backends/ldap/Makefile
 addressbook/backends/google/Makefile
+addressbook/backends/google/tests/Makefile
 addressbook/backends/webdav/Makefile
 art/Makefile
 calendar/Makefile
@@ -1556,12 +1732,12 @@ calendar/libegdbus/Makefile
 calendar/backends/Makefile
 calendar/backends/caldav/Makefile
 calendar/backends/file/Makefile
+calendar/backends/gtasks/Makefile
 calendar/backends/http/Makefile
 calendar/backends/contacts/Makefile
 calendar/backends/weather/Makefile
 camel/Makefile
 camel/providers/Makefile
-camel/providers/imap/Makefile
 camel/providers/imapx/Makefile
 camel/providers/local/Makefile
 camel/providers/nntp/Makefile
@@ -1576,37 +1752,64 @@ camel/tests/mime-filter/Makefile
 camel/tests/misc/Makefile
 camel/tests/smime/Makefile
 camel/camel.pc
+data/Makefile
 libebackend/Makefile
 libebackend/libebackend.pc
 libedataserver/Makefile
 libedataserver/eds-version.h
 libedataserver/libedataserver.pc
-libedataserverui/Makefile
-libedataserverui/libedataserverui.pc
+modules/Makefile
+modules/cache-reaper/Makefile
+modules/gnome-online-accounts/Makefile
+modules/google-backend/Makefile
+modules/outlook-backend/Makefile
+modules/owncloud-backend/Makefile
+modules/secret-monitor/Makefile
+modules/ubuntu-online-accounts/Makefile
+modules/ubuntu-online-accounts/calendar.service-type.in
+modules/ubuntu-online-accounts/contacts.service-type.in
+modules/ubuntu-online-accounts/evolution-data-server.application.in
+modules/ubuntu-online-accounts/evolution-data-server-uoa.desktop.in
+modules/ubuntu-online-accounts/google-calendar.service.in
+modules/ubuntu-online-accounts/google-contacts.service.in
+modules/ubuntu-online-accounts/google-gmail.service.in
+modules/ubuntu-online-accounts/mail.service-type.in
+modules/ubuntu-online-accounts/windows-live-mail.service.in
+modules/ubuntu-online-accounts/yahoo-calendar.service.in
+modules/ubuntu-online-accounts/yahoo-mail.service.in
+modules/trust-prompt/Makefile
+modules/yahoo-backend/Makefile
+private/Makefile
 services/Makefile
 services/evolution-addressbook-factory/Makefile
 services/evolution-calendar-factory/Makefile
+services/evolution-source-registry/Makefile
+services/evolution-user-prompter/Makefile
 tests/Makefile
+tests/libedata-book/Makefile
 tests/libebook/Makefile
+tests/libebook-contacts/Makefile
 tests/libebook/client/Makefile
 tests/libebook/vcard/Makefile
+tests/book-migration/Makefile
+tests/book-migration/db/Makefile
 tests/libecal/Makefile
 tests/libecal/client/Makefile
 tests/libedata-cal/Makefile
 tests/libedataserver/Makefile
-tests/libedataserverui/Makefile
+tests/test-server-utils/Makefile
+tests/test-server-utils/services/Makefile
+tests/test-server-utils/services/org.gnome.evolution.dataserver.AddressBook.service
+tests/test-server-utils/services/org.gnome.evolution.dataserver.Calendar.service
+tests/test-server-utils/services/org.gnome.evolution.dataserver.Sources.service
+examples/Makefile
+examples/cursor/Makefile
 docs/Makefile
 docs/reference/Makefile
-docs/reference/addressbook/Makefile
-docs/reference/addressbook/libebook/Makefile
-docs/reference/addressbook/libedata-book/Makefile
-docs/reference/calendar/Makefile
-docs/reference/calendar/libecal/Makefile
-docs/reference/calendar/libedata-cal/Makefile
 docs/reference/camel/Makefile
-docs/reference/libedataserver/Makefile
-docs/reference/libedataserverui/Makefile
-docs/reference/libebackend/Makefile
+docs/reference/private/Makefile
+docs/reference/eds/Makefile
+docs/reference/eds/version.xml
 po/Makefile.in
 vala/Makefile
 ])
@@ -1617,10 +1820,10 @@ echo "
 	Weather calendar:	$use_gweather
 	Mail Directory:		$system_mail_dir, $system_mail_perm
 	LDAP support:		$msg_ldap
-	NNTP support:		$msg_nntp
 	Kerberos 5:		$msg_krb5
 	SMIME support:		$msg_smime
 	IPv6 support:		$msg_ipv6
+	Phone number support:	$msg_phonenumber
 	Dot Locking:		$msg_dot
 	File Locking:		$msg_file
 	Large files:		$enable_largefile
@@ -1628,4 +1831,11 @@ echo "
 	Introspection:		$enable_introspection
 	Vala bindings:		$enable_vala_bindings
 	GNOME Online Accounts	$enable_goa
+	Ubuntu Online Accounts	$enable_uoa
+	Google Contacts		$enable_google
+	Google Tasks		$have_gdata_0_15_1
+	GTK+:  			$enable_gtk
+	Examples:  		$enable_examples
+	Code coverage (gcov):	$enable_code_coverage
+	Installed tests:        $enable_installed_tests
 "

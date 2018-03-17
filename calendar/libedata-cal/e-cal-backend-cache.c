@@ -5,19 +5,26 @@
  *
  * Authors: Rodrigo Moya <rodrigo@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * SECTION: e-cal-backend-cache
+ * @include: libedata-cal/libedata-cal.h
+ * @short_description: A helper class for caching calendar components
+ *
+ * This class can be used by backends to store calendar components.
+ **/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -25,8 +32,7 @@
 
 #include <string.h>
 #include <glib/gstdio.h>
-#include <libecal/e-cal-util.h>
-#include <libedataserver/e-data-server-util.h>
+
 #include "e-cal-backend-cache.h"
 
 #define E_CAL_BACKEND_CACHE_GET_PRIVATE(obj) \
@@ -419,13 +425,15 @@ e_cal_backend_cache_put_timezone (ECalBackendCache *cache,
 
 	obj = icalcomponent_as_ical_string_r (icalcomp);
 	if (e_file_cache_get_object (E_FILE_CACHE (cache), icaltimezone_get_tzid ((icaltimezone *) zone))) {
-		retval = e_file_cache_replace_object (E_FILE_CACHE (cache),
-						      icaltimezone_get_tzid ((icaltimezone *) zone),
-						      obj);
+		retval = e_file_cache_replace_object (
+			E_FILE_CACHE (cache),
+			icaltimezone_get_tzid ((icaltimezone *) zone),
+			obj);
 	} else {
-		retval = e_file_cache_add_object (E_FILE_CACHE (cache),
-						  icaltimezone_get_tzid ((icaltimezone *) zone),
-						  obj);
+		retval = e_file_cache_add_object (
+			E_FILE_CACHE (cache),
+			icaltimezone_get_tzid ((icaltimezone *) zone),
+			obj);
 	}
 	g_free (obj);
 
@@ -466,12 +474,14 @@ e_cal_backend_cache_put_default_timezone (ECalBackendCache *cache,
 
 	obj = icalcomponent_as_ical_string_r (icalcomp);
 	if (e_file_cache_get_object (E_FILE_CACHE (cache), "default_zone")) {
-		retval = e_file_cache_replace_object (E_FILE_CACHE (cache), "default_zone",
-						      obj);
+		retval = e_file_cache_replace_object (
+			E_FILE_CACHE (cache), "default_zone",
+			obj);
 	} else {
-		retval = e_file_cache_add_object (E_FILE_CACHE (cache),
-						 "default_zone",
-						  obj);
+		retval = e_file_cache_add_object (
+			E_FILE_CACHE (cache),
+			"default_zone",
+			obj);
 	}
 	g_free (obj);
 
@@ -517,31 +527,6 @@ e_cal_backend_cache_get_default_timezone (ECalBackendCache *cache)
 	}
 
 	return NULL;
-}
-
-/**
- * e_cal_backend_cache_remove_timezone:
- * @cache: An #ECalBackendCache object.
- * @tzid: ID of the timezone to remove.
- *
- * Removes a timezone component from the cache.
- *
- * Returns: TRUE if the timezone was removed, FALSE otherwise.
- */
-gboolean
-e_cal_backend_cache_remove_timezone (ECalBackendCache *cache,
-                                     const gchar *tzid)
-{
-	ECalBackendCachePrivate *priv;
-
-	g_return_val_if_fail (E_IS_CAL_BACKEND_CACHE (cache), FALSE);
-	g_return_val_if_fail (tzid != NULL, FALSE);
-
-	priv = cache->priv;
-
-	g_hash_table_remove (priv->timezones, tzid);
-
-	return e_file_cache_remove_object (E_FILE_CACHE (cache), tzid);
 }
 
 /**
@@ -672,8 +657,9 @@ e_cal_backend_cache_put_key_value (ECalBackendCache *cache,
 /**
  * e_cal_backend_cache_get_key_value:
  * @cache: An #ECalBackendCache object.
+ * @key: The key to fetch a value for
  *
- * Returns: The value.
+ * Returns: (transfer none): The value.
  */
 const gchar *
 e_cal_backend_cache_get_key_value (ECalBackendCache *cache,
@@ -693,6 +679,10 @@ e_cal_backend_cache_get_key_value (ECalBackendCache *cache,
 
 /**
  * e_cal_backend_cache_remove:
+ * @dirname: The directory name where the cache is stored
+ * @basename: The directory inside @dirname where the cache is stored
+ *
+ * Removes the cache directory
  *
  * Since: 2.28
  **/

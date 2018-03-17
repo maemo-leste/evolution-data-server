@@ -3,20 +3,19 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * Authors: Chenthill Palanisamy <pchenthill@novell.com>
+ * This library is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors: Chenthill Palanisamy <pchenthill@novell.com>
  */
 
 #include "camel-imapx-conn-manager.h"
@@ -27,13 +26,13 @@
 #define c(...) camel_imapx_debug(conman, __VA_ARGS__)
 
 #define CON_READ_LOCK(x) \
-	(g_static_rw_lock_reader_lock (&(x)->priv->rw_lock))
+	(g_rw_lock_reader_lock (&(x)->priv->rw_lock))
 #define CON_READ_UNLOCK(x) \
-	(g_static_rw_lock_reader_unlock (&(x)->priv->rw_lock))
+	(g_rw_lock_reader_unlock (&(x)->priv->rw_lock))
 #define CON_WRITE_LOCK(x) \
-	(g_static_rw_lock_writer_lock (&(x)->priv->rw_lock))
+	(g_rw_lock_writer_lock (&(x)->priv->rw_lock))
 #define CON_WRITE_UNLOCK(x) \
-	(g_static_rw_lock_writer_unlock (&(x)->priv->rw_lock))
+	(g_rw_lock_writer_unlock (&(x)->priv->rw_lock))
 
 #define CAMEL_IMAPX_CONN_MANAGER_GET_PRIVATE(obj) \
 	(G_TYPE_INSTANCE_GET_PRIVATE \
@@ -45,15 +44,20 @@ struct _CamelIMAPXConnManagerPrivate {
 	/* XXX Might be easier for this to be a hash table,
 	 *     with CamelIMAPXServer pointers as the keys. */
 	GList *connections;
-	gpointer store;  /* weak pointer */
-	GStaticRWLock rw_lock;
+	GWeakRef store;
+	GRWLock rw_lock;
+	guint limit_max_connections;
+
+	GMutex pending_connections_lock;
+	GSList *pending_connections; /* GCancellable * */
 };
 
 struct _ConnectionInfo {
-	GMutex *lock;
+	GMutex lock;
 	CamelIMAPXServer *is;
 	GHashTable *folder_names;
 	gchar *selected_folder;
+	GError *shutdown_error;
 	volatile gint ref_count;
 };
 
@@ -65,14 +69,21 @@ enum {
 G_DEFINE_TYPE (
 	CamelIMAPXConnManager,
 	camel_imapx_conn_manager,
-	CAMEL_TYPE_OBJECT)
+	G_TYPE_OBJECT)
 
 static void
-imapx_conn_shutdown (CamelIMAPXServer *is, CamelIMAPXConnManager *con_man);
+imapx_conn_shutdown (CamelIMAPXServer *is,
+		     const GError *error,
+		     CamelIMAPXConnManager *con_man);
 
 static void
-imapx_conn_update_select (CamelIMAPXServer *is, const gchar *selected_folder,
+imapx_conn_update_select (CamelIMAPXServer *is,
+                          CamelIMAPXMailbox *mailbox,
                           CamelIMAPXConnManager *con_man);
+static void
+imapx_conn_mailbox_closed (CamelIMAPXServer *is,
+			   CamelIMAPXMailbox *mailbox,
+			   CamelIMAPXConnManager *con_man);
 
 static ConnectionInfo *
 connection_info_new (CamelIMAPXServer *is)
@@ -87,9 +98,10 @@ connection_info_new (CamelIMAPXServer *is)
 		(GDestroyNotify) NULL);
 
 	cinfo = g_slice_new0 (ConnectionInfo);
-	cinfo->lock = g_mutex_new ();
+	g_mutex_init (&cinfo->lock);
 	cinfo->is = g_object_ref (is);
 	cinfo->folder_names = folder_names;
+	cinfo->shutdown_error = NULL;
 	cinfo->ref_count = 1;
 
 	return cinfo;
@@ -113,11 +125,16 @@ connection_info_unref (ConnectionInfo *cinfo)
 	g_return_if_fail (cinfo->ref_count > 0);
 
 	if (g_atomic_int_dec_and_test (&cinfo->ref_count)) {
-		camel_imapx_server_connect (cinfo->is, NULL, NULL);
-		g_mutex_free (cinfo->lock);
+		camel_imapx_server_shutdown (cinfo->is, cinfo->shutdown_error);
+		g_signal_handlers_disconnect_matched (cinfo->is, G_SIGNAL_MATCH_FUNC, 0, 0, NULL, imapx_conn_shutdown, NULL);
+		g_signal_handlers_disconnect_matched (cinfo->is, G_SIGNAL_MATCH_FUNC, 0, 0, NULL, imapx_conn_update_select, NULL);
+		g_signal_handlers_disconnect_matched (cinfo->is, G_SIGNAL_MATCH_FUNC, 0, 0, NULL, imapx_conn_mailbox_closed, NULL);
+
+		g_mutex_clear (&cinfo->lock);
 		g_object_unref (cinfo->is);
 		g_hash_table_destroy (cinfo->folder_names);
 		g_free (cinfo->selected_folder);
+		g_clear_error (&cinfo->shutdown_error);
 
 		g_slice_free (ConnectionInfo, cinfo);
 	}
@@ -128,10 +145,11 @@ connection_info_cancel_and_unref (ConnectionInfo *cinfo)
 {
 	g_return_if_fail (cinfo != NULL);
 	g_return_if_fail (cinfo->ref_count > 0);
-	
+
 	g_signal_handlers_disconnect_matched (cinfo->is, G_SIGNAL_MATCH_FUNC, 0, 0, NULL, imapx_conn_shutdown, NULL);
 	g_signal_handlers_disconnect_matched (cinfo->is, G_SIGNAL_MATCH_FUNC, 0, 0, NULL, imapx_conn_update_select, NULL);
-	g_cancellable_cancel (cinfo->is->cancellable);
+	g_signal_handlers_disconnect_matched (cinfo->is, G_SIGNAL_MATCH_FUNC, 0, 0, NULL, imapx_conn_mailbox_closed, NULL);
+	camel_imapx_server_shutdown (cinfo->is, cinfo->shutdown_error);
 	connection_info_unref (cinfo);
 }
 
@@ -142,12 +160,13 @@ connection_info_is_available (ConnectionInfo *cinfo)
 
 	g_return_val_if_fail (cinfo != NULL, FALSE);
 
-	g_mutex_lock (cinfo->lock);
+	g_mutex_lock (&cinfo->lock);
 
-	/* Available means it's not tracking any folder names. */
-	available = (g_hash_table_size (cinfo->folder_names) == 0);
+	/* Available means it's not tracking any folder names or no jobs are running. */
+	available = (g_hash_table_size (cinfo->folder_names) == 0) ||
+		    camel_imapx_server_get_command_count (cinfo->is) == 0;
 
-	g_mutex_unlock (cinfo->lock);
+	g_mutex_unlock (&cinfo->lock);
 
 	return available;
 }
@@ -163,11 +182,11 @@ connection_info_has_folder_name (ConnectionInfo *cinfo,
 	if (folder_name == NULL)
 		return FALSE;
 
-	g_mutex_lock (cinfo->lock);
+	g_mutex_lock (&cinfo->lock);
 
 	value = g_hash_table_lookup (cinfo->folder_names, folder_name);
 
-	g_mutex_unlock (cinfo->lock);
+	g_mutex_unlock (&cinfo->lock);
 
 	return (value != NULL);
 }
@@ -179,14 +198,14 @@ connection_info_insert_folder_name (ConnectionInfo *cinfo,
 	g_return_if_fail (cinfo != NULL);
 	g_return_if_fail (folder_name != NULL);
 
-	g_mutex_lock (cinfo->lock);
+	g_mutex_lock (&cinfo->lock);
 
 	g_hash_table_insert (
 		cinfo->folder_names,
 		g_strdup (folder_name),
 		GINT_TO_POINTER (1));
 
-	g_mutex_unlock (cinfo->lock);
+	g_mutex_unlock (&cinfo->lock);
 }
 
 static void
@@ -196,11 +215,11 @@ connection_info_remove_folder_name (ConnectionInfo *cinfo,
 	g_return_if_fail (cinfo != NULL);
 	g_return_if_fail (folder_name != NULL);
 
-	g_mutex_lock (cinfo->lock);
+	g_mutex_lock (&cinfo->lock);
 
 	g_hash_table_remove (cinfo->folder_names, folder_name);
 
-	g_mutex_unlock (cinfo->lock);
+	g_mutex_unlock (&cinfo->lock);
 }
 
 static gchar *
@@ -210,11 +229,11 @@ connection_info_dup_selected_folder (ConnectionInfo *cinfo)
 
 	g_return_val_if_fail (cinfo != NULL, NULL);
 
-	g_mutex_lock (cinfo->lock);
+	g_mutex_lock (&cinfo->lock);
 
 	selected_folder = g_strdup (cinfo->selected_folder);
 
-	g_mutex_unlock (cinfo->lock);
+	g_mutex_unlock (&cinfo->lock);
 
 	return selected_folder;
 }
@@ -225,12 +244,29 @@ connection_info_set_selected_folder (ConnectionInfo *cinfo,
 {
 	g_return_if_fail (cinfo != NULL);
 
-	g_mutex_lock (cinfo->lock);
+	g_mutex_lock (&cinfo->lock);
 
 	g_free (cinfo->selected_folder);
 	cinfo->selected_folder = g_strdup (selected_folder);
 
-	g_mutex_unlock (cinfo->lock);
+	g_mutex_unlock (&cinfo->lock);
+}
+
+static void
+connection_info_set_shutdown_error (ConnectionInfo *cinfo,
+                                    const GError *shutdown_error)
+{
+	g_return_if_fail (cinfo != NULL);
+
+	g_mutex_lock (&cinfo->lock);
+
+	if (cinfo->shutdown_error != shutdown_error) {
+		g_clear_error (&cinfo->shutdown_error);
+		if (shutdown_error)
+			cinfo->shutdown_error = g_error_copy (shutdown_error);
+	}
+
+	g_mutex_unlock (&cinfo->lock);
 }
 
 static GList *
@@ -307,16 +343,29 @@ imapx_conn_manager_remove_info (CamelIMAPXConnManager *con_man,
 }
 
 static void
+imax_conn_manager_cancel_pending_connections (CamelIMAPXConnManager *con_man)
+{
+	GSList *link;
+
+	g_return_if_fail (CAMEL_IS_IMAPX_CONN_MANAGER (con_man));
+
+	g_mutex_lock (&con_man->priv->pending_connections_lock);
+	for (link = con_man->priv->pending_connections; link; link = g_slist_next (link)) {
+		GCancellable *cancellable = link->data;
+
+		if (cancellable)
+			g_cancellable_cancel (cancellable);
+	}
+	g_mutex_unlock (&con_man->priv->pending_connections_lock);
+}
+
+static void
 imapx_conn_manager_set_store (CamelIMAPXConnManager *con_man,
                               CamelStore *store)
 {
 	g_return_if_fail (CAMEL_IS_STORE (store));
-	g_return_if_fail (con_man->priv->store == NULL);
 
-	con_man->priv->store = store;
-
-	g_object_add_weak_pointer (
-		G_OBJECT (store), &con_man->priv->store);
+	g_weak_ref_set (&con_man->priv->store, store);
 }
 
 static void
@@ -344,9 +393,9 @@ imapx_conn_manager_get_property (GObject *object,
 {
 	switch (property_id) {
 		case PROP_STORE:
-			g_value_set_object (
+			g_value_take_object (
 				value,
-				camel_imapx_conn_manager_get_store (
+				camel_imapx_conn_manager_ref_store (
 				CAMEL_IMAPX_CONN_MANAGER (object)));
 			return;
 	}
@@ -366,11 +415,9 @@ imapx_conn_manager_dispose (GObject *object)
 		(GDestroyNotify) connection_info_unref);
 	priv->connections = NULL;
 
-	if (priv->store != NULL) {
-		g_object_remove_weak_pointer (
-			G_OBJECT (priv->store), &priv->store);
-		priv->store = NULL;
-	}
+	imax_conn_manager_cancel_pending_connections (CAMEL_IMAPX_CONN_MANAGER (object));
+
+	g_weak_ref_set (&priv->store, NULL);
 
 	/* Chain up to parent's dispose() method. */
 	G_OBJECT_CLASS (camel_imapx_conn_manager_parent_class)->dispose (object);
@@ -383,7 +430,11 @@ imapx_conn_manager_finalize (GObject *object)
 
 	priv = CAMEL_IMAPX_CONN_MANAGER_GET_PRIVATE (object);
 
-	g_static_rw_lock_free (&priv->rw_lock);
+	g_warn_if_fail (priv->pending_connections == NULL);
+
+	g_rw_lock_clear (&priv->rw_lock);
+	g_mutex_clear (&priv->pending_connections_lock);
+	g_weak_ref_clear (&priv->store);
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (camel_imapx_conn_manager_parent_class)->finalize (object);
@@ -420,14 +471,14 @@ camel_imapx_conn_manager_init (CamelIMAPXConnManager *con_man)
 {
 	con_man->priv = CAMEL_IMAPX_CONN_MANAGER_GET_PRIVATE (con_man);
 
-	g_static_rw_lock_init (&con_man->priv->rw_lock);
+	g_rw_lock_init (&con_man->priv->rw_lock);
+	g_mutex_init (&con_man->priv->pending_connections_lock);
+	g_weak_ref_init (&con_man->priv->store, NULL);
 }
 
-/* Static functions go here */
-
-/* TODO destroy unused connections in a time-out loop */
 static void
 imapx_conn_shutdown (CamelIMAPXServer *is,
+		     const GError *error,
                      CamelIMAPXConnManager *con_man)
 {
 	ConnectionInfo *cinfo;
@@ -439,15 +490,23 @@ imapx_conn_shutdown (CamelIMAPXServer *is,
 		imapx_conn_manager_remove_info (con_man, cinfo);
 		connection_info_unref (cinfo);
 	}
+
+	/* If one connection ends with this error, then it means all
+	   other opened connections also may end with the same error,
+	   thus better to kill them all from the list of connections.
+	*/
+	if (g_error_matches (error, CAMEL_IMAPX_SERVER_ERROR, CAMEL_IMAPX_SERVER_ERROR_TRY_RECONNECT)) {
+		camel_imapx_conn_manager_close_connections (con_man, error);
+	}
 }
 
 static void
 imapx_conn_update_select (CamelIMAPXServer *is,
-                          const gchar *selected_folder,
+                          CamelIMAPXMailbox *mailbox,
                           CamelIMAPXConnManager *con_man)
 {
 	ConnectionInfo *cinfo;
-	gchar *old_selected_folder;
+	gchar *old_selected_folder, *selected_folder = NULL;
 
 	/* Returns a new ConnectionInfo reference. */
 	cinfo = imapx_conn_manager_lookup_info (con_man, is);
@@ -458,107 +517,235 @@ imapx_conn_update_select (CamelIMAPXServer *is,
 	old_selected_folder = connection_info_dup_selected_folder (cinfo);
 
 	if (old_selected_folder != NULL) {
-		IMAPXJobQueueInfo *jinfo;
-
-		jinfo = camel_imapx_server_get_job_queue_info (is);
-		if (!g_hash_table_lookup (jinfo->folders, old_selected_folder)) {
+		if (!camel_imapx_server_folder_name_in_jobs (is, old_selected_folder)) {
 			connection_info_remove_folder_name (cinfo, old_selected_folder);
-			c(is->tagprefix, "Removed folder %s from connection folder list - select changed \n", old_selected_folder);
+			c (is->tagprefix, "Removed folder %s from connection folder list - select changed \n", old_selected_folder);
 		}
-		camel_imapx_destroy_job_queue_info (jinfo);
 
 		g_free (old_selected_folder);
 	}
 
+	if (mailbox)
+		selected_folder = camel_imapx_mailbox_dup_folder_path (mailbox);
 	connection_info_set_selected_folder (cinfo, selected_folder);
+	g_free (selected_folder);
 
 	connection_info_unref (cinfo);
+}
+
+static void
+imapx_conn_mailbox_closed (CamelIMAPXServer *is,
+			   CamelIMAPXMailbox *mailbox,
+			   CamelIMAPXConnManager *con_man)
+{
+	imapx_conn_update_select (is, NULL, con_man);
 }
 
 /* This should find a connection if the slots are full, returns NULL if there are slots available for a new connection for a folder */
 static CamelIMAPXServer *
 imapx_find_connection_unlocked (CamelIMAPXConnManager *con_man,
-                                const gchar *folder_name)
+                                const gchar *folder_name,
+				gboolean for_expensive_job)
 {
-	CamelService *service;
+	CamelStore *store;
 	CamelSettings *settings;
 	CamelIMAPXServer *is = NULL;
 	ConnectionInfo *cinfo = NULL;
 	GList *list, *link;
-	guint concurrent_connections;
+	guint concurrent_connections, opened_connections, expensive_connections = 0;
 	guint min_jobs = G_MAXUINT;
 
 	/* Caller must be holding CON_WRITE_LOCK. */
 
-	service = CAMEL_SERVICE (con_man->priv->store);
-	settings = camel_service_get_settings (service);
+	store = camel_imapx_conn_manager_ref_store (con_man);
+	g_return_val_if_fail (store != NULL, NULL);
+
+	settings = camel_service_ref_settings (CAMEL_SERVICE (store));
 
 	concurrent_connections =
 		camel_imapx_settings_get_concurrent_connections (
 		CAMEL_IMAPX_SETTINGS (settings));
 
+	if (con_man->priv->limit_max_connections > 0 &&
+	    con_man->priv->limit_max_connections < concurrent_connections)
+		concurrent_connections = con_man->priv->limit_max_connections;
+
+	g_object_unref (settings);
+
 	/* XXX Have a dedicated connection for INBOX ? */
 
+	opened_connections = g_list_length (con_man->priv->connections);
 	list = con_man->priv->connections;
 
 	/* If a folder was not given, find the least-busy connection. */
-	if (folder_name == NULL)
+	if (folder_name == NULL) {
 		goto least_busy;
+	}
 
 	/* First try to find a connection already handling this folder. */
 	for (link = list; link != NULL; link = g_list_next (link)) {
 		ConnectionInfo *candidate = link->data;
 
-		if (connection_info_has_folder_name (candidate, folder_name)) {
+		if (camel_imapx_server_has_expensive_command (candidate->is))
+			expensive_connections++;
+
+		if (connection_info_has_folder_name (candidate, folder_name) && camel_imapx_server_is_connected (candidate->is) &&
+		    (opened_connections >= concurrent_connections || for_expensive_job || !camel_imapx_server_has_expensive_command (candidate->is))) {
+			if (cinfo) {
+				/* group expensive jobs into one connection */
+				if (for_expensive_job && camel_imapx_server_has_expensive_command (cinfo->is))
+					continue;
+
+				if (!for_expensive_job && camel_imapx_server_get_command_count (cinfo->is) < camel_imapx_server_get_command_count (candidate->is))
+					continue;
+
+				connection_info_unref (cinfo);
+			}
+
 			cinfo = connection_info_ref (candidate);
-			goto exit;
+			if (for_expensive_job && camel_imapx_server_has_expensive_command (cinfo->is))
+				goto exit;
 		}
+	}
+
+ least_busy:
+	if (for_expensive_job) {
+		/* allow only half connections being with expensive operations */
+		if (expensive_connections > 0 &&
+		    expensive_connections < concurrent_connections / 2 &&
+		    opened_connections < concurrent_connections)
+			goto exit;
+
+		/* cinfo here doesn't have any expensive command, thus ignore it */
+		if (cinfo) {
+			connection_info_unref (cinfo);
+			cinfo = NULL;
+		}
+
+		/* Pick the connection with the least number of jobs in progress among those with expensive jobs. */
+		for (link = list; link != NULL; link = g_list_next (link)) {
+			ConnectionInfo *candidate = link->data;
+			guint jobs;
+
+			if (!camel_imapx_server_is_connected (candidate->is) ||
+			    !camel_imapx_server_has_expensive_command (candidate->is))
+				continue;
+
+			jobs = camel_imapx_server_get_command_count (candidate->is);
+
+			if (cinfo == NULL) {
+				cinfo = connection_info_ref (candidate);
+				min_jobs = jobs;
+
+			} else if (jobs < min_jobs) {
+				connection_info_unref (cinfo);
+				cinfo = connection_info_ref (candidate);
+				min_jobs = jobs;
+			}
+		}
+
+		if (cinfo)
+			goto exit;
 	}
 
 	/* Next try to find a connection not handling any folders. */
 	for (link = list; link != NULL; link = g_list_next (link)) {
 		ConnectionInfo *candidate = link->data;
 
-		if (connection_info_is_available (candidate)) {
+		if (camel_imapx_server_is_connected (candidate->is) &&
+		    connection_info_is_available (candidate)) {
+			if (cinfo)
+				connection_info_unref (cinfo);
 			cinfo = connection_info_ref (candidate);
 			goto exit;
 		}
 	}
 
-least_busy:
+	/* open a new connection, if there is a room for it */
+	if (opened_connections < concurrent_connections && (!for_expensive_job || opened_connections < concurrent_connections / 2)) {
+		if (cinfo && camel_imapx_server_get_command_count (cinfo->is) != 0) {
+			connection_info_unref (cinfo);
+			cinfo = NULL;
+		}
+		goto exit;
+	} else {
+		if (cinfo)
+			min_jobs = camel_imapx_server_get_command_count (cinfo->is);
+	}
+
 	/* Pick the connection with the least number of jobs in progress. */
 	for (link = list; link != NULL; link = g_list_next (link)) {
 		ConnectionInfo *candidate = link->data;
-		IMAPXJobQueueInfo *jinfo = NULL;
+		gint n_commands;
 
-		jinfo = camel_imapx_server_get_job_queue_info (candidate->is);
+		if (!camel_imapx_server_is_connected (candidate->is))
+			continue;
+
+		n_commands = camel_imapx_server_get_command_count (candidate->is);
 
 		if (cinfo == NULL) {
 			cinfo = connection_info_ref (candidate);
-			min_jobs = jinfo->queue_len;
+			min_jobs = n_commands;
 
-		} else if (jinfo->queue_len < min_jobs) {
+		} else if (n_commands < min_jobs) {
 			connection_info_unref (cinfo);
 			cinfo = connection_info_ref (candidate);
-			min_jobs = jinfo->queue_len;
+			min_jobs = n_commands;
 		}
-
-		camel_imapx_destroy_job_queue_info (jinfo);
 	}
 
 exit:
 	if (cinfo != NULL && folder_name != NULL)
 		connection_info_insert_folder_name (cinfo, folder_name);
 
+	if (camel_debug_flag (conman)) {
+		printf ("%s: for-expensive:%d will return:%p cmd-count:%d has-expensive:%d found:%d; connections opened:%d max:%d\n", G_STRFUNC, for_expensive_job, cinfo, cinfo ? camel_imapx_server_get_command_count (cinfo->is) : -2, cinfo ? camel_imapx_server_has_expensive_command (cinfo->is) : -2, expensive_connections, g_list_length (list), concurrent_connections);
+		for (link = list; link != NULL; link = g_list_next (link)) {
+			ConnectionInfo *candidate = link->data;
+
+			printf ("   cmds:%d has-expensive:%d avail:%d cinfo:%p server:%p\n", camel_imapx_server_get_command_count (candidate->is), camel_imapx_server_has_expensive_command (candidate->is), connection_info_is_available (candidate), candidate, candidate->is);
+		}
+	}
+
 	if (cinfo != NULL) {
 		is = g_object_ref (cinfo->is);
 		connection_info_unref (cinfo);
 	}
 
-	if (camel_debug_flag (conman))
-		g_assert (!(concurrent_connections == g_list_length (con_man->priv->connections) && is == NULL));
+	g_object_unref (store);
 
 	return is;
+}
+
+static gchar
+imapx_conn_manager_get_next_free_tagprefix_unlocked (CamelIMAPXConnManager *con_man)
+{
+	gchar adept;
+	GList *iter;
+
+	/* the 'Z' is dedicated to auth types query */
+	adept = 'A';
+	while (adept < 'Z') {
+		for (iter = con_man->priv->connections; iter; iter = g_list_next (iter)) {
+			ConnectionInfo *cinfo = iter->data;
+
+			if (!cinfo || !cinfo->is)
+				continue;
+
+			if (cinfo->is->tagprefix == adept)
+				break;
+		}
+
+		/* Read all current active connections and none has the same tag prefix */
+		if (!iter)
+			break;
+
+		adept++;
+	}
+
+	g_return_val_if_fail (adept >= 'A' && adept < 'Z', 'Z');
+
+	return adept;
 }
 
 static CamelIMAPXServer *
@@ -567,26 +754,25 @@ imapx_create_new_connection_unlocked (CamelIMAPXConnManager *con_man,
                                       GCancellable *cancellable,
                                       GError **error)
 {
+	CamelStore *store;
 	CamelIMAPXServer *is = NULL;
 	CamelIMAPXStore *imapx_store;
-	CamelStore *store = con_man->priv->store;
-	CamelService *service;
 	ConnectionInfo *cinfo = NULL;
 	gboolean success;
 
 	/* Caller must be holding CON_WRITE_LOCK. */
 
-	service = CAMEL_SERVICE (store);
+	/* Check if we got cancelled while we were waiting. */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error))
+		return NULL;
+
+	store = camel_imapx_conn_manager_ref_store (con_man);
+	g_return_val_if_fail (store != NULL, NULL);
 
 	imapx_store = CAMEL_IMAPX_STORE (store);
 
-	camel_service_lock (service, CAMEL_SERVICE_REC_CONNECT_LOCK);
-
-	/* Check if we got cancelled while we were waiting. */
-	if (g_cancellable_set_error_if_cancelled (cancellable, error))
-		goto exit;
-
-	is = camel_imapx_server_new (store);
+	is = camel_imapx_server_new (imapx_store);
+	is->tagprefix = imapx_conn_manager_get_next_free_tagprefix_unlocked (con_man);
 
 	/* XXX As part of the connect operation the CamelIMAPXServer will
 	 *     have to call camel_session_authenticate_sync(), but it has
@@ -603,23 +789,25 @@ imapx_create_new_connection_unlocked (CamelIMAPXConnManager *con_man,
 	 *     we should not have multiple IMAPX connections trying to
 	 *     authenticate at once, so this should be thread-safe.
 	 */
-	imapx_store->authenticating_server = g_object_ref (is);
+	camel_imapx_store_set_connecting_server (imapx_store, is, con_man->priv->connections != NULL);
 	success = camel_imapx_server_connect (is, cancellable, error);
-	g_object_unref (imapx_store->authenticating_server);
-	imapx_store->authenticating_server = NULL;
+	camel_imapx_store_set_connecting_server (imapx_store, NULL, FALSE);
 
 	if (!success) {
-		g_object_unref (is);
-		is = NULL;
+		g_clear_object (&is);
 		goto exit;
 	}
 
 	g_signal_connect (
 		is, "shutdown",
 		G_CALLBACK (imapx_conn_shutdown), con_man);
+
 	g_signal_connect (
-		is, "select_changed",
+		is, "mailbox-select",
 		G_CALLBACK (imapx_conn_update_select), con_man);
+	g_signal_connect (
+		is, "mailbox-closed",
+		G_CALLBACK (imapx_conn_mailbox_closed), con_man);
 
 	cinfo = connection_info_new (is);
 
@@ -630,10 +818,10 @@ imapx_create_new_connection_unlocked (CamelIMAPXConnManager *con_man,
 	con_man->priv->connections = g_list_prepend (
 		con_man->priv->connections, cinfo);
 
-	c(is->tagprefix, "Created new connection for %s and total connections %d \n", folder_name, g_list_length (con_man->priv->connections));
+	c (is->tagprefix, "Created new connection %p (server:%p) for %s; total connections %d\n", cinfo, cinfo->is, folder_name, g_list_length (con_man->priv->connections));
 
 exit:
-	camel_service_unlock (service, CAMEL_SERVICE_REC_CONNECT_LOCK);
+	g_object_unref (store);
 
 	return is;
 }
@@ -650,16 +838,17 @@ camel_imapx_conn_manager_new (CamelStore *store)
 }
 
 CamelStore *
-camel_imapx_conn_manager_get_store (CamelIMAPXConnManager *con_man)
+camel_imapx_conn_manager_ref_store (CamelIMAPXConnManager *con_man)
 {
 	g_return_val_if_fail (CAMEL_IS_IMAPX_CONN_MANAGER (con_man), NULL);
 
-	return CAMEL_STORE (con_man->priv->store);
+	return g_weak_ref_get (&con_man->priv->store);
 }
 
 CamelIMAPXServer *
 camel_imapx_conn_manager_get_connection (CamelIMAPXConnManager *con_man,
                                          const gchar *folder_name,
+					 gboolean for_expensive_job,
                                          GCancellable *cancellable,
                                          GError **error)
 {
@@ -667,19 +856,59 @@ camel_imapx_conn_manager_get_connection (CamelIMAPXConnManager *con_man,
 
 	g_return_val_if_fail (CAMEL_IS_IMAPX_CONN_MANAGER (con_man), NULL);
 
+	g_mutex_lock (&con_man->priv->pending_connections_lock);
+	if (cancellable) {
+		g_object_ref (cancellable);
+	} else {
+		cancellable = g_cancellable_new ();
+	}
+	con_man->priv->pending_connections = g_slist_prepend (con_man->priv->pending_connections, cancellable);
+	g_mutex_unlock (&con_man->priv->pending_connections_lock);
+
 	/* Hold the writer lock while we requisition a CamelIMAPXServer
 	 * to prevent other threads from adding or removing connections. */
 	CON_WRITE_LOCK (con_man);
 
-	/* Check if we got cancelled while waiting for the lock. */
+	/* Check if we've got cancelled while waiting for the lock. */
 	if (!g_cancellable_set_error_if_cancelled (cancellable, error)) {
-		is = imapx_find_connection_unlocked (con_man, folder_name);
-		if (is == NULL)
-			is = imapx_create_new_connection_unlocked (
-				con_man, folder_name, cancellable, error);
+		is = imapx_find_connection_unlocked (con_man, folder_name, for_expensive_job);
+		if (is == NULL) {
+			GError *local_error = NULL;
+
+			is = imapx_create_new_connection_unlocked (con_man, folder_name, cancellable, &local_error);
+
+			if (!is) {
+				gboolean limit_connections =
+					g_error_matches (local_error, CAMEL_IMAPX_SERVER_ERROR,
+					CAMEL_IMAPX_SERVER_ERROR_CONCURRENT_CONNECT_FAILED) &&
+					con_man->priv->connections;
+
+				c ('*', "Failed to open a new connection, while having %d opened, with error: %s; will limit connections: %s\n",
+					g_list_length (con_man->priv->connections),
+					local_error ? local_error->message : "Unknown error",
+					limit_connections ? "yes" : "no");
+
+				if (limit_connections) {
+					/* limit to one-less than current connection count - be nice to the server */
+					con_man->priv->limit_max_connections = g_list_length (con_man->priv->connections) - 1;
+					if (!con_man->priv->limit_max_connections)
+						con_man->priv->limit_max_connections = 1;
+
+					g_clear_error (&local_error);
+					is = imapx_find_connection_unlocked (con_man, folder_name, for_expensive_job);
+				} else if (local_error) {
+					g_propagate_error (error, local_error);
+				}
+			}
+		}
 	}
 
 	CON_WRITE_UNLOCK (con_man);
+
+	g_mutex_lock (&con_man->priv->pending_connections_lock);
+	con_man->priv->pending_connections = g_slist_remove (con_man->priv->pending_connections, cancellable);
+	g_object_unref (cancellable);
+	g_mutex_unlock (&con_man->priv->pending_connections_lock);
 
 	return is;
 }
@@ -710,7 +939,6 @@ camel_imapx_conn_manager_update_con_info (CamelIMAPXConnManager *con_man,
                                           const gchar *folder_name)
 {
 	ConnectionInfo *cinfo;
-	IMAPXJobQueueInfo *jinfo;
 
 	g_return_if_fail (CAMEL_IS_IMAPX_CONN_MANAGER (con_man));
 
@@ -720,28 +948,57 @@ camel_imapx_conn_manager_update_con_info (CamelIMAPXConnManager *con_man,
 	if (cinfo == NULL)
 		return;
 
-	jinfo = camel_imapx_server_get_job_queue_info (cinfo->is);
-	if (!g_hash_table_lookup (jinfo->folders, folder_name)) {
+	if (camel_imapx_server_folder_name_in_jobs (is, folder_name)) {
 		connection_info_remove_folder_name (cinfo, folder_name);
-		c(is->tagprefix, "Removed folder %s from connection folder list - op done \n", folder_name);
+		c (is->tagprefix, "Removed folder %s from connection folder list - op done \n", folder_name);
 	}
-	camel_imapx_destroy_job_queue_info (jinfo);
 
 	connection_info_unref (cinfo);
 }
 
 void
-camel_imapx_conn_manager_close_connections (CamelIMAPXConnManager *con_man)
+camel_imapx_conn_manager_close_connections (CamelIMAPXConnManager *con_man,
+					    const GError *error)
 {
+	GList *iter, *connections;
+
 	g_return_if_fail (CAMEL_IS_IMAPX_CONN_MANAGER (con_man));
+
+	/* Do this before acquiring the write lock, because any pending
+	   connection holds the write lock, thus makes this request starve. */
+	imax_conn_manager_cancel_pending_connections (con_man);
 
 	CON_WRITE_LOCK (con_man);
 
-	g_list_free_full (
-		con_man->priv->connections,
-		(GDestroyNotify) connection_info_cancel_and_unref);
+	c('*', "Closing all %d connections, with propagated error: %s\n", g_list_length (con_man->priv->connections), error ? error->message : "none");
+
+	connections = con_man->priv->connections;
 	con_man->priv->connections = NULL;
 
 	CON_WRITE_UNLOCK (con_man);
+
+	for (iter = connections; iter; iter = g_list_next (iter)) {
+		connection_info_set_shutdown_error (iter->data, error);
+	}
+
+	g_list_free_full (connections, (GDestroyNotify) connection_info_cancel_and_unref);
 }
 
+/* for debugging purposes only */
+void
+camel_imapx_conn_manager_dump_queue_status (CamelIMAPXConnManager *con_man)
+{
+	GList *list, *link;
+
+	g_return_if_fail (CAMEL_IS_IMAPX_CONN_MANAGER (con_man));
+
+	list = imapx_conn_manager_list_info (con_man);
+
+	for (link = list; link != NULL; link = g_list_next (link)) {
+		ConnectionInfo *cinfo = link->data;
+		camel_imapx_server_dump_queue_status (cinfo->is);
+		connection_info_unref (cinfo);
+	}
+
+	g_list_free (list);
+}

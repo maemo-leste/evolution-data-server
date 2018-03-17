@@ -1,21 +1,19 @@
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -25,7 +23,7 @@
 #ifndef CAMEL_INDEX_H
 #define CAMEL_INDEX_H
 
-#include <camel/camel-object.h>
+#include <glib-object.h>
 
 /* Standard GObject macros */
 #define CAMEL_TYPE_INDEX \
@@ -101,30 +99,25 @@ typedef gchar * (*CamelIndexNorm)(CamelIndex *index, const gchar *word, gpointer
 /* ********************************************************************** */
 
 struct _CamelIndexCursor {
-	CamelObject parent;
+	GObject parent;
 	CamelIndexCursorPrivate *priv;
 
 	CamelIndex *index;
 };
 
 struct _CamelIndexCursorClass {
-	CamelObjectClass parent;
+	GObjectClass parent;
 
 	const gchar * (*next) (CamelIndexCursor *idc);
-	void         (*reset) (CamelIndexCursor *idc);
 };
 
 GType           camel_index_cursor_get_type (void);
-
-CamelIndexCursor  *camel_index_cursor_new (CamelIndex *index, const gchar *name);
-
 const gchar        *camel_index_cursor_next (CamelIndexCursor *idc);
-void               camel_index_cursor_reset (CamelIndexCursor *idc);
 
 /* ********************************************************************** */
 
 struct _CamelIndexName {
-	CamelObject parent;
+	GObject parent;
 	CamelIndexNamePrivate *priv;
 
 	CamelIndex *index;
@@ -136,24 +129,20 @@ struct _CamelIndexName {
 };
 
 struct _CamelIndexNameClass {
-	CamelObjectClass parent;
+	GObjectClass parent;
 
-	gint (*sync)(CamelIndexName *name);
 	void (*add_word)(CamelIndexName *name, const gchar *word);
 	gsize (*add_buffer)(CamelIndexName *name, const gchar *buffer, gsize len);
 };
 
 GType           camel_index_name_get_type	(void);
-
-CamelIndexName    *camel_index_name_new (CamelIndex *index, const gchar *name);
-
 void               camel_index_name_add_word (CamelIndexName *name, const gchar *word);
 gsize             camel_index_name_add_buffer (CamelIndexName *name, const gchar *buffer, gsize len);
 
 /* ********************************************************************** */
 
 struct _CamelIndex {
-	CamelObject parent;
+	GObject parent;
 	CamelIndexPrivate *priv;
 
 	gchar *path;
@@ -166,11 +155,11 @@ struct _CamelIndex {
 };
 
 struct _CamelIndexClass {
-	CamelObjectClass parent_class;
+	GObjectClass parent_class;
 
 	gint		(*sync)			(CamelIndex *index);
 	gint		(*compress)		(CamelIndex *index);
-	gint		(*delete)		(CamelIndex *index);
+	gint		(*delete_)		(CamelIndex *index);
 	gint		(*rename)		(CamelIndex *index,
 						 const gchar *path);
 	gint		(*has_name)		(CamelIndex *index,
@@ -189,16 +178,12 @@ struct _CamelIndexClass {
 						 const gchar *word);
 	CamelIndexCursor *
 			(*words)		(CamelIndex *index);
-	CamelIndexCursor *
-			(*names)		(CamelIndex *index);
 };
 
 /* flags, stored in 'state', set with set_state */
 #define CAMEL_INDEX_DELETED (1 << 0)
 
 GType		camel_index_get_type		(void);
-CamelIndex *	camel_index_new			(const gchar *path,
-						 gint flags);
 void		camel_index_construct		(CamelIndex *index,
 						 const gchar *path,
 						 gint flags);
@@ -226,8 +211,6 @@ CamelIndexCursor *
 						 const gchar *word);
 CamelIndexCursor *
 		camel_index_words		(CamelIndex *index);
-CamelIndexCursor *
-		camel_index_names		(CamelIndex *index);
 
 G_END_DECLS
 

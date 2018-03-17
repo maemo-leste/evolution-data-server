@@ -1,18 +1,17 @@
 /*
  * camel-store-settings.c
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) version 3.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with the program; if not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -89,7 +88,7 @@ camel_store_settings_class_init (CamelStoreSettingsClass *class)
 			"filter-inbox",
 			"Filter Inbox",
 			"Whether to filter new messages in Inbox",
-			FALSE,
+			TRUE,
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
 			G_PARAM_STATIC_STRINGS));
@@ -135,6 +134,9 @@ camel_store_settings_set_filter_inbox (CamelStoreSettings *settings,
                                        gboolean filter_inbox)
 {
 	g_return_if_fail (CAMEL_IS_STORE_SETTINGS (settings));
+
+	if (settings->priv->filter_inbox == filter_inbox)
+		return;
 
 	settings->priv->filter_inbox = filter_inbox;
 

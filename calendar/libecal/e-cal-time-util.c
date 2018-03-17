@@ -262,9 +262,9 @@ time_year_begin_with_zone (time_t time,
 	tt = icaltime_from_timet_with_zone (time, FALSE, zone);
 
 	/* Set it to the start of the year. */
-	tt.month  = 1;
-	tt.day    = 1;
-	tt.hour   = 0;
+	tt.month = 1;
+	tt.day = 1;
+	tt.hour = 0;
 	tt.minute = 0;
 	tt.second = 0;
 
@@ -295,8 +295,8 @@ time_month_begin_with_zone (time_t time,
 	tt = icaltime_from_timet_with_zone (time, FALSE, zone);
 
 	/* Set it to the start of the month. */
-	tt.day    = 1;
-	tt.hour   = 0;
+	tt.day = 1;
+	tt.hour = 0;
 	tt.minute = 0;
 	tt.second = 0;
 
@@ -338,7 +338,7 @@ time_week_begin_with_zone (time_t time,
 
 	/* Set it to the start of the month. */
 	tt.day -= offset;
-	tt.hour   = 0;
+	tt.hour = 0;
 	tt.minute = 0;
 	tt.second = 0;
 
@@ -372,7 +372,7 @@ time_day_begin_with_zone (time_t time,
 	tt = icaltime_from_timet_with_zone (time, FALSE, zone);
 
 	/* Set it to the start of the day. */
-	tt.hour   = 0;
+	tt.hour = 0;
 	tt.minute = 0;
 	tt.second = 0;
 
@@ -404,7 +404,7 @@ time_day_end_with_zone (time_t time,
 
 	/* Set it to the start of the next day. */
 	tt.day++;
-	tt.hour   = 0;
+	tt.hour = 0;
 	tt.minute = 0;
 	tt.second = 0;
 
@@ -435,8 +435,9 @@ time_to_gdate_with_zone (GDate *date,
 	g_return_if_fail (date != NULL);
 	g_return_if_fail (time != -1);
 
-	tt = icaltime_from_timet_with_zone (time, FALSE,
-					    zone ? zone : icaltimezone_get_utc_timezone ());
+	tt = icaltime_from_timet_with_zone (
+		time, FALSE,
+		zone ? zone : icaltimezone_get_utc_timezone ());
 
 	g_date_set_dmy (date, tt.day, tt.month, tt.year);
 }
@@ -585,7 +586,14 @@ isodate_from_time_t (time_t t)
 
 	gmtime_r (&t, &stm);
 	ret = g_malloc (ISODATE_LENGTH);
-	g_snprintf (ret, ISODATE_LENGTH, fmt, (stm.tm_year + 1900), (stm.tm_mon + 1), stm.tm_mday, stm.tm_hour, stm.tm_min, stm.tm_sec);
+	g_snprintf (
+		ret, ISODATE_LENGTH, fmt,
+		(stm.tm_year + 1900),
+		(stm.tm_mon + 1),
+		stm.tm_mday,
+		stm.tm_hour,
+		stm.tm_min,
+		stm.tm_sec);
 
 	return ret;
 }
@@ -637,9 +645,9 @@ time_from_isodate (const gchar *str)
 	if (len > 8) {
 		tt.hour = digit_at (str, 9) * 10
 			+ digit_at (str, 10);
-		tt.minute  = digit_at (str, 11) * 10
+		tt.minute = digit_at (str, 11) * 10
 			   + digit_at (str, 12);
-		tt.second  = digit_at (str, 13) * 10
+		tt.second = digit_at (str, 13) * 10
 			   + digit_at (str, 14);
 	}
 

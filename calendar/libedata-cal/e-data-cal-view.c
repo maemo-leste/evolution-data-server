@@ -7,19 +7,30 @@
  * Authors: Federico Mena-Quintero <federico@ximian.com>
  *          Ross Burton <ross@linux.intel.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * SECTION: e-data-cal-view
+ * @include: libedata-cal/libedata-cal.h
+ * @short_description: A server side object for issuing view notifications
+ *
+ * This class communicates with #ECalClientViews over the bus.
+ *
+ * Calendar backends can automatically own a number of views requested
+ * by the client, this API can be used by the backend to issue notifications
+ * which will be delivered to the #ECalClientView
+ **/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -27,23 +38,25 @@
 
 #include <string.h>
 
-#include <libedataserver/e-debug-log.h>
-#include "libedataserver/e-data-server-util.h"
+#include "e-cal-backend.h"
 #include "e-cal-backend-sexp.h"
 #include "e-data-cal-view.h"
 #include "e-gdbus-cal-view.h"
 
 #define E_DATA_CAL_VIEW_GET_PRIVATE(obj) \
 	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_DATA_CAL_VIEW_TYPE, EDataCalViewPrivate))
+	((obj), E_TYPE_DATA_CAL_VIEW, EDataCalViewPrivate))
 
-static void ensure_pending_flush_timeout (EDataCalView *view);
+/* how many items can be hold in a cache, before propagated to UI */
+#define THRESHOLD_ITEMS 32
 
-#define THRESHOLD_ITEMS   32	/* how many items can be hold in a cache, before propagated to UI */
-#define THRESHOLD_SECONDS  2	/* how long to wait until notifications are propagated to UI; in seconds */
+/* how long to wait until notifications are propagated to UI; in seconds */
+#define THRESHOLD_SECONDS 2
 
 struct _EDataCalViewPrivate {
+	GDBusConnection *connection;
 	EGdbusCalView *gdbus_object;
+	gchar *object_path;
 
 	/* The backend we are monitoring */
 	ECalBackend *backend;
@@ -61,50 +74,34 @@ struct _EDataCalViewPrivate {
 
 	GHashTable *ids;
 
-	GMutex *pending_mutex;
+	GMutex pending_mutex;
 	guint flush_id;
+
+	/* view flags */
+	ECalClientViewFlags flags;
 
 	/* which fields is listener interested in */
 	GHashTable *fields_of_interest;
 };
 
-G_DEFINE_TYPE (EDataCalView, e_data_cal_view, G_TYPE_OBJECT);
-
-static void e_data_cal_view_dispose (GObject *object);
-static void e_data_cal_view_finalize (GObject *object);
-static void e_data_cal_view_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
-static void e_data_cal_view_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
-
-/* Property IDs */
-enum props {
+enum {
 	PROP_0,
 	PROP_BACKEND,
+	PROP_CONNECTION,
+	PROP_OBJECT_PATH,
 	PROP_SEXP
 };
 
-/* Class init */
-static void
-e_data_cal_view_class_init (EDataCalViewClass *class)
-{
-	GObjectClass *object_class = G_OBJECT_CLASS (class);
+/* Forward Declarations */
+static void	e_data_cal_view_initable_init	(GInitableIface *iface);
 
-	g_type_class_add_private (class, sizeof (EDataCalViewPrivate));
-
-	object_class->set_property = e_data_cal_view_set_property;
-	object_class->get_property = e_data_cal_view_get_property;
-	object_class->dispose = e_data_cal_view_dispose;
-	object_class->finalize = e_data_cal_view_finalize;
-
-	g_object_class_install_property (object_class, PROP_BACKEND,
-		g_param_spec_object (
-			"backend", NULL, NULL, E_TYPE_CAL_BACKEND,
-			G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-	g_object_class_install_property (object_class, PROP_SEXP,
-		g_param_spec_object (
-			"sexp", NULL, NULL, E_TYPE_CAL_BACKEND_SEXP,
-			G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-}
+G_DEFINE_TYPE_WITH_CODE (
+	EDataCalView,
+	e_data_cal_view,
+	G_TYPE_OBJECT,
+	G_IMPLEMENT_INTERFACE (
+		G_TYPE_INITABLE,
+		e_data_cal_view_initable_init))
 
 static guint
 str_ic_hash (gconstpointer key)
@@ -113,12 +110,11 @@ str_ic_hash (gconstpointer key)
 	const gchar *str = key;
 	gint ii;
 
-	if (!str)
+	if (str == NULL)
 		return hash;
 
-	for (ii = 0; str[ii]; ii++) {
+	for (ii = 0; str[ii] != '\0'; ii++)
 		hash = hash * 33 + g_ascii_tolower (str[ii]);
-	}
 
 	return hash;
 }
@@ -127,16 +123,17 @@ static gboolean
 str_ic_equal (gconstpointer a,
               gconstpointer b)
 {
-	const gchar *stra = a, *strb = b;
+	const gchar *stra = a;
+	const gchar *strb = b;
 	gint ii;
 
-	if (!stra && !strb)
+	if (stra == NULL && strb == NULL)
 		return TRUE;
 
-	if (!stra || !strb)
+	if (stra == NULL || strb == NULL)
 		return FALSE;
 
-	for (ii = 0; stra[ii] && strb[ii]; ii++) {
+	for (ii = 0; stra[ii] != '\0' && strb[ii] != '\0'; ii++) {
 		if (g_ascii_tolower (stra[ii]) != g_ascii_tolower (strb[ii]))
 			return FALSE;
 	}
@@ -148,6 +145,7 @@ static guint
 id_hash (gconstpointer key)
 {
 	const ECalComponentId *id = key;
+
 	return g_str_hash (id->uid) ^ (id->rid ? g_str_hash (id->rid) : 0);
 }
 
@@ -155,38 +153,11 @@ static gboolean
 id_equal (gconstpointer a,
           gconstpointer b)
 {
-	const ECalComponentId *id_a = a, *id_b = b;
-	return g_strcmp0 (id_a->uid, id_b->uid) == 0 && g_strcmp0 (id_a->rid, id_b->rid) == 0;
-}
+	const ECalComponentId *id_a = a;
+	const ECalComponentId *id_b = b;
 
-EDataCalView *
-e_data_cal_view_new (ECalBackend *backend,
-                     ECalBackendSExp *sexp)
-{
-	EDataCalView *view;
-
-	view = g_object_new (E_DATA_CAL_VIEW_TYPE, "backend", backend, "sexp", sexp, NULL);
-
-	return view;
-}
-
-/**
- * e_data_cal_view_register_gdbus_object:
- *
- * Since: 2.32
- **/
-guint
-e_data_cal_view_register_gdbus_object (EDataCalView *view,
-                                       GDBusConnection *connection,
-                                       const gchar *object_path,
-                                       GError **error)
-{
-	g_return_val_if_fail (view != NULL, 0);
-	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), 0);
-	g_return_val_if_fail (connection != NULL, 0);
-	g_return_val_if_fail (object_path != NULL, 0);
-
-	return e_gdbus_cal_view_register_object (view->priv->gdbus_object, connection, object_path, error);
+	return (g_strcmp0 (id_a->uid, id_b->uid) == 0) &&
+		(g_strcmp0 (id_a->rid, id_b->rid) == 0);
 }
 
 static void
@@ -205,219 +176,16 @@ reset_array (GArray *array)
 	g_array_set_size (array, 0);
 }
 
-static void
-send_pending_adds (EDataCalView *view)
-{
-	EDataCalViewPrivate *priv = view->priv;
-
-	if (priv->adds->len == 0)
-		return;
-
-	e_gdbus_cal_view_emit_objects_added (view->priv->gdbus_object, (const gchar * const *) priv->adds->data);
-	reset_array (priv->adds);
-}
-
-static void
-send_pending_changes (EDataCalView *view)
-{
-	EDataCalViewPrivate *priv = view->priv;
-
-	if (priv->changes->len == 0)
-		return;
-
-	e_gdbus_cal_view_emit_objects_modified (view->priv->gdbus_object, (const gchar * const *) priv->changes->data);
-	reset_array (priv->changes);
-}
-
-static void
-send_pending_removes (EDataCalView *view)
-{
-	EDataCalViewPrivate *priv = view->priv;
-
-	if (priv->removes->len == 0)
-		return;
-
-	/* send ECalComponentIds as <uid>[\n<rid>], as encoded in notify_remove() */
-	e_gdbus_cal_view_emit_objects_removed (view->priv->gdbus_object, (const gchar * const *) priv->removes->data);
-	reset_array (priv->removes);
-}
-
-static gboolean
-pending_flush_timeout_cb (gpointer data)
+static gpointer
+calview_start_thread (gpointer data)
 {
 	EDataCalView *view = data;
-	EDataCalViewPrivate *priv = view->priv;
 
-	g_mutex_lock (priv->pending_mutex);
+	if (view->priv->started && !view->priv->stopped)
+		e_cal_backend_start_view (view->priv->backend, view);
+	g_object_unref (view);
 
-	priv->flush_id = 0;
-
-	send_pending_adds (view);
-	send_pending_changes (view);
-	send_pending_removes (view);
-
-	g_mutex_unlock (priv->pending_mutex);
-
-	return FALSE;
-}
-
-static void
-ensure_pending_flush_timeout (EDataCalView *view)
-{
-	EDataCalViewPrivate *priv = view->priv;
-
-	if (priv->flush_id)
-		return;
-
-	priv->flush_id = g_timeout_add (e_data_cal_view_is_completed (view) ? 10 : (THRESHOLD_SECONDS * 1000), pending_flush_timeout_cb, view);
-}
-
-static void
-notify_add (EDataCalView *view,
-            gchar *obj)
-{
-	EDataCalViewPrivate *priv = view->priv;
-	ECalComponent *comp;
-
-	send_pending_changes (view);
-	send_pending_removes (view);
-
-	if (priv->adds->len == THRESHOLD_ITEMS) {
-		send_pending_adds (view);
-	}
-	g_array_append_val (priv->adds, obj);
-
-	comp = e_cal_component_new_from_string (obj);
-	g_hash_table_insert (priv->ids,
-			     e_cal_component_get_id (comp),
-			     GUINT_TO_POINTER (1));
-	g_object_unref (comp);
-
-	ensure_pending_flush_timeout (view);
-}
-
-static void
-notify_add_component (EDataCalView *view,
-                      /* const */ ECalComponent *comp)
-{
-	EDataCalViewPrivate *priv = view->priv;
-	gchar               *obj;
-
-	obj = e_data_cal_view_get_component_string (view, comp);
-
-	send_pending_changes (view);
-	send_pending_removes (view);
-
-	if (priv->adds->len == THRESHOLD_ITEMS) {
-		send_pending_adds (view);
-	}
-	g_array_append_val (priv->adds, obj);
-
-	g_hash_table_insert (priv->ids,
-			     e_cal_component_get_id (comp),
-			     GUINT_TO_POINTER (1));
-
-	ensure_pending_flush_timeout (view);
-}
-
-static void
-notify_change (EDataCalView *view,
-               gchar *obj)
-{
-	EDataCalViewPrivate *priv = view->priv;
-
-	send_pending_adds (view);
-	send_pending_removes (view);
-
-	if (priv->changes->len == THRESHOLD_ITEMS) {
-		send_pending_changes (view);
-	}
-
-	g_array_append_val (priv->changes, obj);
-
-	ensure_pending_flush_timeout (view);
-}
-
-static void
-notify_change_component (EDataCalView *view,
-                         ECalComponent *comp)
-{
-	gchar *obj;
-
-	obj = e_data_cal_view_get_component_string (view, comp);
-
-	notify_change (view, obj);
-}
-
-static void
-notify_remove (EDataCalView *view,
-               ECalComponentId *id)
-{
-	EDataCalViewPrivate *priv = view->priv;
-	gchar *ids;
-	gchar *uid, *rid;
-	gsize uid_len, rid_len;
-
-	send_pending_adds (view);
-	send_pending_changes (view);
-
-	if (priv->removes->len == THRESHOLD_ITEMS) {
-		send_pending_removes (view);
-	}
-
-	/* store ECalComponentId as <uid>[\n<rid>] (matches D-Bus API) */
-	if (id->uid) {
-		uid = e_util_utf8_make_valid (id->uid);
-		uid_len = strlen (uid);
-	} else {
-		uid = NULL;
-		uid_len = 0;
-	}
-	if (id->rid) {
-		rid = e_util_utf8_make_valid (id->rid);
-		rid_len = strlen (rid);
-	} else {
-		rid = NULL;
-		rid_len = 0;
-	}
-	if (uid_len && !rid_len) {
-		/* shortcut */
-		ids = uid;
-		uid = NULL;
-	} else {
-		/* concatenate */
-		ids = g_malloc (uid_len + rid_len + (rid_len ? 2 : 1));
-		if (uid_len)
-			strcpy (ids, uid);
-		if (rid_len) {
-			ids[uid_len] = '\n';
-			strcpy (ids + uid_len + 1, rid);
-		}
-	}
-	g_array_append_val (priv->removes, ids);
-	g_free (uid);
-	g_free (rid);
-
-	g_hash_table_remove (priv->ids, id);
-
-	ensure_pending_flush_timeout (view);
-}
-
-static void
-notify_complete (EDataCalView *view,
-                 const GError *error)
-{
-	gchar **error_strv;
-
-	send_pending_adds (view);
-	send_pending_changes (view);
-	send_pending_removes (view);
-
-	error_strv = e_gdbus_templates_encode_error (error);
-
-	e_gdbus_cal_view_emit_complete (view->priv->gdbus_object, (const gchar * const *) error_strv);
-
-	g_strfreev (error_strv);
+	return NULL;
 }
 
 static gboolean
@@ -425,14 +193,19 @@ impl_DataCalView_start (EGdbusCalView *object,
                         GDBusMethodInvocation *invocation,
                         EDataCalView *view)
 {
-	EDataCalViewPrivate *priv;
+	if (!view->priv->started) {
+		GThread *thread;
 
-	priv = view->priv;
+		view->priv->started = TRUE;
+		e_debug_log (
+			FALSE, E_DEBUG_LOG_DOMAIN_CAL_QUERIES,
+			"---;%p;VIEW-START;%s;%s", view,
+			e_cal_backend_sexp_text (view->priv->sexp),
+			G_OBJECT_TYPE_NAME (view->priv->backend));
 
-	if (!priv->started) {
-		priv->started = TRUE;
-		e_debug_log(FALSE, E_DEBUG_LOG_DOMAIN_CAL_QUERIES, "---;%p;VIEW-START;%s;%s", view, e_data_cal_view_get_text (view), G_OBJECT_TYPE_NAME(priv->backend));
-		e_cal_backend_start_view (priv->backend, view);
+		thread = g_thread_new (
+			NULL, calview_start_thread, g_object_ref (view));
+		g_thread_unref (thread);
 	}
 
 	e_gdbus_cal_view_complete_start (object, invocation, NULL);
@@ -440,19 +213,44 @@ impl_DataCalView_start (EGdbusCalView *object,
 	return TRUE;
 }
 
+static gpointer
+calview_stop_thread (gpointer data)
+{
+	EDataCalView *view = data;
+
+	if (view->priv->stopped)
+		e_cal_backend_stop_view (view->priv->backend, view);
+	g_object_unref (view);
+
+	return NULL;
+}
+
 static gboolean
 impl_DataCalView_stop (EGdbusCalView *object,
                        GDBusMethodInvocation *invocation,
                        EDataCalView *view)
 {
-	EDataCalViewPrivate *priv;
+	GThread *thread;
 
-	priv = view->priv;
+	view->priv->stopped = TRUE;
 
-	priv->stopped = TRUE;
+	thread = g_thread_new (NULL, calview_stop_thread, g_object_ref (view));
+	g_thread_unref (thread);
 
 	e_gdbus_cal_view_complete_stop (object, invocation, NULL);
-	e_cal_backend_stop_view (priv->backend, view);
+
+	return TRUE;
+}
+
+static gboolean
+impl_DataCalView_setFlags (EGdbusCalView *object,
+                           GDBusMethodInvocation *invocation,
+                           ECalClientViewFlags flags,
+                           EDataCalView *view)
+{
+	view->priv->flags = flags;
+
+	e_gdbus_cal_view_complete_set_flags (object, invocation, NULL);
 
 	return TRUE;
 }
@@ -464,10 +262,9 @@ impl_DataCalView_dispose (EGdbusCalView *object,
 {
 	e_gdbus_cal_view_complete_dispose (object, invocation, NULL);
 
-	view->priv->stopped = TRUE;
 	e_cal_backend_stop_view (view->priv->backend, view);
-
-	g_object_unref (view);
+	view->priv->stopped = TRUE;
+	e_cal_backend_remove_view (view->priv->backend, view);
 
 	return TRUE;
 }
@@ -478,16 +275,14 @@ impl_DataCalView_set_fields_of_interest (EGdbusCalView *object,
                                          const gchar * const *in_fields_of_interest,
                                          EDataCalView *view)
 {
-	EDataCalViewPrivate *priv;
 	gint ii;
 
 	g_return_val_if_fail (in_fields_of_interest != NULL, TRUE);
 
-	priv = view->priv;
-
-	if (priv->fields_of_interest)
-		g_hash_table_destroy (priv->fields_of_interest);
-	priv->fields_of_interest = NULL;
+	if (view->priv->fields_of_interest != NULL) {
+		g_hash_table_destroy (view->priv->fields_of_interest);
+		view->priv->fields_of_interest = NULL;
+	}
 
 	for (ii = 0; in_fields_of_interest[ii]; ii++) {
 		const gchar *field = in_fields_of_interest[ii];
@@ -495,72 +290,284 @@ impl_DataCalView_set_fields_of_interest (EGdbusCalView *object,
 		if (!*field)
 			continue;
 
-		if (!priv->fields_of_interest)
-			priv->fields_of_interest = g_hash_table_new_full (str_ic_hash, str_ic_equal, g_free, NULL);
+		if (view->priv->fields_of_interest == NULL)
+			view->priv->fields_of_interest =
+				g_hash_table_new_full (
+					(GHashFunc) str_ic_hash,
+					(GEqualFunc) str_ic_equal,
+					(GDestroyNotify) g_free,
+					(GDestroyNotify) NULL);
 
-		g_hash_table_insert (priv->fields_of_interest, g_strdup (field), GINT_TO_POINTER (1));
+		g_hash_table_insert (
+			view->priv->fields_of_interest,
+			g_strdup (field), GINT_TO_POINTER (1));
 	}
 
-	e_gdbus_cal_view_complete_set_fields_of_interest (object, invocation, NULL);
+	e_gdbus_cal_view_complete_set_fields_of_interest (
+		object, invocation, NULL);
 
 	return TRUE;
 }
 
 static void
-e_data_cal_view_set_property (GObject *object,
-                              guint property_id,
-                              const GValue *value,
-                              GParamSpec *pspec)
+data_cal_view_set_backend (EDataCalView *view,
+                           ECalBackend *backend)
 {
-	EDataCalView *view;
-	EDataCalViewPrivate *priv;
+	g_return_if_fail (E_IS_CAL_BACKEND (backend));
+	g_return_if_fail (view->priv->backend == NULL);
 
-	view = E_DATA_CAL_VIEW (object);
-	priv = view->priv;
-
-	switch (property_id) {
-	case PROP_BACKEND:
-		priv->backend = E_CAL_BACKEND (g_value_dup_object (value));
-		break;
-	case PROP_SEXP:
-		priv->sexp = E_CAL_BACKEND_SEXP (g_value_dup_object (value));
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
+	view->priv->backend = g_object_ref (backend);
 }
 
 static void
-e_data_cal_view_get_property (GObject *object,
-                              guint property_id,
-                              GValue *value,
-                              GParamSpec *pspec)
+data_cal_view_set_connection (EDataCalView *view,
+                              GDBusConnection *connection)
 {
-	EDataCalView *view;
-	EDataCalViewPrivate *priv;
+	g_return_if_fail (G_IS_DBUS_CONNECTION (connection));
+	g_return_if_fail (view->priv->connection == NULL);
 
-	view = E_DATA_CAL_VIEW (object);
-	priv = view->priv;
-
-	switch (property_id) {
-	case PROP_BACKEND:
-		g_value_set_object (value, priv->backend);
-		break;
-	case PROP_SEXP:
-		g_value_set_object (value, priv->sexp);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-		break;
-	}
+	view->priv->connection = g_object_ref (connection);
 }
 
-/* Instance init */
+static void
+data_cal_view_set_object_path (EDataCalView *view,
+                               const gchar *object_path)
+{
+	g_return_if_fail (object_path != NULL);
+	g_return_if_fail (view->priv->object_path == NULL);
+
+	view->priv->object_path = g_strdup (object_path);
+}
+
+static void
+data_cal_view_set_sexp (EDataCalView *view,
+                        ECalBackendSExp *sexp)
+{
+	g_return_if_fail (E_IS_CAL_BACKEND_SEXP (sexp));
+	g_return_if_fail (view->priv->sexp == NULL);
+
+	view->priv->sexp = g_object_ref (sexp);
+}
+
+static void
+data_cal_view_set_property (GObject *object,
+                            guint property_id,
+                            const GValue *value,
+                            GParamSpec *pspec)
+{
+	switch (property_id) {
+		case PROP_BACKEND:
+			data_cal_view_set_backend (
+				E_DATA_CAL_VIEW (object),
+				g_value_get_object (value));
+			return;
+
+		case PROP_CONNECTION:
+			data_cal_view_set_connection (
+				E_DATA_CAL_VIEW (object),
+				g_value_get_object (value));
+			return;
+
+		case PROP_OBJECT_PATH:
+			data_cal_view_set_object_path (
+				E_DATA_CAL_VIEW (object),
+				g_value_get_string (value));
+			return;
+
+		case PROP_SEXP:
+			data_cal_view_set_sexp (
+				E_DATA_CAL_VIEW (object),
+				g_value_get_object (value));
+			return;
+	}
+
+	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+}
+
+static void
+data_cal_view_get_property (GObject *object,
+                            guint property_id,
+                            GValue *value,
+                            GParamSpec *pspec)
+{
+	switch (property_id) {
+		case PROP_BACKEND:
+			g_value_set_object (
+				value,
+				e_data_cal_view_get_backend (
+				E_DATA_CAL_VIEW (object)));
+			return;
+
+		case PROP_CONNECTION:
+			g_value_set_object (
+				value,
+				e_data_cal_view_get_connection (
+				E_DATA_CAL_VIEW (object)));
+			return;
+
+		case PROP_OBJECT_PATH:
+			g_value_set_string (
+				value,
+				e_data_cal_view_get_object_path (
+				E_DATA_CAL_VIEW (object)));
+			return;
+
+		case PROP_SEXP:
+			g_value_set_object (
+				value,
+				e_data_cal_view_get_sexp (
+				E_DATA_CAL_VIEW (object)));
+			return;
+	}
+
+	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+}
+
+static void
+data_cal_view_dispose (GObject *object)
+{
+	EDataCalViewPrivate *priv;
+
+	priv = E_DATA_CAL_VIEW_GET_PRIVATE (object);
+
+	g_clear_object (&priv->connection);
+	g_clear_object (&priv->gdbus_object);
+	g_clear_object (&priv->backend);
+	g_clear_object (&priv->sexp);
+
+	g_mutex_lock (&priv->pending_mutex);
+
+	if (priv->flush_id > 0) {
+		g_source_remove (priv->flush_id);
+		priv->flush_id = 0;
+	}
+
+	g_mutex_unlock (&priv->pending_mutex);
+
+	/* Chain up to parent's dispose() method. */
+	G_OBJECT_CLASS (e_data_cal_view_parent_class)->dispose (object);
+}
+
+static void
+data_cal_view_finalize (GObject *object)
+{
+	EDataCalViewPrivate *priv;
+
+	priv = E_DATA_CAL_VIEW_GET_PRIVATE (object);
+
+	g_free (priv->object_path);
+
+	reset_array (priv->adds);
+	reset_array (priv->changes);
+	reset_array (priv->removes);
+
+	g_array_free (priv->adds, TRUE);
+	g_array_free (priv->changes, TRUE);
+	g_array_free (priv->removes, TRUE);
+
+	g_hash_table_destroy (priv->ids);
+
+	if (priv->fields_of_interest != NULL)
+		g_hash_table_destroy (priv->fields_of_interest);
+
+	g_mutex_clear (&priv->pending_mutex);
+
+	/* Chain up to parent's finalize() method. */
+	G_OBJECT_CLASS (e_data_cal_view_parent_class)->finalize (object);
+}
+
+static gboolean
+data_cal_view_initable_init (GInitable *initable,
+                             GCancellable *cancellable,
+                             GError **error)
+{
+	EDataCalView *view;
+
+	view = E_DATA_CAL_VIEW (initable);
+
+	return e_gdbus_cal_view_register_object (
+		view->priv->gdbus_object,
+		view->priv->connection,
+		view->priv->object_path,
+		error);
+}
+
+static void
+e_data_cal_view_class_init (EDataCalViewClass *class)
+{
+	GObjectClass *object_class;
+
+	g_type_class_add_private (class, sizeof (EDataCalViewPrivate));
+
+	object_class = G_OBJECT_CLASS (class);
+	object_class->set_property = data_cal_view_set_property;
+	object_class->get_property = data_cal_view_get_property;
+	object_class->dispose = data_cal_view_dispose;
+	object_class->finalize = data_cal_view_finalize;
+
+	g_object_class_install_property (
+		object_class,
+		PROP_BACKEND,
+		g_param_spec_object (
+			"backend",
+			"Backend",
+			"The backend being monitored",
+			E_TYPE_CAL_BACKEND,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (
+		object_class,
+		PROP_CONNECTION,
+		g_param_spec_object (
+			"connection",
+			"Connection",
+			"The GDBusConnection on which "
+			"to export the view interface",
+			G_TYPE_DBUS_CONNECTION,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (
+		object_class,
+		PROP_OBJECT_PATH,
+		g_param_spec_string (
+			"object-path",
+			"Object Path",
+			"The object path at which to "
+			"export the view interface",
+			NULL,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (
+		object_class,
+		PROP_SEXP,
+		g_param_spec_object (
+			"sexp",
+			"S-Expression",
+			"The query expression for this view",
+			E_TYPE_CAL_BACKEND_SEXP,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
+}
+
+static void
+e_data_cal_view_initable_init (GInitableIface *iface)
+{
+	iface->init = data_cal_view_initable_init;
+}
+
 static void
 e_data_cal_view_init (EDataCalView *view)
 {
 	view->priv = E_DATA_CAL_VIEW_GET_PRIVATE (view);
+
+	view->priv->flags = E_CAL_CLIENT_VIEW_FLAGS_NOTIFY_INITIAL;
 
 	view->priv->gdbus_object = e_gdbus_cal_view_stub_new ();
 	g_signal_connect (
@@ -569,6 +576,9 @@ e_data_cal_view_init (EDataCalView *view)
 	g_signal_connect (
 		view->priv->gdbus_object, "handle-stop",
 		G_CALLBACK (impl_DataCalView_stop), view);
+	g_signal_connect (
+		view->priv->gdbus_object, "handle-set-flags",
+		G_CALLBACK (impl_DataCalView_setFlags), view);
 	g_signal_connect (
 		view->priv->gdbus_object, "handle-dispose",
 		G_CALLBACK (impl_DataCalView_dispose), view);
@@ -596,101 +606,291 @@ e_data_cal_view_init (EDataCalView *view)
 		(GDestroyNotify) e_cal_component_free_id,
 		(GDestroyNotify) NULL);
 
-	view->priv->pending_mutex = g_mutex_new ();
+	g_mutex_init (&view->priv->pending_mutex);
 	view->priv->flush_id = 0;
 }
 
-static void
-e_data_cal_view_dispose (GObject *object)
+/**
+ * e_data_cal_view_new:
+ * @backend: an #ECalBackend
+ * @sexp: an #ECalBackendSExp
+ * @connection: a #GDBusConnection
+ * @object_path: an object path for the view
+ * @error: return location for a #GError, or %NULL
+ *
+ * Creates a new #EDataCalView and exports its D-Bus interface on
+ * @connection at @object_path.  If an error occurs while exporting,
+ * the function sets @error and returns %NULL.
+ *
+ * Returns: an #EDataCalView
+ **/
+EDataCalView *
+e_data_cal_view_new (ECalBackend *backend,
+                     ECalBackendSExp *sexp,
+                     GDBusConnection *connection,
+                     const gchar *object_path,
+                     GError **error)
 {
-	EDataCalView *view;
-	EDataCalViewPrivate *priv;
+	g_return_val_if_fail (E_IS_CAL_BACKEND (backend), NULL);
+	g_return_val_if_fail (E_IS_CAL_BACKEND_SEXP (sexp), NULL);
+	g_return_val_if_fail (G_IS_DBUS_CONNECTION (connection), NULL);
+	g_return_val_if_fail (object_path != NULL, NULL);
 
-	g_return_if_fail (object != NULL);
-	g_return_if_fail (E_IS_DATA_CAL_VIEW (object));
-
-	view = E_DATA_CAL_VIEW (object);
-	priv = view->priv;
-
-	if (priv->backend) {
-		e_cal_backend_remove_view (priv->backend, view);
-		g_object_unref (priv->backend);
-		priv->backend = NULL;
-	}
-
-	if (priv->sexp) {
-		g_object_unref (priv->sexp);
-		priv->sexp = NULL;
-	}
-
-	g_mutex_lock (priv->pending_mutex);
-
-	if (priv->flush_id) {
-		g_source_remove (priv->flush_id);
-		priv->flush_id = 0;
-	}
-
-	g_mutex_unlock (priv->pending_mutex);
-
-	(* G_OBJECT_CLASS (e_data_cal_view_parent_class)->dispose) (object);
+	return g_initable_new (
+		E_TYPE_DATA_CAL_VIEW, NULL, error,
+		"backend", backend,
+		"connection", connection,
+		"object-path", object_path,
+		"sexp", sexp,
+		NULL);
 }
 
 static void
-e_data_cal_view_finalize (GObject *object)
+send_pending_adds (EDataCalView *view)
 {
-	EDataCalView *view;
-	EDataCalViewPrivate *priv;
+	if (view->priv->adds->len == 0)
+		return;
 
-	g_return_if_fail (object != NULL);
-	g_return_if_fail (E_IS_DATA_CAL_VIEW (object));
+	e_gdbus_cal_view_emit_objects_added (
+		view->priv->gdbus_object,
+		(const gchar * const *) view->priv->adds->data);
+	reset_array (view->priv->adds);
+}
 
-	view = E_DATA_CAL_VIEW (object);
-	priv = view->priv;
+static void
+send_pending_changes (EDataCalView *view)
+{
+	if (view->priv->changes->len == 0)
+		return;
 
-	reset_array (priv->adds);
-	reset_array (priv->changes);
-	reset_array (priv->removes);
+	e_gdbus_cal_view_emit_objects_modified (
+		view->priv->gdbus_object,
+		(const gchar * const *) view->priv->changes->data);
+	reset_array (view->priv->changes);
+}
 
-	g_array_free (priv->adds, TRUE);
-	g_array_free (priv->changes, TRUE);
-	g_array_free (priv->removes, TRUE);
+static void
+send_pending_removes (EDataCalView *view)
+{
+	if (view->priv->removes->len == 0)
+		return;
 
-	g_hash_table_destroy (priv->ids);
+	/* send ECalComponentIds as <uid>[\n<rid>], as encoded in notify_remove() */
+	e_gdbus_cal_view_emit_objects_removed (
+		view->priv->gdbus_object,
+		(const gchar * const *) view->priv->removes->data);
+	reset_array (view->priv->removes);
+}
 
-	if (priv->fields_of_interest)
-		g_hash_table_destroy (priv->fields_of_interest);
+static gboolean
+pending_flush_timeout_cb (gpointer data)
+{
+	EDataCalView *view = data;
 
-	g_mutex_free (priv->pending_mutex);
+	g_mutex_lock (&view->priv->pending_mutex);
 
-	(* G_OBJECT_CLASS (e_data_cal_view_parent_class)->finalize) (object);
+	view->priv->flush_id = 0;
+
+	send_pending_adds (view);
+	send_pending_changes (view);
+	send_pending_removes (view);
+
+	g_mutex_unlock (&view->priv->pending_mutex);
+
+	return FALSE;
+}
+
+static void
+ensure_pending_flush_timeout (EDataCalView *view)
+{
+	if (view->priv->flush_id > 0)
+		return;
+
+	if (e_data_cal_view_is_completed (view)) {
+		view->priv->flush_id = e_named_timeout_add (
+			10 /* ms */, pending_flush_timeout_cb, view);
+	} else {
+		view->priv->flush_id = e_named_timeout_add_seconds (
+			THRESHOLD_SECONDS, pending_flush_timeout_cb, view);
+	}
+}
+
+static void
+notify_add_component (EDataCalView *view,
+                      /* const */ ECalComponent *comp)
+{
+	ECalClientViewFlags flags;
+	gchar *obj;
+
+	obj = e_data_cal_view_get_component_string (view, comp);
+
+	send_pending_changes (view);
+	send_pending_removes (view);
+
+	/* Do not send component add notifications during initial stage */
+	flags = e_data_cal_view_get_flags (view);
+	if (view->priv->complete || (flags & E_CAL_CLIENT_VIEW_FLAGS_NOTIFY_INITIAL) != 0) {
+		if (view->priv->adds->len == THRESHOLD_ITEMS)
+			send_pending_adds (view);
+		g_array_append_val (view->priv->adds, obj);
+
+		ensure_pending_flush_timeout (view);
+	}
+
+	g_hash_table_insert (
+		view->priv->ids,
+		e_cal_component_get_id (comp),
+		GUINT_TO_POINTER (1));
+}
+
+static void
+notify_change (EDataCalView *view,
+               gchar *obj)
+{
+	send_pending_adds (view);
+	send_pending_removes (view);
+
+	if (view->priv->changes->len == THRESHOLD_ITEMS)
+		send_pending_changes (view);
+
+	g_array_append_val (view->priv->changes, obj);
+
+	ensure_pending_flush_timeout (view);
+}
+
+static void
+notify_change_component (EDataCalView *view,
+                         ECalComponent *comp)
+{
+	gchar *obj;
+
+	obj = e_data_cal_view_get_component_string (view, comp);
+
+	notify_change (view, obj);
+}
+
+static void
+notify_remove (EDataCalView *view,
+               ECalComponentId *id)
+{
+	gchar *ids;
+	gsize ids_len, ids_offset;
+	gchar *uid, *rid;
+	gsize uid_len, rid_len;
+
+	send_pending_adds (view);
+	send_pending_changes (view);
+
+	if (view->priv->removes->len == THRESHOLD_ITEMS)
+		send_pending_removes (view);
+
+	/* store ECalComponentId as <uid>[\n<rid>] (matches D-Bus API) */
+	if (id->uid) {
+		uid = e_util_utf8_make_valid (id->uid);
+		uid_len = strlen (uid);
+	} else {
+		uid = NULL;
+		uid_len = 0;
+	}
+	if (id->rid) {
+		rid = e_util_utf8_make_valid (id->rid);
+		rid_len = strlen (rid);
+	} else {
+		rid = NULL;
+		rid_len = 0;
+	}
+	if (uid_len && !rid_len) {
+		/* shortcut */
+		ids = uid;
+		uid = NULL;
+	} else {
+		/* concatenate */
+		ids_len = uid_len + rid_len + (rid_len ? 2 : 1);
+		ids = g_malloc (ids_len);
+		if (uid_len)
+			g_strlcpy (ids, uid, ids_len);
+		if (rid_len) {
+			ids_offset = uid_len + 1;
+			g_strlcpy (ids + ids_offset, rid, ids_len - ids_offset);
+		}
+	}
+	g_array_append_val (view->priv->removes, ids);
+	g_free (uid);
+	g_free (rid);
+
+	g_hash_table_remove (view->priv->ids, id);
+
+	ensure_pending_flush_timeout (view);
 }
 
 /**
- * e_data_cal_view_get_text:
- * @view: A #EDataCalView object.
+ * e_data_cal_view_get_backend:
+ * @view: an #EDataCalView
  *
- * Get the expression used for the given view.
+ * Gets the backend that @view is querying.
  *
- * Returns: the view expression used to search.
- */
-const gchar *
-e_data_cal_view_get_text (EDataCalView *view)
+ * Returns: The associated #ECalBackend.
+ *
+ * Since: 3.8
+ **/
+ECalBackend *
+e_data_cal_view_get_backend (EDataCalView *view)
 {
 	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), NULL);
 
-	return e_cal_backend_sexp_text (view->priv->sexp);
+	return view->priv->backend;
 }
 
 /**
- * e_data_cal_view_get_object_sexp:
- * @view: A view object.
+ * e_data_cal_view_get_connection:
+ * @view: an #EDataCalView
+ *
+ * Returns the #GDBusConnection on which the CalendarView D-Bus
+ * interface is exported.
+ *
+ * Returns: the #GDBusConnection
+ *
+ * Since: 3.8
+ **/
+GDBusConnection *
+e_data_cal_view_get_connection (EDataCalView *view)
+{
+	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), NULL);
+
+	return view->priv->connection;
+}
+
+/**
+ * e_data_cal_view_get_object_path:
+ * @view: an #EDataCalView
+ *
+ * Return the object path at which the CalendarView D-Bus inteface is
+ * exported.
+ *
+ * Returns: the object path
+ *
+ * Since: 3.8
+ **/
+const gchar *
+e_data_cal_view_get_object_path (EDataCalView *view)
+{
+	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), NULL);
+
+	return view->priv->object_path;
+}
+
+/**
+ * e_data_cal_view_get_sexp:
+ * @view: an #EDataCalView
  *
  * Get the #ECalBackendSExp object used for the given view.
  *
  * Returns: The expression object used to search.
+ *
+ * Since: 3.8
  */
 ECalBackendSExp *
-e_data_cal_view_get_object_sexp (EDataCalView *view)
+e_data_cal_view_get_sexp (EDataCalView *view)
 {
 	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), NULL);
 
@@ -699,7 +899,7 @@ e_data_cal_view_get_object_sexp (EDataCalView *view)
 
 /**
  * e_data_cal_view_object_matches:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @object: Object to match.
  *
  * Compares the given @object to the regular expression used for the
@@ -711,20 +911,22 @@ gboolean
 e_data_cal_view_object_matches (EDataCalView *view,
                                 const gchar *object)
 {
-	EDataCalViewPrivate *priv;
+	ECalBackend *backend;
+	ECalBackendSExp *sexp;
 
-	g_return_val_if_fail (view != NULL, FALSE);
 	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), FALSE);
 	g_return_val_if_fail (object != NULL, FALSE);
 
-	priv = view->priv;
+	sexp = e_data_cal_view_get_sexp (view);
+	backend = e_data_cal_view_get_backend (view);
 
-	return e_cal_backend_sexp_match_object (priv->sexp, object, priv->backend);
+	return e_cal_backend_sexp_match_object (
+		sexp, object, E_TIMEZONE_CACHE (backend));
 }
 
 /**
  * e_data_cal_view_component_matches:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @component: the #ECalComponent object to match.
  *
  * Compares the given @component to the regular expression used for the
@@ -738,20 +940,22 @@ gboolean
 e_data_cal_view_component_matches (EDataCalView *view,
                                    ECalComponent *component)
 {
-	EDataCalViewPrivate *priv;
+	ECalBackend *backend;
+	ECalBackendSExp *sexp;
 
-	g_return_val_if_fail (view != NULL, FALSE);
 	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), FALSE);
 	g_return_val_if_fail (E_IS_CAL_COMPONENT (component), FALSE);
 
-	priv = view->priv;
+	sexp = e_data_cal_view_get_sexp (view);
+	backend = e_data_cal_view_get_backend (view);
 
-	return e_cal_backend_sexp_match_comp (priv->sexp, component, priv->backend);
+	return e_cal_backend_sexp_match_comp (
+		sexp, component, E_TIMEZONE_CACHE (backend));
 }
 
 /**
  * e_data_cal_view_is_started:
- * @view: A view object.
+ * @view: an #EDataCalView
  *
  * Checks whether the given view has already been started.
  *
@@ -767,7 +971,7 @@ e_data_cal_view_is_started (EDataCalView *view)
 
 /**
  * e_data_cal_view_is_stopped:
- * @view: A view object.
+ * @view: an #EDataCalView
  *
  * Checks whether the given view has been stopped.
  *
@@ -785,7 +989,7 @@ e_data_cal_view_is_stopped (EDataCalView *view)
 
 /**
  * e_data_cal_view_is_completed:
- * @view: A view object.
+ * @view: an #EDataCalView
  *
  * Checks whether the given view is already completed. Being completed means the initial
  * matching of objects have been finished, not that no more notifications about
@@ -806,7 +1010,7 @@ e_data_cal_view_is_completed (EDataCalView *view)
 
 /**
  * e_data_cal_view_get_fields_of_interest:
- * @view: A view object.
+ * @view: an #EDataCalView
  *
  * Returns: Hash table of field names which the listener is interested in.
  * Backends can return fully populated objects, but the listener advertised
@@ -824,6 +1028,24 @@ e_data_cal_view_get_fields_of_interest (EDataCalView *view)
 	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), NULL);
 
 	return view->priv->fields_of_interest;
+}
+
+/**
+ * e_data_cal_view_get_flags:
+ * @view: an #EDataCalView
+ *
+ * Gets the #ECalClientViewFlags that control the behaviour of @view.
+ *
+ * Returns: the flags for @view.
+ *
+ * Since: 3.6
+ **/
+ECalClientViewFlags
+e_data_cal_view_get_flags (EDataCalView *view)
+{
+	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), 0);
+
+	return view->priv->flags;
 }
 
 static gboolean
@@ -855,7 +1077,7 @@ filter_component (icalcomponent *icomponent,
 	/* 	kind_string = icomponent->x_name; */
 	/* } */
 
-	kind_string  = icalcomponent_kind_to_string (kind);
+	kind_string = icalcomponent_kind_to_string (kind);
 
 	g_string_append (string, kind_string);
 	g_string_append (string, newline);
@@ -903,7 +1125,7 @@ filter_component (icalcomponent *icomponent,
 
 /**
  * e_data_cal_view_get_component_string:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @component: The #ECalComponent to get the string for.
  *
  * This function is similar to e_cal_component_get_as_string() except
@@ -917,10 +1139,10 @@ filter_component (icalcomponent *icomponent,
  */
 gchar *
 e_data_cal_view_get_component_string (EDataCalView *view,
-                                      /* const */ ECalComponent *component)
+                                      ECalComponent *component)
 {
 	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), NULL);
-	g_return_val_if_fail (component != NULL, NULL);
+	g_return_val_if_fail (E_IS_CAL_COMPONENT (component), NULL);
 
 	if (view->priv->fields_of_interest) {
 		GString *string = g_string_new ("");
@@ -937,7 +1159,7 @@ e_data_cal_view_get_component_string (EDataCalView *view,
 
 /**
  * e_data_cal_view_notify_components_added:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @ecalcomponents: List of #ECalComponent-s that have been added.
  *
  * Notifies all view listeners of the addition of a list of components.
@@ -953,16 +1175,14 @@ void
 e_data_cal_view_notify_components_added (EDataCalView *view,
                                          const GSList *ecalcomponents)
 {
-	EDataCalViewPrivate *priv;
 	const GSList *l;
 
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	priv = view->priv;
+	g_return_if_fail (E_IS_DATA_CAL_VIEW (view));
 
 	if (ecalcomponents == NULL)
 		return;
 
-	g_mutex_lock (priv->pending_mutex);
+	g_mutex_lock (&view->priv->pending_mutex);
 
 	for (l = ecalcomponents; l; l = l->next) {
 		ECalComponent *comp = l->data;
@@ -972,12 +1192,12 @@ e_data_cal_view_notify_components_added (EDataCalView *view,
 		notify_add_component (view, comp);
 	}
 
-	g_mutex_unlock (priv->pending_mutex);
+	g_mutex_unlock (&view->priv->pending_mutex);
 }
 
 /**
  * e_data_cal_view_notify_components_added_1:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @component: The #ECalComponent that has been added.
  *
  * Notifies all the view listeners of the addition of a single object.
@@ -991,12 +1211,12 @@ e_data_cal_view_notify_components_added (EDataCalView *view,
  */
 void
 e_data_cal_view_notify_components_added_1 (EDataCalView *view,
-                                           /* const */ ECalComponent *component)
+                                           ECalComponent *component)
 {
 	GSList l = {NULL,};
 
 	g_return_if_fail (E_IS_DATA_CAL_VIEW (view));
-	g_return_if_fail (component != NULL);
+	g_return_if_fail (E_IS_CAL_COMPONENT (component));
 
 	l.data = (gpointer) component;
 	e_data_cal_view_notify_components_added (view, &l);
@@ -1004,7 +1224,7 @@ e_data_cal_view_notify_components_added_1 (EDataCalView *view,
 
 /**
  * e_data_cal_view_notify_components_modified:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @ecalcomponents: List of modified #ECalComponent-s.
  *
  * Notifies all view listeners of the modification of a list of components.
@@ -1020,16 +1240,14 @@ void
 e_data_cal_view_notify_components_modified (EDataCalView *view,
                                             const GSList *ecalcomponents)
 {
-	EDataCalViewPrivate *priv;
 	const GSList *l;
 
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	priv = view->priv;
+	g_return_if_fail (E_IS_DATA_CAL_VIEW (view));
 
 	if (ecalcomponents == NULL)
 		return;
 
-	g_mutex_lock (priv->pending_mutex);
+	g_mutex_lock (&view->priv->pending_mutex);
 
 	for (l = ecalcomponents; l; l = l->next) {
 		ECalComponent *comp = l->data;
@@ -1039,12 +1257,12 @@ e_data_cal_view_notify_components_modified (EDataCalView *view,
 		notify_change_component (view, comp);
 	}
 
-	g_mutex_unlock (priv->pending_mutex);
+	g_mutex_unlock (&view->priv->pending_mutex);
 }
 
 /**
  * e_data_cal_view_notify_components_modified_1:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @component: The modified #ECalComponent.
  *
  * Notifies all view listeners of the modification of @component.
@@ -1058,131 +1276,20 @@ e_data_cal_view_notify_components_modified (EDataCalView *view,
  */
 void
 e_data_cal_view_notify_components_modified_1 (EDataCalView *view,
-                                              /* const */ ECalComponent *component)
+                                              ECalComponent *component)
 {
 	GSList l = {NULL,};
 
 	g_return_if_fail (E_IS_DATA_CAL_VIEW (view));
-	g_return_if_fail (component != NULL);
+	g_return_if_fail (E_IS_CAL_COMPONENT (component));
 
 	l.data = (gpointer) component;
 	e_data_cal_view_notify_components_modified (view, &l);
 }
 
 /**
- * e_data_cal_view_notify_objects_added:
- * @view: A view object.
- * @objects: List of objects that have been added.
- *
- * Notifies all view listeners of the addition of a list of objects.
- *
- * Deprecated: 3.4: If possible e_data_cal_view_notify_components_added()
- * should be used instead.
- */
-void
-e_data_cal_view_notify_objects_added (EDataCalView *view,
-                                      const GSList *objects)
-{
-	EDataCalViewPrivate *priv;
-	const GSList *l;
-
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	priv = view->priv;
-
-	if (objects == NULL)
-		return;
-
-	g_mutex_lock (priv->pending_mutex);
-
-	for (l = objects; l; l = l->next) {
-		notify_add (view, e_util_utf8_make_valid (l->data));
-	}
-
-	g_mutex_unlock (priv->pending_mutex);
-}
-
-/**
- * e_data_cal_view_notify_objects_added_1:
- * @view: A view object.
- * @object: The object that has been added.
- *
- * Notifies all the view listeners of the addition of a single object.
- *
- * Deprecated: 3.4: If possible e_data_cal_view_notify_components_added_1()
- * should be used instead.
- */
-void
-e_data_cal_view_notify_objects_added_1 (EDataCalView *view,
-                                        const gchar *object)
-{
-	GSList l = {NULL,};
-
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	g_return_if_fail (object);
-
-	l.data = (gpointer) object;
-	e_data_cal_view_notify_objects_added (view, &l);
-}
-
-/**
- * e_data_cal_view_notify_objects_modified:
- * @view: A view object.
- * @objects: List of modified objects.
- *
- * Notifies all view listeners of the modification of a list of objects.
- *
- * Deprecated: 3.4: If possible e_data_cal_view_notify_components_modified()
- * should be used instead.
- */
-void
-e_data_cal_view_notify_objects_modified (EDataCalView *view,
-                                         const GSList *objects)
-{
-	EDataCalViewPrivate *priv;
-	const GSList *l;
-
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	priv = view->priv;
-
-	if (objects == NULL)
-		return;
-
-	g_mutex_lock (priv->pending_mutex);
-
-	for (l = objects; l; l = l->next) {
-		/* TODO: send add/remove/change as relevant, based on ->ids */
-		notify_change (view, e_util_utf8_make_valid (l->data));
-	}
-
-	g_mutex_unlock (priv->pending_mutex);
-}
-
-/**
- * e_data_cal_view_notify_objects_modified_1:
- * @view: A view object.
- * @object: The modified object.
- *
- * Notifies all view listeners of the modification of a single object.
- *
- * Deprecated: 3.4: If possible e_data_cal_view_notify_components_modified_1()
- * should be used instead.
- */
-void
-e_data_cal_view_notify_objects_modified_1 (EDataCalView *view,
-                                           const gchar *object)
-{
-	GSList l = {NULL,};
-
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	g_return_if_fail (object);
-
-	l.data = (gpointer) object;
-	e_data_cal_view_notify_objects_modified (view, &l);
-}
-
-/**
  * e_data_cal_view_notify_objects_removed:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @ids: List of IDs for the objects that have been removed.
  *
  * Notifies all view listener of the removal of a list of objects.
@@ -1191,29 +1298,27 @@ void
 e_data_cal_view_notify_objects_removed (EDataCalView *view,
                                         const GSList *ids)
 {
-	EDataCalViewPrivate *priv;
 	const GSList *l;
 
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	priv = view->priv;
+	g_return_if_fail (E_IS_DATA_CAL_VIEW (view));
 
 	if (ids == NULL)
 		return;
 
-	g_mutex_lock (priv->pending_mutex);
+	g_mutex_lock (&view->priv->pending_mutex);
 
 	for (l = ids; l; l = l->next) {
 		ECalComponentId *id = l->data;
-		if (g_hash_table_lookup (priv->ids, id))
+		if (g_hash_table_lookup (view->priv->ids, id))
 		    notify_remove (view, id);
 	}
 
-	g_mutex_unlock (priv->pending_mutex);
+	g_mutex_unlock (&view->priv->pending_mutex);
 }
 
 /**
  * e_data_cal_view_notify_objects_removed_1:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @id: ID of the removed object.
  *
  * Notifies all view listener of the removal of a single object.
@@ -1224,8 +1329,8 @@ e_data_cal_view_notify_objects_removed_1 (EDataCalView *view,
 {
 	GSList l = {NULL,};
 
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	g_return_if_fail (id);
+	g_return_if_fail (E_IS_DATA_CAL_VIEW (view));
+	g_return_if_fail (id != NULL);
 
 	l.data = (gpointer) id;
 	e_data_cal_view_notify_objects_removed (view, &l);
@@ -1233,7 +1338,7 @@ e_data_cal_view_notify_objects_removed_1 (EDataCalView *view,
 
 /**
  * e_data_cal_view_notify_progress:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @percent: Percentage completed.
  * @message: Progress message to send to listeners.
  *
@@ -1244,23 +1349,23 @@ e_data_cal_view_notify_progress (EDataCalView *view,
                                  gint percent,
                                  const gchar *message)
 {
-	EDataCalViewPrivate *priv;
 	gchar *gdbus_message = NULL;
 
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	priv = view->priv;
+	g_return_if_fail (E_IS_DATA_CAL_VIEW (view));
 
-	if (!priv->started || priv->stopped)
+	if (!view->priv->started || view->priv->stopped)
 		return;
 
-	e_gdbus_cal_view_emit_progress (view->priv->gdbus_object, percent, e_util_ensure_gdbus_string (message, &gdbus_message));
+	e_gdbus_cal_view_emit_progress (
+		view->priv->gdbus_object, percent,
+		e_util_ensure_gdbus_string (message, &gdbus_message));
 
 	g_free (gdbus_message);
 }
 
 /**
  * e_data_cal_view_notify_complete:
- * @view: A view object.
+ * @view: an #EDataCalView
  * @error: View completion error, if any.
  *
  * Notifies all view listeners of the completion of the view, including a
@@ -1272,19 +1377,29 @@ void
 e_data_cal_view_notify_complete (EDataCalView *view,
                                  const GError *error)
 {
-	EDataCalViewPrivate *priv;
+	gchar **error_strv;
 
-	g_return_if_fail (view && E_IS_DATA_CAL_VIEW (view));
-	priv = view->priv;
+	g_return_if_fail (E_IS_DATA_CAL_VIEW (view));
 
-	if (!priv->started || priv->stopped)
+	if (!view->priv->started || view->priv->stopped)
 		return;
 
-	g_mutex_lock (priv->pending_mutex);
+	g_mutex_lock (&view->priv->pending_mutex);
 
-	priv->complete = TRUE;
+	view->priv->complete = TRUE;
 
-	notify_complete (view, error);
+	send_pending_adds (view);
+	send_pending_changes (view);
+	send_pending_removes (view);
 
-	g_mutex_unlock (priv->pending_mutex);
+	error_strv = e_gdbus_templates_encode_error (error);
+
+	e_gdbus_cal_view_emit_complete (
+		view->priv->gdbus_object,
+		(const gchar * const *) error_strv);
+
+	g_strfreev (error_strv);
+
+	g_mutex_unlock (&view->priv->pending_mutex);
 }
+

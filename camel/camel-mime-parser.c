@@ -1,22 +1,20 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 8 -*- */
 /*
- *  Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+ * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- *  Authors: Michael Zucchi <notzed@ximian.com>
+ * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /* What should hopefully be a fast mail parser */
@@ -74,7 +72,8 @@ struct _header_scan_state {
 	gchar *outend;
 
 	gint fd;			/* input for a fd input */
-	CamelStream *stream;	/* or for a stream */
+	CamelStream *stream;		/* or for a stream */
+	GInputStream *input_stream;
 
 	gint ioerrno;		/* io error state */
 
@@ -140,6 +139,7 @@ struct _header_scan_filter {
 	CamelMimeFilter *filter;
 };
 
+static void folder_scan_reset (struct _header_scan_state *s);
 static void folder_scan_step (struct _header_scan_state *s, gchar **databuffer, gsize *datalength);
 static void folder_scan_drop_step (struct _header_scan_state *s);
 static gint folder_scan_init_with_fd (struct _header_scan_state *s, gint fd);
@@ -180,7 +180,7 @@ static gchar *states[] = {
 };
 #endif
 
-G_DEFINE_TYPE (CamelMimeParser, camel_mime_parser, CAMEL_TYPE_OBJECT)
+G_DEFINE_TYPE (CamelMimeParser, camel_mime_parser, G_TYPE_OBJECT)
 
 static void
 mime_parser_finalize (GObject *object)
@@ -352,7 +352,7 @@ byte_array_to_string (GByteArray *array)
 		return NULL;
 
 	if (array->len == 0 || array->data[array->len - 1] != '\0')
-		g_byte_array_append(array, (guint8 *) "", 1);
+		g_byte_array_append (array, (guint8 *) "", 1);
 
 	return (const gchar *) array->data;
 }
@@ -470,6 +470,51 @@ camel_mime_parser_init_with_stream (CamelMimeParser *parser,
 	struct _header_scan_state *s = _PRIVATE (parser);
 
 	return folder_scan_init_with_stream (s, stream, error);
+}
+
+/**
+ * camel_mime_parser_init_with_input_stream:
+ * @parser: a #CamelMimeParser
+ * @input_stream: a #GInputStream
+ *
+ * Initialize the scanner with @input_stream.  The scanner's offsets will
+ * be relative to the current file position of the stream.  As a result,
+ * seekable streams should only be seeked using the parser seek function.
+ *
+ * Since: 3.12
+ **/
+void
+camel_mime_parser_init_with_input_stream (CamelMimeParser *parser,
+                                          GInputStream *input_stream)
+{
+	struct _header_scan_state *s = _PRIVATE (parser);
+
+	folder_scan_reset (s);
+	s->input_stream = g_object_ref (input_stream);
+}
+
+/**
+ * camel_mime_parser_init_with_bytes:
+ * @parser: a #CamelMimeParser
+ * @bytes: a #GBytes containing the message content
+ *
+ * Convenience function creates a #GMemoryInputStream from @bytes and hands
+ * it off to camel_mime_parser_init_with_input_stream().
+ *
+ * Since: 3.12
+ **/
+void
+camel_mime_parser_init_with_bytes (CamelMimeParser *parser,
+                                   GBytes *bytes)
+{
+	GInputStream *input_stream;
+
+	g_return_if_fail (CAMEL_IS_MIME_PARSER (parser));
+	g_return_if_fail (bytes != NULL);
+
+	input_stream = g_memory_input_stream_new_from_bytes (bytes);
+	camel_mime_parser_init_with_input_stream (parser, input_stream);
+	g_object_unref (input_stream);
 }
 
 /**
@@ -609,7 +654,7 @@ camel_mime_parser_step (CamelMimeParser *parser,
 {
 	struct _header_scan_state *s = _PRIVATE (parser);
 
-	d(printf("OLD STATE:  '%s' :\n", states[s->state]));
+	d (printf ("OLD STATE:  '%s' :\n", states[s->state]));
 
 	if (s->unstep <= 0) {
 		gchar *dummy;
@@ -624,7 +669,7 @@ camel_mime_parser_step (CamelMimeParser *parser,
 	} else
 		s->unstep--;
 
-	d(printf("NEW STATE:  '%s' :\n", states[s->state]));
+	d (printf ("NEW STATE:  '%s' :\n", states[s->state]));
 
 	return s->state;
 }
@@ -662,10 +707,10 @@ camel_mime_parser_read (CamelMimeParser *parser,
 	if (len == 0)
 		return 0;
 
-	d(printf("parser::read() reading %d bytes\n", len));
+	d (printf ("parser::read() reading %d bytes\n", len));
 
 	there = MIN (s->inend - s->inptr, len);
-	d(printf("parser::read() there = %d bytes\n", there));
+	d (printf ("parser::read() there = %d bytes\n", there));
 	if (there > 0) {
 		*databuffer = s->inptr;
 		s->inptr += there;
@@ -683,7 +728,7 @@ camel_mime_parser_read (CamelMimeParser *parser,
 	}
 
 	there = MIN (s->inend - s->inptr, len);
-	d(printf("parser::read() had to re-read, now there = %d bytes\n", there));
+	d (printf ("parser::read() had to re-read, now there = %d bytes\n", there));
 
 	*databuffer = s->inptr;
 	s->inptr += there;
@@ -843,12 +888,14 @@ camel_mime_parser_push_state (CamelMimeParser *mp,
 {
 	struct _header_scan_stack *h;
 	struct _header_scan_state *s = _PRIVATE (mp);
+	gsize boundary_len;
 
 	h = g_malloc0 (sizeof (*h));
 	h->boundarylen = strlen (boundary) + 2;
 	h->boundarylenfinal = h->boundarylen + 2;
-	h->boundary = g_malloc (h->boundarylen + 3);
-	sprintf(h->boundary, "--%s--", boundary);
+	boundary_len = h->boundarylen + 3;
+	h->boundary = g_malloc (boundary_len);
+	g_snprintf (h->boundary, boundary_len, "--%s--", boundary);
 	folder_push_part (s, h);
 	s->state = newstate;
 }
@@ -874,29 +921,7 @@ camel_mime_parser_stream (CamelMimeParser *parser)
 	return s->stream;
 }
 
-/**
- * camel_mime_parser_fd:
- * @parser: MIME parser object
- *
- * Return the file descriptor, if any, the parser has been
- * initialised with.
- *
- * Should not be read from unless the parser it to terminate,
- * or the seek offset can be reset before the next parse
- * step.
- *
- * Returns: The file descriptor or -1 if the parser
- * is reading from a stream or has not been initialised.
- **/
-gint
-camel_mime_parser_fd (CamelMimeParser *parser)
-{
-	struct _header_scan_state *s = _PRIVATE (parser);
-
-	return s->fd;
-}
-
-/* Return errno of the parser, incase any error occured during processing */
+/* Return errno of the parser, incase any error occurred during processing */
 gint
 camel_mime_parser_errno (CamelMimeParser *parser)
 {
@@ -930,17 +955,21 @@ folder_read (struct _header_scan_state *s)
 	if (s->stream) {
 		len = camel_stream_read (
 			s->stream, s->inbuf + inoffset, SCAN_BUF - inoffset, NULL, NULL);
+	} else if (s->input_stream != NULL) {
+		len = g_input_stream_read (
+			s->input_stream, s->inbuf + inoffset,
+			SCAN_BUF - inoffset, NULL, NULL);
 	} else {
 		len = read (s->fd, s->inbuf + inoffset, SCAN_BUF - inoffset);
 	}
-	r(printf("read %d bytes, offset = %d\n", len, inoffset));
+	r (printf ("read %d bytes, offset = %d\n", len, inoffset));
 	if (len >= 0) {
 		/* add on the last read block */
 		s->seek += s->inptr - s->inbuf;
 		s->inptr = s->inbuf;
 		s->inend = s->inbuf + len + inoffset;
 		s->eof = (len == 0);
-		r(printf("content = %d '%.*s'\n",s->inend - s->inptr,  s->inend - s->inptr, s->inptr));
+		r (printf ("content = %d '%.*s'\n",s->inend - s->inptr,  s->inend - s->inptr, s->inptr));
 	} else {
 		s->ioerrno = errno ? errno : EIO;
 	}
@@ -948,9 +977,9 @@ folder_read (struct _header_scan_state *s)
 	g_assert (s->inptr <= s->inend);
 #ifdef PURIFY
 	inend_id = purify_watch (&s->inend);
-	inbuffer_id = purify_watch_n(s->inend+1, SCAN_HEAD-1, "rw");
+	inbuffer_id = purify_watch_n (s->inend + 1, SCAN_HEAD - 1, "rw");
 #endif
-	r(printf("content = %d '%.*s'\n", s->inend - s->inptr,  s->inend - s->inptr, s->inptr));
+	r (printf ("content = %d '%.*s'\n", s->inend - s->inptr,  s->inend - s->inptr, s->inptr));
 	/* set a sentinal, for the inner loops to check against */
 	s->inend[0] = '\n';
 	return s->inend - s->inptr;
@@ -986,6 +1015,18 @@ folder_seek (struct _header_scan_state *s,
 			newoffset = -1;
 			errno = EINVAL;
 		}
+	} else if (s->input_stream != NULL) {
+		if (G_IS_SEEKABLE (s->input_stream)) {
+			/* NOTE: assumes whence seekable stream == whence libc, which is probably
+			 * the case (or bloody well should've been) */
+			g_seekable_seek (
+				G_SEEKABLE (s->input_stream),
+				offset, whence, NULL, NULL);
+			newoffset = g_seekable_tell (G_SEEKABLE (s->input_stream));
+		} else {
+			newoffset = -1;
+			errno = EINVAL;
+		}
 	} else {
 		newoffset = lseek (s->fd, offset, whence);
 	}
@@ -1003,7 +1044,7 @@ folder_seek (struct _header_scan_state *s,
 	}
 #ifdef PURIFY
 	inend_id = purify_watch (&s->inend);
-	inbuffer_id = purify_watch_n(s->inend+1, SCAN_HEAD-1, "rw");
+	inbuffer_id = purify_watch_n (s->inend + 1, SCAN_HEAD - 1, "rw");
 #endif
 	return newoffset;
 }
@@ -1044,7 +1085,7 @@ folder_pull_part (struct _header_scan_state *s)
 			g_byte_array_free (h->from_line, TRUE);
 		g_free (h);
 	} else {
-		g_warning("Header stack underflow!\n");
+		g_warning ("Header stack underflow!\n");
 	}
 }
 
@@ -1058,7 +1099,7 @@ folder_scan_skip_line (struct _header_scan_state *s,
 
 	s->atleast = 1;
 
-	d(printf("skipping line\n"));
+	d (printf ("skipping line\n"));
 
 	while ( (len = folder_read (s)) > 0 && len > s->atleast) { /* ensure we have at least enough room here */
 		inptr = s->inptr;
@@ -1067,7 +1108,7 @@ folder_scan_skip_line (struct _header_scan_state *s,
 		c = -1;
 		while (inptr < inend
 		       && (c = *inptr++) != '\n') {
-			d(printf("(%2x,%c)", c, isprint(c)?c:'.'));
+			d (printf ("(%2x,%c)", c, isprint (c) ? c : '.'));
 			;
 		}
 
@@ -1082,7 +1123,7 @@ folder_scan_skip_line (struct _header_scan_state *s,
 		}
 	}
 
-	d(printf("couldn't find end of line?\n"));
+	d (printf ("couldn't find end of line?\n"));
 
 	s->atleast = atleast;
 
@@ -1098,15 +1139,15 @@ folder_boundary_check (struct _header_scan_state *s,
 	struct _header_scan_stack *part;
 	gint len = s->inend - boundary; /* make sure we dont access past the buffer */
 
-	h(printf("checking boundary marker upto %d bytes\n", len));
+	h (printf ("checking boundary marker upto %d bytes\n", len));
 	part = s->parts;
 	while (part) {
-		h(printf("  boundary: %s\n", part->boundary));
-		h(printf("   against: '%.*s'\n", part->boundarylen, boundary));
+		h (printf ("  boundary: %s\n", part->boundary));
+		h (printf ("   against: '%.*s'\n", part->boundarylen, boundary));
 		if (part->boundary
 		    && part->boundarylen <= len
 		    && memcmp (boundary, part->boundary, part->boundarylen) == 0) {
-			h(printf("matched boundary: %s\n", part->boundary));
+			h (printf ("matched boundary: %s\n", part->boundary));
 			/* again, make sure we're in range */
 			if (part->boundarylenfinal <= len) {
 				gint extra = part->boundarylenfinal - part->boundarylen;
@@ -1119,9 +1160,9 @@ folder_boundary_check (struct _header_scan_state *s,
 				} else {
 					*lastone = TRUE;
 				}
-				h(printf("checking lastone = %s\n", *lastone?"TRUE":"FALSE"));
+				h (printf ("checking lastone = %s\n", *lastone?"TRUE":"FALSE"));
 			} else {
-				h(printf("not enough room to check last one?\n"));
+				h (printf ("not enough room to check last one?\n"));
 				*lastone = FALSE;
 			}
 			/*printf("ok, we found it! : %s \n", (*lastone)?"Last one":"More to come?");*/
@@ -1180,26 +1221,26 @@ header_append_mempool (struct _header_scan_state *s,
  * remove trailing \r chars (\n's assumed already removed)
  * and track the start offset of the header */
 /* Basically an optimised version of g_byte_array_append() */
-#define header_append(s, start, inptr)								\
-{												\
-	register gint headerlen = inptr - start;							\
-												\
-	if (headerlen > 0) {									\
-		if (headerlen >= (s->outend - s->outptr)) {					\
-			register gchar *outnew;							\
-			register gint olen = ((s->outend - s->outbuf) + headerlen) * 2 + 1;	\
-			outnew = g_realloc (s->outbuf, olen);					\
-			s->outptr = s->outptr - s->outbuf + outnew;				\
-			s->outbuf = outnew;							\
-			s->outend = outnew + olen;						\
-		}										\
-		if (start[headerlen - 1] == '\r')							\
-			headerlen--;								\
-		memcpy (s->outptr, start, headerlen);						\
-		s->outptr += headerlen;								\
-	}											\
-	if (s->header_start == -1)								\
-		s->header_start = (start - s->inbuf) + s->seek;					\
+#define header_append(s, start, inptr) \
+{ \
+	register gint headerlen = inptr - start; \
+ \
+	if (headerlen > 0) { \
+		if (headerlen >= (s->outend - s->outptr)) { \
+			register gchar *outnew; \
+			register gint olen = ((s->outend - s->outbuf) + headerlen) * 2 + 1; \
+			outnew = g_realloc (s->outbuf, olen); \
+			s->outptr = s->outptr - s->outbuf + outnew; \
+			s->outbuf = outnew; \
+			s->outend = outnew + olen; \
+		} \
+		if (start[headerlen - 1] == '\r') \
+			headerlen--; \
+		memcpy (s->outptr, start, headerlen); \
+		s->outptr += headerlen; \
+	} \
+	if (s->header_start == -1) \
+		s->header_start = (start - s->inbuf) + s->seek; \
 }
 
 static struct _header_scan_stack *
@@ -1213,7 +1254,7 @@ folder_scan_header (struct _header_scan_state *s,
 	gchar *inend;
 	register gchar *inptr;
 
-	h(printf("scanning first bit\n"));
+	h (printf ("scanning first bit\n"));
 
 	h = g_malloc0 (sizeof (*h));
 #ifdef MEMPOOL
@@ -1229,7 +1270,7 @@ folder_scan_header (struct _header_scan_state *s,
 	do {
 		s->atleast = newatleast;
 
-		h(printf("atleast = %d\n", s->atleast));
+		h (printf ("atleast = %d\n", s->atleast));
 
 		while ((len = folder_read (s))>0 && len >= s->atleast) { /* ensure we have at least enough room here */
 			inptr = s->inptr;
@@ -1254,13 +1295,13 @@ folder_scan_header (struct _header_scan_state *s,
 
 				/* check for sentinal or real end of line */
 				if (inptr > inend) {
-					h(printf("not at end of line yet, going further\n"));
+					h (printf ("not at end of line yet, going further\n"));
 					/* didn't find end of line within our allowed area */
 					inptr = inend;
 					s->midline = TRUE;
 					header_append (s, start, inptr);
 				} else {
-					h(printf("got line part: '%.*s'\n", inptr-1-start, start));
+					h (printf ("got line part: '%.*s'\n", inptr - 1 - start, start));
 					/* got a line, strip and add it, process it */
 					s->midline = FALSE;
 					header_append (s, start, inptr - 1);
@@ -1271,7 +1312,7 @@ folder_scan_header (struct _header_scan_state *s,
 
 					/* check for continuation/compress headers, we have atleast 1 gchar here to work with */
 					if (inptr[0] ==  ' ' || inptr[0] == '\t') {
-						h(printf("continuation\n"));
+						h (printf ("continuation\n"));
 
 #ifdef PRESERVE_HEADERS
 						if (inptr - 1 >= start) {
@@ -1292,7 +1333,7 @@ folder_scan_header (struct _header_scan_state *s,
 						/* otherwise, complete header, add it */
 						s->outptr[0] = 0;
 
-						h(printf("header '%s' at %d\n", s->outbuf, (gint)s->header_start));
+						h (printf ("header '%s' at %d\n", s->outbuf, (gint) s->header_start));
 
 						header_raw_append_parse (&h->headers, s->outbuf, s->header_start);
 						s->outptr = s->outbuf;
@@ -1302,7 +1343,7 @@ folder_scan_header (struct _header_scan_state *s,
 			}
 			s->inptr = inptr;
 		}
-		h(printf("end of file?  read %d bytes\n", len));
+		h (printf ("end of file?  read %d bytes\n", len));
 		newatleast = 1;
 	} while (s->atleast > 1);
 
@@ -1351,7 +1392,7 @@ folder_scan_content (struct _header_scan_state *s,
 	struct _header_scan_stack *part;
 	gint onboundary = FALSE;
 
-	c(printf("scanning content\n"));
+	c (printf ("scanning content\n"));
 
 	part = s->parts;
 	if (part)
@@ -1360,7 +1401,7 @@ folder_scan_content (struct _header_scan_state *s,
 		newatleast = 1;
 	*lastone = FALSE;
 
-	c(printf("atleast = %d\n", newatleast));
+	c (printf ("atleast = %d\n", newatleast));
 
 	do {
 		s->atleast = newatleast;
@@ -1373,7 +1414,7 @@ folder_scan_content (struct _header_scan_state *s,
 				inend = s->inend - s->atleast + 1;
 			start = inptr;
 
-			c(printf("inptr = %p, inend = %p\n", inptr, inend));
+			c (printf ("inptr = %p, inend = %p\n", inptr, inend));
 
 			while (inptr < inend) {
 				if (!s->midline
@@ -1402,14 +1443,12 @@ folder_scan_content (struct _header_scan_state *s,
 				}
 			}
 
-			c(printf("ran out of input, dumping what i have (%d) bytes midline = %s\n",
-				inptr-start, s->midline?"TRUE":"FALSE"));
 			goto content;
 		}
 		newatleast = 1;
 	} while (s->atleast > 1);
 
-	c(printf("length read = %d\n", len));
+	c (printf ("length read = %d\n", len));
 
 	if (s->inend > s->inptr) {
 		start = s->inptr;
@@ -1455,9 +1494,8 @@ folder_scan_close (struct _header_scan_state *s)
 		folder_pull_part (s);
 	if (s->fd != -1)
 		close (s->fd);
-	if (s->stream) {
-		g_object_unref (s->stream);
-	}
+	g_clear_object (&s->stream);
+	g_clear_object (&s->input_stream);
 	g_free (s);
 }
 
@@ -1470,6 +1508,7 @@ folder_scan_init (void)
 
 	s->fd = -1;
 	s->stream = NULL;
+	s->input_stream = NULL;
 	s->ioerrno = 0;
 
 	s->outbuf = g_malloc (1024);
@@ -1526,17 +1565,15 @@ folder_scan_reset (struct _header_scan_state *s)
 		close (s->fd);
 		s->fd = -1;
 	}
-	if (s->stream) {
-		g_object_unref (s->stream);
-		s->stream = NULL;
-	}
+	g_clear_object (&s->stream);
+	g_clear_object (&s->input_stream);
 	s->ioerrno = 0;
 	s->eof = FALSE;
 }
 
 static gint
 folder_scan_init_with_fd (struct _header_scan_state *s,
-                          gint fd)
+			  gint fd)
 {
 	folder_scan_reset (s);
 	s->fd = fd;
@@ -1569,25 +1606,26 @@ folder_scan_step (struct _header_scan_state *s,
 	CamelContentType *ct = NULL;
 	struct _header_scan_filter *f;
 	gsize presize;
+	gulong boundary_len;
 
 /*	printf("\nSCAN PASS: state = %d '%s'\n", s->state, states[s->state]);*/
 
 tail_recurse:
 	d ({
-		printf("\nSCAN STACK:\n");
-		printf(" '%s' :\n", states[s->state]);
+		printf ("\nSCAN STACK:\n");
+		printf (" '%s' :\n", states[s->state]);
 		hb = s->parts;
 		while (hb) {
-			printf("  '%s' : %s ", states[hb->savestate], hb->boundary);
+			printf ("  '%s' : %s ", states[hb->savestate], hb->boundary);
 			if (hb->content_type) {
-				printf("(%s/%s)", hb->content_type->type, hb->content_type->subtype);
+				printf ("(%s/%s)", hb->content_type->type, hb->content_type->subtype);
 			} else {
-				printf("(default)");
+				printf ("(default)");
 			}
-			printf("\n");
+			printf ("\n");
 			hb = hb->parent;
 		}
-		printf("\n");
+		printf ("\n");
 	});
 
 	switch (s->state) {
@@ -1596,12 +1634,13 @@ tail_recurse:
 	case CAMEL_MIME_PARSER_STATE_INITIAL:
 		if (s->scan_from) {
 			h = g_malloc0 (sizeof (*h));
-			h->boundary = g_strdup("From ");
+			h->boundary = g_strdup ("From ");
 			h->boundarylen = strlen (h->boundary);
 			h->boundarylenfinal = h->boundarylen;
 			h->from_line = g_byte_array_new ();
 			folder_push_part (s, h);
 			s->state = CAMEL_MIME_PARSER_STATE_PRE_FROM;
+			goto scan_pre_from;
 		} else {
 			s->start_of_from = -1;
 			goto scan_header;
@@ -1609,17 +1648,18 @@ tail_recurse:
 
 	case CAMEL_MIME_PARSER_STATE_PRE_FROM:
 
+ scan_pre_from:
 		h = s->parts;
 		do {
 			hb = folder_scan_content (s, &state, databuffer, datalength);
 			if (s->scan_pre_from && *datalength > 0) {
-				d(printf("got pre-from content %d bytes\n", *datalength));
+				d (printf ("got pre-from content %d bytes\n", *datalength));
 				return;
 			}
 		} while (hb == h && *datalength > 0);
 
 		if (*datalength == 0 && hb == h) {
-			d(printf("found 'From '\n"));
+			d (printf ("found 'From '\n"));
 			s->start_of_from = folder_tell (s);
 			folder_scan_skip_line (s, h->from_line);
 			h->savestate = CAMEL_MIME_PARSER_STATE_INITIAL;
@@ -1648,27 +1688,28 @@ tail_recurse:
 		/* FIXME: should this check for MIME-Version: 1.0 as well? */
 
 		type = CAMEL_MIME_PARSER_STATE_HEADER;
-		if ((content = camel_header_raw_find(&h->headers, "Content-Type", NULL))
+		if ((content = camel_header_raw_find (&h->headers, "Content-Type", NULL))
 		     && (ct = camel_content_type_decode (content))) {
-			if (!g_ascii_strcasecmp(ct->type, "multipart")) {
-				if (!camel_content_type_is(ct, "multipart", "signed")
-				    && (bound = camel_content_type_param(ct, "boundary"))) {
-					d(printf("multipart, boundary = %s\n", bound));
+			if (!g_ascii_strcasecmp (ct->type, "multipart")) {
+				if (!camel_content_type_is (ct, "multipart", "signed")
+				    && (bound = camel_content_type_param (ct, "boundary"))) {
+					d (printf ("multipart, boundary = %s\n", bound));
 					h->boundarylen = strlen (bound) + 2;
 					h->boundarylenfinal = h->boundarylen + 2;
-					h->boundary = g_malloc (h->boundarylen + 3);
-					sprintf(h->boundary, "--%s--", bound);
+					boundary_len = h->boundarylen + 3;
+					h->boundary = g_malloc (boundary_len);
+					g_snprintf (h->boundary, boundary_len, "--%s--", bound);
 					type = CAMEL_MIME_PARSER_STATE_MULTIPART;
 				} else {
 					/*camel_content_type_unref(ct);
-					  ct = camel_content_type_decode("text/plain");*/
+					  ct = camel_content_type_decode ("text/plain");*/
 /* We can't quite do this, as it will mess up all the offsets ... */
 /*					camel_header_raw_replace(&h->headers, "Content-Type", "text/plain", offset); */
 					/*g_warning("Multipart with no boundary, treating as text/plain");*/
 				}
-			} else if (!g_ascii_strcasecmp(ct->type, "message")) {
-				if (!g_ascii_strcasecmp(ct->subtype, "rfc822")
-				    || !g_ascii_strcasecmp(ct->subtype, "news")
+			} else if (!g_ascii_strcasecmp (ct->type, "message")) {
+				if (!g_ascii_strcasecmp (ct->subtype, "rfc822")
+				    || !g_ascii_strcasecmp (ct->subtype, "news")
 				    /*|| !g_ascii_strcasecmp(ct->subtype, "partial")*/) {
 					type = CAMEL_MIME_PARSER_STATE_MESSAGE;
 				}
@@ -1676,14 +1717,14 @@ tail_recurse:
 		} else {
 			/* make the default type for multipart/digest be message/rfc822 */
 			if ((s->parts
-			     && camel_content_type_is(s->parts->content_type, "multipart", "digest"))) {
-				ct = camel_content_type_decode("message/rfc822");
+			     && camel_content_type_is (s->parts->content_type, "multipart", "digest"))) {
+				ct = camel_content_type_decode ("message/rfc822");
 				type = CAMEL_MIME_PARSER_STATE_MESSAGE;
-				d(printf("parent was multipart/digest, autoupgrading to message/rfc822?\n"));
+				d (printf ("parent was multipart/digest, autoupgrading to message/rfc822?\n"));
 				/* maybe we should do this too?
 				 * header_raw_append_parse(&h->headers, "Content-Type: message/rfc822", -1);*/
 			} else {
-				ct = camel_content_type_decode("text/plain");
+				ct = camel_content_type_decode ("text/plain");
 			}
 		}
 		h->content_type = ct;
@@ -1693,6 +1734,7 @@ tail_recurse:
 
 	case CAMEL_MIME_PARSER_STATE_HEADER:
 		s->state = CAMEL_MIME_PARSER_STATE_BODY;
+		/* coverity[fallthrough] */
 
 	case CAMEL_MIME_PARSER_STATE_BODY:
 		h = s->parts;
@@ -1703,16 +1745,18 @@ tail_recurse:
 		do {
 			hb = folder_scan_content (s, &state, databuffer, datalength);
 
-			d(printf ("\n\nOriginal content: '"));
+			d (printf ("\n\nOriginal content: '"));
 			d (fwrite (*databuffer, sizeof (gchar), *datalength, stdout));
-			d(printf("'\n"));
+			d (printf ("'\n"));
 
 			if (*datalength > 0) {
 				while (f) {
-					camel_mime_filter_filter (f->filter, *databuffer, *datalength, presize,
-								 databuffer, datalength, &presize);
+					camel_mime_filter_filter (
+						f->filter,
+						*databuffer, *datalength, presize,
+						databuffer, datalength, &presize);
 					d (fwrite (*databuffer, sizeof (gchar), *datalength, stdout));
-					d(printf("'\n"));
+					d (printf ("'\n"));
 					f = f->next;
 				}
 				return;
@@ -1721,8 +1765,9 @@ tail_recurse:
 
 		/* check for any filter completion data */
 		while (f) {
-			camel_mime_filter_complete (f->filter, *databuffer, *datalength, presize,
-						   databuffer, datalength, &presize);
+			camel_mime_filter_complete (
+				f->filter, *databuffer, *datalength, presize,
+				databuffer, datalength, &presize);
 			f = f->next;
 		}
 
@@ -1748,8 +1793,10 @@ tail_recurse:
 				if (*datalength > 0) {
 					/* instead of a new state, we'll just store it locally and provide
 					 * an accessor function */
-					d(printf("Multipart %s Content %p: '%.*s'\n",
-						 h->prestage>0?"post":"pre", h, *datalength, *databuffer));
+					d (printf (
+						"Multipart %s Content %p: '%.*s'\n",
+						h->prestage > 0 ? "post" : "pre",
+						h, *datalength, *databuffer));
 					if (h->prestage > 0) {
 						if (h->posttext == NULL)
 							h->posttext = g_byte_array_new ();
@@ -1763,7 +1810,7 @@ tail_recurse:
 			} while (hb == h && *datalength > 0);
 			h->prestage++;
 			if (*datalength == 0 && hb == h && !seenlast) {
-				d(printf("got boundary: %s last=%d\n", hb->boundary, state));
+				d (printf ("got boundary: %s last=%d\n", hb->boundary, state));
 				s->start_of_boundary = folder_tell (s);
 				folder_scan_skip_line (s, NULL);
 				if (!state) {
@@ -1861,18 +1908,18 @@ gint main (gint argc, gchar **argv)
 	if (argc == 2)
 		name = argv[1];
 
-	printf("opening: %s", name);
+	printf ("opening: %s", name);
 
 	for (i = 1; i < argc; i++) {
 		const gchar *encoding = NULL, *charset = NULL;
 		gchar *attachname;
 
 		name = argv[i];
-		printf("opening: %s", name);
+		printf ("opening: %s", name);
 
 		fd = g_open (name, O_RDONLY | O_BINARY, 0);
 		if (fd==-1) {
-			perror("Cannot open mailbox");
+			perror ("Cannot open mailbox");
 			exit (1);
 		}
 		s = folder_scan_init ();
@@ -1885,14 +1932,14 @@ gint main (gint argc, gchar **argv)
 #endif
 		while (s->state != CAMEL_MIME_PARSER_STATE_EOF) {
 			folder_scan_step (s, &data, &len);
-			printf("\n -- PARSER STEP RETURN -- %d '%s'\n\n", s->state, states[s->state]);
+			printf ("\n -- PARSER STEP RETURN -- %d '%s'\n\n", s->state, states[s->state]);
 			switch (s->state) {
 			case CAMEL_MIME_PARSER_STATE_HEADER:
 				if (s->parts->content_type
-				    && (charset = camel_content_type_param(s->parts->content_type, "charset"))) {
-					if (g_ascii_strcasecmp(charset, "us-ascii")) {
+				    && (charset = camel_content_type_param (s->parts->content_type, "charset"))) {
+					if (g_ascii_strcasecmp (charset, "us-ascii")) {
 #if 0
-						folder_push_filter_charset(s, "UTF-8", charset);
+						folder_push_filter_charset (s, "UTF-8", charset);
 #endif
 					} else {
 						charset = NULL;
@@ -1901,11 +1948,11 @@ gint main (gint argc, gchar **argv)
 					charset = NULL;
 				}
 
-				encoding = camel_header_raw_find(&s->parts->headers, "Content-transfer-encoding", 0);
-				printf("encoding = '%s'\n", encoding);
-				if (encoding && !g_ascii_strncasecmp(encoding, " base64", 7)) {
-					printf("adding base64 filter\n");
-					attachname = g_strdup_printf("attach.%d.%d", i, attach++);
+				encoding = camel_header_raw_find (&s->parts->headers, "Content-transfer-encoding", 0);
+				printf ("encoding = '%s'\n", encoding);
+				if (encoding && !g_ascii_strncasecmp (encoding, " base64", 7)) {
+					printf ("adding base64 filter\n");
+					attachname = g_strdup_printf ("attach.%d.%d", i, attach++);
 #if 0
 					folder_push_filter_save (s, attachname);
 #endif
@@ -1914,9 +1961,9 @@ gint main (gint argc, gchar **argv)
 					folder_push_filter_mime (s, 0);
 #endif
 				}
-				if (encoding && !g_ascii_strncasecmp(encoding, " quoted-printable", 17)) {
-					printf("adding quoted-printable filter\n");
-					attachname = g_strdup_printf("attach.%d.%d", i, attach++);
+				if (encoding && !g_ascii_strncasecmp (encoding, " quoted-printable", 17)) {
+					printf ("adding quoted-printable filter\n");
+					attachname = g_strdup_printf ("attach.%d.%d", i, attach++);
 #if 0
 					folder_push_filter_save (s, attachname);
 #endif
@@ -1928,19 +1975,19 @@ gint main (gint argc, gchar **argv)
 
 				break;
 			case CAMEL_MIME_PARSER_STATE_BODY:
-				printf("got body %d '%.*s'\n",  len, len, data);
+				printf ("got body %d '%.*s'\n",  len, len, data);
 				break;
 			case CAMEL_MIME_PARSER_STATE_BODY_END:
-				printf("end body %d '%.*s'\n",  len, len, data);
-				if (encoding && !g_ascii_strncasecmp(encoding, " base64", 7)) {
-					printf("removing filters\n");
+				printf ("end body %d '%.*s'\n",  len, len, data);
+				if (encoding && !g_ascii_strncasecmp (encoding, " base64", 7)) {
+					printf ("removing filters\n");
 #if 0
 					folder_filter_pull (s);
 					folder_filter_pull (s);
 #endif
 				}
-				if (encoding && !g_ascii_strncasecmp(encoding, " quoted-printable", 17)) {
-					printf("removing filters\n");
+				if (encoding && !g_ascii_strncasecmp (encoding, " quoted-printable", 17)) {
+					printf ("removing filters\n");
 #if 0
 					folder_filter_pull (s);
 					folder_filter_pull (s);

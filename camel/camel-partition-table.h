@@ -3,19 +3,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #if !defined (__CAMEL_H_INSIDE__) && !defined (CAMEL_COMPILATION)
@@ -25,9 +23,7 @@
 #ifndef CAMEL_PARTITION_TABLE_H
 #define CAMEL_PARTITION_TABLE_H
 
-#include <camel/camel-object.h>
-
-#include "camel-block-file.h"
+#include <camel/camel-block-file.h>
 
 /* Standard GObject macros */
 #define CAMEL_TYPE_PARTITION_TABLE \
@@ -105,7 +101,7 @@ struct _CamelPartitionMapBlock {
 };
 
 struct _CamelPartitionTable {
-	CamelObject parent;
+	GObject parent;
 	CamelPartitionTablePrivate *priv;
 
 	CamelBlockFile *blocks;
@@ -119,7 +115,7 @@ struct _CamelPartitionTable {
 };
 
 struct _CamelPartitionTableClass {
-	CamelObjectClass parent;
+	GObjectClass parent;
 };
 
 GType		camel_partition_table_get_type	(void);
@@ -170,7 +166,7 @@ struct _CamelKeyBlock {
 #define CAMEL_KEY_TABLE_MAX_KEY (128) /* max size of any key */
 
 struct _CamelKeyTable {
-	CamelObject parent;
+	GObject parent;
 	CamelKeyTablePrivate *priv;
 
 	CamelBlockFile *blocks;
@@ -182,7 +178,7 @@ struct _CamelKeyTable {
 };
 
 struct _CamelKeyTableClass {
-	CamelObjectClass parent;
+	GObjectClass parent;
 };
 
 GType		camel_key_table_get_type	(void);

@@ -5,24 +5,27 @@
  *
  * Author: Federico Mena-Quintero <federico@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+
+#if !defined (__LIBEDATA_CAL_H_INSIDE__) && !defined (LIBEDATA_CAL_COMPILATION)
+#error "Only <libedata-cal/libedata-cal.h> should be included directly."
+#endif
 
 #ifndef E_DATA_CAL_FACTORY_H
 #define E_DATA_CAL_FACTORY_H
 
-#include <libebackend/e-data-factory.h>
+#include <libebackend/libebackend.h>
 
 /* Standard GObject macros */
 #define E_TYPE_DATA_CAL_FACTORY \
@@ -43,6 +46,14 @@
 	(G_TYPE_INSTANCE_GET_CLASS \
 	((obj), E_TYPE_DATA_CAL_FACTORY, EDataCalFactoryClass))
 
+/**
+ * EDS_CALENDAR_MODULES:
+ *
+ * This environment variable configures where the calendar
+ * factory loads it's backend modules from.
+ */
+#define EDS_CALENDAR_MODULES    "EDS_CALENDAR_MODULES"
+
 G_BEGIN_DECLS
 
 typedef struct _EDataCalFactory EDataCalFactory;
@@ -61,6 +72,8 @@ struct _EDataCalFactoryClass {
 GType		e_data_cal_factory_get_type	(void);
 EDBusServer *	e_data_cal_factory_new		(GCancellable *cancellable,
 						 GError **error);
+ESourceRegistry *
+		e_data_cal_factory_get_registry	(EDataCalFactory *factory);
 
 G_END_DECLS
 

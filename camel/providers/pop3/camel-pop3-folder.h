@@ -8,19 +8,17 @@
  *
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ *for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef CAMEL_POP3_FOLDER_H
@@ -51,27 +49,20 @@ G_BEGIN_DECLS
 
 typedef struct _CamelPOP3Folder CamelPOP3Folder;
 typedef struct _CamelPOP3FolderClass CamelPOP3FolderClass;
-typedef struct _CamelPOP3FolderInfo CamelPOP3FolderInfo;
-
-struct _CamelPOP3FolderInfo {
-	guint32 id;
-	guint32 size;
-	guint32 flags;
-	guint32 index;		/* index of request */
-	gchar *uid;
-	struct _CamelPOP3Command *cmd;
-	struct _CamelStream *stream;
-};
 
 struct _CamelPOP3Folder {
 	CamelFolder parent;
 
 	GPtrArray *uids;
-	GHashTable *uids_fi;	/* messageinfo uid to CamelPOP3FolderInfo *, which is stored in uids array */
-	GHashTable *uids_id;	/* messageinfo by id */
+
+	/* messageinfo uid to CamelPOP3FolderInfo *,
+	 * which is stored in uids array */
+	GHashTable *uids_fi;
+
+	/* messageinfo by id */
+	GHashTable *uids_id;
 
 	GKeyFile *key_file;
-	gboolean mobile_mode;
 	gint fetch_more;
 	CamelFetchType fetch_type;
 	gint first_id;
@@ -86,7 +77,7 @@ GType		camel_pop3_folder_get_type	(void);
 CamelFolder *	camel_pop3_folder_new		(CamelStore *parent,
 						 GCancellable *cancellable,
 						 GError **error);
-gboolean	camel_pop3_delete_old		(CamelFolder *folder,
+gboolean	camel_pop3_folder_delete_old	(CamelFolder *folder,
 						 gint days_to_delete,
 						 GCancellable *cancellable,
 						 GError **error);

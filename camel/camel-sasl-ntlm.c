@@ -2,19 +2,17 @@
 /*
  * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -38,6 +36,7 @@
 struct _CamelSaslNTLMPrivate {
 	gint placeholder;  /* allow for future expansion */
 #ifndef G_OS_WIN32
+	gboolean tried_helper;
 	CamelStream *helper_stream;
 	gchar *type1_msg;
 #endif
@@ -72,12 +71,6 @@ G_DEFINE_TYPE (CamelSaslNTLM, camel_sasl_ntlm, CAMEL_TYPE_SASL)
 #define NTLM_RESPONSE_FLAGS_OFFSET   60
 
 #define NTLM_AUTH_HELPER "/usr/bin/ntlm_auth"
-
-static void ntlm_calc_response   (const guchar key[21],
-				  const guchar plaintext[8],
-				  guchar results[24]);
-static void ntlm_lanmanager_hash (const gchar *password, gchar hash[21]);
-static void ntlm_nt_hash         (const gchar *password, gchar hash[21]);
 
 typedef struct {
 	guint16 length;
@@ -151,7 +144,7 @@ ntlm_lanmanager_hash (const gchar *password,
 	DES_KS ks;
 	gint i;
 
-	for (i = 0; i < 14 && password[i]; i++)
+	for (i = 0; i < 14 && password && password[i]; i++)
 		lm_password[i] = toupper ((guchar) password[i]);
 
 	for (; i < 15; i++)
@@ -171,6 +164,9 @@ ntlm_nt_hash (const gchar *password,
               gchar hash[21])
 {
 	guchar *buf, *p;
+
+	if (!password)
+		password = "";
 
 	p = buf = g_malloc (strlen (password) * 2);
 
@@ -270,7 +266,7 @@ md4sum (const guchar *in,
 
 	for (i = 0; i < nbytes + pbytes + 8; i += 64) {
 		for (j = 0; j < 16; j++) {
-			X[j] =  (M[i + j * 4]) |
+			X[j] = (M[i + j * 4]) |
 				(M[i + j * 4 + 1] << 8) |
 				(M[i + j * 4 + 2] << 16) |
 				(M[i + j * 4 + 3] << 24);
@@ -338,20 +334,20 @@ md4sum (const guchar *in,
 		D += DD;
 	}
 
-	digest[0]  =  A        & 0xFF;
-	digest[1]  = (A >>  8) & 0xFF;
-	digest[2]  = (A >> 16) & 0xFF;
-	digest[3]  = (A >> 24) & 0xFF;
-	digest[4]  =  B        & 0xFF;
-	digest[5]  = (B >>  8) & 0xFF;
-	digest[6]  = (B >> 16) & 0xFF;
-	digest[7]  = (B >> 24) & 0xFF;
-	digest[8]  =  C        & 0xFF;
-	digest[9]  = (C >>  8) & 0xFF;
+	digest[0] = A & 0xFF;
+	digest[1] = (A >> 8) & 0xFF;
+	digest[2] = (A >> 16) & 0xFF;
+	digest[3] = (A >> 24) & 0xFF;
+	digest[4] = B & 0xFF;
+	digest[5] = (B >> 8) & 0xFF;
+	digest[6] = (B >> 16) & 0xFF;
+	digest[7] = (B >> 24) & 0xFF;
+	digest[8] = C & 0xFF;
+	digest[9] = (C >> 8) & 0xFF;
 	digest[10] = (C >> 16) & 0xFF;
 	digest[11] = (C >> 24) & 0xFF;
-	digest[12] =  D        & 0xFF;
-	digest[13] = (D >>  8) & 0xFF;
+	digest[12] = D & 0xFF;
+	digest[13] = (D >> 8) & 0xFF;
 	digest[14] = (D >> 16) & 0xFF;
 	digest[15] = (D >> 24) & 0xFF;
 }
@@ -570,7 +566,7 @@ des (guint32 ks[16][2],
 	work = (left ^ right) & 0xaaaaaaaa;
 	left ^= work;
 	right ^= work;
-	left = (left >> 1) | (left  << 31);
+	left = (left >> 1) | (left << 31);
 	work = ((left >> 8) ^ right) & 0xff00ff;
 	right ^= work;
 	left ^= work << 8;
@@ -680,6 +676,99 @@ deskey (DES_KS k,
 	}
 }
 
+static gboolean
+sasl_ntlm_try_empty_password_sync (CamelSasl *sasl,
+                                   GCancellable *cancellable,
+                                   GError **error)
+{
+#ifndef G_OS_WIN32
+	CamelStream *stream;
+	CamelNetworkSettings *network_settings;
+	CamelSettings *settings;
+	CamelService *service;
+	CamelSaslNTLM *ntlm = CAMEL_SASL_NTLM (sasl);
+	CamelSaslNTLMPrivate *priv = ntlm->priv;
+	const gchar *cp;
+	gchar *user;
+	gchar buf[1024];
+	gsize s;
+	gchar *command;
+	gint ret;
+
+	if (priv->tried_helper)
+		return !!priv->helper_stream;
+
+	priv->tried_helper = TRUE;
+
+	if (access (NTLM_AUTH_HELPER, X_OK))
+		return FALSE;
+
+	service = camel_sasl_get_service (sasl);
+
+	settings = camel_service_ref_settings (service);
+	g_return_val_if_fail (CAMEL_IS_NETWORK_SETTINGS (settings), FALSE);
+
+	network_settings = CAMEL_NETWORK_SETTINGS (settings);
+	user = camel_network_settings_dup_user (network_settings);
+
+	g_object_unref (settings);
+
+	g_return_val_if_fail (user != NULL, FALSE);
+
+	cp = strchr (user, '\\');
+	if (cp != NULL) {
+		command = g_strdup_printf (
+			"%s --helper-protocol ntlmssp-client-1 "
+			"--use-cached-creds --username '%s' "
+			"--domain '%.*s'", NTLM_AUTH_HELPER,
+			cp + 1, (gint)(cp - user), user);
+	} else {
+		command = g_strdup_printf (
+			"%s --helper-protocol ntlmssp-client-1 "
+			"--use-cached-creds --username '%s'",
+			NTLM_AUTH_HELPER, user);
+	}
+
+	stream = camel_stream_process_new ();
+
+	ret = camel_stream_process_connect (
+		CAMEL_STREAM_PROCESS (stream), command, NULL, error);
+
+	g_free (command);
+	g_free (user);
+
+	if (ret) {
+		g_object_unref (stream);
+		return FALSE;
+	}
+
+	if (camel_stream_write_string (stream, "YR\n", cancellable, error) < 0) {
+		g_object_unref (stream);
+		return FALSE;
+	}
+
+	s = camel_stream_read (stream, buf, sizeof (buf), cancellable, NULL);
+	if (s < 4) {
+		g_object_unref (stream);
+		return FALSE;
+	}
+
+	if (buf[0] != 'Y' || buf[1] != 'R' || buf[2] != ' ' || buf[s - 1] != '\n') {
+		g_object_unref (stream);
+		return FALSE;
+	}
+
+	buf[s - 1] = 0;
+
+	priv->helper_stream = stream;
+	priv->type1_msg = g_strdup (buf + 3);
+	return TRUE;
+#else
+	/* Win32 should be able to use SSPI here. */
+	return FALSE;
+#endif
+}
+
 static GByteArray *
 sasl_ntlm_challenge_sync (CamelSasl *sasl,
                           GByteArray *token,
@@ -703,11 +792,14 @@ sasl_ntlm_challenge_sync (CamelSasl *sasl,
 
 	service = camel_sasl_get_service (sasl);
 
-	settings = camel_service_get_settings (service);
+	settings = camel_service_ref_settings (service);
 	g_return_val_if_fail (CAMEL_IS_NETWORK_SETTINGS (settings), NULL);
 
 	network_settings = CAMEL_NETWORK_SETTINGS (settings);
 	user = camel_network_settings_dup_user (network_settings);
+
+	g_object_unref (settings);
+
 	g_return_val_if_fail (user != NULL, NULL);
 
 	password = camel_service_get_password (service);
@@ -716,6 +808,9 @@ sasl_ntlm_challenge_sync (CamelSasl *sasl,
 	ret = g_byte_array_new ();
 
 #ifndef G_OS_WIN32
+	if (!priv->tried_helper && password == NULL)
+		sasl_ntlm_try_empty_password_sync (sasl, cancellable, NULL);
+
 	if (priv->helper_stream && password == NULL) {
 		guchar *data;
 		gsize length = 0;
@@ -740,10 +835,13 @@ sasl_ntlm_challenge_sync (CamelSasl *sasl,
 			string = g_strdup_printf ("TT %s\n", type2);
 			if (camel_stream_write_string (
 				priv->helper_stream, string, NULL, NULL) >= 0 &&
-			   (s = camel_stream_read (priv->helper_stream, buf,
-				   sizeof (buf), cancellable, NULL)) > 4 &&
-			   buf[0] == 'K' && buf[1] == 'K' && buf[2] == ' ' &&
-			   buf[s - 1] == '\n') {
+				(s = camel_stream_read (
+					priv->helper_stream, buf,
+					sizeof (buf), cancellable, NULL)) > 4 &&
+				buf[0] == 'K' &&
+				buf[1] == 'K' &&
+				buf[2] == ' ' &&
+				buf[s - 1] == '\n') {
 				buf[s - 1] = 0;
 				data = g_base64_decode (buf + 3, &length);
 				g_byte_array_append (ret, data, length);
@@ -790,7 +888,8 @@ sasl_ntlm_challenge_sync (CamelSasl *sasl,
 		memset (lm_resp + 8, 0, 16);
 
 		/* Session nonce is client nonce + server nonce */
-		memcpy (sess_nonce.srv,
+		memcpy (
+			sess_nonce.srv,
 			token->data + NTLM_CHALLENGE_NONCE_OFFSET, 8);
 
 		/* Take MD5 of session nonce */
@@ -829,24 +928,31 @@ sasl_ntlm_challenge_sync (CamelSasl *sasl,
 	/* Don't jump to 'fail' label after this point. */
 	g_byte_array_set_size (ret, NTLM_RESPONSE_BASE_SIZE);
 	memset (ret->data, 0, NTLM_RESPONSE_BASE_SIZE);
-	memcpy (ret->data, NTLM_RESPONSE_HEADER,
+	memcpy (
+		ret->data, NTLM_RESPONSE_HEADER,
 		sizeof (NTLM_RESPONSE_HEADER) - 1);
-	memcpy (ret->data + NTLM_RESPONSE_FLAGS_OFFSET,
+	memcpy (
+		ret->data + NTLM_RESPONSE_FLAGS_OFFSET,
 		NTLM_RESPONSE_FLAGS, sizeof (NTLM_RESPONSE_FLAGS) - 1);
 	/* Mask in the NTLM2SESSION flag */
 	ret->data[NTLM_RESPONSE_FLAGS_OFFSET + 2] |=
 		token->data[NTLM_CHALLENGE_FLAGS_OFFSET + 2] & 8;
 
-	ntlm_set_string (ret, NTLM_RESPONSE_DOMAIN_OFFSET,
-			 domain->str, domain->len);
-	ntlm_set_string (ret, NTLM_RESPONSE_USER_OFFSET,
-			 real_user, strlen (real_user));
-	ntlm_set_string (ret, NTLM_RESPONSE_HOST_OFFSET,
-			 "UNKNOWN", sizeof ("UNKNOWN") - 1);
-	ntlm_set_string (ret, NTLM_RESPONSE_LM_RESP_OFFSET,
-			 (const gchar *) lm_resp, sizeof (lm_resp));
-	ntlm_set_string (ret, NTLM_RESPONSE_NT_RESP_OFFSET,
-			 (const gchar *) nt_resp, sizeof (nt_resp));
+	ntlm_set_string (
+		ret, NTLM_RESPONSE_DOMAIN_OFFSET,
+		domain->str, domain->len);
+	ntlm_set_string (
+		ret, NTLM_RESPONSE_USER_OFFSET,
+		real_user, strlen (real_user));
+	ntlm_set_string (
+		ret, NTLM_RESPONSE_HOST_OFFSET,
+		"UNKNOWN", sizeof ("UNKNOWN") - 1);
+	ntlm_set_string (
+		ret, NTLM_RESPONSE_LM_RESP_OFFSET,
+		(const gchar *) lm_resp, sizeof (lm_resp));
+	ntlm_set_string (
+		ret, NTLM_RESPONSE_NT_RESP_OFFSET,
+		(const gchar *) nt_resp, sizeof (nt_resp));
 
 	camel_sasl_set_authenticated (sasl, TRUE);
 
@@ -857,96 +963,14 @@ sasl_ntlm_challenge_sync (CamelSasl *sasl,
 fail:
 	/* If the challenge is malformed, restart authentication.
 	 * XXX A malicious server could make this loop indefinitely. */
-	g_byte_array_append (ret, (guint8 *) NTLM_REQUEST,
-			     sizeof (NTLM_REQUEST) - 1);
+	g_byte_array_append (
+		ret, (guint8 *) NTLM_REQUEST,
+		sizeof (NTLM_REQUEST) - 1);
 
 exit:
 	g_free (user);
 
 	return ret;
-}
-
-static gboolean
-sasl_ntlm_try_empty_password_sync (CamelSasl *sasl,
-                                   GCancellable *cancellable,
-                                   GError **error)
-{
-#ifndef G_OS_WIN32
-	CamelStream *stream = camel_stream_process_new ();
-	CamelNetworkSettings *network_settings;
-	CamelSettings *settings;
-	CamelService *service;
-	CamelSaslNTLM *ntlm = CAMEL_SASL_NTLM (sasl);
-	CamelSaslNTLMPrivate *priv = ntlm->priv;
-	const gchar *cp;
-	gchar *user;
-	gchar buf[1024];
-	gsize s;
-	gchar *command;
-	gint ret;
-
-	if (access (NTLM_AUTH_HELPER, X_OK))
-		return FALSE;
-
-	service = camel_sasl_get_service (sasl);
-
-	settings = camel_service_get_settings (service);
-	g_return_val_if_fail (CAMEL_IS_NETWORK_SETTINGS (settings), FALSE);
-
-	network_settings = CAMEL_NETWORK_SETTINGS (settings);
-	user = camel_network_settings_dup_user (network_settings);
-	g_return_val_if_fail (user != NULL, FALSE);
-
-	cp = strchr (user, '\\');
-	if (cp != NULL) {
-		command = g_strdup_printf (
-			"%s --helper-protocol ntlmssp-client-1 "
-			"--use-cached-creds --username '%s' "
-			"--domain '%.*s'", NTLM_AUTH_HELPER,
-			cp + 1, (gint)(cp - user), user);
-	} else {
-		command = g_strdup_printf (
-			"%s --helper-protocol ntlmssp-client-1 "
-			"--use-cached-creds --username '%s'",
-			NTLM_AUTH_HELPER, user);
-	}
-
-	ret = camel_stream_process_connect (
-		CAMEL_STREAM_PROCESS (stream), command, NULL, error);
-
-	g_free (command);
-	g_free (user);
-
-	if (ret) {
-		g_object_unref (stream);
-		return FALSE;
-	}
-
-	if (camel_stream_write_string (stream, "YR\n", cancellable, error) < 0) {
-		g_object_unref (stream);
-		return FALSE;
-	}
-
-	s = camel_stream_read (stream, buf, sizeof (buf), cancellable, NULL);
-	if (s < 4) {
-		g_object_unref (stream);
-		return FALSE;
-	}
-
-	if (buf[0] != 'Y' || buf[1] != 'R' || buf[2] != ' ' || buf[s - 1] != '\n') {
-		g_object_unref (stream);
-		return FALSE;
-	}
-
-	buf[s - 1] = 0;
-
-	priv->helper_stream = stream;
-	priv->type1_msg = g_strdup (buf + 3);
-	return TRUE;
-#else
-	/* Win32 should be able to use SSPI here. */
-	return FALSE;
-#endif
 }
 
 static void

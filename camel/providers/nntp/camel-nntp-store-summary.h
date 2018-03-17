@@ -4,19 +4,17 @@
  *
  * Authors: Michael Zucchi <notzed@ximian.com>
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of version 2 of the GNU Lesser General Public
- * License as published by the Free Software Foundation.
+ * This library is free software you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
 /* currently, this is just a straigt s/imap/nntp from the IMAP file*/
@@ -80,29 +78,40 @@ struct _CamelNNTPStoreSummaryClass {
 	CamelStoreSummaryClass summary_class;
 };
 
-GType			 camel_nntp_store_summary_get_type	(void);
-CamelNNTPStoreSummary      *camel_nntp_store_summary_new	(void);
-
-/* TODO: this api needs some more work, needs to support lists */
-/*CamelNNTPStoreNamespace *camel_nntp_store_summary_namespace_new(CamelNNTPStoreSummary *s, const gchar *full_name, gchar dir_sep);*/
-/*void camel_nntp_store_summary_namespace_set(CamelNNTPStoreSummary *s, CamelNNTPStoreNamespace *ns);*/
-/*CamelNNTPStoreNamespace *camel_nntp_store_summary_namespace_find_path(CamelNNTPStoreSummary *s, const gchar *path);*/
-/*CamelNNTPStoreNamespace *camel_nntp_store_summary_namespace_find_full(CamelNNTPStoreSummary *s, const gchar *full_name);*/
-
-/* helper macro's */
-#define camel_nntp_store_info_full_name(s, i) (camel_store_info_string((CamelStoreSummary *)s, (const CamelStoreInfo *)i, CAMEL_NNTP_STORE_INFO_FULL_NAME))
+GType		camel_nntp_store_summary_get_type
+						(void);
+CamelNNTPStoreSummary *
+		camel_nntp_store_summary_new	(void);
 
 /* converts to/from utf8 canonical nasmes */
-gchar *camel_nntp_store_summary_full_to_path (CamelNNTPStoreSummary *s, const gchar *full_name, gchar dir_sep);
+gchar *		camel_nntp_store_summary_full_to_path
+						(CamelNNTPStoreSummary *s,
+						 const gchar *full_name,
+						 gchar dir_sep);
 
-gchar *camel_nntp_store_summary_path_to_full (CamelNNTPStoreSummary *s, const gchar *path, gchar dir_sep);
-gchar *camel_nntp_store_summary_dotted_to_full (CamelNNTPStoreSummary *s, const gchar *dotted, gchar dir_sep);
+gchar *		camel_nntp_store_summary_path_to_full
+						(CamelNNTPStoreSummary *s,
+						 const gchar *path,
+						 gchar dir_sep);
+gchar *		camel_nntp_store_summary_dotted_to_full
+						(CamelNNTPStoreSummary *s,
+						 const gchar *dotted,
+						 gchar dir_sep);
 
-CamelNNTPStoreInfo *camel_nntp_store_summary_full_name (CamelNNTPStoreSummary *s, const gchar *full_name);
-CamelNNTPStoreInfo *camel_nntp_store_summary_add_from_full (CamelNNTPStoreSummary *s, const gchar *full_name, gchar dir_sep);
+CamelNNTPStoreInfo *
+		camel_nntp_store_summary_full_name
+						(CamelNNTPStoreSummary *s,
+						 const gchar *full_name);
+CamelNNTPStoreInfo *
+		camel_nntp_store_summary_add_from_full
+						(CamelNNTPStoreSummary *s,
+						 const gchar *full_name,
+						 gchar dir_sep);
 
 /* a convenience lookup function. always use this if path known */
-gchar *camel_nntp_store_summary_full_from_path (CamelNNTPStoreSummary *s, const gchar *path);
+gchar *		camel_nntp_store_summary_full_from_path
+						(CamelNNTPStoreSummary *s,
+						 const gchar *path);
 
 G_END_DECLS
 
