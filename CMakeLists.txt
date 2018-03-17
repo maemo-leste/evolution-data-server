@@ -4,14 +4,15 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.26.5
+	VERSION 3.28.0
 	LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "http://bugzilla.gnome.org/enter_bug.cgi?product=Evolution-Data-Server")
 
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.26)
+set(BASE_VERSION 3.28)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -44,7 +45,7 @@ set(USER_PROMPTER_DBUS_SERVICE_NAME	"org.gnome.evolution.dataserver.UserPrompter
 # ******************************
 # Library versioning
 # ******************************
-set(LIBCAMEL_CURRENT 60)
+set(LIBCAMEL_CURRENT 61)
 set(LIBCAMEL_REVISION 0)
 set(LIBCAMEL_AGE 0)
 
@@ -52,11 +53,11 @@ set(LIBEBACKEND_CURRENT 10)
 set(LIBEBACKEND_REVISION 0)
 set(LIBEBACKEND_AGE 0)
 
-set(LIBEDATASERVER_CURRENT 22)
+set(LIBEDATASERVER_CURRENT 23)
 set(LIBEDATASERVER_REVISION 0)
 set(LIBEDATASERVER_AGE 0)
 
-set(LIBEDATASERVERUI_CURRENT 1)
+set(LIBEDATASERVERUI_CURRENT 2)
 set(LIBEDATASERVERUI_REVISION 0)
 set(LIBEDATASERVERUI_AGE 0)
 
@@ -296,7 +297,7 @@ if(NOT PERL)
 	message(FATAL_ERROR "You need perl to build ${PROJECT_NAME}")
 endif(NOT PERL)
 
-find_program(PYTHON python)
+find_program(PYTHON python3 python2 python)
 if(NOT PYTHON)
 	message(FATAL_ERROR "You need python to build ${PROJECT_NAME}")
 endif(NOT PYTHON)
@@ -380,14 +381,14 @@ if(ENABLE_GTK)
 	set(HAVE_GTK 1)
 endif(ENABLE_GTK)
 
-# ***************************************************
-# Check for WebKitGTK+ and json-glib for google auth
-# ***************************************************
+# **************************************************************
+# Check for WebKitGTK+ and json-glib for OAuth2 authentications
+# **************************************************************
 
-add_printable_option(ENABLE_GOOGLE_AUTH "Enable built-in Google authentication" ON)
+add_printable_option(ENABLE_OAUTH2 "Enable built-in OAuth2 authentications" ON)
 
-if(ENABLE_GOOGLE_AUTH)
-	pkg_check_modules_for_option(ENABLE_GOOGLE_AUTH "Google authentication support" GOOGLE_AUTH
+if(ENABLE_OAUTH2)
+	pkg_check_modules_for_option(ENABLE_OAUTH2 "OAuth2 authentication support" OAUTH2
 		webkit2gtk-4.0>=${webkit2gtk_minimum_version}
 		json-glib-1.0>=${json_glib_minimum_version}
 	)
@@ -402,7 +403,19 @@ if(ENABLE_GOOGLE_AUTH)
 	if(WITH_GOOGLE_CLIENT_SECRET STREQUAL "")
 		set(WITH_GOOGLE_CLIENT_SECRET "mtfUe5W8Aal9DcgVipOY1T9G")
 	endif(WITH_GOOGLE_CLIENT_SECRET STREQUAL "")
-endif(ENABLE_GOOGLE_AUTH)
+
+	add_printable_variable(WITH_OUTLOOK_CLIENT_ID "Outlook.com OAuth 2.0 client id" "")
+	add_printable_variable(WITH_OUTLOOK_CLIENT_SECRET "Outlook.com OAuth 2.0 client secret" "")
+
+	if(WITH_OUTLOOK_CLIENT_ID STREQUAL "")
+		set(WITH_OUTLOOK_CLIENT_ID "cc6e0693-0e26-4220-8322-9d363e308fc6")
+	endif(WITH_OUTLOOK_CLIENT_ID STREQUAL "")
+
+	# Outlook.com requires client secret only for Web applications
+	#if(WITH_OUTLOOK_CLIENT_SECRET STREQUAL "")
+	#	set(WITH_OUTLOOK_CLIENT_SECRET "")
+	#endif(WITH_OUTLOOK_CLIENT_SECRET STREQUAL "")
+endif(ENABLE_OAUTH2)
 
 # ******************************************
 # Check whether to build examples/demos
@@ -450,7 +463,7 @@ endif(ENABLE_UOA)
 # Check if backend per process should be enabled
 # **********************************************
 
-add_printable_option(ENABLE_BACKEND_PER_PROCESS "Enable backend per process support" ON)
+add_printable_option(ENABLE_BACKEND_PER_PROCESS "Enable backend per process support" OFF)
 
 # ***********************************
 # Check for libsecret and gcr-base
@@ -521,7 +534,10 @@ if(NOT HAVE_ICONV)
 endif(NOT HAVE_ICONV)
 
 set(CMAKE_REQUIRED_LIBRARIES ${ICONV_LIBS})
-CHECK_C_SOURCE_RUNS("#include \"${CMAKE_SOURCE_DIR}/iconv-detect.c\"" _correct_iconv)
+file(TO_NATIVE_PATH "${CMAKE_BINARY_DIR}/" _binary_dir_with_separator)
+CHECK_C_SOURCE_RUNS("#define ICONV_DETECT_BUILD_DIR \"${_binary_dir_with_separator}\"
+		     #include \"${CMAKE_SOURCE_DIR}/iconv-detect.c\"" _correct_iconv)
+unset(_binary_dir_with_separator)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 if(NOT _correct_iconv)
@@ -731,6 +747,19 @@ add_printable_option(ENABLE_WEATHER "Build the weather calendar backend" ON)
 
 if(ENABLE_WEATHER)
 	pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar backend" LIBGWEATHER gweather-3.0>=${gweather_minimum_version})
+
+	set(CMAKE_REQUIRED_INCLUDES ${LIBGWEATHER_INCLUDE_DIRS})
+	set(CMAKE_REQUIRED_LIBRARIES ${LIBGWEATHER_LDFLAGS})
+	CHECK_C_SOURCE_COMPILES("#define GWEATHER_I_KNOW_THIS_IS_UNSTABLE
+				#include <libgweather/gweather.h>
+				#undef GWEATHER_I_KNOW_THIS_IS_UNSTABLE
+
+				int main(void) {
+					gweather_info_new (NULL);
+					return 0;
+				}" HAVE_ONE_ARG_GWEATHER_INFO_NEW)
+	unset(CMAKE_REQUIRED_INCLUDES)
+	unset(CMAKE_REQUIRED_LIBRARIES)
 endif(ENABLE_WEATHER)
 
 # ******************************

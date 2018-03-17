@@ -3460,7 +3460,7 @@ e_cal_meta_backend_get_connected_writable (ECalMetaBackend *meta_backend)
  * Returns: (transfer full) (nullable): The last known synchronization tag,
  *    or %NULL, when none is stored.
  *
- * Since: 3.26.2
+ * Since: 3.28
  **/
 gchar *
 e_cal_meta_backend_dup_sync_tag (ECalMetaBackend *meta_backend)
@@ -5125,7 +5125,7 @@ e_cal_meta_backend_requires_reconnect (ECalMetaBackend *meta_backend)
  * Returns: %TRUE, when the SSL error details had been available and
  *    the out parameters populated, %FALSE otherwise.
  *
- * Since: 3.26.2
+ * Since: 3.28
  **/
 gboolean
 e_cal_meta_backend_get_ssl_error_details (ECalMetaBackend *meta_backend,

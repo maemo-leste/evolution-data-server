@@ -84,12 +84,14 @@ struct _EDataFactoryPrivate {
 	DataFactorySpawnSubprocessStates spawn_subprocess_state;
 
 	gboolean reload_supported;
+	gint backend_per_process;
 };
 
 enum {
 	PROP_0,
 	PROP_REGISTRY,
-	PROP_RELOAD_SUPPORTED
+	PROP_RELOAD_SUPPORTED,
+	PROP_BACKEND_PER_PROCESS
 };
 
 /* Forward Declarations */
@@ -284,20 +286,39 @@ data_factory_subprocess_data_free (DataFactorySubprocessData *sd)
 	}
 }
 
+static gboolean
+data_factory_use_backend_per_process (gint override_backend_per_process)
+{
+	gboolean backend_per_process;
+
+	if (override_backend_per_process == 0 || override_backend_per_process == 1) {
+		backend_per_process = override_backend_per_process == 1;
+	} else {
+		#ifdef ENABLE_BACKEND_PER_PROCESS
+		backend_per_process = TRUE;
+		#else
+		backend_per_process = FALSE;
+		#endif
+	}
+
+	return backend_per_process;
+}
+
 static gchar *
-data_factory_dup_subprocess_helper_hash_key (const gchar *factory_name,
+data_factory_dup_subprocess_helper_hash_key (gint override_backend_per_process,
+					     const gchar *factory_name,
 					     const gchar *extension_name,
 					     const gchar *uid,
 					     gboolean backend_factory_share_subprocess)
 {
 	gchar *helper_hash_key;
 
-#ifdef ENABLE_BACKEND_PER_PROCESS
-	helper_hash_key = backend_factory_share_subprocess ?
-		g_strdup (factory_name) : g_strdup_printf ("%s:%s:%s", factory_name, extension_name, uid);
-#else
-	helper_hash_key = g_strdup ("not-using-bacend-per-process");
-#endif
+	if (data_factory_use_backend_per_process (override_backend_per_process)) {
+		helper_hash_key = backend_factory_share_subprocess ?
+			g_strdup (factory_name) : g_strdup_printf ("%s:%s:%s", factory_name, extension_name, uid);
+	} else {
+		helper_hash_key = g_strdup ("not-using-backend-per-process");
+	}
 
 	return helper_hash_key;
 }
@@ -830,6 +851,16 @@ e_data_factory_set_reload_supported (EDataFactory *data_factory,
 	data_factory->priv->reload_supported = is_supported;
 }
 
+
+static void
+e_data_factory_set_backend_per_process (EDataFactory *data_factory,
+					gint backend_per_process)
+{
+	g_return_if_fail (E_IS_DATA_FACTORY (data_factory));
+
+	data_factory->priv->backend_per_process = backend_per_process;
+}
+
 static void
 e_data_factory_get_property (GObject *object,
 			     guint property_id,
@@ -850,6 +881,14 @@ e_data_factory_get_property (GObject *object,
 				e_data_factory_get_reload_supported (
 				E_DATA_FACTORY (object)));
 			return;
+
+		case PROP_BACKEND_PER_PROCESS:
+			g_value_set_int (
+				value,
+				e_data_factory_get_backend_per_process (
+				E_DATA_FACTORY (object)));
+			return;
+
 	}
 
 	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -866,6 +905,12 @@ e_data_factory_set_property (GObject *object,
 			e_data_factory_set_reload_supported (
 				E_DATA_FACTORY (object),
 				g_value_get_boolean (value));
+			return;
+
+		case PROP_BACKEND_PER_PROCESS:
+			e_data_factory_set_backend_per_process (
+				E_DATA_FACTORY (object),
+				g_value_get_int (value));
 			return;
 	}
 
@@ -1026,6 +1071,19 @@ e_data_factory_class_init (EDataFactoryClass *class)
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT_ONLY |
 			G_PARAM_STATIC_STRINGS));
+
+	g_object_class_install_property (
+		object_class,
+		PROP_BACKEND_PER_PROCESS,
+		g_param_spec_int (
+			"backend-per-process",
+			"Backend Per Process",
+			"Override backend-per-process compile-time option",
+			G_MININT, G_MAXINT,
+			-1,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -1071,6 +1129,7 @@ e_data_factory_init (EDataFactory *data_factory)
 
 	data_factory->priv->spawn_subprocess_state = DATA_FACTORY_SPAWN_SUBPROCESS_NONE;
 	data_factory->priv->reload_supported = FALSE;
+	data_factory->priv->backend_per_process = -1;
 }
 
 /**
@@ -1216,12 +1275,15 @@ data_factory_spawn_subprocess_backend (EDataFactory *data_factory,
 	g_free (backend_name);
 
 	if (backend_factory) {
+		gboolean backend_per_process;
+
 		type_name = G_OBJECT_TYPE_NAME (backend_factory);
 
 		class = E_DATA_FACTORY_GET_CLASS (data_factory);
 		factory_name = class->get_factory_name (backend_factory);
 
 		subprocess_helpers_hash_key = data_factory_dup_subprocess_helper_hash_key (
+			e_data_factory_get_backend_per_process (data_factory),
 			factory_name, extension_name, uid, e_backend_factory_share_subprocess (backend_factory));
 
 		g_mutex_lock (&priv->mutex);
@@ -1280,11 +1342,13 @@ data_factory_spawn_subprocess_backend (EDataFactory *data_factory,
 		g_hash_table_insert (priv->subprocess_watched_ids, g_strdup (sd->bus_name), GUINT_TO_POINTER (watched_id));
 		g_mutex_unlock (&priv->subprocess_watched_ids_lock);
 
+		backend_per_process = data_factory_use_backend_per_process (e_data_factory_get_backend_per_process (data_factory));
+
 		subprocess = g_subprocess_new (
 			G_SUBPROCESS_FLAGS_NONE,
 			&error,
 			subprocess_path,
-			"--factory", sd->factory_name,
+			"--factory", backend_per_process ? sd->factory_name : "all",
 			"--bus-name", sd->bus_name,
 			"--own-path", sd->path,
 			NULL);
@@ -1392,4 +1456,12 @@ e_data_factory_get_reload_supported (EDataFactory *data_factory)
 	g_return_val_if_fail (E_IS_DATA_FACTORY (data_factory), FALSE);
 
 	return data_factory->priv->reload_supported;
+}
+
+gint
+e_data_factory_get_backend_per_process (EDataFactory *data_factory)
+{
+	g_return_val_if_fail (E_IS_DATA_FACTORY (data_factory), -1);
+
+	return data_factory->priv->backend_per_process;
 }

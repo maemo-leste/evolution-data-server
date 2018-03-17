@@ -796,9 +796,36 @@ imapx_untagged_expunge (CamelIMAPXServer *is,
 	/* Ignore EXPUNGE responses when not running a COPY(MOVE)_MESSAGE job */
 	if (!is->priv->current_command || (is->priv->current_command->job_kind != CAMEL_IMAPX_JOB_COPY_MESSAGE &&
 	    is->priv->current_command->job_kind != CAMEL_IMAPX_JOB_MOVE_MESSAGE)) {
+		gboolean ignored = TRUE;
+		gboolean is_idle_command = is->priv->current_command && is->priv->current_command->job_kind == CAMEL_IMAPX_JOB_IDLE;
+
 		COMMAND_UNLOCK (is);
 
-		c (is->priv->tagprefix, "ignoring untagged expunge: %lu\n", expunged_idx);
+		/* Process only untagged EXPUNGE responses within ongoing IDLE command */
+		if (is_idle_command) {
+			CamelIMAPXMailbox *mailbox;
+
+			mailbox = camel_imapx_server_ref_selected (is);
+			if (mailbox) {
+				guint32 messages;
+
+				messages = camel_imapx_mailbox_get_messages (mailbox);
+				if (messages > 0) {
+					camel_imapx_mailbox_set_messages (mailbox, messages - 1);
+
+					ignored = FALSE;
+					c (is->priv->tagprefix, "going to refresh mailbox '%s' due to untagged expunge: %lu\n", camel_imapx_mailbox_get_name (mailbox), expunged_idx);
+
+					g_signal_emit (is, signals[REFRESH_MAILBOX], 0, mailbox);
+				}
+
+				g_object_unref (mailbox);
+			}
+		}
+
+		if (ignored)
+			c (is->priv->tagprefix, "ignoring untagged expunge: %lu\n", expunged_idx);
+
 		return TRUE;
 	}
 
@@ -973,10 +1000,9 @@ imapx_untagged_exists (CamelIMAPXServer *is,
                        GCancellable *cancellable,
                        GError **error)
 {
-	CamelFolder *folder;
 	CamelIMAPXMailbox *mailbox;
 	guint32 exists;
-	gboolean success = TRUE;
+	gboolean success = TRUE, changed;
 
 	g_return_val_if_fail (CAMEL_IS_IMAPX_SERVER (is), FALSE);
 
@@ -994,20 +1020,12 @@ imapx_untagged_exists (CamelIMAPXServer *is,
 		camel_imapx_mailbox_get_messages (mailbox),
 		exists);
 
+	changed = camel_imapx_mailbox_get_messages (mailbox) != exists;
 	camel_imapx_mailbox_set_messages (mailbox, exists);
 
-	folder = imapx_server_ref_folder (is, mailbox);
-	g_return_val_if_fail (folder != NULL, FALSE);
+	if (changed && camel_imapx_server_is_in_idle (is))
+		g_signal_emit (is, signals[REFRESH_MAILBOX], 0, mailbox);
 
-	if (camel_imapx_server_is_in_idle (is)) {
-		guint count;
-
-		count = camel_folder_summary_count (camel_folder_get_folder_summary (folder));
-		if (count < exists)
-			g_signal_emit (is, signals[REFRESH_MAILBOX], 0, mailbox);
-	}
-
-	g_object_unref (folder);
 	g_object_unref (mailbox);
 
 	return success;
@@ -1340,6 +1358,26 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 
 			if (free_user_flags)
 				camel_named_flags_free (server_user_flags);
+
+			if (camel_imapx_server_is_in_idle (is) && !camel_folder_is_frozen (folder)) {
+				CamelFolderChangeInfo *changes = NULL;
+
+				g_mutex_lock (&is->priv->changes_lock);
+
+				if (camel_folder_change_info_changed (is->priv->changes)) {
+					changes = is->priv->changes;
+					is->priv->changes = camel_folder_change_info_new ();
+				}
+
+				g_mutex_unlock (&is->priv->changes_lock);
+
+				if (changes) {
+					imapx_update_store_summary (folder);
+					camel_folder_changed (folder, changes);
+
+					camel_folder_change_info_free (changes);
+				}
+			}
 		}
 
 		g_clear_object (&mailbox);
@@ -2918,7 +2956,8 @@ camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 		g_mutex_lock (&is->priv->stream_lock);
 
 		if (is->priv->cinfo && !g_hash_table_lookup (is->priv->cinfo->auth_types, mechanism) && (
-		    !g_str_equal (mechanism, "Google") || !g_hash_table_lookup (is->priv->cinfo->auth_types, "XOAUTH2"))) {
+		    !camel_sasl_is_xoauth2_alias (mechanism) ||
+		    !g_hash_table_lookup (is->priv->cinfo->auth_types, "XOAUTH2"))) {
 			g_mutex_unlock (&is->priv->stream_lock);
 			g_set_error (
 				error, CAMEL_SERVICE_ERROR,
@@ -4028,6 +4067,17 @@ camel_imapx_server_get_message_sync (CamelIMAPXServer *is,
 	   That can happen when the previous message download had been cancelled
 	   or finished with an error. */
 	camel_data_cache_remove (message_cache, "tmp", message_uid, NULL);
+
+	/* Check whether the message is already downloaded by another job */
+	cache_stream = camel_data_cache_get (message_cache, "cur", message_uid, NULL);
+	if (cache_stream) {
+		result_stream = camel_stream_new (cache_stream);
+
+		g_clear_object (&cache_stream);
+		g_clear_object (&mi);
+
+		return result_stream;
+	}
 
 	cache_stream = camel_data_cache_add (message_cache, "tmp", message_uid, error);
 	if (cache_stream == NULL) {
@@ -5394,6 +5444,7 @@ camel_imapx_server_sync_changes_sync (CamelIMAPXServer *is,
 	gboolean use_real_junk_path = FALSE;
 	gboolean use_real_trash_path = FALSE;
 	gboolean remove_deleted_flags = FALSE;
+	gboolean is_real_junk_folder = FALSE;
 	gboolean nothing_to_do;
 	gboolean success;
 
@@ -5428,7 +5479,27 @@ camel_imapx_server_sync_changes_sync (CamelIMAPXServer *is,
 		CamelIMAPXSettings *settings;
 
 		settings = camel_imapx_server_ref_settings (is);
+
 		use_real_junk_path = camel_imapx_settings_get_use_real_junk_path (settings);
+		if (use_real_junk_path) {
+			CamelFolder *junk_folder = NULL;
+			gchar *real_junk_path;
+
+			real_junk_path = camel_imapx_settings_dup_real_junk_path (settings);
+			if (real_junk_path) {
+				junk_folder = camel_store_get_folder_sync (
+					camel_folder_get_parent_store (folder),
+					real_junk_path, 0, cancellable, NULL);
+			}
+
+			is_real_junk_folder = junk_folder == folder;
+
+			use_real_junk_path = junk_folder != NULL;
+
+			g_clear_object (&junk_folder);
+			g_free (real_junk_path);
+		}
+
 		use_real_trash_path = camel_imapx_settings_get_use_real_trash_path (settings);
 		if (use_real_trash_path) {
 			CamelFolder *trash_folder = NULL;
@@ -5448,6 +5519,7 @@ camel_imapx_server_sync_changes_sync (CamelIMAPXServer *is,
 			g_clear_object (&trash_folder);
 			g_free (real_trash_path);
 		}
+
 		g_object_unref (settings);
 	}
 
@@ -5490,6 +5562,7 @@ camel_imapx_server_sync_changes_sync (CamelIMAPXServer *is,
 		if (can_influence_flags) {
 			gboolean move_to_real_junk;
 			gboolean move_to_real_trash;
+			gboolean move_to_inbox;
 
 			move_to_real_junk =
 				use_real_junk_path &&
@@ -5499,12 +5572,21 @@ camel_imapx_server_sync_changes_sync (CamelIMAPXServer *is,
 				use_real_trash_path && remove_deleted_flags &&
 				(flags & CAMEL_MESSAGE_DELETED);
 
+			move_to_inbox = is_real_junk_folder &&
+				!move_to_real_junk &&
+				!move_to_real_trash &&
+				(camel_message_info_get_flags (info) & CAMEL_MESSAGE_NOTJUNK) != 0;
+
 			if (move_to_real_junk)
 				camel_imapx_folder_add_move_to_real_junk (
 					CAMEL_IMAPX_FOLDER (folder), uid);
 
 			if (move_to_real_trash)
 				camel_imapx_folder_add_move_to_real_trash (
+					CAMEL_IMAPX_FOLDER (folder), uid);
+
+			if (move_to_inbox)
+				camel_imapx_folder_add_move_to_inbox (
 					CAMEL_IMAPX_FOLDER (folder), uid);
 		}
 

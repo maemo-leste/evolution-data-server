@@ -28,9 +28,10 @@
 #include <glib/gi18n-lib.h>
 #include <gdata/gdata.h>
 
+#include "libedataserver/libedataserver.h"
+
 #include "e-book-backend-google.h"
 #include "e-book-google-utils.h"
-#include "e-gdata-oauth2-authorizer.h"
 
 #define URI_GET_CONTACTS "https://www.google.com/m8/feeds/contacts/default/full"
 
@@ -168,8 +169,7 @@ ebb_google_request_authorization (EBookBackendGoogle *bbgoogle,
 
 		source = e_backend_get_source (E_BACKEND (bbgoogle));
 
-		/* Only OAuth2 is supported with Google Tasks */
-		authorizer = e_gdata_oauth2_authorizer_new (source);
+		authorizer = e_gdata_oauth2_authorizer_new (source, GDATA_TYPE_CONTACTS_SERVICE);
 		bbgoogle->priv->authorizer = GDATA_AUTHORIZER (authorizer);
 	}
 
@@ -399,10 +399,12 @@ ebb_google_connect_sync (EBookMetaBackend *meta_backend,
 
 	if (!success) {
 		if (g_error_matches (local_error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED)) {
-			if (!e_named_parameters_exists (credentials, E_SOURCE_CREDENTIAL_PASSWORD))
-				*out_auth_result = E_SOURCE_AUTHENTICATION_REQUIRED;
-			else
-				*out_auth_result = E_SOURCE_AUTHENTICATION_REJECTED;
+			*out_auth_result = E_SOURCE_AUTHENTICATION_REJECTED;
+		} else if (g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_CONNECTION_REFUSED) ||
+			   g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)) {
+			*out_auth_result = E_SOURCE_AUTHENTICATION_REJECTED;
+			g_propagate_error (error, local_error);
+			local_error = NULL;
 		} else {
 			*out_auth_result = E_SOURCE_AUTHENTICATION_ERROR;
 			ebb_google_data_book_error_from_gdata_error (error, local_error);

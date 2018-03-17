@@ -21,7 +21,8 @@
 #include <glib/gi18n-lib.h>
 #include <gdata/gdata.h>
 
-#include "e-gdata-oauth2-authorizer.h"
+#include "libedataserver/libedataserver.h"
+
 #include "e-cal-backend-gtasks.h"
 
 #define d(x)
@@ -136,7 +137,7 @@ ecb_gtasks_gdata_to_comp (GDataTasksTask *task)
 	}
 
 	if (gdata_tasks_task_get_completed (task) > 0) {
-		tt = icaltime_from_timet_with_zone (gdata_tasks_task_get_completed (task), 1, NULL);
+		tt = icaltime_from_timet_with_zone (gdata_tasks_task_get_completed (task), 0, icaltimezone_get_utc_timezone ());
 		if (icaltime_is_valid_time (tt) && !icaltime_is_null_time (tt))
 			ecb_gtasks_update_ical_time_property (icomp, ICAL_COMPLETED_PROPERTY,
 				icalproperty_new_completed,
@@ -281,7 +282,7 @@ ecb_gtasks_request_authorization (ECalBackendGTasks *cbgtasks,
 		source = e_backend_get_source (E_BACKEND (cbgtasks));
 
 		/* Only OAuth2 is supported with Google Tasks */
-		authorizer = e_gdata_oauth2_authorizer_new (source);
+		authorizer = e_gdata_oauth2_authorizer_new (source, GDATA_TYPE_TASKS_SERVICE);
 		cbgtasks->priv->authorizer = GDATA_AUTHORIZER (authorizer);
 	}
 
@@ -441,11 +442,12 @@ ecb_gtasks_connect_sync (ECalMetaBackend *meta_backend,
 
 	if (!success) {
 		if (g_error_matches (local_error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED)) {
-			if (!e_named_parameters_exists (credentials, E_SOURCE_CREDENTIAL_PASSWORD))
-				*out_auth_result = E_SOURCE_AUTHENTICATION_REQUIRED;
-			else
-				*out_auth_result = E_SOURCE_AUTHENTICATION_REJECTED;
+			*out_auth_result = E_SOURCE_AUTHENTICATION_REJECTED;
 			g_clear_error (&local_error);
+		} else if (g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_CONNECTION_REFUSED) ||
+			   g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)) {
+			*out_auth_result = E_SOURCE_AUTHENTICATION_REJECTED;
+			g_propagate_error (error, local_error);
 		} else {
 			*out_auth_result = E_SOURCE_AUTHENTICATION_ERROR;
 			g_propagate_error (error, local_error);

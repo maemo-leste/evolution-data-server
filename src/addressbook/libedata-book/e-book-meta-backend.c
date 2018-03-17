@@ -2697,7 +2697,7 @@ e_book_meta_backend_get_connected_writable (EBookMetaBackend *meta_backend)
  * Returns: (transfer full) (nullable): The last known synchronization tag,
  *    or %NULL, when none is stored.
  *
- * Since: 3.26.2
+ * Since: 3.28
  **/
 gchar *
 e_book_meta_backend_dup_sync_tag (EBookMetaBackend *meta_backend)
@@ -4235,7 +4235,7 @@ e_book_meta_backend_requires_reconnect (EBookMetaBackend *meta_backend)
  * Returns: %TRUE, when the SSL error details had been available and
  *    the out parameters populated, %FALSE otherwise.
  *
- * Since: 3.26.2
+ * Since: 3.28
  **/
 gboolean
 e_book_meta_backend_get_ssl_error_details (EBookMetaBackend *meta_backend,
