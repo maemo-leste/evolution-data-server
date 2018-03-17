@@ -1,17 +1,17 @@
 /*
  * camel-imapx-namespace-response.c
  *
- * This library is free software you can redistribute it and/or modify it
+ * This library is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation.
  *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
  * for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, see <http://www.gnu.org/licenses/>.
+ * along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -117,7 +117,7 @@ imapx_namespace_response_parse_namespace (CamelIMAPXInputStream *stream,
 	}
 	if (tok != '(') {
 		g_set_error (
-			error, CAMEL_IMAPX_ERROR, 1,
+			error, CAMEL_IMAPX_ERROR, CAMEL_IMAPX_ERROR_SERVER_RESPONSE_MALFORMED,
 			"namespace: expecting NIL or '('");
 		return FALSE;
 	}
@@ -129,7 +129,7 @@ repeat:
 		return FALSE;
 	if (tok != '(') {
 		g_set_error (
-			error, CAMEL_IMAPX_ERROR, 1,
+			error, CAMEL_IMAPX_ERROR, CAMEL_IMAPX_ERROR_SERVER_RESPONSE_MALFORMED,
 			"namespace: expecting '('");
 		return FALSE;
 	}
@@ -140,7 +140,7 @@ repeat:
 		return FALSE;
 	if (tok != IMAPX_TOK_STRING) {
 		g_set_error (
-			error, CAMEL_IMAPX_ERROR, 1,
+			error, CAMEL_IMAPX_ERROR, CAMEL_IMAPX_ERROR_SERVER_RESPONSE_MALFORMED,
 			"namespace: expecting string");
 		return FALSE;
 	}
@@ -169,7 +169,7 @@ repeat:
 		return FALSE;
 	if (tok != ')') {
 		g_set_error (
-			error, CAMEL_IMAPX_ERROR, 1,
+			error, CAMEL_IMAPX_ERROR, CAMEL_IMAPX_ERROR_SERVER_RESPONSE_MALFORMED,
 			"namespace: expecting ')'");
 		return FALSE;
 	}
@@ -184,7 +184,7 @@ repeat:
 	}
 	if (tok != ')') {
 		g_set_error (
-			error, CAMEL_IMAPX_ERROR, 1,
+			error, CAMEL_IMAPX_ERROR, CAMEL_IMAPX_ERROR_SERVER_RESPONSE_MALFORMED,
 			"namespace: expecting '(' or ')'");
 		return FALSE;
 	}
@@ -321,6 +321,57 @@ camel_imapx_namespace_response_list (CamelIMAPXNamespaceResponse *response)
 	head = g_queue_peek_head_link (&response->priv->namespaces);
 
 	return g_list_copy_deep (head, (GCopyFunc) g_object_ref, NULL);
+}
+
+/**
+ * camel_imapx_namespace_response_remove:
+ * @response: a #CamelIMAPXNamespaceResponse
+ * @namespace: a #CamelIMAPXNamespace to add
+ *
+ * Adds a @namespace into the list of namespaces. It adds its own
+ * reference on the @namespace.
+ *
+ * Since: 3.16
+ **/
+void
+camel_imapx_namespace_response_add (CamelIMAPXNamespaceResponse *response,
+				    CamelIMAPXNamespace *namespace)
+{
+	g_return_if_fail (CAMEL_IS_IMAPX_NAMESPACE_RESPONSE (response));
+	g_return_if_fail (CAMEL_IS_IMAPX_NAMESPACE (namespace));
+
+	g_queue_push_tail (&response->priv->namespaces, g_object_ref (namespace));
+}
+
+/**
+ * camel_imapx_namespace_response_remove:
+ * @response: a #CamelIMAPXNamespaceResponse
+ * @namespace: a #CamelIMAPXNamespace to remove
+ *
+ * Removes @namespace from the list of namespaces in the @response.
+ * If no such namespace exists then does nothing.
+ *
+ * Since: 3.16
+ **/
+void
+camel_imapx_namespace_response_remove (CamelIMAPXNamespaceResponse *response,
+				       CamelIMAPXNamespace *namespace)
+{
+	GList *link;
+
+	g_return_if_fail (CAMEL_IS_IMAPX_NAMESPACE_RESPONSE (response));
+	g_return_if_fail (CAMEL_IS_IMAPX_NAMESPACE (namespace));
+
+	for (link = g_queue_peek_head_link (&response->priv->namespaces);
+	     link; link = g_list_next (link)) {
+		CamelIMAPXNamespace *ns = link->data;
+
+		if (camel_imapx_namespace_equal (namespace, ns)) {
+			g_queue_remove (&response->priv->namespaces, ns);
+			g_object_unref (ns);
+			break;
+		}
+	}
 }
 
 /**
