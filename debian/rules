@@ -11,12 +11,6 @@ export SENDMAIL_PATH = /usr/sbin/sendmail
 %:
 	dh $@ --with gir,gnome
 
-override_dh_gnome_clean:
-	dh_gnome_clean --no-control
-
-override_dh_autoreconf:
-	dh_autoreconf --as-needed
-
 ifeq (,$(filter $(DEB_HOST_ARCH), hppa hurd-i386 kfreebsd-i386 kfreebsd-amd64))
 CONFFLAGS = -DWITH_PHONENUMBER=ON
 endif
@@ -51,7 +45,10 @@ override_dh_install:
 		debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
 	find debian/tmp/usr/lib -name '*.a' -delete
 	find debian/tmp/usr/lib -name '*.la' -delete
-	dh_install --fail-missing
+	dh_install
+
+override_dh_missing:
+	dh_missing --fail-missing
 
 override_dh_fixperms-arch:
 	chgrp mail $(CURDIR)/debian/evolution-data-server/usr/lib/evolution/camel-lock-helper*
