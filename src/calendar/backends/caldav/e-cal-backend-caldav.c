@@ -58,6 +58,33 @@ struct _ECalBackendCalDAVPrivate {
 
 G_DEFINE_TYPE (ECalBackendCalDAV, e_cal_backend_caldav, E_TYPE_CAL_META_BACKEND)
 
+static void
+ecb_caldav_update_tweaks (ECalBackendCalDAV *cbdav)
+{
+	ESource *source;
+	SoupURI *soup_uri;
+
+	g_return_if_fail (E_IS_CAL_BACKEND_CALDAV (cbdav));
+
+	source = e_backend_get_source (E_BACKEND (cbdav));
+
+	if (!e_source_has_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND))
+		return;
+
+	soup_uri = e_source_webdav_dup_soup_uri (e_source_get_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND));
+	if (!soup_uri)
+		return;
+
+	cbdav->priv->is_google = soup_uri->host && (
+		g_ascii_strcasecmp (soup_uri->host, "www.google.com") == 0 ||
+		g_ascii_strcasecmp (soup_uri->host, "apidata.googleusercontent.com") == 0);
+
+	cbdav->priv->is_icloud = soup_uri->host &&
+		e_util_utf8_strstrcase (soup_uri->host, ".icloud.com");
+
+	soup_uri_free (soup_uri);
+}
+
 static gboolean
 ecb_caldav_connect_sync (ECalMetaBackend *meta_backend,
 			 const ENamedParameters *credentials,
@@ -127,12 +154,7 @@ ecb_caldav_connect_sync (ECalMetaBackend *meta_backend,
 
 			e_source_set_connection_status (source, E_SOURCE_CONNECTION_STATUS_CONNECTED);
 
-			cbdav->priv->is_google = soup_uri && soup_uri->host && (
-				g_ascii_strcasecmp (soup_uri->host, "www.google.com") == 0 ||
-				g_ascii_strcasecmp (soup_uri->host, "apidata.googleusercontent.com") == 0);
-
-			cbdav->priv->is_icloud = soup_uri && soup_uri->host &&
-				e_util_utf8_strstrcase (soup_uri->host, ".icloud.com");
+			ecb_caldav_update_tweaks (cbdav);
 		} else {
 			gchar *uri;
 
@@ -174,7 +196,8 @@ ecb_caldav_connect_sync (ECalMetaBackend *meta_backend,
 		gboolean credentials_empty;
 		gboolean is_ssl_error;
 
-		credentials_empty = !credentials || !e_named_parameters_count (credentials);
+		credentials_empty = (!credentials || !e_named_parameters_count (credentials)) &&
+			e_soup_session_get_authentication_requires_credentials (E_SOUP_SESSION (cbdav->priv->webdav));
 		is_ssl_error = g_error_matches (local_error, SOUP_HTTP_ERROR, SOUP_STATUS_SSL_FAILED);
 
 		*out_auth_result = E_SOURCE_AUTHENTICATION_ERROR;
@@ -190,6 +213,10 @@ ecb_caldav_connect_sync (ECalMetaBackend *meta_backend,
 				*out_auth_result = E_SOURCE_AUTHENTICATION_REQUIRED;
 			else
 				*out_auth_result = E_SOURCE_AUTHENTICATION_REJECTED;
+		} else if (g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_CONNECTION_REFUSED) ||
+			   (!e_soup_session_get_authentication_requires_credentials (E_SOUP_SESSION (cbdav->priv->webdav)) &&
+			   g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND))) {
+			*out_auth_result = E_SOURCE_AUTHENTICATION_REJECTED;
 		} else if (!local_error) {
 			g_set_error_literal (&local_error, G_IO_ERROR, G_IO_ERROR_FAILED,
 				_("Unknown error"));
@@ -896,7 +923,7 @@ ecb_caldav_uid_to_uri (ECalBackendCalDAV *cbdav,
 {
 	ESourceWebdav *webdav_extension;
 	SoupURI *soup_uri;
-	gchar *uri, *tmp, *filename;
+	gchar *uri, *tmp, *filename, *uid_hash = NULL;
 
 	g_return_val_if_fail (E_IS_CAL_BACKEND_CALDAV (cbdav), NULL);
 	g_return_val_if_fail (uid != NULL, NULL);
@@ -904,6 +931,16 @@ ecb_caldav_uid_to_uri (ECalBackendCalDAV *cbdav,
 	webdav_extension = e_source_get_extension (e_backend_get_source (E_BACKEND (cbdav)), E_SOURCE_EXTENSION_WEBDAV_BACKEND);
 	soup_uri = e_source_webdav_dup_soup_uri (webdav_extension);
 	g_return_val_if_fail (soup_uri != NULL, NULL);
+
+	/* UIDs with forward slashes can cause trouble, because the destination server can
+	   consider them as a path delimiter. Double-encode the URL doesn't always work,
+	   thus rather cause a mismatch between stored UID and its href on the server. */
+	if (strchr (uid, '/')) {
+		uid_hash = g_compute_checksum_for_string (G_CHECKSUM_SHA1, uid, -1);
+
+		if (uid_hash)
+			uid = uid_hash;
+	}
 
 	if (extension) {
 		tmp = g_strconcat (uid, extension, NULL);
@@ -931,6 +968,7 @@ ecb_caldav_uid_to_uri (ECalBackendCalDAV *cbdav,
 
 	soup_uri_free (soup_uri);
 	g_free (filename);
+	g_free (uid_hash);
 
 	return uri;
 }
@@ -1444,8 +1482,12 @@ ecb_caldav_get_usermail (ECalBackendCalDAV *cbdav)
 	auth_extension = e_source_get_extension (source, extension_name);
 	username = e_source_authentication_dup_user (auth_extension);
 
-	if (cbdav->priv->is_google)
+	if (cbdav->priv->is_google) {
 		res = ecb_caldav_maybe_append_email_domain (username, "@gmail.com");
+	} else if (username && strchr (username, '@') && strrchr (username, '.') > strchr (username, '@')) {
+		res = username;
+		username = NULL;
+	}
 
 	g_free (username);
 
@@ -1859,6 +1901,8 @@ e_cal_backend_caldav_constructed (GObject *object)
 		G_CALLBACK (ecb_caldav_dup_component_revision_cb), NULL);
 
 	g_clear_object (&cal_cache);
+
+	ecb_caldav_update_tweaks (cbdav);
 }
 
 static void

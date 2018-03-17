@@ -47,6 +47,7 @@ struct _CamelIMAPXFolderPrivate {
 	GMutex move_to_hash_table_lock;
 	GHashTable *move_to_real_junk_uids;
 	GHashTable *move_to_real_trash_uids;
+	GHashTable *move_to_inbox_uids;
 
 	gboolean check_folder;
 };
@@ -93,6 +94,25 @@ camel_imapx_folder_claim_move_to_real_trash_uids (CamelIMAPXFolder *folder,
 
 	keys = g_hash_table_get_keys (folder->priv->move_to_real_trash_uids);
 	g_hash_table_steal_all (folder->priv->move_to_real_trash_uids);
+
+	g_mutex_unlock (&folder->priv->move_to_hash_table_lock);
+
+	while (keys != NULL) {
+		g_ptr_array_add (out_uids_to_copy, keys->data);
+		keys = g_list_delete_link (keys, keys);
+	}
+}
+
+void
+camel_imapx_folder_claim_move_to_inbox_uids (CamelIMAPXFolder *folder,
+					     GPtrArray *out_uids_to_copy)
+{
+	GList *keys;
+
+	g_mutex_lock (&folder->priv->move_to_hash_table_lock);
+
+	keys = g_hash_table_get_keys (folder->priv->move_to_inbox_uids);
+	g_hash_table_steal_all (folder->priv->move_to_inbox_uids);
 
 	g_mutex_unlock (&folder->priv->move_to_hash_table_lock);
 
@@ -229,6 +249,7 @@ imapx_folder_finalize (GObject *object)
 	g_mutex_clear (&folder->priv->move_to_hash_table_lock);
 	g_hash_table_destroy (folder->priv->move_to_real_junk_uids);
 	g_hash_table_destroy (folder->priv->move_to_real_trash_uids);
+	g_hash_table_destroy (folder->priv->move_to_inbox_uids);
 
 	g_weak_ref_clear (&folder->priv->mailbox);
 
@@ -398,6 +419,38 @@ imapx_search_by_expression (CamelFolder *folder,
 	g_mutex_unlock (&imapx_folder->search_lock);
 
 	return matches;
+}
+
+static GPtrArray *
+imapx_get_uncached_uids (CamelFolder *folder,
+			 GPtrArray *uids,
+			 GError **error)
+{
+	CamelIMAPXFolder *imapx_folder;
+	GPtrArray *result;
+	guint ii;
+
+	g_return_val_if_fail (CAMEL_IS_IMAPX_FOLDER (folder), NULL);
+	g_return_val_if_fail (uids != NULL, NULL);
+
+	imapx_folder = CAMEL_IMAPX_FOLDER (folder);
+
+	result = g_ptr_array_sized_new (uids->len);
+
+	for (ii = 0; ii < uids->len; ii++) {
+		const gchar *uid = uids->pdata[ii];
+		GIOStream *io_stream;
+
+		/* Assume that UIDs with existing stream are valid;
+		   the imapx_get_message_cached() can fail with broken files, but it's rather unlikely. */
+		io_stream = camel_data_cache_get (imapx_folder->cache, "cur", uid, NULL);
+		if (io_stream)
+			g_object_unref (io_stream);
+		else
+			g_ptr_array_add (result, (gpointer) camel_pstring_strdup (uid));
+	}
+
+	return result;
 }
 
 static gchar *
@@ -893,6 +946,7 @@ imapx_folder_changed (CamelFolder *folder,
 
 			g_hash_table_remove (imapx_folder->priv->move_to_real_trash_uids, message_uid);
 			g_hash_table_remove (imapx_folder->priv->move_to_real_junk_uids, message_uid);
+			g_hash_table_remove (imapx_folder->priv->move_to_inbox_uids, message_uid);
 
 			camel_data_cache_remove (imapx_folder->cache, "tmp", message_uid, NULL);
 			camel_data_cache_remove (imapx_folder->cache, "cur", message_uid, NULL);
@@ -960,6 +1014,7 @@ camel_imapx_folder_class_init (CamelIMAPXFolderClass *class)
 	folder_class->search_by_expression = imapx_search_by_expression;
 	folder_class->search_by_uids = imapx_search_by_uids;
 	folder_class->count_by_expression = imapx_count_by_expression;
+	folder_class->get_uncached_uids = imapx_get_uncached_uids;
 	folder_class->search_free = imapx_search_free;
 	folder_class->get_filename = imapx_get_filename;
 	folder_class->append_message_sync = imapx_append_message_sync;
@@ -1038,6 +1093,7 @@ camel_imapx_folder_init (CamelIMAPXFolder *imapx_folder)
 	g_mutex_init (&imapx_folder->priv->move_to_hash_table_lock);
 	imapx_folder->priv->move_to_real_junk_uids = move_to_real_junk_uids;
 	imapx_folder->priv->move_to_real_trash_uids = move_to_real_trash_uids;
+	imapx_folder->priv->move_to_inbox_uids = g_hash_table_new_full (g_str_hash, g_str_equal, (GDestroyNotify) camel_pstring_free, NULL);
 
 	g_mutex_init (&imapx_folder->search_lock);
 	g_mutex_init (&imapx_folder->stream_lock);
@@ -1395,6 +1451,9 @@ camel_imapx_folder_add_move_to_real_junk (CamelIMAPXFolder *folder,
 
 	g_mutex_lock (&folder->priv->move_to_hash_table_lock);
 
+	g_hash_table_remove (folder->priv->move_to_real_trash_uids, message_uid);
+	g_hash_table_remove (folder->priv->move_to_inbox_uids, message_uid);
+
 	g_hash_table_add (
 		folder->priv->move_to_real_junk_uids,
 		(gpointer) camel_pstring_strdup (message_uid));
@@ -1426,8 +1485,42 @@ camel_imapx_folder_add_move_to_real_trash (CamelIMAPXFolder *folder,
 
 	g_mutex_lock (&folder->priv->move_to_hash_table_lock);
 
+	g_hash_table_remove (folder->priv->move_to_real_junk_uids, message_uid);
+	g_hash_table_remove (folder->priv->move_to_inbox_uids, message_uid);
+
 	g_hash_table_add (
 		folder->priv->move_to_real_trash_uids,
+		(gpointer) camel_pstring_strdup (message_uid));
+
+	g_mutex_unlock (&folder->priv->move_to_hash_table_lock);
+}
+
+/*
+ * camel_imapx_folder_add_move_to_inbox:
+ * @folder: a #CamelIMAPXFolder
+ * @message_uid: a message UID
+ *
+ * Adds @message_uid to a pool of messages to be moved to the Inbox
+ * folder the next time @folder is explicitly synchronized by way of
+ * camel_folder_synchronize() or camel_folder_synchronize_sync().
+ *
+ * Since: 3.28
+ */
+void
+camel_imapx_folder_add_move_to_inbox (CamelIMAPXFolder *folder,
+				      const gchar *message_uid)
+{
+	g_return_if_fail (CAMEL_IS_IMAPX_FOLDER (folder));
+	g_return_if_fail (message_uid != NULL);
+	g_return_if_fail (camel_folder_summary_check_uid (camel_folder_get_folder_summary (CAMEL_FOLDER (folder)), message_uid));
+
+	g_mutex_lock (&folder->priv->move_to_hash_table_lock);
+
+	g_hash_table_remove (folder->priv->move_to_real_trash_uids, message_uid);
+	g_hash_table_remove (folder->priv->move_to_real_junk_uids, message_uid);
+
+	g_hash_table_add (
+		folder->priv->move_to_inbox_uids,
 		(gpointer) camel_pstring_strdup (message_uid));
 
 	g_mutex_unlock (&folder->priv->move_to_hash_table_lock);

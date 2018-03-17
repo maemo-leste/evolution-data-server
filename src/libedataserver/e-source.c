@@ -865,13 +865,6 @@ source_idle_connection_status_change_cb (gpointer user_data)
 	if (g_source_is_destroyed (g_main_current_source ()))
 		return FALSE;
 
-	/* If the ESource is still initializing itself in a different
-	 * thread, skip the signal emission and try again on the next
-	 * main loop iteration. This is a busy wait but it should be
-	 * a very short wait. */
-	if (!source->priv->initialized)
-		return TRUE;
-
 	g_mutex_lock (&source->priv->connection_status_change_lock);
 	if (source->priv->connection_status_change != NULL) {
 		g_source_unref (source->priv->connection_status_change);
@@ -905,7 +898,8 @@ source_notify_dbus_connection_status_cb (EDBusSource *dbus_source,
 					 ESource *source)
 {
 	g_mutex_lock (&source->priv->connection_status_change_lock);
-	if (source->priv->connection_status_change == NULL) {
+	if (source->priv->connection_status_change == NULL &&
+	    source->priv->initialized) {
 		source->priv->connection_status_change = g_idle_source_new ();
 		g_source_set_callback (
 			source->priv->connection_status_change,
@@ -1030,13 +1024,6 @@ source_idle_changed_cb (gpointer user_data)
 
 	if (g_source_is_destroyed (g_main_current_source ()))
 		return FALSE;
-
-	/* If the ESource is still initializing itself in a different
-	 * thread, skip the signal emission and try again on the next
-	 * main loop iteration.  This is a busy wait but it should be
-	 * a very short wait. */
-	if (!source->priv->initialized)
-		return TRUE;
 
 	g_mutex_lock (&source->priv->changed_lock);
 	if (source->priv->changed != NULL) {
@@ -2031,15 +2018,6 @@ source_initable_init (GInitable *initable,
 		source->priv->uid = e_util_generate_uid ();
 	}
 
-	/* Try to avoid a spurious "changed" emission. */
-	g_mutex_lock (&source->priv->changed_lock);
-	if (source->priv->changed != NULL) {
-		g_source_destroy (source->priv->changed);
-		g_source_unref (source->priv->changed);
-		source->priv->changed = NULL;
-	}
-	g_mutex_unlock (&source->priv->changed_lock);
-
 	source->priv->initialized = TRUE;
 
 	return success;
@@ -2608,6 +2586,7 @@ e_source_changed (ESource *source)
 
 	g_mutex_lock (&source->priv->changed_lock);
 	if (!source->priv->ignore_changed_signal &&
+	    source->priv->initialized &&
 	    source->priv->changed == NULL) {
 		source->priv->changed = g_idle_source_new ();
 		g_source_set_callback (

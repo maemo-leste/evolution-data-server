@@ -70,6 +70,9 @@ struct _CamelIMAPXConnManagerPrivate {
 	GMutex busy_mailboxes_lock; /* used for both busy_mailboxes and idle_mailboxes */
 	GHashTable *busy_mailboxes; /* CamelIMAPXMailbox ~> gint */
 	GHashTable *idle_mailboxes; /* CamelIMAPXMailbox ~> gint */
+
+	GMutex idle_refresh_lock;
+	GHashTable *idle_refresh_mailboxes; /* not-referenced CamelIMAPXMailbox, just to use for pointer comparison ~> NULL */
 };
 
 struct _ConnectionInfo {
@@ -138,6 +141,10 @@ imapx_conn_manager_idle_mailbox_refresh_thread (gpointer user_data)
 			local_error ? local_error->message : "Unknown error");
 	}
 
+	g_mutex_lock (&data->conn_man->priv->idle_refresh_lock);
+	g_hash_table_remove (data->conn_man->priv->idle_refresh_mailboxes, data->mailbox);
+	g_mutex_unlock (&data->conn_man->priv->idle_refresh_lock);
+
 	mailbox_refresh_data_free (data);
 	g_clear_error (&local_error);
 
@@ -156,6 +163,13 @@ imapx_conn_manager_refresh_mailbox_cb (CamelIMAPXServer *is,
 	g_return_if_fail (CAMEL_IS_IMAPX_SERVER (is));
 	g_return_if_fail (CAMEL_IS_IMAPX_MAILBOX (mailbox));
 	g_return_if_fail (CAMEL_IS_IMAPX_CONN_MANAGER (conn_man));
+
+	g_mutex_lock (&conn_man->priv->idle_refresh_lock);
+	if (!g_hash_table_insert (conn_man->priv->idle_refresh_mailboxes, mailbox, NULL)) {
+		g_mutex_unlock (&conn_man->priv->idle_refresh_lock);
+		return;
+	}
+	g_mutex_unlock (&conn_man->priv->idle_refresh_lock);
 
 	data = g_new0 (MailboxRefreshData, 1);
 	data->conn_man = g_object_ref (conn_man);
@@ -627,6 +641,8 @@ imapx_conn_manager_finalize (GObject *object)
 	g_mutex_clear (&priv->busy_mailboxes_lock);
 	g_hash_table_destroy (priv->busy_mailboxes);
 	g_hash_table_destroy (priv->idle_mailboxes);
+	g_mutex_clear (&priv->idle_refresh_lock);
+	g_hash_table_destroy (priv->idle_refresh_mailboxes);
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (camel_imapx_conn_manager_parent_class)->finalize (object);
@@ -679,10 +695,12 @@ camel_imapx_conn_manager_init (CamelIMAPXConnManager *conn_man)
 	g_cond_init (&conn_man->priv->busy_connections_cond);
 	g_weak_ref_init (&conn_man->priv->store, NULL);
 	g_mutex_init (&conn_man->priv->busy_mailboxes_lock);
+	g_mutex_init (&conn_man->priv->idle_refresh_lock);
 
 	conn_man->priv->last_tagprefix = 'A' - 1;
 	conn_man->priv->busy_mailboxes = g_hash_table_new_full (g_direct_hash, g_direct_equal, g_object_unref, NULL);
 	conn_man->priv->idle_mailboxes = g_hash_table_new_full (g_direct_hash, g_direct_equal, g_object_unref, NULL);
+	conn_man->priv->idle_refresh_mailboxes = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, NULL);
 }
 
 static gchar
@@ -1675,6 +1693,14 @@ imapx_conn_manager_move_to_real_trash_sync (CamelIMAPXConnManager *conn_man,
 	}
 	g_object_unref (settings);
 
+	if (!uids_to_copy->len) {
+		g_ptr_array_unref (uids_to_copy);
+		g_clear_object (&mailbox);
+		g_free (real_trash_path);
+
+		return TRUE;
+	}
+
 	imapx_store = camel_imapx_conn_manager_ref_store (conn_man);
 
 	if (real_trash_path != NULL) {
@@ -1729,6 +1755,74 @@ imapx_conn_manager_move_to_real_trash_sync (CamelIMAPXConnManager *conn_man,
 
 	g_clear_object (&imapx_store);
 	g_clear_object (&destination);
+	g_clear_object (&mailbox);
+
+	return success;
+}
+
+static gboolean
+imapx_conn_manager_move_to_inbox_sync (CamelIMAPXConnManager *conn_man,
+				       CamelFolder *folder,
+				       GCancellable *cancellable,
+				       gboolean *out_need_to_expunge,
+				       GError **error)
+{
+	CamelIMAPXFolder *imapx_folder;
+	CamelIMAPXMailbox *mailbox;
+	GPtrArray *uids_to_copy;
+	gboolean success = TRUE;
+
+	*out_need_to_expunge = FALSE;
+
+	/* Caller already obtained the mailbox from the folder,
+	 * so the folder should still have it readily available. */
+	imapx_folder = CAMEL_IMAPX_FOLDER (folder);
+	mailbox = camel_imapx_folder_ref_mailbox (imapx_folder);
+	g_return_val_if_fail (mailbox != NULL, FALSE);
+
+	uids_to_copy = g_ptr_array_new_with_free_func ((GDestroyNotify) camel_pstring_free);
+
+	camel_imapx_folder_claim_move_to_inbox_uids (CAMEL_IMAPX_FOLDER (folder), uids_to_copy);
+
+	if (uids_to_copy->len > 0) {
+		CamelIMAPXStore *imapx_store;
+		CamelIMAPXMailbox *destination = NULL;
+
+		imapx_store = camel_imapx_conn_manager_ref_store (conn_man);
+
+		folder = camel_store_get_inbox_folder_sync (CAMEL_STORE (imapx_store), cancellable, error);
+
+		if (folder != NULL) {
+			destination = camel_imapx_folder_list_mailbox (CAMEL_IMAPX_FOLDER (folder), cancellable, error);
+			g_object_unref (folder);
+		}
+
+		/* Avoid duplicating messages in the Inbox folder. */
+		if (destination == mailbox) {
+			success = TRUE;
+		} else if (destination != NULL) {
+			if (uids_to_copy->len > 0) {
+				success = imapx_conn_manager_copy_message_sync (
+					conn_man, mailbox, destination,
+					uids_to_copy, TRUE, TRUE, TRUE,
+					cancellable, error);
+				*out_need_to_expunge = success;
+			}
+		} else if (uids_to_copy->len > 0) {
+			success = FALSE;
+		}
+
+		if (!success) {
+			g_prefix_error (
+				error, "%s: ",
+				_("Unable to move messages to Inbox"));
+		}
+
+		g_clear_object (&imapx_store);
+		g_clear_object (&destination);
+	}
+
+	g_ptr_array_unref (uids_to_copy);
 	g_clear_object (&mailbox);
 
 	return success;
@@ -1829,6 +1923,13 @@ camel_imapx_conn_manager_sync_changes_sync (CamelIMAPXConnManager *conn_man,
 
 	if (success) {
 		success = imapx_conn_manager_move_to_real_trash_sync (
+			conn_man, folder, cancellable,
+			&need_to_expunge, error);
+		expunge |= need_to_expunge;
+	}
+
+	if (success) {
+		success = imapx_conn_manager_move_to_inbox_sync (
 			conn_man, folder, cancellable,
 			&need_to_expunge, error);
 		expunge |= need_to_expunge;
@@ -1980,9 +2081,12 @@ imapx_conn_manager_get_message_matches (CamelIMAPXJob *job,
 	g_return_val_if_fail (job != NULL, FALSE);
 	g_return_val_if_fail (other_job != NULL, FALSE);
 
-	if (camel_imapx_job_get_kind (job) != CAMEL_IMAPX_JOB_GET_MESSAGE ||
-	    camel_imapx_job_get_kind (job) != camel_imapx_job_get_kind (other_job))
+	if ((camel_imapx_job_get_kind (job) != CAMEL_IMAPX_JOB_GET_MESSAGE &&
+	    camel_imapx_job_get_kind (job) != CAMEL_IMAPX_JOB_SYNC_MESSAGE) ||
+	    (camel_imapx_job_get_kind (other_job) != CAMEL_IMAPX_JOB_GET_MESSAGE &&
+	    camel_imapx_job_get_kind (other_job) != CAMEL_IMAPX_JOB_SYNC_MESSAGE)) {
 		return FALSE;
+	}
 
 	job_data = camel_imapx_job_get_user_data (job);
 	other_job_data = camel_imapx_job_get_user_data (other_job);
@@ -1990,7 +2094,7 @@ imapx_conn_manager_get_message_matches (CamelIMAPXJob *job,
 	if (!job_data || !other_job_data)
 		return FALSE;
 
-	return g_strcmp0 (job_data->message_uid, other_job_data->message_uid) == 0;
+	return job_data->summary == other_job_data->summary && g_strcmp0 (job_data->message_uid, other_job_data->message_uid) == 0;
 }
 
 static void
@@ -2032,7 +2136,7 @@ camel_imapx_conn_manager_get_message_sync (CamelIMAPXConnManager *conn_man,
 
 	camel_imapx_job_set_user_data (job, job_data, get_message_job_data_free);
 
-	if (camel_imapx_conn_manager_run_job_sync (conn_man, job, NULL, cancellable, error) &&
+	if (camel_imapx_conn_manager_run_job_sync (conn_man, job, imapx_conn_manager_get_message_matches, cancellable, error) &&
 	    camel_imapx_job_take_result_data (job, &result_data)) {
 		result = result_data;
 	} else {
@@ -2335,7 +2439,7 @@ camel_imapx_conn_manager_sync_message_sync (CamelIMAPXConnManager *conn_man,
 
 	camel_imapx_job_set_user_data (job, job_data, get_message_job_data_free);
 
-	success = camel_imapx_conn_manager_run_job_sync (conn_man, job, NULL, cancellable, error);
+	success = camel_imapx_conn_manager_run_job_sync (conn_man, job, imapx_conn_manager_get_message_matches, cancellable, error);
 
 	camel_imapx_job_unref (job);
 

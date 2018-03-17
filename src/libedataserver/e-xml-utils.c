@@ -46,7 +46,7 @@
  * in the main thread. The function does nothing, when it had been
  * called already.
  *
- * Since: 3.26.2
+ * Since: 3.28
  **/
 void
 e_xml_initialize_in_main (void)

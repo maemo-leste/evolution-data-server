@@ -542,7 +542,7 @@ smtp_transport_connect_sync (CamelService *service,
 			goto exit;
 		}
 
-		if (g_hash_table_lookup (transport->authtypes, g_strcmp0 (mechanism, "Google") == 0 ? "XOAUTH2" : mechanism)) {
+		if (g_hash_table_lookup (transport->authtypes, camel_sasl_is_xoauth2_alias (mechanism) ? "XOAUTH2" : mechanism)) {
 			gint tries = 0;
 			GError *local_error = NULL;
 
@@ -676,7 +676,7 @@ smtp_transport_authenticate_sync (CamelService *service,
 	if (challenge) {
 		auth_challenge = TRUE;
 		cmdbuf = g_strdup_printf (
-			"AUTH %s %s\r\n", g_strcmp0 (mechanism, "Google") == 0 ? "XOAUTH2" : mechanism, challenge);
+			"AUTH %s %s\r\n", camel_sasl_is_xoauth2_alias (mechanism) ? "XOAUTH2" : mechanism, challenge);
 		g_free (challenge);
 	} else if (local_error) {
 		d (fprintf (stderr, "[SMTP] SASL challenge failed: %s", local_error->message));
@@ -830,35 +830,28 @@ smtp_transport_query_auth_types_sync (CamelService *service,
                                       GError **error)
 {
 	CamelSmtpTransport *transport = CAMEL_SMTP_TRANSPORT (service);
-	CamelServiceAuthType *authtype;
-	CamelProvider *provider;
-	GList *types, *t, *next;
+	GList *sasl_types = NULL;
 
 	if (!connect_to_server (service, cancellable, error))
 		return NULL;
 
-	if (!transport->authtypes) {
-		smtp_transport_disconnect_sync (
-			service, TRUE, cancellable, NULL);
-		return NULL;
-	}
+	if (transport->authtypes) {
+		GHashTableIter iter;
+		gpointer key;
 
-	provider = camel_service_get_provider (service);
-	types = g_list_copy (provider->authtypes);
+		g_hash_table_iter_init (&iter, transport->authtypes);
+		while (g_hash_table_iter_next (&iter, &key, NULL)) {
+			CamelServiceAuthType *auth_type;
 
-	for (t = types; t; t = next) {
-		authtype = t->data;
-		next = t->next;
-
-		if (!g_hash_table_lookup (transport->authtypes, authtype->authproto)) {
-			types = g_list_remove_link (types, t);
-			g_list_free_1 (t);
+			auth_type = camel_sasl_authtype (key);
+			if (auth_type)
+				sasl_types = g_list_prepend (sasl_types, auth_type);
 		}
 	}
 
 	smtp_transport_disconnect_sync (service, TRUE, cancellable, NULL);
 
-	return types;
+	return sasl_types;
 }
 
 static gboolean
