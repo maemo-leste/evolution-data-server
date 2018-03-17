@@ -1,4 +1,4 @@
-libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
+libedataserver-1.2.so.23 libedataserver-1.2-23 #MINVER#
 * Build-Depends-Package: libedataserver1.2-dev
  (c++|regex|optional=template)"icu_[0-9]+::StringByteSink<.*@Base" 3.17.90
  __e_source_private_replace_dbus_object@Base 3.17
@@ -316,6 +316,14 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_flag_wait@Base 3.17
  e_flag_wait_until@Base 3.17
  e_free_form_exp_to_sexp@Base 3.17
+ e_gdata_oauth2_authorizer_clone_credentials@Base 3.27.90
+ e_gdata_oauth2_authorizer_get_service_type@Base 3.27.90
+ e_gdata_oauth2_authorizer_get_type@Base 3.27.90
+ e_gdata_oauth2_authorizer_is_expired@Base 3.27.90
+ e_gdata_oauth2_authorizer_new@Base 3.27.90
+ e_gdata_oauth2_authorizer_ref_source@Base 3.27.90
+ e_gdata_oauth2_authorizer_set_credentials@Base 3.27.90
+ e_gdata_oauth2_authorizer_supported@Base 3.27.90
  e_gdbus_async_op_keeper_cancel_op_sync@Base 3.17
  e_gdbus_async_op_keeper_create_pending_ops@Base 3.17
  e_gdbus_async_op_keeper_get_pending_ops@Base 3.17
@@ -452,6 +460,43 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_network_monitor_get_type@Base 3.21.90
  e_network_monitor_list_gio_names@Base 3.21.90
  e_network_monitor_set_gio_name@Base 3.21.90
+ e_oauth2_service_base_get_type@Base 3.27.90
+ e_oauth2_service_can_process@Base 3.27.90
+ e_oauth2_service_delete_token_sync@Base 3.27.90
+ e_oauth2_service_extract_authorization_code@Base 3.27.90
+ e_oauth2_service_get_access_token_sync@Base 3.27.90
+ e_oauth2_service_get_authentication_policy@Base 3.27.90
+ e_oauth2_service_get_authentication_uri@Base 3.27.90
+ e_oauth2_service_get_client_id@Base 3.27.90
+ e_oauth2_service_get_client_secret@Base 3.27.90
+ e_oauth2_service_get_display_name@Base 3.27.90
+ e_oauth2_service_get_flags@Base 3.27.90
+ e_oauth2_service_get_name@Base 3.27.90
+ e_oauth2_service_get_redirect_uri@Base 3.27.90
+ e_oauth2_service_get_refresh_uri@Base 3.27.90
+ e_oauth2_service_get_type@Base 3.27.90
+ e_oauth2_service_google_get_type@Base 3.27.90
+ e_oauth2_service_guess_can_process@Base 3.27.90
+ e_oauth2_service_outlook_get_type@Base 3.27.90
+ e_oauth2_service_prepare_authentication_uri_query@Base 3.27.90
+ e_oauth2_service_prepare_get_token_form@Base 3.27.90
+ e_oauth2_service_prepare_get_token_message@Base 3.27.90
+ e_oauth2_service_prepare_refresh_token_form@Base 3.27.90
+ e_oauth2_service_prepare_refresh_token_message@Base 3.27.90
+ e_oauth2_service_receive_and_store_token_sync@Base 3.27.90
+ e_oauth2_service_refresh_and_store_token_sync@Base 3.27.90
+ e_oauth2_service_util_set_to_form@Base 3.27.90
+ e_oauth2_service_util_take_to_form@Base 3.27.90
+ e_oauth2_services_add@Base 3.27.90
+ e_oauth2_services_find@Base 3.27.90
+ e_oauth2_services_get_type@Base 3.27.90
+ e_oauth2_services_guess@Base 3.27.90
+ e_oauth2_services_is_oauth2_alias@Base 3.27.90
+ e_oauth2_services_is_oauth2_alias_static@Base 3.27.90
+ e_oauth2_services_is_supported@Base 3.27.90
+ e_oauth2_services_list@Base 3.27.90
+ e_oauth2_services_new@Base 3.27.90
+ e_oauth2_services_remove@Base 3.27.90
  e_operation_pool_free@Base 3.17
  e_operation_pool_new@Base 3.17
  e_operation_pool_push@Base 3.17
@@ -493,6 +538,7 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_soup_auth_bearer_set_access_token@Base 3.17.90
  e_soup_session_check_result@Base 3.25.90
  e_soup_session_dup_credentials@Base 3.25.90
+ e_soup_session_get_authentication_requires_credentials@Base 3.27.90
  e_soup_session_get_log_level@Base 3.25.90
  e_soup_session_get_source@Base 3.25.90
  e_soup_session_get_ssl_error_details@Base 3.25.90
@@ -577,12 +623,6 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_contacts_get_include_me@Base 3.17.90
  e_source_contacts_get_type@Base 3.17.90
  e_source_contacts_set_include_me@Base 3.17.90
- e_source_credentials_google_get_access_token_sync@Base 3.22.1
- e_source_credentials_google_is_supported@Base 3.19.92
- e_source_credentials_google_util_decode_from_secret@Base 3.19.92
- e_source_credentials_google_util_encode_to_secret@Base 3.19.92
- e_source_credentials_google_util_extract_from_credentials@Base 3.19.92
- e_source_credentials_google_util_generate_secret_uid@Base 3.19.92
  e_source_credentials_provider_can_prompt@Base 3.17
  e_source_credentials_provider_can_store@Base 3.17
  e_source_credentials_provider_delete@Base 3.17
@@ -595,8 +635,8 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_credentials_provider_impl_delete_sync@Base 3.17
  e_source_credentials_provider_impl_get_provider@Base 3.17
  e_source_credentials_provider_impl_get_type@Base 3.17
- e_source_credentials_provider_impl_google_get_type@Base 3.19.92
  e_source_credentials_provider_impl_lookup_sync@Base 3.17
+ e_source_credentials_provider_impl_oauth2_get_type@Base 3.27.90
  e_source_credentials_provider_impl_password_get_type@Base 3.17
  e_source_credentials_provider_impl_store_sync@Base 3.17
  e_source_credentials_provider_lookup@Base 3.17
@@ -863,6 +903,7 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_source_registry_dup_unique_display_name@Base 3.17
  e_source_registry_find_extension@Base 3.17
  e_source_registry_free_display_tree@Base 3.17
+ e_source_registry_get_oauth2_services@Base 3.27.90
  e_source_registry_get_type@Base 3.17
  e_source_registry_list_enabled@Base 3.17
  e_source_registry_list_sources@Base 3.17
@@ -1012,6 +1053,7 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_url_equal@Base 3.17
  e_url_shroud@Base 3.17
  e_utf8_strftime@Base 3.17
+ e_util_can_use_collection_as_credential_source@Base 3.27.90
  e_util_copy_object_slist@Base 3.17
  e_util_copy_string_slist@Base 3.17
  e_util_ensure_gdbus_string@Base 3.17
@@ -1020,7 +1062,6 @@ libedataserver-1.2.so.22 libedataserver-1.2-22 #MINVER#
  e_util_free_string_slist@Base 3.17
  e_util_generate_uid@Base 3.25.90
  e_util_get_source_full_name@Base 3.17.90
- e_util_get_source_oauth2_access_token_sync@Base 3.19.92
  e_util_gthread_id@Base 3.17
  e_util_identity_can_send@Base 3.25.90
  e_util_safe_free_string@Base 3.17

@@ -292,6 +292,7 @@ libecal-1.2.so.19 libecal-1.2-19 #MINVER#
  e_cal_recur_ensure_end_dates@Base 3.17
  e_cal_recur_generate_instances@Base 3.17
  e_cal_recur_generate_instances_sync@Base 3.19.92
+ e_cal_recur_get_localized_nth@Base 3.27.90
  e_cal_recur_nth@Base 3.17
  e_cal_recur_obtain_enddate@Base 3.17
  e_cal_refresh@Base 3.17

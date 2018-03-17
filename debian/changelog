@@ -1,3 +1,18 @@
+evolution-data-server (3.28.0-1) experimental; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 12 Mar 2018 08:18:39 -0400
+
+evolution-data-server (3.27.90-1) experimental; urgency=medium
+
+  * New upstream development release
+  * Update library names for soname bumps
+  * Add Rules-Requires-Root: binary-targets for file owned by root:mail
+  * Bump debhelper compat to 11
+
+ -- Jeremy Bicha <jbicha@debian.org>  Sat, 10 Feb 2018 18:00:25 -0500
+
 evolution-data-server (3.26.5-2) unstable; urgency=medium
 
   * Cherry-pick gweather-3-27.patch to build against latest libgweather
@@ -481,7 +496,7 @@ evolution-data-server (3.16.2-1) experimental; urgency=medium
     - Bump soname for libecal-1.2 from 16 to 17
     - Bump soname for libedata-book-1.2 from 20 to 24
     - Bump soname for libedata-cal-1.2 from 23 to 26
-    - Bump soname for libedataserver-1.2 from 18 to 19  
+    - Bump soname for libedataserver-1.2 from 18 to 19
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release 3.16.2.
@@ -515,7 +530,7 @@ evolution-data-server (3.12.9~git20141128.5242b0-1) unstable; urgency=medium
 
   * Fix dependencies for development packages. Closes: #724595.
   * Depend on gnome-keyring. Closes: #739324, #753478.
-  * New upstream git snapshot from stable branch, includes only bugfixes 
+  * New upstream git snapshot from stable branch, includes only bugfixes
     and translations.
 
  -- Josselin Mouette <joss@debian.org>  Sun, 30 Nov 2014 09:55:18 +0100
@@ -792,7 +807,7 @@ evolution-data-server (3.6.3-1) experimental; urgency=low
 evolution-data-server (3.6.1-1) experimental; urgency=low
 
   * New upstream release
-  * debian/evolution-data-server.install: Install the registry-modules 
+  * debian/evolution-data-server.install: Install the registry-modules
 
  -- Sjoerd Simons <sjoerd@debian.org>  Thu, 18 Oct 2012 20:42:38 +0200
 
@@ -919,21 +934,21 @@ evolution-data-server (3.2.2-2) unstable; urgency=low
 
 evolution-data-server (3.2.2-1) unstable; urgency=low
 
-  * Loosen dependency of libedataserverui on e-d-s-common to avoid 
+  * Loosen dependency of libedataserverui on e-d-s-common to avoid
     problems with the upcoming transition.
   * Rename back the source package to evolution-data-server.
   * Drop libicu-dev build-dependency.
   * Tighten dependencies between -dev packages.
   * New upstream release.
-  * 01_timezones.patch, 02_deprecated.patch, 03_ports_translation.patch, 
-    04_delay_vcard_parsing.patch, 05_contact_fields.patch, 
+  * 01_timezones.patch, 02_deprecated.patch, 03_ports_translation.patch,
+    04_delay_vcard_parsing.patch, 05_contact_fields.patch,
     06_revert_space_categories.patch, 07_http_crash.patch,
     08_newfolder_imap.patch: bugfixes from upstream 3.2 git.
-  * 20_gettext_intltool.patch: don’t confuse autoreconf by using both 
+  * 20_gettext_intltool.patch: don’t confuse autoreconf by using both
     gettext and intltool.
   * Call dh-autoreconf.
   * Move gir packages to introspection section.
-  * 21_link_libical.patch: new patch. Correctly link to libical (for 
+  * 21_link_libical.patch: new patch. Correctly link to libical (for
     01_timezones.patch).
 
  -- Josselin Mouette <joss@debian.org>  Fri, 16 Dec 2011 19:43:35 +0100
@@ -965,7 +980,7 @@ evolution-data-server3 (3.2.1-1) experimental; urgency=low
   * Enable vala bindings
 
   [ Josselin Mouette ]
-  * Update remaining library package names to standard names. Drop the 
+  * Update remaining library package names to standard names. Drop the
     lintian warnings accordingly.
   * Update shlibs for libcamel.
 
@@ -999,7 +1014,7 @@ evolution-data-server3 (3.0.2.1-1) unstable; urgency=low
     - update standards version to 3.9.2.
 
   [ Josselin Mouette ]
-  * Move Conflict against libedataserverui1.2-dev from the runtime 
+  * Move Conflict against libedataserverui1.2-dev from the runtime
     package to the development one.
 
  -- Josselin Mouette <joss@debian.org>  Fri, 19 Aug 2011 22:06:12 +0200
@@ -1009,7 +1024,7 @@ evolution-data-server3 (3.0.0-1) experimental; urgency=low
   * Rename source package to allow parallel installation/migration for
     libedataserverui.
   * New upstream stable release.
-  * 01_calendar_exit.patch: stolen upstream. Fix a process not exiting 
+  * 01_calendar_exit.patch: stolen upstream. Fix a process not exiting
     at the end of the session.
   * Fix short description for libcamel.
   * Automatically generate better shlibs for libcamel.
@@ -1051,7 +1066,7 @@ evolution-data-server (2.32.2-1) unstable; urgency=low
   * New upstream release.
   * debian/watch updated
     - remove call to uupdate.
-    - switch to .tar.bz2 format since we use 3.0 source format. 
+    - switch to .tar.bz2 format since we use 3.0 source format.
 
  -- Yves-Alexis Perez <corsac@debian.org>  Sat, 12 Feb 2011 23:21:51 +0100
 
@@ -1065,16 +1080,16 @@ evolution-data-server (2.32.1-1) unstable; urgency=low
     - drop dbus-glib build-dep.
     - drop libgdata* packages, now external.
     - rename libedataserver, libcamel1.2, libebook1.2, libedataserverui1.2,
-      libedata-book1.2, libecal1.2, libedata-cal1.2 packages to follow 
+      libedata-book1.2, libecal1.2, libedata-cal1.2 packages to follow
       soname changes.
     - add build-dep on hardening-includes.
   * debian/patches:
     - 01_imapx_lockup dropped, included upstream.
     - 65_evolution-color dropped as well, not relevant anymore.
-    - 102-Bug-630135-No-UI-feedback-when-imapx-connection-fail, 
-        103-Bug-630150-imapx-attempts-to-connect-to-server-when-, 
-        104-Bug-630152-imapx_parser_thread-registers-wrong-opera, 
-        105-Bug-629916-imapx-fails-to-handle-errors-in-imapx_com, 
+    - 102-Bug-630135-No-UI-feedback-when-imapx-connection-fail,
+        103-Bug-630150-imapx-attempts-to-connect-to-server-when-,
+        104-Bug-630152-imapx_parser_thread-registers-wrong-opera,
+        105-Bug-629916-imapx-fails-to-handle-errors-in-imapx_com,
         106-Bug-630149-imapx_sync-never-returns-error dropped as well,
         included upstream.
     - 25_mute-debug-messages dropped, included upstream.
@@ -1086,7 +1101,7 @@ evolution-data-server (2.32.1-1) unstable; urgency=low
     - include hardening rules.
     - add hardening, -z,defs, -O1 and --as-needed to LDFLAGS.
     - add hardening to CFLAGS.
-  * debian/libcamel1.2-14.shlibs: 
+  * debian/libcamel1.2-14.shlibs:
     - bump depends/conflicts for 2.32.
     - bump soversion to 19.
   * debian/libedataserver-13.install renamed to follow soname change.
@@ -1105,7 +1120,7 @@ evolution-data-server (2.32.1-1) unstable; urgency=low
 evolution-data-server (2.30.3-2) unstable; urgency=low
 
   [ Josselin Mouette ]
-  * 01_imapx_lockup.patch: stolen upstream. Avoid evolution lockups when 
+  * 01_imapx_lockup.patch: stolen upstream. Avoid evolution lockups when
     logging out with IDLE enabled.
 
   [ Yves-Alexis Perez ]
@@ -1125,7 +1140,7 @@ evolution-data-server (2.30.3-1) unstable; urgency=low
   * New upstream bugfix release.
   * debian/patches:
     - 01_make-nss-db-init-more-robust dropped, included upstream
-    - 02_remove-courier-imap-workaround-breaking-rename as well. 
+    - 02_remove-courier-imap-workaround-breaking-rename as well.
   * debian/control:
     - update standards version to 3.9.1.
   * debian/*.shlibs:
@@ -1160,7 +1175,7 @@ evolution-data-server (2.30.2-1) unstable; urgency=low
   * debian/bug-presubj: warn user that she should report upstream issues
     directly to upstream bugzilla because of lack of time and manpower.
   * debian/patches:
-    - 01_unitialized_key, 02_fix-warning-in_source_get_uri, 
+    - 01_unitialized_key, 02_fix-warning-in_source_get_uri,
       03_bump-soname-libedataserver dropped, included upstream.
     - 25_mute-debug-messages updated.
     - 45_libcamel_providers_version refreshed.
@@ -1367,7 +1382,7 @@ evolution-data-server (2.27.92-1) experimental; urgency=low
   * debian/patches:
     - 66_re-enable-gpg-agent dropped, included upstream.
     - 11_it_translation dropped as well, no real need to tune it everytime
-      upstream source changes. 
+      upstream source changes.
 
  -- Yves-Alexis Perez <corsac@debian.org>  Tue, 08 Sep 2009 12:14:05 +0200
 
@@ -1420,7 +1435,7 @@ evolution-data-server (2.27.3-1) experimental; urgency=low
     - update chrpath call to use 2.28 folder name.
   * debian/control:
     - update standards version to 3.8.2.
-    - update dependencies for 2.27 branch. 
+    - update dependencies for 2.27 branch.
 
  -- Yves-Alexis Perez <corsac@debian.org>  Fri, 26 Jun 2009 23:56:35 +0200
 
@@ -1461,8 +1476,8 @@ evolution-data-server (2.26.1.1-1) unstable; urgency=low
   * debian/patches:
     - 11_it_translation slightly updated.
     - debian/patches/66_autoreconf-ignore-folders dropped, eds doesn't ship
-      libical sources anymore. 
-    - 67_detect-change-signed-messages dropped, included upstream. 
+      libical sources anymore.
+    - 67_detect-change-signed-messages dropped, included upstream.
     - 68_deadlock_thread-leak as well.
 
  -- Yves-Alexis Perez <corsac@debian.org>  Sun, 26 Apr 2009 09:20:49 +0200
@@ -1470,12 +1485,12 @@ evolution-data-server (2.26.1.1-1) unstable; urgency=low
 evolution-data-server (2.24.5-4) unstable; urgency=low
 
   * Fix -dbg package section to match the override.
-  * 68_deadlock_thread-leak.patch: new patch, stolen upstream. Fixes 
+  * 68_deadlock_thread-leak.patch: new patch, stolen upstream. Fixes
     thread leak leading to a deadlock. Closes: #520132, #520771.
-  * Add a Conflict with evolution (<< 2.24). This will force the preinst 
-    upgrade check in the evolution package to be done before e-d-s 
+  * Add a Conflict with evolution (<< 2.24). This will force the preinst
+    upgrade check in the evolution package to be done before e-d-s
     itself is unpacked.
-  * Build-depend on sqlite3 3.6 because of the infamous ABI change in 
+  * Build-depend on sqlite3 3.6 because of the infamous ABI change in
     the VFS API. Closes: #519428.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 01 Apr 2009 12:19:03 +0200
@@ -1486,7 +1501,7 @@ evolution-data-server (2.24.5-3) unstable; urgency=low
   * debian/control:
     - libedata-cal1.2-dev: add dep on libebackend1.2-dev and libglib2.0-dev
       so correct dependencies are pulled.                       closes: #519636
-    - update standards version to 3.8.1. 
+    - update standards version to 3.8.1.
 
   [ Josselin Mouette ]
   * Add myself to uploaders; upload to unstable.
@@ -1522,7 +1537,7 @@ evolution-data-server (2.24.5-1) experimental; urgency=low
   * Bump soname for libcamel1.2 (11 → 14)
     - debian/control: update package name
     - debian/libcamel1.2-11.install renamed to libcamel1.2-14.install
-    - debian/lintian: libcamel1.2-11 renamed to libcamel1.2-14 
+    - debian/lintian: libcamel1.2-11 renamed to libcamel1.2-14
   * debian/rules:
     - remove rpaths.
   * debian/patches:
@@ -1891,7 +1906,7 @@ evolution-data-server (1.6.2-1) unstable; urgency=low
 
   [ Heikki Henriksen ]
   * New upstream release
-  * Soname-bump for libecal & libedatacal 
+  * Soname-bump for libecal & libedatacal
     [debian/control]
   * Bump build-dep on cdbs (>= 0.4.40) to fix DEB_SHLIBDEPS_INCLUDE
     [debian/control]
@@ -2019,13 +2034,13 @@ evolution-data-server (1.4.2.1-2) unstable; urgency=medium
     put focus on search in "Select from Addressbook"
   * debian/patches/61_e-name-selector-dialog.1.26.patch:
     crash on "Select from Addressbook" (closes: #359200, #354448)
-      
+
  -- Heikki Henriksen <heikkih@gmail.com>  Sun, 26 Mar 2006 17:28:44 +0100
 
 evolution-data-server (1.4.2.1-1.1) unstable; urgency=low
 
   * NMU to fix crasher in e-cal-backend-http
-    (pulled from upstream cvs) 
+    (pulled from upstream cvs)
 
  -- Heikki Henriksen <heikkih@gmail.com>  Thu, 23 Mar 2006 11:43:52 +0000
 

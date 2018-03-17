@@ -1,4 +1,4 @@
-libedataserverui-1.2.so.1 libedataserverui-1.2-1 #MINVER#
+libedataserverui-1.2.so.2 libedataserverui-1.2-2 #MINVER#
 * Build-Depends-Package: libedataserverui1.2-dev
  e_cell_renderer_color_get_type@Base 3.18.1
  e_cell_renderer_color_new@Base 3.18.1
@@ -9,8 +9,8 @@ libedataserverui-1.2.so.1 libedataserverui-1.2-1 #MINVER#
  e_credentials_prompter_get_provider@Base 3.16.2
  e_credentials_prompter_get_registry@Base 3.16.2
  e_credentials_prompter_get_type@Base 3.16.2
- e_credentials_prompter_impl_google_get_type@Base 3.20.5
- e_credentials_prompter_impl_google_new@Base 3.20.5
+ e_credentials_prompter_impl_oauth2_get_type@Base 3.27.90
+ e_credentials_prompter_impl_oauth2_new@Base 3.27.90
  e_credentials_prompter_impl_cancel_prompt@Base 3.16.2
  e_credentials_prompter_impl_get_credentials_prompter@Base 3.16.2
  e_credentials_prompter_impl_get_type@Base 3.16.2
