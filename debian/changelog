@@ -1,7 +1,7 @@
 evolution-data-server (3.28.0-3) UNRELEASED; urgency=medium
 
-  * Add lockstep dependencies wherever a binary package depends on
-    libraries from this same source package. We can't expect
+  * d/shlibs.local: Add lockstep dependencies wherever a binary package
+    depends on libraries from this same source package. We can't expect
     to support partial upgrades within a source package: upstreams won't
     expect that situation to be possible. (Closes: #894482)
 
