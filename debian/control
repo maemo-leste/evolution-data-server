@@ -55,8 +55,14 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (>= ${source:Version}),
-         libcamel-1.2-61 (= ${binary:Version}),
          gnome-keyring,
+         libcamel-1.2-61 (= ${binary:Version}),
+         libebackend-1.2-10 (= ${binary:Version}),
+         libebook-1.2-19 (= ${binary:Version}),
+         libebook-contacts-1.2-2 (= ${binary:Version}),
+         libedata-book-1.2-25 (= ${binary:Version}),
+         libedata-cal-1.2-28 (= ${binary:Version}),
+         libedataserver-1.2-23 (= ${binary:Version}),
 Suggests: evolution
 Description: evolution database backend server
  The data server, called "Evolution Data Server" is responsible for managing
@@ -114,7 +120,8 @@ Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= ${gnome:Version})
+         evolution-data-server-common (>= ${gnome:Version}),
+         libcamel-1.2-61 (= ${binary:Version}),
 Description: Utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -161,7 +168,9 @@ Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         evolution-data-server-common (>= ${gnome:Version})
+         evolution-data-server-common (>= ${gnome:Version}),
+         libcamel-1.2-61 (= ${binary:Version}),
+         libedataserver-1.2-23 (= ${binary:Version}),
 Description: Utility library for evolution data servers
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
@@ -265,7 +274,11 @@ Section: libs
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
-         ${misc:Depends}
+         ${misc:Depends},
+         libcamel-1.2-61 (= ${binary:Version}),
+         libebook-contacts-1.2-2 (= ${binary:Version}),
+         libedata-book-1.2-25 (= ${binary:Version}),
+         libedataserver-1.2-23 (= ${binary:Version}),
 Description: Client library for evolution address books
  This package is a client library for evolution addressbooks.
  .
@@ -312,7 +325,10 @@ Section: libs
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
-         ${misc:Depends}
+         ${misc:Depends},
+         libebackend-1.2-10 (= ${binary:Version}),
+         libebook-contacts-1.2-2 (= ${binary:Version}),
+         libedataserver-1.2-23 (= ${binary:Version}),
 Description: Backend library for evolution address books
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
@@ -355,7 +371,8 @@ Section: libs
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
-         ${misc:Depends}
+         ${misc:Depends},
+         libedataserver-1.2-23 (= ${binary:Version}),
 Description: Client library for evolution contacts books
  This package is a client library for evolution addressbooks.
  .
@@ -384,7 +401,8 @@ Section: libs
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
-         ${misc:Depends}
+         ${misc:Depends},
+         libedataserver-1.2-23 (= ${binary:Version}),
 Conflicts: almanah (<< 0.11.1-1+b9),
            bijiben (<< 3.26.0-0.1+b1),
            evolution (<< 3.26.3),
@@ -430,7 +448,10 @@ Section: libs
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
-         ${misc:Depends}
+         ${misc:Depends},
+         libebackend-1.2-10 (= ${binary:Version}),
+         libecal-1.2-19 (= ${binary:Version}),
+         libedataserver-1.2-23 (= ${binary:Version}),
 Conflicts: evolution-data-server (<< 3.26.3),
            evolution-data-server-tests (<< 3.26.3),
            evolution-ews (<< 3.26.3),
@@ -462,7 +483,9 @@ Section: libs
 Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
-         ${misc:Depends}
+         ${misc:Depends},
+         libcamel-1.2-61 (= ${binary:Version}),
+         libedataserver-1.2-23 (= ${binary:Version}),
 Description: Utility library for evolution data servers
  This package is a utility library for evolution-data-servers providing
  backend functions to access data.
