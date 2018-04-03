@@ -4,6 +4,8 @@ evolution-data-server (3.28.0-3) UNRELEASED; urgency=medium
     depends on libraries from this same source package. We can't expect
     to support partial upgrades within a source package: upstreams won't
     expect that situation to be possible. (Closes: #894482)
+  * Move e-d-s pkg-config metadata to /usr/lib/$(multiarch)/pkgconfig,
+    making it available for cross-compilation
 
  -- Simon McVittie <smcv@debian.org>  Sat, 31 Mar 2018 18:08:45 +0100
 
