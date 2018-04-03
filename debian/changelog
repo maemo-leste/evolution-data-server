@@ -1,5 +1,6 @@
-evolution-data-server (3.28.0-3) UNRELEASED; urgency=medium
+evolution-data-server (3.28.0-3) unstable; urgency=medium
 
+  * Team upload
   * d/shlibs.local: Add lockstep dependencies wherever a binary package
     depends on libraries from this same source package. We can't expect
     to support partial upgrades within a source package: upstreams won't
@@ -11,7 +12,7 @@ evolution-data-server (3.28.0-3) UNRELEASED; urgency=medium
     Override warnings for test-only library not being packaged like a
     normal library
 
- -- Simon McVittie <smcv@debian.org>  Sat, 31 Mar 2018 18:08:45 +0100
+ -- Simon McVittie <smcv@debian.org>  Tue, 03 Apr 2018 10:26:56 +0100
 
 evolution-data-server (3.28.0-2) unstable; urgency=medium
 
