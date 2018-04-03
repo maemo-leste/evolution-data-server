@@ -7,6 +7,9 @@ evolution-data-server (3.28.0-3) UNRELEASED; urgency=medium
   * Move e-d-s pkg-config metadata to /usr/lib/$(multiarch)/pkgconfig,
     making it available for cross-compilation
   * Standards-Version: 4.1.3 (no changes required)
+  * d/evolution-data-server-tests.lintian-overrides:
+    Override warnings for test-only library not being packaged like a
+    normal library
 
  -- Simon McVittie <smcv@debian.org>  Sat, 31 Mar 2018 18:08:45 +0100
 
