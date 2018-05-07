@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.28.1
+	VERSION 3.28.2
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "http://bugzilla.gnome.org/enter_bug.cgi?product=Evolution-Data-Server")
@@ -388,9 +388,12 @@ endif(ENABLE_GTK)
 add_printable_option(ENABLE_OAUTH2 "Enable built-in OAuth2 authentications" ON)
 
 if(ENABLE_OAUTH2)
-	pkg_check_modules_for_option(ENABLE_OAUTH2 "OAuth2 authentication support" OAUTH2
-		webkit2gtk-4.0>=${webkit2gtk_minimum_version}
+	pkg_check_modules_for_option(ENABLE_OAUTH2 "OAuth2 authentication support" OAUTH2_JSON_GLIB
 		json-glib-1.0>=${json_glib_minimum_version}
+	)
+
+	pkg_check_modules_for_option(ENABLE_OAUTH2 "OAuth2 authentication support" OAUTH2_WEBKIT2GTK
+		webkit2gtk-4.0>=${webkit2gtk_minimum_version}
 	)
 
 	add_printable_variable(WITH_GOOGLE_CLIENT_ID "Google OAuth 2.0 client id" "")
