@@ -58,6 +58,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_cache_get_count@Base 3.25.90
  e_cache_get_filename@Base 3.25.90
  e_cache_get_key_int@Base 3.25.90
+ e_cache_get_object_include_deleted@Base 3.29.90
  e_cache_get_objects@Base 3.25.90
  e_cache_get_offline_changes@Base 3.25.90
  e_cache_get_offline_state@Base 3.25.90
@@ -111,14 +112,20 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_collection_backend_new_child@Base 3.17
  e_collection_backend_ref_proxy_resolver@Base 3.17
  e_collection_backend_ref_server@Base 3.17
+ e_collection_backend_schedule_populate@Base 3.29.90
  e_conflict_resolution_get_type@Base 3.25.90
+ e_data_factory_backend_closed@Base 3.29.90
  e_data_factory_construct_path@Base 3.17
+ e_data_factory_create_backend@Base 3.29.90
  e_data_factory_get_backend_per_process@Base 3.27.90
  e_data_factory_get_registry@Base 3.17
  e_data_factory_get_reload_supported@Base 3.17.90
  e_data_factory_get_type@Base 3.17
+ e_data_factory_list_opened_backends@Base 3.29.90
+ e_data_factory_open_backend@Base 3.29.90
  e_data_factory_ref_backend_factory@Base 3.17
  e_data_factory_spawn_subprocess_backend@Base 3.17
+ e_data_factory_use_backend_per_process@Base 3.29.90
  e_db3_utils_maybe_recover@Base 3.17
  e_db3_utils_upgrade_format@Base 3.17
  e_dbhash_add@Base 3.17

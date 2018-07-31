@@ -102,6 +102,9 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_content_disposition_decode@Base 3.19.92
  camel_content_disposition_format@Base 3.19.92
  camel_content_disposition_get_type@Base 3.19.92
+ camel_content_disposition_is_attachment@Base 3.29.90
+ camel_content_disposition_is_attachment_ex@Base 3.29.90
+ camel_content_disposition_new@Base 3.29.90
  camel_content_disposition_ref@Base 3.19.92
  camel_content_disposition_unref@Base 3.19.92
  camel_content_transfer_encoding_decode@Base 3.19.92
@@ -207,8 +210,10 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_db_write_folder_info_record@Base 3.19.92
  camel_db_write_message_info_record@Base 3.19.92
  camel_debug@Base 3.19.92
+ camel_debug_demangle_backtrace@Base 3.29.90
  camel_debug_end@Base 3.19.92
  camel_debug_get_backtrace@Base 3.19.92
+ camel_debug_get_raw_backtrace@Base 3.29.90
  camel_debug_init@Base 3.19.92
  camel_debug_ref_unref_dump_backtraces@Base 3.19.92
  camel_debug_ref_unref_push_backtrace@Base 3.19.92
@@ -366,6 +371,8 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_folder_search_set_summary@Base 3.19.92
  camel_folder_search_take_current_message_info@Base 3.24.1
  camel_folder_search_util_add_months@Base 3.19.92
+ camel_folder_search_util_compare_date@Base 3.29.90
+ camel_folder_search_util_make_time@Base 3.29.90
  camel_folder_set_description@Base 3.19.92
  camel_folder_set_display_name@Base 3.19.92
  camel_folder_set_flags@Base 3.24.1
@@ -600,6 +607,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_message_content_info_new_from_headers@Base 3.24.1
  camel_message_content_info_new_from_message@Base 3.24.1
  camel_message_content_info_new_from_parser@Base 3.24.1
+ camel_message_content_info_traverse@Base 3.29.90
  camel_message_info_base_get_type@Base 3.24.1
  camel_message_info_clone@Base 3.19.92
  camel_message_info_dump@Base 3.19.92
@@ -973,6 +981,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_quoted_encode_close@Base 3.19.92
  camel_quoted_encode_step@Base 3.19.92
  camel_read@Base 3.19.92
+ camel_recipient_certificate_flags_get_type@Base 3.29.90
  camel_sasl_anon_trace_type_get_type@Base 3.19.92
  camel_sasl_anonymous_get_type@Base 3.19.92
  camel_sasl_anonymous_new@Base 3.19.92
@@ -1072,6 +1081,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_session_get_oauth2_access_token_sync@Base 3.27.90
  camel_session_get_online@Base 3.19.92
  camel_session_get_password@Base 3.19.92
+ camel_session_get_recipient_certificates_sync@Base 3.29.90
  camel_session_get_type@Base 3.19.92
  camel_session_get_user_cache_dir@Base 3.19.92
  camel_session_get_user_data_dir@Base 3.19.92

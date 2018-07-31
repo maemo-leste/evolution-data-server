@@ -526,10 +526,14 @@ libedata-book-1.2.so.25 libedata-book-1.2-25 #MINVER#
  e_dbus_source_manager_call_create_sources@Base 3.17
  e_dbus_source_manager_call_create_sources_finish@Base 3.17
  e_dbus_source_manager_call_create_sources_sync@Base 3.17
+ e_dbus_source_manager_call_refresh_backend@Base 3.29.90
+ e_dbus_source_manager_call_refresh_backend_finish@Base 3.29.90
+ e_dbus_source_manager_call_refresh_backend_sync@Base 3.29.90
  e_dbus_source_manager_call_reload@Base 3.17
  e_dbus_source_manager_call_reload_finish@Base 3.17
  e_dbus_source_manager_call_reload_sync@Base 3.17
  e_dbus_source_manager_complete_create_sources@Base 3.17
+ e_dbus_source_manager_complete_refresh_backend@Base 3.29.90
  e_dbus_source_manager_complete_reload@Base 3.17
  e_dbus_source_manager_get_type@Base 3.17
  e_dbus_source_manager_interface_info@Base 3.17
@@ -671,6 +675,9 @@ libedata-book-1.2.so.25 libedata-book-1.2-25 #MINVER#
  e_gdbus_book_view_stub_new@Base 3.17
  e_subprocess_book_factory_get_type@Base 3.17
  e_subprocess_book_factory_new@Base 3.17
+ e_system_locale_watcher_dup_locale@Base 3.29.90
+ e_system_locale_watcher_get_type@Base 3.29.90
+ e_system_locale_watcher_new@Base 3.29.90
  ebsql_get_contact_extra_unlocked@Base 3.17
  ebsql_get_contact_unlocked@Base 3.17
  ebsql_get_vcard_unlocked@Base 3.17

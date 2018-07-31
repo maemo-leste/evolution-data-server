@@ -131,6 +131,7 @@ libebook-1.2.so.19 libebook-1.2-19 #MINVER#
  e_book_remove_contacts_async@Base 3.17
  e_book_set_self@Base 3.17
  e_book_status_get_type@Base 3.17
+ e_book_utils_get_recipient_certificates_sync@Base 3.29.90
  e_book_view_get_book@Base 3.17
  e_book_view_get_type@Base 3.17
  e_book_view_start@Base 3.17

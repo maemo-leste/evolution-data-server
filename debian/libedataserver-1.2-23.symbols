@@ -174,10 +174,14 @@ libedataserver-1.2.so.23 libedataserver-1.2-23 #MINVER#
  e_dbus_source_manager_call_create_sources@Base 3.17
  e_dbus_source_manager_call_create_sources_finish@Base 3.17
  e_dbus_source_manager_call_create_sources_sync@Base 3.17
+ e_dbus_source_manager_call_refresh_backend@Base 3.29.90
+ e_dbus_source_manager_call_refresh_backend_finish@Base 3.29.90
+ e_dbus_source_manager_call_refresh_backend_sync@Base 3.29.90
  e_dbus_source_manager_call_reload@Base 3.17
  e_dbus_source_manager_call_reload_finish@Base 3.17
  e_dbus_source_manager_call_reload_sync@Base 3.17
  e_dbus_source_manager_complete_create_sources@Base 3.17
+ e_dbus_source_manager_complete_refresh_backend@Base 3.29.90
  e_dbus_source_manager_complete_reload@Base 3.17
  e_dbus_source_manager_get_type@Base 3.17
  e_dbus_source_manager_interface_info@Base 3.17
@@ -924,6 +928,9 @@ libedataserver-1.2.so.23 libedataserver-1.2-23 #MINVER#
  e_source_registry_ref_default_memo_list@Base 3.17
  e_source_registry_ref_default_task_list@Base 3.17
  e_source_registry_ref_source@Base 3.17
+ e_source_registry_refresh_backend@Base 3.29.90
+ e_source_registry_refresh_backend_finish@Base 3.29.90
+ e_source_registry_refresh_backend_sync@Base 3.29.90
  e_source_registry_set_default_address_book@Base 3.17
  e_source_registry_set_default_calendar@Base 3.17
  e_source_registry_set_default_for_extension_name@Base 3.17
@@ -1002,6 +1009,7 @@ libedataserver-1.2.so.23 libedataserver-1.2-23 #MINVER#
  e_source_weather_set_location@Base 3.17.90
  e_source_weather_set_units@Base 3.17.90
  e_source_weather_units_get_type@Base 3.17.90
+ e_source_webdav_dup_color@Base 3.29.90
  e_source_webdav_dup_display_name@Base 3.17
  e_source_webdav_dup_email_address@Base 3.17
  e_source_webdav_dup_resource_path@Base 3.17
@@ -1010,6 +1018,7 @@ libedataserver-1.2.so.23 libedataserver-1.2-23 #MINVER#
  e_source_webdav_dup_ssl_trust@Base 3.17
  e_source_webdav_get_avoid_ifmatch@Base 3.17
  e_source_webdav_get_calendar_auto_schedule@Base 3.17
+ e_source_webdav_get_color@Base 3.29.90
  e_source_webdav_get_display_name@Base 3.17
  e_source_webdav_get_email_address@Base 3.17
  e_source_webdav_get_resource_path@Base 3.17
@@ -1018,6 +1027,7 @@ libedataserver-1.2.so.23 libedataserver-1.2-23 #MINVER#
  e_source_webdav_get_type@Base 3.17
  e_source_webdav_set_avoid_ifmatch@Base 3.17
  e_source_webdav_set_calendar_auto_schedule@Base 3.17
+ e_source_webdav_set_color@Base 3.29.90
  e_source_webdav_set_display_name@Base 3.17
  e_source_webdav_set_email_address@Base 3.17
  e_source_webdav_set_resource_path@Base 3.17
@@ -1056,6 +1066,8 @@ libedataserver-1.2.so.23 libedataserver-1.2-23 #MINVER#
  e_util_can_use_collection_as_credential_source@Base 3.27.90
  e_util_copy_object_slist@Base 3.17
  e_util_copy_string_slist@Base 3.17
+ e_util_debug_print@Base 3.29.90
+ e_util_debug_printv@Base 3.29.90
  e_util_ensure_gdbus_string@Base 3.17
  e_util_free_nullable_object_slist@Base 3.17
  e_util_free_object_slist@Base 3.17

@@ -1,5 +1,6 @@
 libedata-cal-1.2.so.29 libedata-cal-1.2-29 #MINVER#
 * Build-Depends-Package: libedata-cal1.2-dev
+ _e_cal_backend_remove_cached_timezones@Base 3.29.90
  _e_cal_cache_remove_loaded_timezones@Base 3.25.90
  e_cal_backend_add_timezone@Base 3.17
  e_cal_backend_add_timezone_finish@Base 3.17
@@ -169,6 +170,7 @@ libedata-cal-1.2.so.29 libedata-cal-1.2-29 #MINVER#
  e_cal_cache_put_timezone@Base 3.25.90
  e_cal_cache_remove_component@Base 3.25.90
  e_cal_cache_remove_components@Base 3.25.90
+ e_cal_cache_remove_timezone@Base 3.29.90
  e_cal_cache_remove_timezones@Base 3.25.90
  e_cal_cache_resolve_timezone_cb@Base 3.25.90
  e_cal_cache_resolve_timezone_simple_cb@Base 3.25.90
@@ -325,10 +327,14 @@ libedata-cal-1.2.so.29 libedata-cal-1.2-29 #MINVER#
  e_dbus_source_manager_call_create_sources@Base 3.17
  e_dbus_source_manager_call_create_sources_finish@Base 3.17
  e_dbus_source_manager_call_create_sources_sync@Base 3.17
+ e_dbus_source_manager_call_refresh_backend@Base 3.29.90
+ e_dbus_source_manager_call_refresh_backend_finish@Base 3.29.90
+ e_dbus_source_manager_call_refresh_backend_sync@Base 3.29.90
  e_dbus_source_manager_call_reload@Base 3.17
  e_dbus_source_manager_call_reload_finish@Base 3.17
  e_dbus_source_manager_call_reload_sync@Base 3.17
  e_dbus_source_manager_complete_create_sources@Base 3.17
+ e_dbus_source_manager_complete_refresh_backend@Base 3.29.90
  e_dbus_source_manager_complete_reload@Base 3.17
  e_dbus_source_manager_get_type@Base 3.17
  e_dbus_source_manager_interface_info@Base 3.17
