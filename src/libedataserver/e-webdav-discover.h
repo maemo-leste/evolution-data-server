@@ -83,7 +83,7 @@ gboolean	e_webdav_discover_sources_sync		(ESource *source,
  * Returns: (transfer full) (nullable): an #ESource with UID @uid, or %NULL, if not found.
  *    Dereference the returned non-NULL #ESource with g_object_unref(), when no longer needed.
  *
- * Since: 3.28.5
+ * Since: 3.30
  **/
 typedef ESource * (* EWebDAVDiscoverRefSourceFunc)	(gpointer user_data,
 							 const gchar *uid);

@@ -32,6 +32,8 @@
 
 G_BEGIN_DECLS
 
+struct _ECalClient;
+
 /**
  * CalObjInstance:
  * @uid: UID of the object
@@ -78,6 +80,8 @@ gint		e_cal_util_generate_alarms_for_list
 
 const gchar *	e_cal_util_priority_to_string	(gint priority);
 gint		e_cal_util_priority_from_string	(const gchar *string);
+
+gchar *		e_cal_util_seconds_to_string	(gint64 seconds);
 
 void		e_cal_util_add_timezones_from_component
 						(icalcomponent *vcal_comp,
@@ -223,6 +227,36 @@ gboolean	e_cal_util_event_dates_match	(icalcomponent *icalcomp1,
  **/
 #define CAL_STATIC_CAPABILITY_TASK_DATE_ONLY		"task-date-only"
 
+/**
+ * CAL_STATIC_CAPABILITY_TASK_CAN_RECUR:
+ *
+ * When the capability is set, the client can store and provide recurring
+ * tasks, otherwise it cannot.
+ *
+ * Since: 3.30
+ **/
+#define CAL_STATIC_CAPABILITY_TASK_CAN_RECUR		"task-can-recur"
+
+/**
+ * CAL_STATIC_CAPABILITY_TASK_NO_ALARM:
+ *
+ * When the capability is set, the client cannot store reminders
+ * on tasks, otherwise it can.
+ *
+ * Since: 3.30
+ **/
+#define CAL_STATIC_CAPABILITY_TASK_NO_ALARM		"task-no-alarm"
+
+/**
+ * CAL_STATIC_CAPABILITY_COMPONENT_COLOR:
+ *
+ * When the capability is set, the client supports storing color
+ * for individual components.
+ *
+ * Since: 3.30
+ **/
+#define CAL_STATIC_CAPABILITY_COMPONENT_COLOR		"component-color"
+
 /* Recurrent events. Management for instances */
 icalcomponent *	e_cal_util_construct_instance	(icalcomponent *icalcomp,
 						 struct icaltimetype rid);
@@ -259,6 +293,21 @@ void		e_cal_util_set_x_property	(icalcomponent *icalcomp,
 						 const gchar *value);
 gboolean	e_cal_util_remove_x_property	(icalcomponent *icalcomp,
 						 const gchar *x_name);
+guint		e_cal_util_remove_property_by_kind
+						(icalcomponent *icalcomp,
+						 icalproperty_kind kind,
+						 gboolean all);
+
+gboolean	e_cal_util_init_recur_task_sync	(icalcomponent *vtodo,
+						 struct _ECalClient *cal_client,
+						 GCancellable *cancellable,
+						 GError **error);
+gboolean	e_cal_util_mark_task_complete_sync
+						(icalcomponent *vtodo,
+						 time_t completed_time,
+						 struct _ECalClient *cal_client,
+						 GCancellable *cancellable,
+						 GError **error);
 
 #ifndef EDS_DISABLE_DEPRECATED
 /* Used for mode stuff */

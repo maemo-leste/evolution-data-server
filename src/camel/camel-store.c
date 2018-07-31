@@ -1508,13 +1508,13 @@ try_again:
 		gchar **child_and_parent;
 
 		g_warn_if_fail (folder == NULL);
+		g_return_val_if_fail (class->create_folder_sync != NULL, NULL);
 
 		/* XXX GLib lacks a rightmost string splitting function,
 		 *     so we'll reverse the string and use g_strsplit(). */
 		reversed_name = g_strreverse (g_strdup (folder_name));
 		child_and_parent = g_strsplit (reversed_name, "/", 2);
 		g_return_val_if_fail (child_and_parent[0] != NULL, NULL);
-		g_return_val_if_fail (class->create_folder_sync != NULL, NULL);
 
 		/* Element 0 is the new folder name.
 		 * Element 1 is the parent path, or NULL. */

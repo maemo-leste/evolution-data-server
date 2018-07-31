@@ -1,12 +1,12 @@
 # List of source files containing translatable strings.
 # Please keep this list in alphabetic order.
 [encoding: UTF-8]
+src/addressbook/backends/carddav/e-book-backend-carddav.c
 src/addressbook/backends/file/e-book-backend-file.c
 src/addressbook/backends/file/e-book-backend-file-migrate-bdb.c
 src/addressbook/backends/google/e-book-backend-google.c
 src/addressbook/backends/google/e-book-google-utils.c
 src/addressbook/backends/ldap/e-book-backend-ldap.c
-src/addressbook/backends/webdav/e-book-backend-webdav.c
 src/addressbook/libebook-contacts/e-book-contacts-types.c
 src/addressbook/libebook-contacts/e-contact.c
 src/addressbook/libebook-contacts/e-phone-number.c
@@ -37,6 +37,7 @@ src/calendar/libecal/e-cal-client-view.c
 src/calendar/libecal/e-cal-component.c
 src/calendar/libecal/e-cal-recur.c
 src/calendar/libecal/e-cal-util.c
+src/calendar/libecal/e-reminder-watcher.c
 src/calendar/libedata-cal/e-cal-backend.c
 src/calendar/libedata-cal/e-cal-backend-sexp.c
 src/calendar/libedata-cal/e-cal-backend-sync.c
@@ -183,6 +184,7 @@ data/org.gnome.evolution-data-server.addressbook.gschema.xml.in
 data/org.gnome.evolution-data-server.calendar.gschema.xml.in
 data/org.gnome.evolution-data-server.gschema.xml.in
 data/org.gnome.evolution.shell.network-config.gschema.xml.in
+data/org.gnome.Evolution-alarm-notify.desktop.in.in
 src/libebackend/e-backend.c
 src/libebackend/e-cache.c
 src/libebackend/e-collection-backend.c
@@ -210,6 +212,7 @@ src/libedataserver/e-webdav-session.c
 src/libedataserverui/e-credentials-prompter.c
 src/libedataserverui/e-credentials-prompter-impl-oauth2.c
 src/libedataserverui/e-credentials-prompter-impl-password.c
+src/libedataserverui/e-reminders-widget.c
 src/libedataserverui/e-trust-prompt.c
 src/libedataserverui/e-webdav-discover-widget.c
 src/modules/gnome-online-accounts/e-goa-password-based.c
@@ -233,9 +236,11 @@ src/modules/ubuntu-online-accounts/uoa-utils.c
 [type: gettext/xml]src/modules/ubuntu-online-accounts/yahoo-mail.service.in.in
 src/modules/yahoo-backend/module-yahoo-backend.c
 src/services/evolution-addressbook-factory/evolution-addressbook-factory.c
+src/services/evolution-alarm-notify/e-alarm-notify.c
 src/services/evolution-calendar-factory/evolution-calendar-factory.c
 [type: gettext/ini]src/services/evolution-source-registry/builtin/birthdays.source.in
 [type: gettext/ini]src/services/evolution-source-registry/builtin/caldav-stub.source.in
+[type: gettext/ini]src/services/evolution-source-registry/builtin/carddav-stub.source.in
 [type: gettext/ini]src/services/evolution-source-registry/builtin/contacts-stub.source.in
 [type: gettext/ini]src/services/evolution-source-registry/builtin/google-stub.source.in
 [type: gettext/ini]src/services/evolution-source-registry/builtin/ldap-stub.source.in
@@ -250,7 +255,6 @@ src/services/evolution-calendar-factory/evolution-calendar-factory.c
 [type: gettext/ini]src/services/evolution-source-registry/builtin/vfolder.source.in
 [type: gettext/ini]src/services/evolution-source-registry/builtin/weather-stub.source.in
 [type: gettext/ini]src/services/evolution-source-registry/builtin/webcal-stub.source.in
-[type: gettext/ini]src/services/evolution-source-registry/builtin/webdav-stub.source.in
 src/services/evolution-source-registry/evolution-source-registry.c
 src/services/evolution-user-prompter/evolution-user-prompter.c
 src/services/evolution-user-prompter/prompt-user-gtk.c

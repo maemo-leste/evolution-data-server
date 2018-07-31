@@ -525,7 +525,7 @@ e_webdav_discover_sources (ESource *source,
  * When the operation is finished, @callback will be called. You can then
  * call e_webdav_discover_sources_finish() to get the result of the operation.
  *
- * Since: 3.28.5
+ * Since: 3.30
  **/
 void
 e_webdav_discover_sources_full (ESource *source,
@@ -735,7 +735,7 @@ e_webdav_discover_sources_sync (ESource *source,
  *
  * Returns: %TRUE on success, %FALSE on failure
  *
- * Since: 3.28.5
+ * Since: 3.30
  **/
 gboolean
 e_webdav_discover_sources_full_sync (ESource *source,

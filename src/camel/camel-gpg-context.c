@@ -48,6 +48,7 @@
 #endif
 
 #include "camel-debug.h"
+#include "camel-file-utils.h"
 #include "camel-gpg-context.h"
 #include "camel-iconv.h"
 #include "camel-internet-address.h"
@@ -95,6 +96,23 @@ G_DEFINE_TYPE (CamelGpgContext, camel_gpg_context, CAMEL_TYPE_CIPHER_CONTEXT)
 
 static const gchar *gpg_ctx_get_executable_name (void);
 
+typedef struct _GpgRecipientsData {
+	gchar *keyid;
+	gchar *known_key_data;
+} GpgRecipientsData;
+
+static void
+gpg_recipients_data_free (gpointer ptr)
+{
+	GpgRecipientsData *rd = ptr;
+
+	if (rd) {
+		g_free (rd->keyid);
+		g_free (rd->known_key_data);
+		g_free (rd);
+	}
+}
+
 enum _GpgCtxMode {
 	GPG_CTX_MODE_SIGN,
 	GPG_CTX_MODE_VERIFY,
@@ -114,12 +132,14 @@ enum _GpgTrustMetric {
 struct _GpgCtx {
 	enum _GpgCtxMode mode;
 	CamelSession *session;
+	GCancellable *cancellable;
 	GHashTable *userid_hint;
 	pid_t pid;
 
 	GSList *userids;
 	gchar *sigfile;
-	GPtrArray *recipients;
+	GPtrArray *recipients; /* GpgRecipientsData * */
+	GSList *recipient_key_files; /* gchar * with filenames of keys in the tmp directory */
 	CamelCipherHash hash;
 
 	gint stdin_fd;
@@ -144,6 +164,8 @@ struct _GpgCtx {
 
 	gchar *photos_filename;
 	gchar *viewer_cmd;
+
+	GString *decrypt_extra_text; /* Text received during decryption, which is in the blob, but is not encrypted */
 
 	gint exit_status;
 
@@ -171,6 +193,7 @@ struct _GpgCtx {
 	guint trust : 3;
 	guint processing : 1;
 	guint bad_decrypt : 1;
+	guint in_decrypt_stage : 1;
 	guint noseckey : 1;
 	GString *signers;
 	GHashTable *signers_keyid;
@@ -183,7 +206,8 @@ struct _GpgCtx {
 };
 
 static struct _GpgCtx *
-gpg_ctx_new (CamelCipherContext *context)
+gpg_ctx_new (CamelCipherContext *context,
+	     GCancellable *cancellable)
 {
 	struct _GpgCtx *gpg;
 	const gchar *charset;
@@ -195,6 +219,7 @@ gpg_ctx_new (CamelCipherContext *context)
 	gpg = g_new (struct _GpgCtx, 1);
 	gpg->mode = GPG_CTX_MODE_SIGN;
 	gpg->session = g_object_ref (session);
+	gpg->cancellable = cancellable;
 	gpg->userid_hint = g_hash_table_new (g_str_hash, g_str_equal);
 	gpg->complete = FALSE;
 	gpg->seen_eof1 = TRUE;
@@ -206,6 +231,7 @@ gpg_ctx_new (CamelCipherContext *context)
 	gpg->userids = NULL;
 	gpg->sigfile = NULL;
 	gpg->recipients = NULL;
+	gpg->recipient_key_files = NULL;
 	gpg->hash = CAMEL_CIPHER_HASH_DEFAULT;
 	gpg->always_trust = FALSE;
 	gpg->prefer_inline = FALSE;
@@ -241,12 +267,14 @@ gpg_ctx_new (CamelCipherContext *context)
 	gpg->trust = GPG_TRUST_NONE;
 	gpg->processing = FALSE;
 	gpg->bad_decrypt = FALSE;
+	gpg->in_decrypt_stage = FALSE;
 	gpg->noseckey = FALSE;
 	gpg->signers = NULL;
 	gpg->signers_keyid = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 
 	gpg->istream = NULL;
 	gpg->ostream = NULL;
+	gpg->decrypt_extra_text = NULL;
 
 	gpg->diagbuf = g_byte_array_new ();
 	gpg->diagflushed = FALSE;
@@ -336,8 +364,10 @@ gpg_ctx_set_userid (struct _GpgCtx *gpg,
 
 static void
 gpg_ctx_add_recipient (struct _GpgCtx *gpg,
-                       const gchar *keyid)
+                       const gchar *keyid,
+		       const gchar *known_key_data)
 {
+	GpgRecipientsData *rd;
 	gchar *safe_keyid;
 
 	if (gpg->mode != GPG_CTX_MODE_ENCRYPT)
@@ -356,7 +386,11 @@ gpg_ctx_add_recipient (struct _GpgCtx *gpg,
 		safe_keyid = g_strdup (keyid);
 	}
 
-	g_ptr_array_add (gpg->recipients, safe_keyid);
+	rd = g_new0 (GpgRecipientsData, 1);
+	rd->keyid = safe_keyid;
+	rd->known_key_data = g_strdup (known_key_data);
+
+	g_ptr_array_add (gpg->recipients, rd);
 }
 
 static void
@@ -461,9 +495,20 @@ gpg_ctx_free (struct _GpgCtx *gpg)
 
 	if (gpg->recipients) {
 		for (i = 0; i < gpg->recipients->len; i++)
-			g_free (gpg->recipients->pdata[i]);
+			gpg_recipients_data_free (gpg->recipients->pdata[i]);
 
 		g_ptr_array_free (gpg->recipients, TRUE);
+	}
+
+	if (gpg->recipient_key_files) {
+		GSList *link;
+
+		for (link = gpg->recipient_key_files; link; link = g_slist_next (link)) {
+			g_unlink (link->data);
+		}
+
+		g_slist_free_full (gpg->recipient_key_files, g_free);
+		gpg->recipient_key_files = NULL;
 	}
 
 	if (gpg->stdin_fd != -1)
@@ -503,6 +548,9 @@ gpg_ctx_free (struct _GpgCtx *gpg)
 
 	g_free (gpg->photos_filename);
 	g_free (gpg->viewer_cmd);
+
+	if (gpg->decrypt_extra_text)
+		g_string_free (gpg->decrypt_extra_text, TRUE);
 
 	g_free (gpg);
 }
@@ -697,8 +745,42 @@ gpg_ctx_get_argv (struct _GpgCtx *gpg,
 		}
 		if (gpg->recipients) {
 			for (i = 0; i < gpg->recipients->len; i++) {
-				g_ptr_array_add (argv, (guint8 *) "-r");
-				g_ptr_array_add (argv, gpg->recipients->pdata[i]);
+				const GpgRecipientsData *rd = gpg->recipients->pdata[i];
+				gboolean add_with_keyid = TRUE;
+
+				if (!rd)
+					continue;
+
+				if (rd->known_key_data && *(rd->known_key_data)) {
+					gsize len = 0;
+					guchar *data;
+
+					data = g_base64_decode (rd->known_key_data, &len);
+					if (data && len) {
+						gchar *filename = NULL;
+						gint filefd;
+
+						filefd = g_file_open_tmp ("camel-gpg-key-XXXXXX", &filename, NULL);
+						if (filefd) {
+							gpg->recipient_key_files = g_slist_prepend (gpg->recipient_key_files, filename);
+
+							if (camel_write (filefd, (const gchar *) data, len, gpg->cancellable, NULL) == len) {
+								add_with_keyid = FALSE;
+								g_ptr_array_add (argv, (guint8 *) "--recipient-file");
+								g_ptr_array_add (argv, (guint8 *) filename);
+							}
+
+							close (filefd);
+						}
+					}
+
+					g_free (data);
+				}
+
+				if (add_with_keyid) {
+					g_ptr_array_add (argv, (guint8 *) "-r");
+					g_ptr_array_add (argv, rd->keyid);
+				}
 			}
 		}
 		g_ptr_array_add (argv, (guint8 *) "--output");
@@ -1188,10 +1270,12 @@ gpg_ctx_parse_status (struct _GpgCtx *gpg,
 		case GPG_CTX_MODE_DECRYPT:
 			if (!strncmp ((gchar *) status, "BEGIN_DECRYPTION", 16)) {
 				gpg->bad_decrypt = FALSE;
-				/* nothing to do... but we know to expect data on stdout soon */
+				/* Mark it's expected to get decrypted data on stdout */
+				gpg->in_decrypt_stage = TRUE;
 				break;
 			} else if (!strncmp ((gchar *) status, "END_DECRYPTION", 14)) {
-				/* nothing to do, but we know the end is near? */
+				/* Mark to no longer expect decrypted data */
+				gpg->in_decrypt_stage = FALSE;
 				break;
 			} else if (!strncmp ((gchar *) status, "NO_SECKEY ", 10)) {
 				gpg->noseckey = TRUE;
@@ -1428,11 +1512,18 @@ gpg_ctx_op_step (struct _GpgCtx *gpg,
 			goto exception;
 
 		if (nread > 0) {
-			gsize written = camel_stream_write (
-				gpg->ostream, buffer, (gsize)
-				nread, cancellable, error);
-			if (written != nread)
-				return -1;
+			if (gpg->mode != GPG_CTX_MODE_DECRYPT ||
+			    gpg->in_decrypt_stage) {
+				gsize written = camel_stream_write (
+					gpg->ostream, buffer, (gsize)
+					nread, cancellable, error);
+				if (written != nread)
+					return -1;
+			} else {
+				if (!gpg->decrypt_extra_text)
+					gpg->decrypt_extra_text = g_string_new ("");
+				g_string_append_len (gpg->decrypt_extra_text, buffer, nread);
+			}
 		} else {
 			gpg->seen_eof1 = TRUE;
 		}
@@ -2076,7 +2167,7 @@ gpg_sign_sync (CamelCipherContext *context,
 	}
 #endif
 
-	gpg = gpg_ctx_new (context);
+	gpg = gpg_ctx_new (context, cancellable);
 	gpg_ctx_set_mode (gpg, GPG_CTX_MODE_SIGN);
 	gpg_ctx_set_hash (gpg, hash);
 	gpg_ctx_set_armor (gpg, TRUE);
@@ -2313,7 +2404,7 @@ gpg_verify_sync (CamelCipherContext *context,
 
 	g_seekable_seek (G_SEEKABLE (canon_stream), 0, G_SEEK_SET, NULL, NULL);
 
-	gpg = gpg_ctx_new (context);
+	gpg = gpg_ctx_new (context, cancellable);
 	gpg_ctx_set_mode (gpg, GPG_CTX_MODE_VERIFY);
 	gpg_ctx_set_load_photos (gpg, camel_cipher_can_load_photos ());
 	if (sigfile)
@@ -2421,9 +2512,14 @@ gpg_encrypt_sync (CamelCipherContext *context,
 	CamelMultipartEncrypted *mpe;
 	gboolean success = FALSE;
 	gboolean prefer_inline;
+	GSList *gathered_keys = NULL, *link;
 	gint i;
 
 	class = CAMEL_CIPHER_CONTEXT_GET_CLASS (context);
+
+	if (!camel_session_get_recipient_certificates_sync (camel_cipher_context_get_session (context),
+		CAMEL_RECIPIENT_CERTIFICATE_PGP, recipients, &gathered_keys, cancellable, error))
+		return FALSE;
 
 	prefer_inline = ctx->priv->prefer_inline &&
 		camel_content_type_is (camel_mime_part_get_content_type (ipart), "text", "plain");
@@ -2438,7 +2534,7 @@ gpg_encrypt_sync (CamelCipherContext *context,
 		goto fail1;
 	}
 
-	gpg = gpg_ctx_new (context);
+	gpg = gpg_ctx_new (context, cancellable);
 	gpg_ctx_set_mode (gpg, GPG_CTX_MODE_ENCRYPT);
 	gpg_ctx_set_armor (gpg, TRUE);
 	gpg_ctx_set_userid (gpg, userid);
@@ -2447,8 +2543,14 @@ gpg_encrypt_sync (CamelCipherContext *context,
 	gpg_ctx_set_always_trust (gpg, ctx->priv->always_trust);
 	gpg_ctx_set_prefer_inline (gpg, prefer_inline);
 
-	for (i = 0; i < recipients->len; i++) {
-		gpg_ctx_add_recipient (gpg, recipients->pdata[i]);
+	if (gathered_keys && g_slist_length (gathered_keys) != recipients->len) {
+		g_slist_free_full (gathered_keys, g_free);
+		gathered_keys = NULL;
+	}
+
+	for (link = gathered_keys, i = 0; i < recipients->len; i++) {
+		gpg_ctx_add_recipient (gpg, recipients->pdata[i], link ? link->data : NULL);
+		link = g_slist_next (link);
 	}
 
 	if (!gpg_ctx_op_start (gpg, error))
@@ -2543,6 +2645,7 @@ gpg_encrypt_sync (CamelCipherContext *context,
 fail:
 	gpg_ctx_free (gpg);
 fail1:
+	g_slist_free_full (gathered_keys, g_free);
 	g_object_unref (istream);
 	g_object_unref (ostream);
 
@@ -2616,7 +2719,7 @@ gpg_decrypt_sync (CamelCipherContext *context,
 	ostream = camel_stream_mem_new ();
 	camel_stream_mem_set_secure ((CamelStreamMem *) ostream);
 
-	gpg = gpg_ctx_new (context);
+	gpg = gpg_ctx_new (context, cancellable);
 	gpg_ctx_set_mode (gpg, GPG_CTX_MODE_DECRYPT);
 	gpg_ctx_set_load_photos (gpg, camel_cipher_can_load_photos ());
 	gpg_ctx_set_istream (gpg, istream);
@@ -2647,6 +2750,11 @@ gpg_decrypt_sync (CamelCipherContext *context,
 			(diagnostics != NULL && *diagnostics != '\0') ?
 			diagnostics : _("Failed to execute gpg."));
 		goto fail;
+	}
+
+	/* Decrypted nothing, write at least CRLF */
+	if (!g_seekable_tell (G_SEEKABLE (ostream))) {
+		g_warn_if_fail (2 == camel_stream_write (ostream, "\r\n", 2, cancellable, NULL));
 	}
 
 	g_seekable_seek (G_SEEKABLE (ostream), 0, G_SEEK_SET, NULL, NULL);
@@ -2691,7 +2799,10 @@ gpg_decrypt_sync (CamelCipherContext *context,
 
 	if (success) {
 		valid = camel_cipher_validity_new ();
-		valid->encrypt.description = g_strdup (_("Encrypted content"));
+		if (gpg->decrypt_extra_text)
+			valid->encrypt.description = g_strdup_printf (_("GPG blob contains unencrypted text: %s"), gpg->decrypt_extra_text->str);
+		else
+			valid->encrypt.description = g_strdup (_("Encrypted content"));
 		valid->encrypt.status = CAMEL_CIPHER_VALIDITY_ENCRYPT_ENCRYPTED;
 
 		if (gpg->hadsig) {

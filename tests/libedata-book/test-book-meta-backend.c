@@ -639,6 +639,8 @@ e_book_meta_backend_test_call_refresh (EBookMetaBackend *meta_backend)
 	gboolean success;
 	GError *error = NULL;
 
+	g_assert_nonnull (meta_backend);
+
 	backend_class = E_BOOK_BACKEND_GET_CLASS (meta_backend);
 	g_return_if_fail (backend_class != NULL);
 	g_return_if_fail (backend_class->refresh_sync != NULL);

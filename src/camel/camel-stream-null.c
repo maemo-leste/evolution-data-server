@@ -181,7 +181,7 @@ camel_stream_null_get_bytes_written (CamelStreamNull *stream_null)
  *
  * Returns: Whether the data being written to @stream_null ended with CRLF.
  *
- * Since: 3.28.4
+ * Since: 3.30
  **/
 gboolean
 camel_stream_null_get_ends_with_crlf (CamelStreamNull *stream_null)
