@@ -373,52 +373,33 @@ error:
 	g_free (data);
 }
 
-static void
-cal_backend_store_toggle_ref_cb (gpointer data,
-				 GObject *object,
-				 gboolean is_last_ref)
-{
-	ECalBackendStore *store;
-
-	g_return_if_fail (E_IS_CAL_BACKEND_STORE (object));
-
-	if (!is_last_ref)
-		return;
-
-	store = E_CAL_BACKEND_STORE (object);
-
-	g_mutex_lock (&store->priv->save_timeout_lock);
-	g_object_ref (store);
-	g_object_remove_toggle_ref (G_OBJECT (store), cal_backend_store_toggle_ref_cb, NULL);
-	store->priv->dirty = TRUE;
-	store->priv->save_timeout_id = 0;
-	g_mutex_unlock (&store->priv->save_timeout_lock);
-
-	g_object_unref (store);
-}
-
 static gboolean
 cal_backend_store_save_cache_timeout_cb (gpointer user_data)
 {
-	ECalBackendStore *store;
+	GWeakRef *weakref = user_data;
 	GSource *source;
+	ECalBackendStore *store;
 	GList *timezones_to_save;
 
 	source = g_main_current_source ();
 	if (g_source_is_destroyed (source))
 		return FALSE;
 
-	store = E_CAL_BACKEND_STORE (user_data);
+	g_return_val_if_fail (weakref != NULL, FALSE);
+
+	store = g_weak_ref_get (weakref);
+	if (!store)
+		return FALSE;
+
+	g_return_val_if_fail (E_IS_CAL_BACKEND_STORE (store), FALSE);
 
 	g_mutex_lock (&store->priv->save_timeout_lock);
 	if (store->priv->save_timeout_id != g_source_get_id (source)) {
 		g_mutex_unlock (&store->priv->save_timeout_lock);
+		g_object_unref (store);
 		return FALSE;
 	}
 
-	g_object_ref (store);
-
-	g_object_remove_toggle_ref (G_OBJECT (store), cal_backend_store_toggle_ref_cb, NULL);
 	store->priv->save_timeout_id = 0;
 	timezones_to_save = store->priv->timezones_to_save;
 	store->priv->timezones_to_save = NULL;
@@ -463,16 +444,13 @@ cal_backend_store_save_cache (ECalBackendStore *store)
 
 	g_mutex_lock (&store->priv->save_timeout_lock);
 
-	if (store->priv->save_timeout_id > 0) {
+	if (store->priv->save_timeout_id > 0)
 		g_source_remove (store->priv->save_timeout_id);
-		g_object_remove_toggle_ref (G_OBJECT (store), cal_backend_store_toggle_ref_cb, NULL);
-	}
 
-	g_object_add_toggle_ref (G_OBJECT (store), cal_backend_store_toggle_ref_cb, NULL);
-
-	store->priv->save_timeout_id = e_named_timeout_add_seconds (
-		IDLE_SAVE_TIMEOUT_SECONDS,
-		cal_backend_store_save_cache_timeout_cb, store);
+	store->priv->save_timeout_id = e_named_timeout_add_seconds_full (
+		G_PRIORITY_DEFAULT, IDLE_SAVE_TIMEOUT_SECONDS,
+		cal_backend_store_save_cache_timeout_cb, e_weak_ref_new (store),
+		(GDestroyNotify) e_weak_ref_free);
 
 	g_list_free_full (
 		store->priv->timezones_to_save,
@@ -575,7 +553,6 @@ cal_backend_store_dispose (GObject *object)
 	g_mutex_lock (&priv->save_timeout_lock);
 	if (priv->save_timeout_id > 0 || priv->dirty) {
 		if (priv->save_timeout_id > 0) {
-			g_object_remove_toggle_ref (object, cal_backend_store_toggle_ref_cb, NULL);
 			g_source_remove (priv->save_timeout_id);
 			priv->save_timeout_id = 0;
 		}
@@ -1177,6 +1154,7 @@ e_cal_backend_store_load (ECalBackendStore *store)
 		return TRUE;
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->load != NULL, FALSE);
 
 	store->priv->loaded = class->load (store);
@@ -1198,6 +1176,7 @@ e_cal_backend_store_clean (ECalBackendStore *store)
 	g_return_val_if_fail (E_IS_CAL_BACKEND_STORE (store), FALSE);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->clean != NULL, FALSE);
 
 	if (store->priv->intervaltree != NULL) {
@@ -1231,6 +1210,7 @@ e_cal_backend_store_get_component (ECalBackendStore *store,
 	g_return_val_if_fail (uid != NULL, NULL);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, NULL);
 	g_return_val_if_fail (class->get_component != NULL, NULL);
 
 	return class->get_component (store, uid, rid);
@@ -1257,6 +1237,7 @@ e_cal_backend_store_has_component (ECalBackendStore *store,
 	g_return_val_if_fail (uid != NULL, FALSE);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->has_component != NULL, FALSE);
 
 	return class->has_component (store, uid, rid);
@@ -1285,6 +1266,7 @@ e_cal_backend_store_put_component_with_time_range (ECalBackendStore *store,
 	g_return_val_if_fail (E_IS_CAL_COMPONENT (comp), FALSE);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->put_component != NULL, FALSE);
 
 	if (class->put_component (store, comp)) {
@@ -1317,6 +1299,7 @@ e_cal_backend_store_put_component (ECalBackendStore *store,
 	g_return_val_if_fail (E_IS_CAL_COMPONENT (comp), FALSE);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->put_component != NULL, FALSE);
 
 	return class->put_component (store, comp);
@@ -1343,6 +1326,7 @@ e_cal_backend_store_remove_component (ECalBackendStore *store,
 	g_return_val_if_fail (uid != NULL, FALSE);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->remove_component != NULL, FALSE);
 
 	if (class->remove_component (store, uid, rid)) {
@@ -1371,6 +1355,7 @@ e_cal_backend_store_get_default_timezone (ECalBackendStore *store)
 	g_return_val_if_fail (E_IS_CAL_BACKEND_STORE (store), NULL);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, NULL);
 	g_return_val_if_fail (class->get_default_timezone != NULL, NULL);
 
 	return class->get_default_timezone (store);
@@ -1395,6 +1380,7 @@ e_cal_backend_store_set_default_timezone (ECalBackendStore *store,
 	g_return_val_if_fail (zone != NULL, FALSE);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->set_default_timezone != NULL, FALSE);
 
 	return class->set_default_timezone (store, zone);
@@ -1419,6 +1405,7 @@ e_cal_backend_store_get_components_by_uid (ECalBackendStore *store,
 	g_return_val_if_fail (uid != NULL, NULL);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, NULL);
 	g_return_val_if_fail (class->get_components_by_uid != NULL, NULL);
 
 	return class->get_components_by_uid (store, uid);
@@ -1492,6 +1479,7 @@ e_cal_backend_store_get_components (ECalBackendStore *store)
 	g_return_val_if_fail (E_IS_CAL_BACKEND_STORE (store), NULL);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, NULL);
 	g_return_val_if_fail (class->get_components != NULL, NULL);
 
 	return class->get_components (store);
@@ -1565,6 +1553,7 @@ e_cal_backend_store_get_component_ids (ECalBackendStore *store)
 	g_return_val_if_fail (E_IS_CAL_BACKEND_STORE (store), NULL);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, NULL);
 	g_return_val_if_fail (class->get_component_ids != NULL, NULL);
 
 	return class->get_component_ids (store);
@@ -1589,6 +1578,7 @@ e_cal_backend_store_get_key_value (ECalBackendStore *store,
 	g_return_val_if_fail (key != NULL, NULL);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, NULL);
 	g_return_val_if_fail (class->get_key_value != NULL, NULL);
 
 	return class->get_key_value (store, key);
@@ -1615,6 +1605,7 @@ e_cal_backend_store_put_key_value (ECalBackendStore *store,
 	g_return_val_if_fail (key != NULL, FALSE);
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_val_if_fail (class != NULL, FALSE);
 	g_return_val_if_fail (class->put_key_value != NULL, FALSE);
 
 	return class->put_key_value (store, key, value);
@@ -1634,6 +1625,7 @@ e_cal_backend_store_thaw_changes (ECalBackendStore *store)
 	g_return_if_fail (E_IS_CAL_BACKEND_STORE (store));
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_if_fail (class != NULL);
 	g_return_if_fail (class->thaw_changes != NULL);
 
 	class->thaw_changes (store);
@@ -1653,6 +1645,7 @@ e_cal_backend_store_freeze_changes (ECalBackendStore *store)
 	g_return_if_fail (E_IS_CAL_BACKEND_STORE (store));
 
 	class = E_CAL_BACKEND_STORE_GET_CLASS (store);
+	g_return_if_fail (class != NULL);
 	g_return_if_fail (class->freeze_changes != NULL);
 
 	class->freeze_changes (store);

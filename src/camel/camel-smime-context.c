@@ -53,6 +53,7 @@
 #include "camel-stream-filter.h"
 #include "camel-stream-fs.h"
 #include "camel-stream-mem.h"
+#include "camel-string-utils.h"
 
 #define d(x)
 
@@ -642,8 +643,10 @@ sm_verify_cmsg (CamelCipherContext *context,
 				}
 
 				for (j = 0; j < nsigners; j++) {
+					CERTCertificate *cert;
 					NSSCMSSignerInfo *si;
 					gchar *cn, *em;
+					gint idx;
 
 					si = NSS_CMSSignedData_GetSignerInfo (sigd, j);
 					NSS_CMSSignedData_VerifySignerInfo (sigd, j, p->certdb, certUsageEmailSigner);
@@ -658,10 +661,39 @@ sm_verify_cmsg (CamelCipherContext *context,
 						cn ? cn:"<unknown>", em ? em:"<unknown>",
 						sm_status_description (status));
 
-					camel_cipher_validity_add_certinfo_ex (
+					cert = NSS_CMSSignerInfo_GetSigningCertificate (si, p->certdb);
+
+					idx = camel_cipher_validity_add_certinfo_ex (
 						valid, CAMEL_CIPHER_VALIDITY_SIGN, cn, em,
-						smime_cert_data_clone (NSS_CMSSignerInfo_GetSigningCertificate (si, p->certdb)),
-						smime_cert_data_free, smime_cert_data_clone);
+						cert ? smime_cert_data_clone (cert) : NULL,
+						cert ? smime_cert_data_free : NULL, cert ? smime_cert_data_clone : NULL);
+
+					if (cert && idx >= 0) {
+						CamelInternetAddress *addrs = NULL;
+						const gchar *cert_email;
+
+						for (cert_email = CERT_GetFirstEmailAddress (cert);
+						     cert_email;
+						     cert_email = CERT_GetNextEmailAddress (cert, cert_email)) {
+							if (!*cert_email)
+								continue;
+
+							if (!addrs)
+								addrs = camel_internet_address_new ();
+
+							camel_internet_address_add (addrs, NULL, cert_email);
+						}
+
+						if (addrs) {
+							gchar *addresses = camel_address_format (CAMEL_ADDRESS (addrs));
+
+							camel_cipher_validity_set_certinfo_property (valid, CAMEL_CIPHER_VALIDITY_SIGN, idx,
+								CAMEL_CIPHER_CERT_INFO_PROPERTY_SIGNERS_ALT_EMAILS, addresses,
+								g_free, (CamelCipherCloneFunc) g_strdup);
+
+							g_object_unref (addrs);
+						}
+					}
 
 					if (cn)
 						PORT_Free (cn);
@@ -1025,6 +1057,151 @@ fail:
 }
 
 static gboolean
+camel_smime_first_certificate_is_better (CERTCertificate *cert1,
+					 CERTCertificate *cert2,
+					 PRTime now)
+{
+	PRTime notBefore1, notAfter1, notBefore2, notAfter2;
+	CERTCertTrust trust;
+	gboolean cert1_trusted, cert2_trusted;
+
+	if (!cert1)
+		return FALSE;
+
+	if (!cert2)
+		return cert1 != NULL;
+
+	/* Both certificates are valid at the time, it's ensured with CERT_CheckCertValidTimes()
+	   in camel_smime_find_recipients_certs() */
+
+	if (SECSuccess == CERT_GetCertTrust (cert1, &trust))
+		cert1_trusted = (trust.emailFlags & CERTDB_TRUSTED) != 0;
+	else
+		cert1_trusted = FALSE;
+
+	if (SECSuccess == CERT_GetCertTrust (cert2, &trust))
+		cert2_trusted = (trust.emailFlags & CERTDB_TRUSTED) != 0;
+	else
+		cert2_trusted = FALSE;
+
+	if (cert1_trusted && !cert2_trusted)
+		return TRUE;
+
+	if (!cert1_trusted && cert2_trusted)
+		return FALSE;
+
+	/* Both are trusted or untrusted, then get the newer */
+	if (CERT_GetCertTimes (cert1, &notBefore1, &notAfter1) != SECSuccess)
+		return FALSE;
+
+	if (CERT_GetCertTimes (cert2, &notBefore2, &notAfter2) != SECSuccess)
+		return TRUE;
+
+	/* cert1 is valid after cert2, thus it is newer */
+	return notBefore1 > notBefore2;
+}
+
+typedef struct FindRecipientsData {
+	GHashTable *recipients_table;
+	guint certs_missing;
+	PRTime now;
+} FindRecipientsData;
+
+static SECStatus
+camel_smime_find_recipients_certs (CERTCertificate *cert,
+				   SECItem *item,
+				   gpointer user_data)
+{
+	FindRecipientsData *frd = user_data;
+	const gchar *cert_email = NULL;
+	CERTCertificate **hash_value = NULL;
+
+	/* Cannot short-circuit when frd->certs_missing is 0, because there can be better certificates */
+	if (!frd->recipients_table ||
+	    CERT_CheckCertValidTimes (cert, frd->now, PR_FALSE) != secCertTimeValid) {
+		return SECFailure;
+	}
+
+	/* Loop over all cert's email addresses */
+	for (cert_email = CERT_GetFirstEmailAddress (cert);
+	     cert_email;
+	     cert_email = CERT_GetNextEmailAddress (cert, cert_email)) {
+		hash_value = g_hash_table_lookup (frd->recipients_table, cert_email);
+
+		if (hash_value && !*hash_value) {
+			/* Cannot break now, because there can be multiple addresses for this certificate */
+			*hash_value = CERT_DupCertificate (cert);
+			frd->certs_missing--;
+		} else if (hash_value && !camel_smime_first_certificate_is_better (*hash_value, cert, frd->now)) {
+			CERT_DestroyCertificate (*hash_value);
+			*hash_value = CERT_DupCertificate (cert);
+		}
+	}
+
+	/* Is the sender referenced by nickname rather than its email address? */
+	if (cert->nickname) {
+		hash_value = g_hash_table_lookup (frd->recipients_table, cert->nickname);
+
+		if (hash_value && !*hash_value) {
+			*hash_value = CERT_DupCertificate (cert);
+			frd->certs_missing--;
+		} else if (hash_value && !camel_smime_first_certificate_is_better (*hash_value, cert, frd->now)) {
+			CERT_DestroyCertificate (*hash_value);
+			*hash_value = CERT_DupCertificate (cert);
+		}
+	}
+
+	return SECFailure;
+}
+
+static guint
+camel_smime_cert_hash (gconstpointer ptr)
+{
+	const CERTCertificate *cert = ptr;
+	guint hashval = 0, ii;
+
+	if (!cert)
+		return 0;
+
+	if (cert->serialNumber.len && cert->serialNumber.data) {
+		for (ii = 0; ii < cert->serialNumber.len; ii += 4) {
+			guint num = cert->serialNumber.data[ii];
+
+			if (ii + 1 < cert->serialNumber.len)
+				num = num | (cert->serialNumber.data[ii + 1] << 8);
+			if (ii + 2 < cert->serialNumber.len)
+				num = num | (cert->serialNumber.data[ii + 2] << 16);
+			if (ii + 3 < cert->serialNumber.len)
+				num = num | (cert->serialNumber.data[ii + 3] << 24);
+
+			hashval = hashval ^ num;
+		}
+	}
+
+	return hashval;
+}
+
+static gboolean
+camel_smime_cert_equal (gconstpointer ptr1,
+			gconstpointer ptr2)
+{
+	const CERTCertificate *cert1 = ptr1, *cert2 = ptr2;
+
+	if (!cert1 || !cert2)
+		return cert1 == cert2;
+
+	if (cert1 == cert2)
+		return TRUE;
+
+	if (cert1->derCert.len != cert2->derCert.len ||
+	    !cert1->derCert.data || !cert2->derCert.data) {
+		return FALSE;
+	}
+
+	return memcmp (cert1->derCert.data, cert2->derCert.data, cert1->derCert.len) == 0;
+}
+
+static gboolean
 smime_context_encrypt_sync (CamelCipherContext *context,
                             const gchar *userid,
                             GPtrArray *recipients,
@@ -1033,9 +1210,9 @@ smime_context_encrypt_sync (CamelCipherContext *context,
                             GCancellable *cancellable,
                             GError **error)
 {
-	CamelSMIMEContextPrivate *p = ((CamelSMIMEContext *) context)->priv;
 	/*NSSCMSRecipientInfo **recipient_infos;*/
 	CERTCertificate **recipient_certs = NULL;
+	FindRecipientsData frd;
 	NSSCMSContentInfo *cinfo;
 	PK11SymKey *bulkkey = NULL;
 	SECOidTag bulkalgtag;
@@ -1065,16 +1242,63 @@ smime_context_encrypt_sync (CamelCipherContext *context,
 		goto fail;
 	}
 
+	frd.recipients_table = g_hash_table_new (camel_strcase_hash, camel_strcase_equal);
 	for (i = 0; i < recipients->len; i++) {
-		recipient_certs[i] = CERT_FindCertByNicknameOrEmailAddr (p->certdb, recipients->pdata[i]);
-		if (recipient_certs[i] == NULL) {
-			g_set_error (
-				error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
-				_("Cannot find certificate for “%s”"),
-				(gchar *) recipients->pdata[i]);
-			goto fail;
-		}
+		g_hash_table_insert (
+				frd.recipients_table,
+				recipients->pdata[i],
+				&recipient_certs[i]);
 	}
+	frd.certs_missing = g_hash_table_size (frd.recipients_table);
+	frd.now = PR_Now();
+
+	/* Just ignore the return value */
+	(void) PK11_TraverseSlotCerts (camel_smime_find_recipients_certs, &frd, NULL);
+
+	if (frd.certs_missing) {
+		i = 0;
+		while (i < recipients->len) {
+			CERTCertificate **hash_value = g_hash_table_lookup (frd.recipients_table, recipients->pdata[i]);
+			if (!hash_value || !*hash_value) {
+				g_set_error (
+					error, CAMEL_ERROR, CAMEL_ERROR_GENERIC,
+					_("Cannot find certificate for “%s”"),
+					(gchar *) recipients->pdata[i]);
+				g_hash_table_destroy (frd.recipients_table);
+				goto fail;
+			}
+			i++;
+		}
+	} else {
+		/* Addresses and certificates can be duplicated, thus update the recipient_certs array */
+		GHashTable *final_certs;
+		GHashTableIter iter;
+		gpointer key;
+
+		final_certs = g_hash_table_new_full (camel_smime_cert_hash, camel_smime_cert_equal,
+			(GDestroyNotify) CERT_DestroyCertificate, NULL);
+
+		for (i = 0; i < recipients->len; i++) {
+			if (recipient_certs[i]) {
+				/* Passes ownership to final_certs */
+				g_hash_table_insert (final_certs, recipient_certs[i], NULL);
+				recipient_certs[i] = NULL;
+			}
+		}
+
+		i = 0;
+		g_hash_table_iter_init (&iter, final_certs);
+		while (g_hash_table_iter_next (&iter, &key, NULL)) {
+			CERTCertificate *cert = key;
+
+			recipient_certs[i] = CERT_DupCertificate (cert);
+			i++;
+		}
+
+		g_hash_table_destroy (final_certs);
+	}
+
+	g_hash_table_destroy (frd.recipients_table);
 
 	/* Find a common algorithm, probably 3DES anyway ... */
 	if (NSS_SMIMEUtil_FindBulkAlgForRecipients (recipient_certs, &bulkalgtag, &bulkkeysize) != SECSuccess) {
@@ -1167,8 +1391,10 @@ smime_context_encrypt_sync (CamelCipherContext *context,
 
 	PK11_FreeSymKey (bulkkey);
 	NSS_CMSMessage_Destroy (cmsg);
-	for (i = 0; recipient_certs[i]; i++)
-		CERT_DestroyCertificate (recipient_certs[i]);
+	for (i = 0; i < recipients->len; i++) {
+		if (recipient_certs[i])
+			CERT_DestroyCertificate (recipient_certs[i]);
+	}
 	PORT_FreeArena (poolp, PR_FALSE);
 
 	dw = camel_data_wrapper_new ();
@@ -1202,8 +1428,10 @@ fail:
 		PK11_FreeSymKey (bulkkey);
 
 	if (recipient_certs) {
-		for (i = 0; recipient_certs[i]; i++)
-			CERT_DestroyCertificate (recipient_certs[i]);
+		for (i = 0; i < recipients->len; i++) {
+			if (recipient_certs[i])
+				CERT_DestroyCertificate (recipient_certs[i]);
+		}
 	}
 
 	PORT_FreeArena (poolp, PR_FALSE);
@@ -1295,9 +1523,21 @@ fail:
 }
 
 static void
+camel_smime_context_finalize (GObject *object)
+{
+	CamelSMIMEContext *smime = CAMEL_SMIME_CONTEXT (object);
+
+	g_free (smime->priv->encrypt_key);
+
+	/* Chain up to parent's method. */
+	G_OBJECT_CLASS (camel_smime_context_parent_class)->finalize (object);
+}
+
+static void
 camel_smime_context_class_init (CamelSMIMEContextClass *class)
 {
 	CamelCipherContextClass *cipher_context_class;
+	GObjectClass *object_class;
 
 	g_type_class_add_private (class, sizeof (CamelSMIMEContextPrivate));
 
@@ -1311,6 +1551,9 @@ camel_smime_context_class_init (CamelSMIMEContextClass *class)
 	cipher_context_class->verify_sync = smime_context_verify_sync;
 	cipher_context_class->encrypt_sync = smime_context_encrypt_sync;
 	cipher_context_class->decrypt_sync = smime_context_decrypt_sync;
+
+	object_class = G_OBJECT_CLASS (class);
+	object_class->finalize = camel_smime_context_finalize;
 }
 
 static void

@@ -292,6 +292,7 @@ struct _CamelIMAPXServerPrivate {
 	guint idle_stamp;
 
 	gboolean is_cyrus;
+	gboolean is_broken_cyrus;
 
 	/* Info about the current connection; guarded by priv->stream_lock */
 	struct _capability_info *cinfo;
@@ -619,7 +620,7 @@ imapx_server_stash_command_arguments (CamelIMAPXServer *is)
 	is->priv->status_data_items = g_string_free (buffer, FALSE);
 
 	g_free (is->priv->list_return_opts);
-	if (!is->priv->is_cyrus && CAMEL_IMAPX_HAVE_CAPABILITY (is->priv->cinfo, LIST_EXTENDED)) {
+	if (!is->priv->is_broken_cyrus && CAMEL_IMAPX_HAVE_CAPABILITY (is->priv->cinfo, LIST_EXTENDED)) {
 		buffer = g_string_new ("CHILDREN SUBSCRIBED");
 		if (CAMEL_IMAPX_HAVE_CAPABILITY (is->priv->cinfo, LIST_STATUS))
 			g_string_append_printf (
@@ -1093,7 +1094,11 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 		gconstpointer body_data;
 		gsize body_size;
 
-		g_return_val_if_fail (is->priv->get_message_stream != NULL, FALSE);
+		if (!is->priv->get_message_stream) {
+			g_warn_if_fail (is->priv->get_message_stream != NULL);
+			imapx_free_fetch (finfo);
+			return FALSE;
+		}
 
 		/* Fill out the body stream, in the right spot. */
 
@@ -1130,9 +1135,15 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 		CamelIMAPXMailbox *select_pending;
 
 		if (is->priv->fetch_changes_mailbox) {
-			g_return_val_if_fail (is->priv->fetch_changes_mailbox != NULL, FALSE);
-			g_return_val_if_fail (is->priv->fetch_changes_folder != NULL, FALSE);
-			g_return_val_if_fail (is->priv->fetch_changes_infos != NULL, FALSE);
+			if (!is->priv->fetch_changes_mailbox ||
+			    !is->priv->fetch_changes_folder ||
+			    !is->priv->fetch_changes_infos) {
+				g_warn_if_fail (is->priv->fetch_changes_mailbox != NULL);
+				g_warn_if_fail (is->priv->fetch_changes_folder != NULL);
+				g_warn_if_fail (is->priv->fetch_changes_infos != NULL);
+				imapx_free_fetch (finfo);
+				return FALSE;
+			}
 		}
 
 		g_mutex_lock (&is->priv->select_lock);
@@ -1167,12 +1178,15 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 				COMMAND_LOCK (is);
 
 				if (is->priv->current_command) {
+					guint32 n_messages;
+
 					COMMAND_UNLOCK (is);
 
 					is->priv->fetch_changes_last_progress = monotonic_time;
 
-					camel_operation_progress (cancellable, 100 * is->priv->context->id
-						/ camel_imapx_mailbox_get_messages (is->priv->fetch_changes_mailbox));
+					n_messages = camel_imapx_mailbox_get_messages (is->priv->fetch_changes_mailbox);
+					if (n_messages > 0)
+						camel_operation_progress (cancellable, 100 * is->priv->context->id / n_messages);
 				} else {
 					COMMAND_UNLOCK (is);
 				}
@@ -1186,7 +1200,15 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 			c (is->priv->tagprefix, "flag changed: %lu\n", is->priv->context->id);
 
 			select_folder = imapx_server_ref_folder (is, select_mailbox);
-			g_return_val_if_fail (select_folder != NULL, FALSE);
+			if (!select_folder) {
+				g_warn_if_fail (select_folder != NULL);
+
+				g_clear_object (&select_mailbox);
+				g_clear_object (&select_pending);
+				imapx_free_fetch (finfo);
+
+				return FALSE;
+			}
 
 			if (finfo->got & FETCH_UID) {
 				uid = finfo->uid;
@@ -1216,10 +1238,11 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 			}
 
 			if (changed) {
-				g_return_val_if_fail (is->priv->changes != NULL, FALSE);
-
 				g_mutex_lock (&is->priv->changes_lock);
-				camel_folder_change_info_change_uid (is->priv->changes, uid);
+				if (is->priv->changes)
+					camel_folder_change_info_change_uid (is->priv->changes, uid);
+				else
+					g_warn_if_fail (is->priv->changes != NULL);
 				g_mutex_unlock (&is->priv->changes_lock);
 			}
 			g_free (uid);
@@ -1258,9 +1281,15 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 		 * asked for new messages to be added to the index. */
 
 		if (is->priv->fetch_changes_mailbox) {
-			g_return_val_if_fail (is->priv->fetch_changes_mailbox != NULL, FALSE);
-			g_return_val_if_fail (is->priv->fetch_changes_folder != NULL, FALSE);
-			g_return_val_if_fail (is->priv->fetch_changes_infos != NULL, FALSE);
+			if (!is->priv->fetch_changes_mailbox ||
+			    !is->priv->fetch_changes_folder ||
+			    !is->priv->fetch_changes_infos) {
+				g_warn_if_fail (is->priv->fetch_changes_mailbox != NULL);
+				g_warn_if_fail (is->priv->fetch_changes_folder != NULL);
+				g_warn_if_fail (is->priv->fetch_changes_infos != NULL);
+				imapx_free_fetch (finfo);
+				return FALSE;
+			}
 
 			folder = g_object_ref (is->priv->fetch_changes_folder);
 			mailbox = g_object_ref (is->priv->fetch_changes_mailbox);
@@ -1301,7 +1330,17 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 				FetchChangesInfo *nfo;
 
 				nfo = g_hash_table_lookup (is->priv->fetch_changes_infos, finfo->uid);
-				g_return_val_if_fail (nfo != NULL, FALSE);
+				if (!nfo) {
+					g_warn_if_fail (nfo != NULL);
+
+					camel_message_info_set_abort_notifications (mi, FALSE);
+					g_clear_object (&mi);
+					g_clear_object (&mailbox);
+					g_clear_object (&folder);
+					imapx_free_fetch (finfo);
+
+					return FALSE;
+				}
 
 				server_flags = nfo->server_flags;
 				server_user_flags = nfo->server_user_flags;
@@ -1799,6 +1838,86 @@ imapx_untagged_preauth (CamelIMAPXServer *is,
 }
 
 static gboolean
+imapx_server_check_is_broken_cyrus (const gchar *response_text,
+				    gboolean *inout_is_cyrus)
+{
+	const gchar *pp, *from;
+	gint vermajor = 0, verminor = 0, vermicro = 0;
+
+	g_return_val_if_fail (inout_is_cyrus != NULL, FALSE);
+
+	/* If already known that this is cyrus server, then it had been
+	   identified as a good server, thus just return here. */
+	if (*inout_is_cyrus)
+		return FALSE;
+
+	if (!response_text || !*response_text)
+		return FALSE;
+
+	/* Expects "Cyrus IMAP v1.2.3", eventually "Cyrus IMAP 4.5.6" (with or without 'v' prefix) */
+	pp = response_text;
+	while (pp = camel_strstrcase (pp, "cyrus"), pp) {
+		/* It's a whole word */
+		if ((pp == response_text || g_ascii_isspace (pp[-1])) && g_ascii_isspace (pp[5]))
+			break;
+		pp++;
+	}
+
+	if (!pp)
+		return FALSE;
+
+	from = pp;
+
+	/* In case there is the 'cyrus' word multiple times */
+	while (pp = from, pp && *pp) {
+		#define skip_word() \
+			while (*pp && *pp != ' ') {	\
+				pp++;			\
+			}				\
+							\
+			if (!*pp)			\
+				return TRUE;		\
+							\
+			pp++;
+
+		/* Skip the 'Cyrus' word */
+		skip_word ();
+
+		/* Skip the 'IMAP' word */
+		skip_word ();
+
+		#undef skip_word
+
+		/* Now is at version with or without 'v' prefix */
+		if (*pp == 'v')
+			pp++;
+
+		if (sscanf (pp, "%d.%d.%d", &vermajor, &verminor, &vermicro) == 3) {
+			*inout_is_cyrus = TRUE;
+			break;
+		}
+
+		vermajor = 0;
+
+		pp = from + 1;
+		from = NULL;
+
+		while (pp = camel_strstrcase (pp, "cyrus"), pp) {
+			/* It's a whole word */
+			if (g_ascii_isspace (pp[-1]) && g_ascii_isspace (pp[5])) {
+				from = pp;
+				break;
+			}
+
+			pp++;
+		}
+	}
+
+	/* The 2.5.11, inclusive, has the issue fixed, thus check for that version. */
+	return !(vermajor > 2 || (vermajor == 2 && (verminor > 5 || (verminor == 5 && vermicro >= 11))));
+}
+
+static gboolean
 imapx_untagged_ok_no_bad (CamelIMAPXServer *is,
                           GInputStream *input_stream,
                           GCancellable *cancellable,
@@ -1927,8 +2046,8 @@ imapx_untagged_ok_no_bad (CamelIMAPXServer *is,
 			if (is->priv->context->sinfo->text) {
 				guint32 list_extended = imapx_lookup_capability ("LIST-EXTENDED");
 
-				is->priv->is_cyrus = is->priv->is_cyrus || camel_strstrcase (is->priv->context->sinfo->text, "cyrus");
-				if (is->priv->is_cyrus && is->priv->cinfo && (is->priv->cinfo->capa & list_extended) != 0) {
+				is->priv->is_broken_cyrus = is->priv->is_broken_cyrus || imapx_server_check_is_broken_cyrus (is->priv->context->sinfo->text, &is->priv->is_cyrus);
+				if (is->priv->is_broken_cyrus && is->priv->cinfo && (is->priv->cinfo->capa & list_extended) != 0) {
 					/* Disable LIST-EXTENDED for cyrus servers */
 					c (is->priv->tagprefix, "Disabling LIST-EXTENDED extension for a Cyrus server\n");
 					is->priv->cinfo->capa &= ~list_extended;
@@ -2123,7 +2242,11 @@ imapx_continuation (CamelIMAPXServer *is,
 
 	/* coverity[deadcode] */
 	link = ic ? ic->current_part : NULL;
-	g_return_val_if_fail (link != NULL, FALSE);
+	if (!link) {
+		g_warn_if_fail (link != NULL);
+		return FALSE;
+	}
+
 	cp = (CamelIMAPXCommandPart *) link->data;
 
 	switch (cp->type & CAMEL_IMAPX_COMMAND_MASK) {
@@ -2223,6 +2346,15 @@ imapx_continuation (CamelIMAPXServer *is,
 			error, CAMEL_IMAPX_ERROR, CAMEL_IMAPX_ERROR_SERVER_RESPONSE_MALFORMED,
 			"continuation response for non-continuation request");
 		return FALSE;
+	}
+
+	if (ic->job_kind == CAMEL_IMAPX_JOB_APPEND_MESSAGE && !cp->ends_with_crlf) {
+		g_mutex_lock (&is->priv->stream_lock);
+		n_bytes_written = g_output_stream_write_all (
+			output_stream, "\r\n", 2, NULL, cancellable, error);
+		g_mutex_unlock (&is->priv->stream_lock);
+		if (n_bytes_written < 0)
+			return FALSE;
 	}
 
 	if (!litplus) {
@@ -2375,8 +2507,8 @@ imapx_completion (CamelIMAPXServer *is,
 	if (ic->status->condition == IMAPX_CAPABILITY) {
 		guint32 list_extended = imapx_lookup_capability ("LIST-EXTENDED");
 
-		is->priv->is_cyrus = is->priv->is_cyrus || (ic->status->text && camel_strstrcase (ic->status->text, "cyrus"));
-		if (is->priv->is_cyrus && ic->status->u.cinfo && (ic->status->u.cinfo->capa & list_extended) != 0) {
+		is->priv->is_broken_cyrus = is->priv->is_broken_cyrus || (ic->status->text && imapx_server_check_is_broken_cyrus (ic->status->text, &is->priv->is_cyrus));
+		if (is->priv->is_broken_cyrus && ic->status->u.cinfo && (ic->status->u.cinfo->capa & list_extended) != 0) {
 			/* Disable LIST-EXTENDED for cyrus servers */
 			c (is->priv->tagprefix, "Disabling LIST-EXTENDED extension for a Cyrus server\n");
 			ic->status->u.cinfo->capa &= ~list_extended;
@@ -3474,6 +3606,7 @@ camel_imapx_server_init (CamelIMAPXServer *is)
 
 	is->priv->state = IMAPX_DISCONNECTED;
 	is->priv->is_cyrus = FALSE;
+	is->priv->is_broken_cyrus = FALSE;
 	is->priv->copyuid_status = NULL;
 
 	is->priv->changes = camel_folder_change_info_new ();
@@ -3956,6 +4089,7 @@ imapx_disconnect (CamelIMAPXServer *is)
 	g_mutex_unlock (&is->priv->select_lock);
 
 	is->priv->is_cyrus = FALSE;
+	is->priv->is_broken_cyrus = FALSE;
 	is->priv->state = IMAPX_DISCONNECTED;
 
 	g_mutex_lock (&is->priv->idle_lock);
@@ -3984,6 +4118,7 @@ camel_imapx_server_connect_sync (CamelIMAPXServer *is,
 		return TRUE;
 
 	is->priv->is_cyrus = FALSE;
+	is->priv->is_broken_cyrus = FALSE;
 
 	if (!imapx_reconnect (is, cancellable, error))
 		return FALSE;
@@ -4386,7 +4521,9 @@ camel_imapx_server_copy_message_sync (CamelIMAPXServer *is,
 	if (camel_imapx_mailbox_get_permanentflags (destination) == ~0) {
 		/* To get permanent flags. That's okay if the "SELECT" fails here, as it can be
 		   due to the folder being write-only; just ignore the error and continue. */
-		camel_imapx_server_ensure_selected_sync (is, destination, cancellable, NULL);
+		if (!camel_imapx_server_ensure_selected_sync (is, destination, cancellable, NULL)) {
+			;
+		}
 	}
 
 	if (g_cancellable_set_error_if_cancelled (cancellable, error))
@@ -4450,7 +4587,7 @@ camel_imapx_server_copy_message_sync (CamelIMAPXServer *is,
 				break;
 		}
 
-		imapx_uidset_done (&uidset, ic);
+		g_warn_if_fail (imapx_uidset_done (&uidset, ic));
 
 		camel_imapx_command_add (ic, " %M", destination);
 
@@ -4713,7 +4850,9 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 
 	/* That's okay if the "SELECT" fails here, as it can be due to
 	   the folder being write-only; just ignore the error and continue. */
-	camel_imapx_server_ensure_selected_sync (is, mailbox, cancellable, NULL);
+	if (!camel_imapx_server_ensure_selected_sync (is, mailbox, cancellable, NULL)) {
+		;
+	}
 
 	if (g_cancellable_set_error_if_cancelled (cancellable, error))
 		return FALSE;
@@ -4840,7 +4979,7 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 	if (success) {
 		CamelIMAPXFolder *imapx_folder;
 		CamelFolder *folder;
-		CamelMessageInfo *mi;
+		CamelMessageInfo *clone;
 		gchar *cur, *old_uid;
 		guint32 uidvalidity;
 
@@ -4857,7 +4996,7 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 		 * numbered MessageInfo, without losing any information.  Otherwise
 		 * we have to wait for the server to let us know it was appended. */
 
-		mi = camel_message_info_clone (info, camel_folder_get_folder_summary (folder));
+		clone = camel_message_info_clone (info, camel_folder_get_folder_summary (folder));
 		old_uid = g_strdup (camel_message_info_get_uid (info));
 
 		if (ic->status && ic->status->condition == IMAPX_APPENDUID) {
@@ -4866,7 +5005,7 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 				gchar *uid;
 
 				uid = g_strdup_printf ("%u", ic->status->u.appenduid.uid);
-				camel_message_info_set_uid (mi, uid);
+				camel_message_info_set_uid (clone, uid);
 
 				cur = camel_data_cache_get_filename  (imapx_folder->cache, "cur", uid);
 				if (g_rename (path, cur) == -1 && errno != ENOENT) {
@@ -4874,17 +5013,17 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 				}
 
 				imapx_set_message_info_flags_for_new_message (
-					mi,
+					clone,
 					camel_message_info_get_flags (info),
 					camel_message_info_get_user_flags (info),
 					TRUE,
 					camel_message_info_get_user_tags (info),
 					camel_imapx_mailbox_get_permanentflags (mailbox));
 
-				camel_folder_summary_add (camel_folder_get_folder_summary (folder), mi, TRUE);
+				camel_folder_summary_add (camel_folder_get_folder_summary (folder), clone, TRUE);
 
 				g_mutex_lock (&is->priv->changes_lock);
-				camel_folder_change_info_add_uid (is->priv->changes, camel_message_info_get_uid (mi));
+				camel_folder_change_info_add_uid (is->priv->changes, camel_message_info_get_uid (clone));
 				g_mutex_unlock (&is->priv->changes_lock);
 
 				camel_folder_summary_save (camel_folder_get_folder_summary (folder), NULL);
@@ -4894,7 +5033,7 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 				else
 					g_free (uid);
 
-				g_clear_object (&mi);
+				g_clear_object (&clone);
 
 				g_free (cur);
 			} else {
@@ -4906,7 +5045,7 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 		g_free (old_uid);
 
 		camel_imapx_command_unref (ic);
-		g_clear_object (&mi);
+		g_clear_object (&clone);
 		g_object_unref (folder);
 	}
 

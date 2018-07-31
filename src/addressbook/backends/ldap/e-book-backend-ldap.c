@@ -1782,7 +1782,7 @@ modify_contact_search_handler (LDAPOp *op,
 	} else if (msg_type == LDAP_RES_SEARCH_REFERENCE) {
 		/* ignore references */
 	} else if (msg_type == LDAP_RES_SEARCH_RESULT) {
-		gchar *ldap_error_msg;
+		gchar *ldap_error_msg = NULL;
 		gint ldap_error;
 		gint new_dn_needed;
 
@@ -1803,7 +1803,8 @@ modify_contact_search_handler (LDAPOp *op,
 				ldap_error,
 				ldap_err2string (ldap_error), ldap_error_msg);
 		}
-		ldap_memfree (ldap_error_msg);
+		if (ldap_error_msg)
+			ldap_memfree (ldap_error_msg);
 
 		if (ldap_error != LDAP_SUCCESS) {
 			/* more here i'm sure */
@@ -1896,7 +1897,7 @@ modify_contact_rename_handler (LDAPOp *op,
 {
 	LDAPModifyOp *modify_op = (LDAPModifyOp *) op;
 	EBookBackendLDAP *bl = E_BOOK_BACKEND_LDAP (op->backend);
-	gchar *ldap_error_msg;
+	gchar *ldap_error_msg = NULL;
 	gint ldap_error;
 	LDAPMod **ldap_mods;
 	gboolean differences;
@@ -1943,7 +1944,8 @@ modify_contact_rename_handler (LDAPOp *op,
 			if (bl->priv->cache)
 				e_book_backend_cache_add_contact (bl->priv->cache, modify_op->contact);
 		}
-		ldap_memfree (ldap_error_msg);
+		if (ldap_error_msg)
+			ldap_memfree (ldap_error_msg);
 
 		if (ldap_error != LDAP_SUCCESS) {
 			e_data_book_respond_modify_contacts (op->book,
@@ -2152,7 +2154,7 @@ get_contact_handler (LDAPOp *op,
 	} else if (msg_type == LDAP_RES_SEARCH_REFERENCE) {
 		/* ignore references */
 	} else if (msg_type == LDAP_RES_SEARCH_RESULT) {
-		gchar *ldap_error_msg;
+		gchar *ldap_error_msg = NULL;
 		gint ldap_error;
 
 		g_rec_mutex_lock (&eds_ldap_handler_lock);
@@ -2170,7 +2172,8 @@ get_contact_handler (LDAPOp *op,
 				ldap_error,
 				ldap_err2string (ldap_error), ldap_error_msg);
 		}
-		ldap_memfree (ldap_error_msg);
+		if (ldap_error_msg)
+			ldap_memfree (ldap_error_msg);
 
 		e_data_book_respond_get_contact (
 			op->book,
@@ -2266,7 +2269,7 @@ contact_list_handler (LDAPOp *op,
 	} else if (msg_type == LDAP_RES_SEARCH_REFERENCE) {
 		/* ignore references */
 	} else if (msg_type == LDAP_RES_SEARCH_RESULT) {
-		gchar *ldap_error_msg;
+		gchar *ldap_error_msg = NULL;
 		gint ldap_error;
 
 		g_rec_mutex_lock (&eds_ldap_handler_lock);
@@ -2284,7 +2287,8 @@ contact_list_handler (LDAPOp *op,
 				ldap_error,
 				ldap_err2string (ldap_error), ldap_error_msg);
 		}
-		ldap_memfree (ldap_error_msg);
+		if (ldap_error_msg)
+			ldap_memfree (ldap_error_msg);
 
 		g_warning ("search returned %d\n", ldap_error);
 
@@ -2409,7 +2413,7 @@ contact_list_uids_handler (LDAPOp *op,
 	} else if (msg_type == LDAP_RES_SEARCH_REFERENCE) {
 		/* ignore references */
 	} else if (msg_type == LDAP_RES_SEARCH_RESULT) {
-		gchar *ldap_error_msg;
+		gchar *ldap_error_msg = NULL;
 		gint ldap_error;
 
 		g_rec_mutex_lock (&eds_ldap_handler_lock);
@@ -2427,7 +2431,8 @@ contact_list_uids_handler (LDAPOp *op,
 				ldap_error,
 				ldap_err2string (ldap_error), ldap_error_msg);
 		}
-		ldap_memfree (ldap_error_msg);
+		if (ldap_error_msg)
+			ldap_memfree (ldap_error_msg);
 
 		g_warning ("search returned %d\n", ldap_error);
 
@@ -3578,8 +3583,7 @@ func_contains (struct _ESExp *f,
 
 		if (!strcmp (propname, "x-evolution-any-field")) {
 			gint i;
-			gint query_length;
-			gchar *big_query;
+			GString *big_query;
 			gchar *match_str;
 			if (one_star) {
 				g_free (str);
@@ -3592,14 +3596,8 @@ func_contains (struct _ESExp *f,
 
 			match_str = g_strdup_printf ("=*%s*)", str);
 
-			query_length = 3; /* strlen ("(|") + strlen (")") */
-
-			for (i = 0; i < G_N_ELEMENTS (prop_info); i++) {
-				query_length += 1 /* strlen ("(") */ + strlen (prop_info[i].ldap_attr) + strlen (match_str);
-			}
-
-			big_query = g_malloc0 (query_length + 1);
-			strcat (big_query, "(|");
+			big_query = g_string_sized_new (G_N_ELEMENTS (prop_info) * 7);
+			g_string_append (big_query, "(|");
 			for (i = 0; i < G_N_ELEMENTS (prop_info); i++) {
 				if ((prop_info[i].prop_type & PROP_TYPE_STRING) != 0 &&
 				    !(prop_info[i].prop_type & PROP_WRITE_ONLY) &&
@@ -3607,14 +3605,14 @@ func_contains (struct _ESExp *f,
 				     !(prop_info[i].prop_type & PROP_EVOLVE)) &&
 				    (ldap_data->bl->priv->calEntrySupported ||
 				     !(prop_info[i].prop_type & PROP_CALENTRY))) {
-					strcat (big_query, "(");
-					strcat (big_query, prop_info[i].ldap_attr);
-					strcat (big_query, match_str);
+					g_string_append (big_query, "(");
+					g_string_append (big_query, prop_info[i].ldap_attr);
+					g_string_append (big_query, match_str);
 				}
 			}
-			strcat (big_query, ")");
+			g_string_append (big_query, ")");
 
-			ldap_data->list = g_list_prepend (ldap_data->list, big_query);
+			ldap_data->list = g_list_prepend (ldap_data->list, g_string_free (big_query, FALSE));
 
 			g_free (match_str);
 		}
@@ -3795,34 +3793,27 @@ func_exists (struct _ESExp *f,
 
 		if (!strcmp (propname, "x-evolution-any-field")) {
 			gint i;
-			gint query_length;
-			gchar *big_query;
+			GString *big_query;
 			gchar *match_str;
 
 			match_str = g_strdup ("=*)");
 
-			query_length = 3; /* strlen ("(|") + strlen (")") */
-
-			for (i = 0; i < G_N_ELEMENTS (prop_info); i++) {
-				query_length += 1 /* strlen ("(") */ + strlen (prop_info[i].ldap_attr) + strlen (match_str);
-			}
-
-			big_query = g_malloc0 (query_length + 1);
-			strcat (big_query, "(|");
+			big_query = g_string_sized_new (G_N_ELEMENTS (prop_info) * 7);
+			g_string_append (big_query, "(|");
 			for (i = 0; i < G_N_ELEMENTS (prop_info); i++) {
 				if (!(prop_info[i].prop_type & PROP_WRITE_ONLY) &&
 				    (ldap_data->bl->priv->evolutionPersonSupported ||
 				     !(prop_info[i].prop_type & PROP_EVOLVE)) &&
 				    (ldap_data->bl->priv->calEntrySupported ||
 				     !(prop_info[i].prop_type & PROP_CALENTRY))) {
-					strcat (big_query, "(");
-					strcat (big_query, prop_info[i].ldap_attr);
-					strcat (big_query, match_str);
+					g_string_append (big_query, "(");
+					g_string_append (big_query, prop_info[i].ldap_attr);
+					g_string_append (big_query, match_str);
 				}
 			}
-			strcat (big_query, ")");
+			g_string_append (big_query, ")");
 
-			ldap_data->list = g_list_prepend (ldap_data->list, big_query);
+			ldap_data->list = g_list_prepend (ldap_data->list, g_string_free (big_query, FALSE));
 
 			g_free (match_str);
 		}
@@ -4298,7 +4289,7 @@ ldap_search_handler (LDAPOp *op,
 		/* ignore references */
 	} else if (msg_type == LDAP_RES_SEARCH_RESULT) {
 		GError *edb_err = NULL;
-		gchar *ldap_error_msg;
+		gchar *ldap_error_msg = NULL;
 		gint ldap_error;
 
 		g_rec_mutex_lock (&eds_ldap_handler_lock);
@@ -4316,7 +4307,8 @@ ldap_search_handler (LDAPOp *op,
 				ldap_error,
 				ldap_err2string (ldap_error), ldap_error_msg);
 		}
-		ldap_memfree (ldap_error_msg);
+		if (ldap_error_msg)
+			ldap_memfree (ldap_error_msg);
 
 		if ((ldap_error == LDAP_TIMELIMIT_EXCEEDED || ldap_error == LDAP_SIZELIMIT_EXCEEDED) && can_browse ((EBookBackend *) bl))
 			/* do not complain when search limit exceeded for browseable LDAPs */
