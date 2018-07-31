@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.28.5
+	VERSION 3.29.90
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -12,7 +12,7 @@ set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issu
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.28)
+set(BASE_VERSION 3.30)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -45,7 +45,7 @@ set(USER_PROMPTER_DBUS_SERVICE_NAME	"org.gnome.evolution.dataserver.UserPrompter
 # ******************************
 # Library versioning
 # ******************************
-set(LIBCAMEL_CURRENT 61)
+set(LIBCAMEL_CURRENT 62)
 set(LIBCAMEL_REVISION 0)
 set(LIBCAMEL_AGE 0)
 
@@ -77,7 +77,7 @@ set(LIBECAL_CURRENT 19)
 set(LIBECAL_REVISION 0)
 set(LIBECAL_AGE 0)
 
-set(LIBEDATACAL_CURRENT 28)
+set(LIBEDATACAL_CURRENT 29)
 set(LIBEDATACAL_REVISION 0)
 set(LIBEDATACAL_AGE 0)
 
@@ -120,6 +120,7 @@ set(libaccounts_glib_minimum_version 1.4)
 set(libsignon_glib_minimum_version 1.8)
 set(json_glib_minimum_version 1.0.4)
 set(webkit2gtk_minimum_version 2.11.91)
+set(libcanberra_gtk_minimum_version 0.25)
 
 # Load modules from the source tree
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
@@ -195,6 +196,7 @@ endif(WIN32)
 set(imagesdir "${SHARE_INSTALL_PREFIX}/pixmaps/${PROJECT_NAME}")
 set(moduledir "${privlibdir}/registry-modules")
 set(credentialmoduledir "${privlibdir}/credential-modules")
+set(uimoduledir "${privlibdir}/ui-modules")
 set(ebook_backenddir "${privlibdir}/addressbook-backends")
 set(ecal_backenddir "${privlibdir}/calendar-backends")
 set(ro_sourcesdir "${privdatadir}/ro-sources")
@@ -291,16 +293,6 @@ find_program(GPERF gperf)
 if(NOT GPERF)
 	message(FATAL_ERROR "You need gperf to build ${PROJECT_NAME}")
 endif(NOT GPERF)
-
-find_program(PERL perl)
-if(NOT PERL)
-	message(FATAL_ERROR "You need perl to build ${PROJECT_NAME}")
-endif(NOT PERL)
-
-find_program(PYTHON NAMES python3 python2 python)
-if(NOT PYTHON)
-	message(FATAL_ERROR "You need python to build ${PROJECT_NAME}")
-endif(NOT PYTHON)
 
 # ******************************
 # db_load checking, it's optional
@@ -764,6 +756,17 @@ if(ENABLE_WEATHER)
 	unset(CMAKE_REQUIRED_INCLUDES)
 	unset(CMAKE_REQUIRED_LIBRARIES)
 endif(ENABLE_WEATHER)
+
+# ************************************************
+# evolution-alarm-notify : Canberra-GTK for Sound
+# ************************************************
+
+add_printable_option(ENABLE_CANBERRA "Enable Canberra-GTK for sound in evolution-alarm-notify" ON)
+
+if(ENABLE_CANBERRA)
+	pkg_check_modules_for_option(ENABLE_CANBERRA "Canberra-GTK for sound in evolution-alarm-notify" CANBERRA libcanberra-gtk3>=${libcanberra_gtk_minimum_version})
+	set(HAVE_CANBERRA ON)
+endif(ENABLE_CANBERRA)
 
 # ******************************
 # File locking

@@ -95,7 +95,10 @@ typedef enum _camel_imapx_id_t {
 	IMAPX_OVERQUOTA,
 	IMAPX_PRIVACYREQUIRED,
 	IMAPX_SERVERBUG,
-	IMAPX_UNAVAILABLE
+	IMAPX_UNAVAILABLE,
+
+	/* Sentinel for completeness check */
+	IMAPX_LAST_ID_VALUE
 } camel_imapx_id_t;
 
 #define CAMEL_IMAPX_UNTAGGED_BAD        "BAD"
@@ -230,7 +233,6 @@ CamelMessageContentInfo *
 gchar *		imapx_parse_section		(CamelIMAPXInputStream *stream,
 						 GCancellable *cancellable,
 						 GError **error);
-void		imapx_free_body			(struct _CamelMessageContentInfo *cinfo);
 
 /* ********************************************************************** */
 /* all the possible stuff we might get from a fetch request */

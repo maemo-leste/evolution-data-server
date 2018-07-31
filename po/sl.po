@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: evolution-data-server master\n"
 "Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?"
 "product=evolution-data-server&keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2018-05-07 08:05+0000\n"
-"PO-Revision-Date: 2018-05-08 22:07+0200\n"
+"POT-Creation-Date: 2018-05-11 11:48+0000\n"
+"PO-Revision-Date: 2018-05-11 23:14+0200\n"
 "Last-Translator: Matej Urbančič <mateju@svn.gnome.org>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl_SI\n"
@@ -96,7 +96,7 @@ msgstr "Ni mogoče preimenovati stare podatkovne zbirke iz »%s« v »%s«: %s"
 #: ../src/addressbook/backends/file/e-book-backend-file-migrate-bdb.c:148
 #: ../src/addressbook/backends/ldap/e-book-backend-ldap.c:1159
 #: ../src/addressbook/backends/ldap/e-book-backend-ldap.c:4334
-#: ../src/addressbook/backends/webdav/e-book-backend-webdav.c:239
+#: ../src/addressbook/backends/webdav/e-book-backend-webdav.c:255
 #: ../src/addressbook/libebook-contacts/e-book-contacts-types.c:49
 #: ../src/addressbook/libebook-contacts/e-phone-number.c:54
 #: ../src/addressbook/libebook/e-book.c:1079
@@ -111,7 +111,7 @@ msgstr "Ni mogoče preimenovati stare podatkovne zbirke iz »%s« v »%s«: %s"
 #: ../src/addressbook/libebook/e-book-client.c:3422
 #: ../src/addressbook/libebook/e-book-client.c:3640
 #: ../src/addressbook/libedata-book/e-book-backend-sexp.c:877
-#: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:222
+#: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:239
 #: ../src/calendar/backends/contacts/e-cal-backend-contacts.c:274
 #: ../src/calendar/backends/http/e-cal-backend-http.c:204
 #: ../src/calendar/libecal/e-cal.c:2334
@@ -144,12 +144,13 @@ msgstr "Ni mogoče preimenovati stare podatkovne zbirke iz »%s« v »%s«: %s"
 #: ../src/libedataserver/e-client.c:188
 #: ../src/libedataserver/e-soup-session.c:1119
 #: ../src/libedataserverui/e-credentials-prompter-impl-oauth2.c:204
+#: ../src/libedataserverui/e-reminders-widget.c:1780
 #: ../src/tools/list-sources/list-sources.c:429
 msgid "Unknown error"
 msgstr "Neznana napaka"
 
 #: ../src/addressbook/backends/google/e-book-backend-google.c:924
-#: ../src/addressbook/backends/webdav/e-book-backend-webdav.c:1017
+#: ../src/addressbook/backends/webdav/e-book-backend-webdav.c:1033
 msgid "Object to save is not a valid vCard"
 msgstr "Predmet za shranjevanje ni veljavna kartica vCard"
 
@@ -266,12 +267,12 @@ msgstr "Odstranjujem stik iz strežnika LDAP ..."
 msgid "Failed to get the DN for user “%s”"
 msgstr "Pridobivanje razločnega imena (DN) za uporabnika »%s« je spodletelo."
 
-#: ../src/addressbook/backends/webdav/e-book-backend-webdav.c:180
+#: ../src/addressbook/backends/webdav/e-book-backend-webdav.c:196
 #, c-format
 msgid "Given URL “%s” doesn’t reference WebDAV address book"
 msgstr "Podan naslov URL »%s« se ne sklicuje na imenik WebDAV"
 
-#: ../src/addressbook/backends/webdav/e-book-backend-webdav.c:941
+#: ../src/addressbook/backends/webdav/e-book-backend-webdav.c:957
 msgid "Received object is not a valid vCard"
 msgstr "Prejet predmet ni veljavna kartica vCard."
 
@@ -1359,12 +1360,12 @@ msgstr "Med premikanjem kazalke je prišlo do napake usklajevanja."
 msgid "Alphabetic index was set for incorrect locale"
 msgstr "Abecedni indeks je nastavljen za napačne jezikovne nastavitve."
 
-#: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:165
+#: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:182
 #, c-format
 msgid "Given URL “%s” doesn’t reference CalDAV calendar"
 msgstr "Podan naslov URL »%s« se ne sklicuje na koledar CalDAV"
 
-#: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:1616
+#: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:1633
 msgid "Failed to parse response data"
 msgstr "Razčlenjevanje podatkov odziva je spodletelo"
 
@@ -1700,29 +1701,867 @@ msgstr "30."
 msgid "31st"
 msgstr "31."
 
-#: ../src/calendar/libecal/e-cal-util.c:707
-#: ../src/calendar/libecal/e-cal-util.c:734
+#: ../src/calendar/libecal/e-cal-recur.c:4933
+#, c-format
+msgid "every day forever"
+msgid_plural "every %d days forever"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:4939
+#, c-format
+msgid "Every day forever"
+msgid_plural "Every %d days forever"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:4947
+#, c-format
+msgid "every day"
+msgid_plural "every %d days"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:4953
+#, c-format
+msgid "Every day"
+msgid_plural "Every %d days"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5043
+#, c-format
+msgid "every week"
+msgid_plural "every %d weeks"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5049
+#, c-format
+msgid "Every week"
+msgid_plural "Every %d weeks"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#. Translators: This is used to merge set of week day names in a recurrence, which can contain any
+#. of the week day names. The string always starts with "on DAYNAME", then it can continue either
+#. with ", DAYNAME" or " and DAYNAME", thus it can be something like "on Monday and Tuesday"
+#. or "on Monday, Wednesday and Friday" or simply "on Saturday". The '%1$s' is replaced with
+#. the previously gathered text, while the '%2$s' is replaced with the text to append.
+#: ../src/calendar/libecal/e-cal-recur.c:5063
+#, fuzzy, c-format
+msgctxt "recur-description-dayname"
+msgid "%1$s%2$s"
+msgstr "%1$s %2$s"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5080
+#, fuzzy
+msgctxt "recur-description"
+msgid "on Sunday"
+msgstr "nedelja"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5081
+#, fuzzy
+msgctxt "recur-description"
+msgid ", Sunday"
+msgstr "nedelja"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5082
+#, fuzzy
+msgctxt "recur-description"
+msgid " and Sunday"
+msgstr "nedelja"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5085
+#, fuzzy
+msgctxt "recur-description"
+msgid "on Monday"
+msgstr "ponedeljek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5086
+#, fuzzy
+msgctxt "recur-description"
+msgid ", Monday"
+msgstr "ponedeljek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5087
+msgctxt "recur-description"
+msgid " and Monday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5090
+#, fuzzy
+msgctxt "recur-description"
+msgid "on Tuesday"
+msgstr "torek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5091
+#, fuzzy
+msgctxt "recur-description"
+msgid ", Tuesday"
+msgstr "torek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5092
+msgctxt "recur-description"
+msgid " and Tuesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5095
+#, fuzzy
+msgctxt "recur-description"
+msgid "on Wednesday"
+msgstr "sreda"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5096
+#, fuzzy
+msgctxt "recur-description"
+msgid ", Wednesday"
+msgstr "sreda"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5097
+#, fuzzy
+msgctxt "recur-description"
+msgid " and Wednesday"
+msgstr "sreda"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5100
+#, fuzzy
+msgctxt "recur-description"
+msgid "on Thursday"
+msgstr "četrtek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5101
+#, fuzzy
+msgctxt "recur-description"
+msgid ", Thursday"
+msgstr "četrtek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5102
+#, fuzzy
+msgctxt "recur-description"
+msgid " and Thursday"
+msgstr "četrtek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5105
+#, fuzzy
+#| msgctxt "CategoryName"
+#| msgid "Holiday"
+msgctxt "recur-description"
+msgid "on Friday"
+msgstr "petek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5106
+#, fuzzy
+msgctxt "recur-description"
+msgid ", Friday"
+msgstr "petek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5107
+msgctxt "recur-description"
+msgid " and Friday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5110
+#, fuzzy
+msgctxt "recur-description"
+msgid "on Saturday"
+msgstr "sobota"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5111
+#, fuzzy
+msgctxt "recur-description"
+msgid ", Saturday"
+msgstr "sobota"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5112
+#, fuzzy
+msgctxt "recur-description"
+msgid " and Saturday"
+msgstr "sobota"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5245
+#, c-format
+msgid "every month"
+msgid_plural "every %d months"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5251
+#, c-format
+msgid "Every month"
+msgid_plural "Every %d months"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5261
+#: ../src/calendar/libecal/e-cal-recur.c:5582
+msgctxt "recur-description"
+msgid "on the last Sunday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5264
+#: ../src/calendar/libecal/e-cal-recur.c:5432
+msgctxt "recur-description"
+msgid "on the last Monday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5267
+#: ../src/calendar/libecal/e-cal-recur.c:5457
+msgctxt "recur-description"
+msgid "on the last Tuesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5270
+#: ../src/calendar/libecal/e-cal-recur.c:5482
+msgctxt "recur-description"
+msgid "on the last Wednesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5273
+#: ../src/calendar/libecal/e-cal-recur.c:5507
+msgctxt "recur-description"
+msgid "on the last Thursday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5276
+#: ../src/calendar/libecal/e-cal-recur.c:5532
+msgctxt "recur-description"
+msgid "on the last Friday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5279
+#: ../src/calendar/libecal/e-cal-recur.c:5557
+msgctxt "recur-description"
+msgid "on the last Saturday"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5289
+msgctxt "recur-description"
+msgid "on the 1st day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5293
+msgctxt "recur-description"
+msgid "on the 2nd day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5297
+msgctxt "recur-description"
+msgid "on the 3rd day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5301
+msgctxt "recur-description"
+msgid "on the 4th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5305
+msgctxt "recur-description"
+msgid "on the 5th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5309
+msgctxt "recur-description"
+msgid "on the 6th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5313
+msgctxt "recur-description"
+msgid "on the 7th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5317
+msgctxt "recur-description"
+msgid "on the 8th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5321
+msgctxt "recur-description"
+msgid "on the 9th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5325
+msgctxt "recur-description"
+msgid "on the 10th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5329
+msgctxt "recur-description"
+msgid "on the 11th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5333
+msgctxt "recur-description"
+msgid "on the 12th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5337
+msgctxt "recur-description"
+msgid "on the 13th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5341
+msgctxt "recur-description"
+msgid "on the 14th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5345
+msgctxt "recur-description"
+msgid "on the 15th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5349
+msgctxt "recur-description"
+msgid "on the 16th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5353
+msgctxt "recur-description"
+msgid "on the 17th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5357
+msgctxt "recur-description"
+msgid "on the 18th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5361
+msgctxt "recur-description"
+msgid "on the 19th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5365
+msgctxt "recur-description"
+msgid "on the 20th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5369
+msgctxt "recur-description"
+msgid "on the 21st day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5373
+msgctxt "recur-description"
+msgid "on the 22nd day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5377
+msgctxt "recur-description"
+msgid "on the 23rd day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5381
+msgctxt "recur-description"
+msgid "on the 24th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5385
+msgctxt "recur-description"
+msgid "on the 25th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5389
+msgctxt "recur-description"
+msgid "on the 26th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5393
+msgctxt "recur-description"
+msgid "on the 27th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5397
+msgctxt "recur-description"
+msgid "on the 28th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5401
+msgctxt "recur-description"
+msgid "on the 29th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5405
+msgctxt "recur-description"
+msgid "on the 30th day"
+msgstr ""
+
+#. Translators: This is added to a monthly recurrence, forming something like "Every month on the Xth day"
+#: ../src/calendar/libecal/e-cal-recur.c:5409
+msgctxt "recur-description"
+msgid "on the 31st day"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5417
+msgctxt "recur-description"
+msgid "on the first Monday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5420
+msgctxt "recur-description"
+msgid "on the second Monday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5423
+msgctxt "recur-description"
+msgid "on the third Monday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5426
+msgctxt "recur-description"
+msgid "on the fourth Monday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5429
+msgctxt "recur-description"
+msgid "on the fifth Monday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5442
+msgctxt "recur-description"
+msgid "on the first Tuesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5445
+msgctxt "recur-description"
+msgid "on the second Tuesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5448
+msgctxt "recur-description"
+msgid "on the third Tuesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5451
+msgctxt "recur-description"
+msgid "on the fourth Tuesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5454
+msgctxt "recur-description"
+msgid "on the fifth Tuesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5467
+msgctxt "recur-description"
+msgid "on the first Wednesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5470
+msgctxt "recur-description"
+msgid "on the second Wednesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5473
+msgctxt "recur-description"
+msgid "on the third Wednesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5476
+msgctxt "recur-description"
+msgid "on the fourth Wednesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5479
+msgctxt "recur-description"
+msgid "on the fifth Wednesday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5492
+msgctxt "recur-description"
+msgid "on the first Thursday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5495
+msgctxt "recur-description"
+msgid "on the second Thursday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5498
+msgctxt "recur-description"
+msgid "on the third Thursday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5501
+msgctxt "recur-description"
+msgid "on the fourth Thursday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5504
+msgctxt "recur-description"
+msgid "on the fifth Thursday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5517
+msgctxt "recur-description"
+msgid "on the first Friday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5520
+msgctxt "recur-description"
+msgid "on the second Friday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5523
+msgctxt "recur-description"
+msgid "on the third Friday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5526
+msgctxt "recur-description"
+msgid "on the fourth Friday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5529
+msgctxt "recur-description"
+msgid "on the fifth Friday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5542
+msgctxt "recur-description"
+msgid "on the first Saturday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5545
+msgctxt "recur-description"
+msgid "on the second Saturday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5548
+msgctxt "recur-description"
+msgid "on the third Saturday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5551
+msgctxt "recur-description"
+msgid "on the fourth Saturday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5554
+msgctxt "recur-description"
+msgid "on the fifth Saturday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5567
+msgctxt "recur-description"
+msgid "on the first Sunday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5570
+msgctxt "recur-description"
+msgid "on the second Sunday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5573
+msgctxt "recur-description"
+msgid "on the third Sunday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5576
+msgctxt "recur-description"
+msgid "on the fourth Sunday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5579
+msgctxt "recur-description"
+msgid "on the fifth Sunday"
+msgstr ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5608
+#, c-format
+msgid "every year forever"
+msgid_plural "every %d years forever"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5614
+#, c-format
+msgid "Every year forever"
+msgid_plural "Every %d years forever"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5622
+#, c-format
+msgid "every year"
+msgid_plural "every %d years"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-recur.c:5628
+#, c-format
+msgid "Every year"
+msgid_plural "Every %d years"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#. Translators: This is one of the last possible parts of a recurrence description.
+#. The text is appended at the end of the complete recurrence description, making it
+#. for example: "Every 3 days for 10 occurrences"
+#: ../src/calendar/libecal/e-cal-recur.c:5647
+#, c-format
+msgid "for one occurrence"
+msgid_plural "for %d occurrences"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#. Translators: This is one of the last possible parts of a recurrence description.
+#. The '%s' is replaced with actual date, thus it can create something like
+#. "until Mon 15.1.2018". The text is appended at the end of the complete
+#. recurrence description, making it for example: "Every 3 days until Mon 15.1.2018"
+#: ../src/calendar/libecal/e-cal-recur.c:5682
+#, c-format
+msgctxt "recur-description"
+msgid "until %s"
+msgstr "do %s"
+
+#. Translators: This is one of the last possible parts of a recurrence description.
+#. The text is appended at the end of the complete recurrence description, making it
+#. for example: "Every 2 months on Tuesday, Thursday and Friday forever"
+#: ../src/calendar/libecal/e-cal-recur.c:5688
+msgctxt "recur-description"
+msgid "forever"
+msgstr "forever"
+
+#. Translators: This constructs a complete recurrence description; the '%1$s' is like "Every 2 weeks",
+#. the '%2$s' is like "on Tuesday and Friday" and the '%3$s' is like "for 10 occurrences", constructing
+#. together one sentence: "Every 2 weeks on Tuesday and Friday for 10 occurrences".
+#: ../src/calendar/libecal/e-cal-recur.c:5698
+#, c-format
+msgctxt "recur-description"
+msgid "%1$s %2$s %3$s"
+msgstr "%1$s %2$s %3$s"
+
+#. Translators: This constructs a complete recurrence description; the '%1$s' is like "Every 2 days",
+#. the '%2$s' is like "for 10 occurrences", constructing together one sentence:
+#. "Every 2 days for 10 occurrences".
+#: ../src/calendar/libecal/e-cal-recur.c:5703
+#, c-format
+msgctxt "recur-description"
+msgid "%1$s %2$s"
+msgstr "%1$s %2$s"
+
+#. Translators: This text is appended at the end of complete recur description using "%s%s" in
+#. context "recur-description"
+#: ../src/calendar/libecal/e-cal-recur.c:5719
+#, c-format
+msgid ", with one exception"
+msgid_plural ", with %d exceptions"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#. Translators: This appends text like ", with 3 exceptions" at the end of complete recurrence description.
+#. The "%1$s" is replaced with the recurrence description, the "%2$s" with the text about exceptions.
+#. It will form something like: "Every 2 weeks on Tuesday and Friday for 10 occurrences, with 3 exceptions"
+#: ../src/calendar/libecal/e-cal-recur.c:5726
+#, c-format
+msgctxt "recur-description"
+msgid "%1$s%2$s"
+msgstr "%1$s%2$s"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5739
+#: ../src/calendar/libecal/e-cal-recur.c:5762
+#, fuzzy
+msgctxt "recur-description"
+msgid "The meeting recurs"
+msgstr "Srečanje se ponavlja"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5741
+#: ../src/calendar/libecal/e-cal-recur.c:5764
+#, fuzzy
+#| msgid "Untitled appointment"
+msgctxt "recur-description"
+msgid "The appointment recurs"
+msgstr "Neimenovan sestanek"
+
+#: ../src/calendar/libecal/e-cal-recur.c:5744
+#: ../src/calendar/libecal/e-cal-recur.c:5767
+#, fuzzy
+msgctxt "recur-description"
+msgid "The task recurs"
+msgstr "Ta naloga se ponavlja"
+
+#. if (icalcomponent_isa (icalcomp) == ICAL_VJOURNAL_COMPONENT)
+#: ../src/calendar/libecal/e-cal-recur.c:5746
+#: ../src/calendar/libecal/e-cal-recur.c:5769
+#, fuzzy
+msgctxt "recur-description"
+msgid "The memo recurs"
+msgstr "Opomnik se ponavlja"
+
+#. Translators: This adds a prefix in front of the complete recurrence description.
+#. The '%1$s' is replaced with something like "The meeting recurs" and
+#. the '%2$s' with something like "every 2 days forever", thus forming
+#. sentence like "This meeting recurs every 2 days forever"
+#: ../src/calendar/libecal/e-cal-recur.c:5753
+#, c-format
+msgctxt "recur-description-prefix"
+msgid "%1$s %2$s"
+msgstr "%1$s %2$s"
+
+#: ../src/calendar/libecal/e-cal-util.c:708
+#: ../src/calendar/libecal/e-cal-util.c:735
 msgctxt "Priority"
 msgid "High"
 msgstr "visoka"
 
-#: ../src/calendar/libecal/e-cal-util.c:709
-#: ../src/calendar/libecal/e-cal-util.c:736
+#: ../src/calendar/libecal/e-cal-util.c:710
+#: ../src/calendar/libecal/e-cal-util.c:737
 msgctxt "Priority"
 msgid "Normal"
 msgstr "običajna"
 
-#: ../src/calendar/libecal/e-cal-util.c:711
-#: ../src/calendar/libecal/e-cal-util.c:738
+#: ../src/calendar/libecal/e-cal-util.c:712
+#: ../src/calendar/libecal/e-cal-util.c:739
 msgctxt "Priority"
 msgid "Low"
 msgstr "nizka"
 
 #. An empty string is the same as 'None'.
-#: ../src/calendar/libecal/e-cal-util.c:732
+#: ../src/calendar/libecal/e-cal-util.c:733
 msgctxt "Priority"
 msgid "Undefined"
 msgstr "Nedoločeno"
+
+#: ../src/calendar/libecal/e-cal-util.c:775
+#: ../src/libedataserverui/e-reminders-widget.c:291
+#, c-format
+msgid "%d week"
+msgid_plural "%d weeks"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-util.c:784
+#: ../src/libedataserverui/e-reminders-widget.c:287
+#, c-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-util.c:793
+#: ../src/libedataserverui/e-reminders-widget.c:283
+#, c-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-cal-util.c:802
+#: ../src/libedataserverui/e-reminders-widget.c:279
+#, c-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#. Translators: here, "second" is the time division (like "minute"), not the ordinal number (like "third")
+#: ../src/calendar/libecal/e-cal-util.c:807
+#, c-format
+msgid "%d second"
+msgid_plural "%d seconds"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/calendar/libecal/e-reminder-watcher.c:2460
+msgid "No Summary"
+msgstr "Brez povzetka"
+
+#. Translators: The first %s is replaced with the time string,
+#. the second %s with a duration, and the third %s with an event location,
+#. making it something like: "24.1.2018 10:30 (30 minutes) Meeting room A1"
+#: ../src/calendar/libecal/e-reminder-watcher.c:2476
+#, c-format
+#| msgid "%s (%s)"
+msgctxt "overdue"
+msgid "%s (%s) %s"
+msgstr "%s (%s) %s"
+
+#. Translators: The first %s is replaced with the time string,
+#. the second %s with a duration, making is something like:
+#. "24.1.2018 10:30 (30 minutes)"
+#: ../src/calendar/libecal/e-reminder-watcher.c:2481
+#, c-format
+#| msgid "%s (%s)"
+msgctxt "overdue"
+msgid "%s (%s)"
+msgstr "%s (%s)"
+
+#. Translators: The first %s is replaced with the time string,
+#. the second %s with an event location, making it something like:
+#. "24.1.2018 10:30 Meeting room A1"
+#: ../src/calendar/libecal/e-reminder-watcher.c:2486
+#, c-format
+msgctxt "overdue"
+msgid "%s %s"
+msgstr "%s %s"
 
 #: ../src/calendar/libedata-cal/e-cal-backend-sexp.c:83
 #: ../src/calendar/libedata-cal/e-cal-backend-sexp.c:1083
@@ -2737,12 +3576,21 @@ msgstr ""
 "Ta možnost bo vzpostavila povezavo s strežnikom z uporabo overitve Kerberos "
 "4."
 
-#: ../src/camel/camel-sasl-gssapi.c:146
+#: ../src/camel/camel-sasl-gssapi.c:149
 #, c-format
 msgid "(Unknown GSSAPI mechanism code: %x)"
 msgstr "(Neznana koda mehanizma GSSAPI: %x)"
 
-#: ../src/camel/camel-sasl-gssapi.c:179
+#. Translators: the first '%s' is replaced with a generic error message,
+#. the second '%s' is replaced with additional error information.
+#: ../src/camel/camel-sasl-gssapi.c:172 ../src/camel/camel-sasl-gssapi.c:244
+#, c-format
+#| msgid "%s (%s)"
+msgctxt "gssapi_error"
+msgid "%s (%s)"
+msgstr "%s (%s)"
+
+#: ../src/camel/camel-sasl-gssapi.c:194
 msgid ""
 "The specified mechanism is not supported by the provided credential, or is "
 "unrecognized by the implementation."
@@ -2750,11 +3598,11 @@ msgstr ""
 "Navedenega načina ne podpirajo ponujene poverilnice ali pa ga izvedba ne "
 "prepozna."
 
-#: ../src/camel/camel-sasl-gssapi.c:184
+#: ../src/camel/camel-sasl-gssapi.c:199
 msgid "The provided target_name parameter was ill-formed."
 msgstr "Ponujen parameter target_name je napačno oblikovan."
 
-#: ../src/camel/camel-sasl-gssapi.c:187
+#: ../src/camel/camel-sasl-gssapi.c:202
 msgid ""
 "The provided target_name parameter contained an invalid or unsupported type "
 "of name."
@@ -2762,7 +3610,7 @@ msgstr ""
 "Ponujen parameter target_name je vseboval neveljavno ali nepodprto vrsto "
 "imena."
 
-#: ../src/camel/camel-sasl-gssapi.c:191
+#: ../src/camel/camel-sasl-gssapi.c:206
 msgid ""
 "The input_token contains different channel bindings to those specified via "
 "the input_chan_bindings parameter."
@@ -2770,7 +3618,7 @@ msgstr ""
 "Žeton input_token vsebuje drugačne kanalske povezave, kot so navedene v "
 "parametru input_chan_bindings."
 
-#: ../src/camel/camel-sasl-gssapi.c:196
+#: ../src/camel/camel-sasl-gssapi.c:211
 msgid ""
 "The input_token contains an invalid signature, or a signature that could not "
 "be verified."
@@ -2778,7 +3626,7 @@ msgstr ""
 "Žeton input_token vsebuje neveljaven podpis ali pa podpis, ki se ga ne da "
 "overiti."
 
-#: ../src/camel/camel-sasl-gssapi.c:200
+#: ../src/camel/camel-sasl-gssapi.c:215
 msgid ""
 "The supplied credentials were not valid for context initiation, or the "
 "credential handle did not reference any credentials."
@@ -2786,30 +3634,42 @@ msgstr ""
 "Priskrbljene poverilnice niso veljavne za začenjanje vsebine ali pa se "
 "ročnik poverilnic ni skliceval na nobeno poverilnico."
 
-#: ../src/camel/camel-sasl-gssapi.c:205
+#: ../src/camel/camel-sasl-gssapi.c:220
 msgid "The supplied context handle did not refer to a valid context."
 msgstr "Ponujen ročnik vsebine se ne sklicuje na veljavno vsebino."
 
-#: ../src/camel/camel-sasl-gssapi.c:208
+#: ../src/camel/camel-sasl-gssapi.c:223
 msgid "The consistency checks performed on the input_token failed."
 msgstr "Preizkus skladnosti na input_token je spodletel."
 
-#: ../src/camel/camel-sasl-gssapi.c:211
+#: ../src/camel/camel-sasl-gssapi.c:226
 msgid "The consistency checks performed on the credential failed."
 msgstr "Preizkus skladnosti poverilnic je spodletel."
 
-#: ../src/camel/camel-sasl-gssapi.c:214
+#: ../src/camel/camel-sasl-gssapi.c:229
 msgid "The referenced credentials have expired."
 msgstr "Sklicane poverilnice so potekle."
 
-#: ../src/camel/camel-sasl-gssapi.c:220 ../src/camel/camel-sasl-gssapi.c:402
-#: ../src/camel/camel-sasl-gssapi.c:451 ../src/camel/camel-sasl-gssapi.c:468
+#: ../src/camel/camel-sasl-gssapi.c:235 ../src/camel/camel-sasl-gssapi.c:439
+#: ../src/camel/camel-sasl-gssapi.c:489 ../src/camel/camel-sasl-gssapi.c:506
 #: ../src/camel/providers/smtp/camel-smtp-transport.c:802
 #, c-format
 msgid "Bad authentication response from server."
 msgstr "Strežnik ni sprejel odziva podatkov overitve."
 
-#: ../src/camel/camel-sasl-gssapi.c:480
+#: ../src/camel/camel-sasl-gssapi.c:286
+msgid "Could not get session bus:"
+msgstr "Ni mogoče pridobiti vodila seje:"
+
+#: ../src/camel/camel-sasl-gssapi.c:320
+#, c-format
+msgid ""
+"Cannot ask for Kerberos ticket. Obtain the ticket manually, like on command "
+"line with “kinit” or open “Online Accounts” in “Settings” and add the "
+"Kerberos account there. Reported error was: %s"
+msgstr ""
+
+#: ../src/camel/camel-sasl-gssapi.c:518
 #, c-format
 msgid "Unsupported security layer."
 msgstr "Nepodprt varnostni sloj."
@@ -5112,6 +5972,75 @@ msgid ""
 msgstr ""
 "Enote opomnika za rojstni dan ali obletnico so »minute«, »ure« ali »dnevi«."
 
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:7
+msgid "Past reminders for EReminderWatcher"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:8
+msgid "Snoozed reminders for EReminderWatcher"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:9
+msgid "Reminder programs"
+msgstr "Programi za opomnike"
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:10
+#, fuzzy
+msgid "Programs that are allowed to be run by reminders"
+msgstr "Programi, ki jih lahko zaženejo opomniki."
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:11
+msgid "Show reminders in notification tray only"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:12
+msgid ""
+"When set to true, the reminders are shown only in the notification tray, "
+"otherwise the reminders dialog is shown immediately"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:13
+msgid "Show reminder notification dialog always on top"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:14
+msgid ""
+"Whether or not to show reminder notification dialog always on top. Note this "
+"works only as a hint for the window manager, which may or may not obey it."
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:15
+msgid "X position of the reminder notification dialog"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:16
+msgid "Y position of the reminder notification dialog"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:17
+msgid "Width of the reminder notification dialog"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:18
+msgid "Height of the reminder notification dialog"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:19
+msgid "Show reminder notification for completed tasks"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:20
+msgid "Show reminder notification for past events"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:21
+msgid "The last used snooze time, in minutes"
+msgstr ""
+
+#: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:22
+msgid "User-defined snooze times, in minutes"
+msgstr ""
+
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:1
 msgid "Whether the migration of old setting was already done"
 msgstr "Ali je bil prenos starih nastavitev končan."
@@ -5285,6 +6214,17 @@ msgstr "(Opuščeno) Številka vrat za uporabo pri zahtevah SOCKS"
 msgid "(Deprecated) Automatic proxy configuration URL"
 msgstr "(Opuščeno) Naslov URL za nastavitev posredniškega strežnika"
 
+#: ../data/org.gnome.Evolution-alarm-notify.desktop.in.in.h:1
+#, fuzzy
+msgid "Evolution Alarm Notify"
+msgstr "Obvestilo o alarmu Evolution"
+
+#: ../data/org.gnome.Evolution-alarm-notify.desktop.in.in.h:2
+#, fuzzy
+#| msgid "Calendar authentication request"
+msgid "Calendar event notifications"
+msgstr "Obvestila dogodkov koledarja"
+
 #: ../src/libebackend/e-cache.c:751
 msgid "Out of memory"
 msgstr "Primanjkuje pomnilnika"
@@ -5304,7 +6244,7 @@ msgstr "Vir %s ne podpira ustvarjanja oddaljenih virov"
 msgid "%s does not support deleting remote resources"
 msgstr "Vir %s ne podpira brisanja oddaljenih virov"
 
-#: ../src/libebackend/e-data-factory.c:1359
+#: ../src/libebackend/e-data-factory.c:1480
 #, c-format
 msgid "Backend factory for source “%s” and extension “%s” cannot be found."
 msgstr ""
@@ -6176,6 +7116,93 @@ msgstr "_Geslo:"
 msgid "_Add this password to your keyring"
 msgstr "Dodaj _geslo v zbirko ključev"
 
+#: ../src/libedataserverui/e-reminders-widget.c:225
+msgid "Add custom time…"
+msgstr "Dodaj čas po meri ..."
+
+#: ../src/libedataserverui/e-reminders-widget.c:229
+msgid "Clear custom times"
+msgstr "Počisti čase po meri"
+
+#: ../src/libedataserverui/e-reminders-widget.c:277
+#, fuzzy
+#| msgid "no"
+msgctxt "overdue"
+msgid "now"
+msgstr "sedaj"
+
+#: ../src/libedataserverui/e-reminders-widget.c:295
+#, c-format
+msgid "%d year"
+msgid_plural "%d years"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+#: ../src/libedataserverui/e-reminders-widget.c:301
+#, fuzzy
+msgctxt "overdue"
+msgid "overdue"
+msgstr "Zakasnelo"
+
+#: ../src/libedataserverui/e-reminders-widget.c:912
+#, fuzzy, c-format
+#| msgid "Failed to create cache “%s”:"
+msgid "Failed to launch URI “%s”:"
+msgstr "Ustvarjanje predpomnilnika »%s« je spodletelo."
+
+#: ../src/libedataserverui/e-reminders-widget.c:953
+#, fuzzy
+#| msgid "Could not discard reminder: "
+msgid "Failed to dismiss reminder:"
+msgstr "Opomnika ni mogoče zavreči:"
+
+#: ../src/libedataserverui/e-reminders-widget.c:974
+#, fuzzy
+#| msgid "Failed to issue NOTIFY"
+msgid "Failed to dismiss all:"
+msgstr "Izvajanje ukaza NOTIFY je spodletelo"
+
+#: ../src/libedataserverui/e-reminders-widget.c:1110
+msgid "Set a custom snooze time for"
+msgstr ""
+
+#. Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget
+#: ../src/libedataserverui/e-reminders-widget.c:1123
+msgctxt "reminders-snooze"
+msgid "da_ys"
+msgstr "dn_i"
+
+#. Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget
+#: ../src/libedataserverui/e-reminders-widget.c:1139
+msgctxt "reminders-snooze"
+msgid "_hours"
+msgstr "_ur"
+
+#. Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget
+#: ../src/libedataserverui/e-reminders-widget.c:1155
+msgctxt "reminders-snooze"
+msgid "_minutes"
+msgstr "_minut"
+
+#: ../src/libedataserverui/e-reminders-widget.c:1161
+msgid "_Add Snooze time"
+msgstr "Dodaj čas _dremeža"
+
+#: ../src/libedataserverui/e-reminders-widget.c:1428
+#: ../src/services/evolution-user-prompter/prompt-user-gtk.c:119
+msgid "_Dismiss"
+msgstr "_Opusti"
+
+#: ../src/libedataserverui/e-reminders-widget.c:1429
+msgid "Dismiss _All"
+msgstr "Opusti _vse"
+
+#: ../src/libedataserverui/e-reminders-widget.c:1431
+msgid "_Snooze"
+msgstr "_Dremež"
+
 #: ../src/libedataserverui/e-trust-prompt.c:111
 #: ../src/modules/trust-prompt/trust-prompt-gtk.c:117
 msgid "Certificate trust..."
@@ -6342,7 +7369,7 @@ msgid "Failed to find ASUrl and OABUrl in autodiscover response"
 msgstr ""
 "Iskanje predmetov ASUrl in OABUrl v odzivu samodejne zaznave je spodletelo"
 
-#: ../src/modules/gnome-online-accounts/module-gnome-online-accounts.c:1336
+#: ../src/modules/gnome-online-accounts/module-gnome-online-accounts.c:1405
 #, c-format
 msgid ""
 "Cannot find a corresponding account in the org.gnome.OnlineAccounts service "
@@ -6351,7 +7378,7 @@ msgstr ""
 "Ustreznega računa v storitvi the org.gnome.OnlineAccounts, iz katerega bi "
 "lahko pridobili žeton dostopa za »%s«, ni mogoče najti."
 
-#: ../src/modules/gnome-online-accounts/module-gnome-online-accounts.c:1366
+#: ../src/modules/gnome-online-accounts/module-gnome-online-accounts.c:1455
 #, c-format
 msgid "Failed to obtain an access token for “%s”: "
 msgstr "Pridobivanje žetona za dostop do »%s« je spodletelo:"
@@ -6475,6 +7502,69 @@ msgstr ""
 "vrednost 1 za zagon in 0 za onemogočanje, katerakoli druga vrednost omogoči "
 "izvajanje."
 
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:223
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:250
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:755
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:964
+msgid "Reminders"
+msgstr "Opomniki"
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:362
+msgid "Warning"
+msgstr "Opozorilo"
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:363
+msgid "_No"
+msgstr "_Ne"
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:364
+msgid "_Yes"
+msgstr "_Da"
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:368
+#, c-format
+msgid ""
+"A calendar reminder is about to trigger. This reminder is configured to run "
+"the following program:\n"
+"\n"
+"        %s\n"
+"\n"
+"Are you sure you want to run this program?"
+msgstr ""
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:382
+msgid "Do not ask me about this program again"
+msgstr "Za ta program ne zahtevaj več potrditve"
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:660
+msgid "Display reminders in notification area _only"
+msgstr "Opomnike prikaži v obvestilnem p_odročju"
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:661
+msgid "Keep reminder notification window always on _top"
+msgstr ""
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:662
+msgid "Display reminders for _completed tasks"
+msgstr ""
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:663
+msgid "Display reminders for _past events"
+msgstr ""
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:677
+msgid "Reminders Options:"
+msgstr ""
+
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:771
+#, c-format
+msgid "You have %d reminder"
+msgid_plural "You have %d reminders"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
 #: ../src/services/evolution-source-registry/builtin/birthdays.source.in.h:1
 msgid "Birthdays & Anniversaries"
 msgstr "Rojstni dnevi in obletnice"
@@ -6520,10 +7610,6 @@ msgstr "CardDAV"
 msgid "Don’t migrate user data from previous versions of Evolution"
 msgstr ""
 "Ne prenašaj uporabniških podatkov predhodnih različic programa Evolution"
-
-#: ../src/services/evolution-user-prompter/prompt-user-gtk.c:119
-msgid "_Dismiss"
-msgstr "_Opusti"
 
 #: ../src/tools/addressbook-export/addressbook-export.c:69
 #: ../src/tools/addressbook-export/addressbook-export.c:781
@@ -6847,9 +7933,6 @@ msgstr "Ni najdenih virov\n"
 
 #~ msgid "HTTP Error: %s"
 #~ msgstr "Napaka HTTP: %s"
-
-#~ msgid "Could not parse response"
-#~ msgstr "Odgovora ni mogoče razčleniti"
 
 #~ msgid "Empty response"
 #~ msgstr "Odziv brez vsebine"
