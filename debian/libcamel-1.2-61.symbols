@@ -891,6 +891,7 @@ libcamel-1.2.so.61 libcamel-1.2-61 #MINVER#
  camel_nntp_address_get_type@Base 3.19.92
  camel_nntp_address_new@Base 3.19.92
  camel_null_output_stream_get_bytes_written@Base 3.19.92
+ camel_null_output_stream_get_ends_with_crlf@Base 3.28.5
  camel_null_output_stream_get_type@Base 3.19.92
  camel_null_output_stream_new@Base 3.19.92
  camel_object_bag_abort@Base 3.19.92
@@ -1230,6 +1231,7 @@ libcamel-1.2.so.61 libcamel-1.2-61 #MINVER#
  camel_stream_mem_set_secure@Base 3.19.92
  camel_stream_new@Base 3.19.92
  camel_stream_null_get_bytes_written@Base 3.24.1
+ camel_stream_null_get_ends_with_crlf@Base 3.28.5
  camel_stream_null_get_type@Base 3.19.92
  camel_stream_null_new@Base 3.19.92
  camel_stream_process_connect@Base 3.19.92

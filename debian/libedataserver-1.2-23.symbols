@@ -1091,6 +1091,8 @@ libedataserver-1.2.so.23 libedataserver-1.2-23 #MINVER#
  e_webdav_discover_free_discovered_sources@Base 3.17.90
  e_webdav_discover_sources@Base 3.17.90
  e_webdav_discover_sources_finish@Base 3.17.90
+ e_webdav_discover_sources_full@Base 3.28.5
+ e_webdav_discover_sources_full_sync@Base 3.28.5
  e_webdav_discover_sources_sync@Base 3.17.90
  e_webdav_privilege_copy@Base 3.25.90
  e_webdav_privilege_free@Base 3.25.90
