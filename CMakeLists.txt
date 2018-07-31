@@ -4,10 +4,10 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.28.2
+	VERSION 3.28.5
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
-set(PROJECT_BUGREPORT "http://bugzilla.gnome.org/enter_bug.cgi?product=Evolution-Data-Server")
+set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
 
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
@@ -297,7 +297,7 @@ if(NOT PERL)
 	message(FATAL_ERROR "You need perl to build ${PROJECT_NAME}")
 endif(NOT PERL)
 
-find_program(PYTHON python3 python2 python)
+find_program(PYTHON NAMES python3 python2 python)
 if(NOT PYTHON)
 	message(FATAL_ERROR "You need python to build ${PROJECT_NAME}")
 endif(NOT PYTHON)
@@ -947,6 +947,12 @@ CHECK_C_SOURCE_COMPILES("#include <libical/ical.h>
 				icaltzutil_set_exact_vtimezones_support (0);
 				return 0;
 			}" HAVE_ICALTZUTIL_SET_EXACT_VTIMEZONES_SUPPORT)
+
+CHECK_C_SOURCE_COMPILES("#include <libical/ical.h>
+			int main(void) {
+				icalproperty_status_to_string (ICAL_STATUS_DELETED);
+				return 0;
+			}" HAVE_ICAL_STATUS_DELETED)
 
 unset(CMAKE_REQUIRED_DEFINITIONS)
 unset(CMAKE_REQUIRED_INCLUDES)

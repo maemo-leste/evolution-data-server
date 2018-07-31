@@ -810,6 +810,10 @@ ecc_get_status_as_string (icalproperty_status status)
 		return "pending";
 	case ICAL_STATUS_FAILED:
 		return "failed";
+#ifdef HAVE_ICAL_STATUS_DELETED
+	case ICAL_STATUS_DELETED:
+		return "deleted";
+#endif
 	case ICAL_STATUS_X:
 		break;
 	}
@@ -882,13 +886,17 @@ ecc_fill_other_columns (ECalCache *cal_cache,
 
 	e_cal_component_get_priority (comp, &pint);
 	add_value (ECC_COLUMN_PRIORITY, pint && *pint ? g_strdup_printf ("%d", *pint) : NULL);
-	if (pint)
+	if (pint) {
 		e_cal_component_free_priority (pint);
+		pint = NULL;
+	}
 
 	e_cal_component_get_percent (comp, &pint);
 	add_value (ECC_COLUMN_PERCENT_COMPLETE, pint && *pint ? g_strdup_printf ("%d", *pint) : NULL);
-	if (pint)
+	if (pint) {
 		e_cal_component_free_percent (pint);
+		pint = NULL;
+	}
 
 	has = e_cal_component_has_alarms (comp);
 	add_value (ECC_COLUMN_HAS_ALARM, g_strdup (has ? "1" : "0"));

@@ -33,6 +33,15 @@
 #include "e-book-backend-google.h"
 #include "e-book-google-utils.h"
 
+#ifdef G_OS_WIN32
+#ifdef gmtime_r
+#undef gmtime_r
+#endif
+
+/* The gmtime() in Microsoft's C library is MT-safe */
+#define gmtime_r(tp,tmp) (gmtime(tp)?(*(tmp)=*gmtime(tp),(tmp)):0)
+#endif
+
 #define URI_GET_CONTACTS "https://www.google.com/m8/feeds/contacts/default/full"
 
 G_DEFINE_TYPE (EBookBackendGoogle, e_book_backend_google, E_TYPE_BOOK_META_BACKEND)
@@ -53,6 +62,7 @@ struct _EBookBackendGooglePrivate {
 	/* Did the server-side groups change? If so, re-download the book */
 	gboolean groups_changed;
 
+	GRecMutex conn_lock;
 	GDataAuthorizer *authorizer;
 	GDataService *service;
 	GHashTable *preloaded; /* gchar *uid ~> EContact * */
@@ -144,7 +154,7 @@ ebb_google_data_book_error_from_gdata_error (GError **error,
 }
 
 static gboolean
-ebb_google_is_authorized (EBookBackendGoogle *bbgoogle)
+ebb_google_is_authorized_locked (EBookBackendGoogle *bbgoogle)
 {
 	g_return_val_if_fail (E_IS_BOOK_BACKEND_GOOGLE (bbgoogle), FALSE);
 
@@ -155,10 +165,10 @@ ebb_google_is_authorized (EBookBackendGoogle *bbgoogle)
 }
 
 static gboolean
-ebb_google_request_authorization (EBookBackendGoogle *bbgoogle,
-				  const ENamedParameters *credentials,
-				  GCancellable *cancellable,
-				  GError **error)
+ebb_google_request_authorization_locked (EBookBackendGoogle *bbgoogle,
+					 const ENamedParameters *credentials,
+					 GCancellable *cancellable,
+					 GError **error)
 {
 	/* Make sure we have the GDataService configured
 	 * before requesting authorization. */
@@ -311,10 +321,10 @@ ebb_google_process_group (GDataEntry *entry,
 }
 
 static gboolean
-ebb_google_get_groups_sync (EBookBackendGoogle *bbgoogle,
-			    gboolean with_time_constraint,
-			    GCancellable *cancellable,
-			    GError **error)
+ebb_google_get_groups_locked_sync (EBookBackendGoogle *bbgoogle,
+				   gboolean with_time_constraint,
+				   GCancellable *cancellable,
+				   GError **error)
 {
 	GDataQuery *query;
 	GDataFeed *feed;
@@ -322,7 +332,7 @@ ebb_google_get_groups_sync (EBookBackendGoogle *bbgoogle,
 	GError *local_error = NULL;
 
 	g_return_val_if_fail (E_IS_BOOK_BACKEND_GOOGLE (bbgoogle), FALSE);
-	g_return_val_if_fail (ebb_google_is_authorized (bbgoogle), FALSE);
+	g_return_val_if_fail (ebb_google_is_authorized_locked (bbgoogle), FALSE);
 
 	g_rec_mutex_lock (&bbgoogle->priv->groups_lock);
 
@@ -387,15 +397,21 @@ ebb_google_connect_sync (EBookMetaBackend *meta_backend,
 
 	*out_auth_result = E_SOURCE_AUTHENTICATION_ACCEPTED;
 
-	if (ebb_google_is_authorized (bbgoogle))
-		return TRUE;
+	g_rec_mutex_lock (&bbgoogle->priv->conn_lock);
 
-	success = ebb_google_request_authorization (bbgoogle, credentials, cancellable, &local_error);
+	if (ebb_google_is_authorized_locked (bbgoogle)) {
+		g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
+		return TRUE;
+	}
+
+	success = ebb_google_request_authorization_locked (bbgoogle, credentials, cancellable, &local_error);
 	if (success)
 		success = gdata_authorizer_refresh_authorization (bbgoogle->priv->authorizer, cancellable, &local_error);
 
 	if (success)
-		success = ebb_google_get_groups_sync (bbgoogle, FALSE, cancellable, &local_error);
+		success = ebb_google_get_groups_locked_sync (bbgoogle, FALSE, cancellable, &local_error);
+
+	g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 
 	if (!success) {
 		if (g_error_matches (local_error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED)) {
@@ -427,8 +443,12 @@ ebb_google_disconnect_sync (EBookMetaBackend *meta_backend,
 
 	bbgoogle = E_BOOK_BACKEND_GOOGLE (meta_backend);
 
+	g_rec_mutex_lock (&bbgoogle->priv->conn_lock);
+
 	g_clear_object (&bbgoogle->priv->service);
 	g_clear_object (&bbgoogle->priv->authorizer);
+
+	g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 
 	return TRUE;
 }
@@ -465,8 +485,12 @@ ebb_google_get_changes_sync (EBookMetaBackend *meta_backend,
 	*out_modified_objects = NULL;
 	*out_removed_objects = NULL;
 
-	if (!ebb_google_get_groups_sync (bbgoogle, TRUE, cancellable, error))
+	g_rec_mutex_lock (&bbgoogle->priv->conn_lock);
+
+	if (!ebb_google_get_groups_locked_sync (bbgoogle, TRUE, cancellable, error)) {
+		g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 		return FALSE;
+	}
 
 	book_cache = e_book_meta_backend_ref_cache (meta_backend);
 
@@ -525,7 +549,9 @@ ebb_google_get_changes_sync (EBookMetaBackend *meta_backend,
 				if (cached_contact) {
 					gchar *old_etag;
 
-					old_etag = e_contact_get (cached_contact, E_CONTACT_REV);
+					old_etag = e_vcard_util_dup_x_attribute (E_VCARD (cached_contact), E_GOOGLE_X_ETAG);
+					if (!old_etag)
+						old_etag = e_contact_get (cached_contact, E_CONTACT_REV);
 
 					if (g_strcmp0 (gdata_entry_get_etag (GDATA_ENTRY (gdata_contact)), old_etag) == 0) {
 						g_object_unref (cached_contact);
@@ -543,8 +569,8 @@ ebb_google_get_changes_sync (EBookMetaBackend *meta_backend,
 				g_rec_mutex_unlock (&bbgoogle->priv->groups_lock);
 
 				if (new_contact) {
-					const gchar *revision, *photo_etag;
-					gchar *object, *extra;
+					const gchar *etag, *photo_etag;
+					gchar *object, *revision, *extra;
 
 					photo_etag = gdata_contacts_contact_get_photo_etag (gdata_contact);
 					if (photo_etag && cached_contact) {
@@ -601,7 +627,9 @@ ebb_google_get_changes_sync (EBookMetaBackend *meta_backend,
 						}
 					}
 
-					revision = gdata_entry_get_etag (GDATA_ENTRY (gdata_contact));
+					etag = gdata_entry_get_etag (GDATA_ENTRY (gdata_contact));
+					e_vcard_util_set_x_attribute (E_VCARD (new_contact), E_GOOGLE_X_ETAG, etag);
+					revision = e_book_google_utils_time_to_revision (gdata_entry_get_updated (GDATA_ENTRY (gdata_contact)));
 					e_contact_set (new_contact, E_CONTACT_REV, revision);
 					object = e_vcard_to_string (E_VCARD (new_contact), EVC_FORMAT_VCARD_30);
 					extra = gdata_parsable_get_xml (GDATA_PARSABLE (gdata_contact));
@@ -614,6 +642,7 @@ ebb_google_get_changes_sync (EBookMetaBackend *meta_backend,
 							e_book_meta_backend_info_new (uid, revision, object, extra));
 					}
 
+					g_free (revision);
 					g_free (object);
 					g_free (extra);
 				}
@@ -626,6 +655,7 @@ ebb_google_get_changes_sync (EBookMetaBackend *meta_backend,
 		}
 	}
 
+	g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 	g_clear_object (&contacts_query);
 	g_clear_object (&feed);
 
@@ -714,10 +744,12 @@ ebb_google_create_group_sync (EBookBackendGoogle *bbgoogle,
 	gdata_entry_set_title (group, category_name);
 
 	/* Insert the new group */
+	g_rec_mutex_lock (&bbgoogle->priv->conn_lock);
 	new_group = GDATA_ENTRY (gdata_contacts_service_insert_group (
 			GDATA_CONTACTS_SERVICE (bbgoogle->priv->service),
 			GDATA_CONTACTS_GROUP (group),
 			cancellable, error));
+	g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 	g_object_unref (group);
 
 	if (new_group == NULL)
@@ -885,11 +917,12 @@ ebb_google_save_contact_sync (EBookMetaBackend *meta_backend,
 	if (extra && *extra)
 		entry = GDATA_ENTRY (gdata_parsable_new_from_xml (GDATA_TYPE_CONTACTS_CONTACT, extra, -1, NULL));
 
+	g_rec_mutex_lock (&bbgoogle->priv->conn_lock);
 	g_rec_mutex_lock (&bbgoogle->priv->groups_lock);
 
 	/* Ensure the system groups have been fetched. */
 	if (g_hash_table_size (bbgoogle->priv->system_groups_by_id) == 0)
-		ebb_google_get_groups_sync (bbgoogle, FALSE, cancellable, NULL);
+		ebb_google_get_groups_locked_sync (bbgoogle, FALSE, cancellable, NULL);
 
 	if (overwrite_existing || entry) {
 		if (gdata_entry_update_from_e_contact (entry, contact, FALSE,
@@ -921,6 +954,7 @@ ebb_google_save_contact_sync (EBookMetaBackend *meta_backend,
 	g_clear_object (&book_cache);
 
 	if (!entry) {
+		g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 		g_propagate_error (error, e_data_book_create_error (E_DATA_BOOK_STATUS_OTHER_ERROR, _("Object to save is not a valid vCard")));
 		return FALSE;
 	}
@@ -942,6 +976,7 @@ ebb_google_save_contact_sync (EBookMetaBackend *meta_backend,
 	g_object_unref (entry);
 
 	if (!gdata_contact) {
+		g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 		ebb_google_data_book_error_from_gdata_error (error, local_error);
 		g_clear_error (&local_error);
 		e_contact_photo_free (photo);
@@ -952,6 +987,7 @@ ebb_google_save_contact_sync (EBookMetaBackend *meta_backend,
 	if (photo_changed) {
 		entry = ebb_google_update_contact_photo_sync (gdata_contact, GDATA_CONTACTS_SERVICE (bbgoogle->priv->service), photo, cancellable, &local_error);
 		if (!entry) {
+			g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 			ebb_google_data_book_error_from_gdata_error (error, local_error);
 			g_clear_error (&local_error);
 			e_contact_photo_free (photo);
@@ -963,6 +999,8 @@ ebb_google_save_contact_sync (EBookMetaBackend *meta_backend,
 		g_object_unref (gdata_contact);
 		gdata_contact = GDATA_CONTACTS_CONTACT (entry);
 	}
+
+	g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 
 	g_rec_mutex_lock (&bbgoogle->priv->groups_lock);
 	new_contact = e_contact_new_from_gdata_entry (GDATA_ENTRY (gdata_contact),
@@ -1033,9 +1071,12 @@ ebb_google_remove_contact_sync (EBookMetaBackend *meta_backend,
 
 	bbgoogle = E_BOOK_BACKEND_GOOGLE (meta_backend);
 
+	g_rec_mutex_lock (&bbgoogle->priv->conn_lock);
+
 	if (!gdata_service_delete_entry (bbgoogle->priv->service,
 		gdata_contacts_service_get_primary_authorization_domain (), entry,
 		cancellable, &local_error)) {
+		g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 		ebb_google_data_book_error_from_gdata_error (error, local_error);
 		g_error_free (local_error);
 		g_object_unref (entry);
@@ -1043,6 +1084,7 @@ ebb_google_remove_contact_sync (EBookMetaBackend *meta_backend,
 		return FALSE;
 	}
 
+	g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 	g_object_unref (entry);
 
 	return TRUE;
@@ -1221,8 +1263,12 @@ ebb_google_dispose (GObject *object)
 {
 	EBookBackendGoogle *bbgoogle = E_BOOK_BACKEND_GOOGLE (object);
 
+	g_rec_mutex_lock (&bbgoogle->priv->conn_lock);
+
 	g_clear_object (&bbgoogle->priv->service);
 	g_clear_object (&bbgoogle->priv->authorizer);
+
+	g_rec_mutex_unlock (&bbgoogle->priv->conn_lock);
 
 	g_hash_table_destroy (bbgoogle->priv->preloaded);
 	bbgoogle->priv->preloaded = NULL;
@@ -1243,6 +1289,7 @@ ebb_google_finalize (GObject *object)
 	g_clear_pointer (&bbgoogle->priv->system_groups_by_id, (GDestroyNotify) g_hash_table_destroy);
 
 	g_rec_mutex_clear (&bbgoogle->priv->groups_lock);
+	g_rec_mutex_clear (&bbgoogle->priv->conn_lock);
 
 	/* Chain up to parent's method. */
 	G_OBJECT_CLASS (e_book_backend_google_parent_class)->finalize (object);
@@ -1255,6 +1302,7 @@ e_book_backend_google_init (EBookBackendGoogle *bbgoogle)
 	bbgoogle->priv->preloaded = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 
 	g_rec_mutex_init (&bbgoogle->priv->groups_lock);
+	g_rec_mutex_init (&bbgoogle->priv->conn_lock);
 
 	bbgoogle->priv->groups_by_id = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 	bbgoogle->priv->groups_by_name = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
