@@ -1,3 +1,9 @@
+evolution-data-server (3.29.90-1) UNRELEASED; urgency=medium
+
+  * New upstream development release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 30 Jul 2018 20:28:59 -0400
+
 evolution-data-server (3.28.5-3) unstable; urgency=medium
 
   * debian/libebook-contacts-1.2-2.symbols: Adjust for hppa
