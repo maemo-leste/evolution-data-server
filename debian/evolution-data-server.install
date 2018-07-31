@@ -1,8 +1,10 @@
+etc
 usr/lib/evolution/camel-*
 usr/lib/evolution/evolution-addressbook-*
 usr/lib/evolution/evolution-calendar-*
 usr/lib/evolution/evolution-data-server/addressbook-export
 usr/lib/evolution/evolution-data-server/csv2vcard
+usr/lib/evolution/evolution-data-server/evolution-alarm-notify
 usr/lib/evolution/evolution-data-server/list-sources
 usr/lib/evolution/evolution-scan-gconf-tree-xml
 usr/lib/evolution/evolution-source-registry

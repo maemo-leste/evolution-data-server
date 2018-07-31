@@ -58,6 +58,10 @@ Depends: ${shlibs:Depends},
          evolution-data-server-common (>= ${source:Version}),
          libcamel-1.2-62 (= ${binary:Version}),
          gnome-keyring,
+Breaks: evolution (<< 3.29.90),
+        libevolution (<< 3.29.90)
+Replaces: evolution (<< 3.29.90),
+          libevolution (<< 3.29.90)
 Suggests: evolution
 Description: evolution database backend server
  The data server, called "Evolution Data Server" is responsible for managing
