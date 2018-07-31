@@ -6,7 +6,7 @@ Source: evolution-data-server
 Section: gnome
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Jeremy Bicha <jbicha@debian.org>, Michael Biebl <biebl@debian.org>
+Uploaders: Jeremy Bicha <jbicha@debian.org>
 Build-Depends: cmake,
                debhelper (>= 11),
                libtool,
@@ -56,7 +56,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (>= ${source:Version}),
-         libcamel-1.2-61 (= ${binary:Version}),
+         libcamel-1.2-62 (= ${binary:Version}),
          gnome-keyring,
 Suggests: evolution
 Description: evolution database backend server
@@ -206,7 +206,7 @@ Description: GObject introspection for the EDataServerUI library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libcamel-1.2-61
+Package: libcamel-1.2-62
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -224,7 +224,7 @@ Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libcamel-1.2-61 (= ${binary:Version}),
+Depends: libcamel-1.2-62 (= ${binary:Version}),
          gir1.2-camel-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -399,7 +399,7 @@ Conflicts: almanah (<< 0.11.1-1+b9),
            gnome-shell (<< 3.26.2-1+b1),
            gnome-todo (<< 3.26.2-2),
            libabiword-3.0 (<< 3.0.2-5),
-           libedata-cal-1.2-28 (<< 3.26.3),
+           libedata-cal-1.2-29 (<< 3.26.3),
            libevolution (<< 3.26.3),
            libjana-ecal0 (<< 0.0.0+git20091215.9ec1da8a-4+b1),
            libjana-test (<< 0.0.0+git20091215.9ec1da8a-4+b1),
@@ -426,7 +426,7 @@ Description: Client library for evolution calendars (development files)
  .
  This package contains header files and static library for libecal.
 
-Package: libedata-cal-1.2-28
+Package: libedata-cal-1.2-29
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -445,7 +445,7 @@ Package: libedata-cal1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedata-cal-1.2-28 (= ${binary:Version}),
+Depends: libedata-cal-1.2-29 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libical-dev (>= 2.0),
