@@ -1,8 +1,13 @@
-evolution-data-server (3.29.90-1) UNRELEASED; urgency=medium
+evolution-data-server (3.29.90-1) experimental; urgency=medium
 
   * New upstream development release
+  * Update library names for soname bumps
+  * Add Breaks/Replaces for evolution-alarm-notify's move from libevolution
+  * debian/control.in: Build-Depend on libcanberra-gtk3-dev (>= 0.25)
+  * Update symbols files
+  * debian/libebook-contacts-1.2-2.symbols: Mark a symbol as optional
 
- -- Jeremy Bicha <jbicha@debian.org>  Mon, 30 Jul 2018 20:28:59 -0400
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 10 Aug 2018 09:34:12 -0400
 
 evolution-data-server (3.28.5-3) unstable; urgency=medium
 
