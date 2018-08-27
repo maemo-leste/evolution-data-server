@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.29.90
+	VERSION 3.29.92
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -930,6 +930,14 @@ set(CALENDAR_CFLAGS ${CALENDAR_CFLAGS} ${LIBICAL_EXTRA_CFLAGS})
 pkg_check_modules(CAMEL REQUIRED gio-2.0 gmodule-2.0 ${mozilla_nss} ${mozilla_nspr} sqlite3>=${sqlite_minimum_version})
 set(CAMEL_CFLAGS ${CAMEL_CFLAGS} ${KRB5_CFLAGS} ${MANUAL_NSS_CFLAGS} ${MANUAL_NSPR_CFLAGS} ${ICU_CFLAGS})
 set(CAMEL_LDFLAGS ${CAMEL_LDFLAGS} -lz ${KRB5_LDFLAGS} ${MANUAL_NSS_LIBS} ${MANUAL_NSPR_LIBS} ${ICU_LDFLAGS})
+
+if(NOT (MANUAL_NSPR_INCLUDES STREQUAL ""))
+	list(APPEND CAMEL_INCLUDE_DIRS ${MANUAL_NSPR_INCLUDES})
+endif(NOT (MANUAL_NSPR_INCLUDES STREQUAL ""))
+
+if(NOT (MANUAL_NSS_INCLUDES STREQUAL ""))
+	list(APPEND CAMEL_INCLUDE_DIRS ${MANUAL_NSS_INCLUDES})
+endif(NOT (MANUAL_NSS_INCLUDES STREQUAL ""))
 
 # ******************************
 # libical tweaks, part II (re-using CALENDAR modules)
