@@ -34,7 +34,7 @@
 
 #include "e-alarm-notify.h"
 
-#define APPLICATION_ID "org.gnome.EvolutionAlarmNotify"
+#define APPLICATION_ID "org.gnome.Evolution-alarm-notify"
 
 struct _EAlarmNotifyPrivate {
 	ESourceRegistry *registry;
@@ -223,7 +223,7 @@ e_alarm_notify_display (EAlarmNotify *an,
 		notification = g_notification_new (_("Reminders"));
 		g_notification_set_body (notification, description);
 
-		icon_info = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), "appointment-soon", GTK_ICON_SIZE_DIALOG, 0);
+		icon_info = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), "appointment-soon", 48, 0);
 		if (icon_info) {
 			const gchar *filename;
 
@@ -247,6 +247,7 @@ e_alarm_notify_display (EAlarmNotify *an,
 		}
 
 		detailed_action = g_action_print_detailed_name ("app.show-reminders", NULL);
+		g_notification_set_default_action (notification, detailed_action);
 		g_notification_add_button (notification, _("Reminders"), detailed_action);
 		g_free (detailed_action);
 
