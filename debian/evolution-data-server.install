@@ -22,3 +22,4 @@ usr/lib/evolution-data-server/registry-modules/module-secret-monitor.so
 usr/lib/evolution-data-server/registry-modules/module-trust-prompt.so
 usr/lib/evolution-data-server/registry-modules/module-webdav-backend.so
 usr/lib/systemd/user/*.service
+usr/share/applications/org.gnome.Evolution-alarm-notify.desktop
