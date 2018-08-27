@@ -1,8 +1,10 @@
-evolution-data-server (3.29.92-1) UNRELEASED; urgency=medium
+evolution-data-server (3.29.92-1) unstable; urgency=medium
 
   * New upstream release
+  * debian/evolution.install: Install org.gnome.Evolution-alarm-notify.desktop
+  * Release to unstable
 
- -- Jeremy Bicha <jbicha@debian.org>  Mon, 27 Aug 2018 05:31:48 -0400
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 27 Aug 2018 05:52:56 -0400
 
 evolution-data-server (3.29.90-1) experimental; urgency=medium
 
