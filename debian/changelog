@@ -1,3 +1,9 @@
+evolution-data-server (3.30.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 03 Sep 2018 14:48:50 -0400
+
 evolution-data-server (3.29.92-2) unstable; urgency=medium
 
   * Have libedataserverui1.2-dev depend on libecal1.2-dev (Closes: #907757)
