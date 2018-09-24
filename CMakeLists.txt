@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.30.0
+	VERSION 3.30.1
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -31,6 +31,7 @@ set(PROJECT_DISTCONFIGURE_PARAMS
 	-DENABLE_VALA_BINDINGS=ON
 	-DENABLE_INSTALLED_TESTS=ON
 	-DENABLE_GTK_DOC=ON
+	-DENABLE_DBUS_SESSION_TOOL=ON
 	-DWITH_PRIVATE_DOCS=ON
 )
 
@@ -925,6 +926,9 @@ set(E_DATA_SERVER_LDFLAGS ${E_DATA_SERVER_LDFLAGS} ${MANUAL_NSPR_LIBS} ${MANUAL_
 pkg_check_modules(BACKEND REQUIRED gio-2.0 gmodule-2.0 libsecret-1 libsoup-2.4 libxml-2.0)
 pkg_check_modules(ADDRESSBOOK REQUIRED gio-2.0 libxml-2.0 libsoup-2.4 libsecret-1)
 pkg_check_modules(CALENDAR REQUIRED gio-2.0 libical>=${libical_minimum_version} libsoup-2.4 libxml-2.0 libsecret-1)
+set(ADDRESSBOOK_CFLAGS ${ADDRESSBOOK_CFLAGS} ${PHONENUMBER_DEFINITIONS})
+set(ADDRESSBOOK_INCLUDE_DIRS ${ADDRESSBOOK_INCLUDE_DIRS} ${PHONENUMBER_INCLUDE_DIRS})
+set(ADDRESSBOOK_LDFLAGS ${ADDRESSBOOK_LDFLAGS} ${PHONENUMBER_LDFLAGS})
 set(CALENDAR_CFLAGS ${CALENDAR_CFLAGS} ${LIBICAL_EXTRA_CFLAGS})
 
 pkg_check_modules(CAMEL REQUIRED gio-2.0 gmodule-2.0 ${mozilla_nss} ${mozilla_nspr} sqlite3>=${sqlite_minimum_version})
@@ -991,6 +995,12 @@ if(ENABLE_VALA_BINDINGS)
 	endif(NOT VAPIGEN)
 
 endif(ENABLE_VALA_BINDINGS)
+
+# ******************************
+# D-Bus session tool, a Flatpak helper
+# ******************************
+
+add_printable_option(ENABLE_DBUS_SESSION_TOOL "Build evolution-dbus-session tool" OFF)
 
 # Generate the ${PROJECT_NAME}-config.h file
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.h)

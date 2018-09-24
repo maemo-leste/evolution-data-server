@@ -60,11 +60,16 @@ tcu_fixture_setup (TCUFixture *fixture,
 {
 	const TCUClosure *closure = user_data;
 	gchar *filename, *directory;
+	const gchar *provider_dir;
 	GError *error = NULL;
 
-	if (!g_file_test (CAMEL_PROVIDERDIR, G_FILE_TEST_IS_DIR | G_FILE_TEST_EXISTS)) {
-		if (g_mkdir_with_parents (CAMEL_PROVIDERDIR, 0700) == -1)
-			g_warning ("%s: Failed to create folder '%s': %s\n", G_STRFUNC, CAMEL_PROVIDERDIR, g_strerror (errno));
+	provider_dir = g_getenv (EDS_CAMEL_PROVIDER_DIR);
+	if (!provider_dir)
+		provider_dir = CAMEL_PROVIDERDIR;
+
+	if (!g_file_test (provider_dir, G_FILE_TEST_IS_DIR | G_FILE_TEST_EXISTS)) {
+		if (g_mkdir_with_parents (provider_dir, 0700) == -1)
+			g_warning ("%s: Failed to create folder '%s': %s\n", G_STRFUNC, provider_dir, g_strerror (errno));
 	}
 
 	/* Cleanup from last test */
@@ -114,13 +119,10 @@ tcu_fixture_teardown (TCUFixture *fixture,
 }
 
 gchar *
-tcu_new_icalstring_from_test_case (const gchar *case_name)
+tcu_get_test_case_filename (const gchar *case_name)
 {
 	gchar *filename;
 	gchar *case_filename;
-	GFile * file;
-	GError *error = NULL;
-	gchar *icalstring = NULL;
 
 	case_filename = g_strdup_printf ("%s.ics", case_name);
 
@@ -132,15 +134,47 @@ tcu_new_icalstring_from_test_case (const gchar *case_name)
 	else
 		filename = g_build_filename (SRCDIR, "..", "libedata-cal", "components", case_filename, NULL);
 
+	g_free (case_filename);
+
+	return filename;
+}
+
+gchar *
+tcu_new_icalstring_from_test_case (const gchar *case_name)
+{
+	gchar *filename;
+	GFile * file;
+	GError *error = NULL;
+	gchar *icalstring = NULL, *uripart;
+
+	filename = tcu_get_test_case_filename (case_name);
+
 	file = g_file_new_for_path (filename);
 	if (!g_file_load_contents (file, NULL, &icalstring, NULL, NULL, &error))
 		g_error (
 			"Failed to read test iCal string file '%s': %s",
 			filename, error->message);
 
-	g_free (case_filename);
 	g_free (filename);
 	g_object_unref (file);
+
+	uripart = strstr (icalstring, "$EVENT1URI$");
+	if (uripart) {
+		gchar *uri;
+		GString *str;
+
+		filename = tcu_get_test_case_filename ("event-1");
+		uri = g_filename_to_uri (filename, NULL, NULL);
+		g_free (filename);
+
+		str = g_string_new_len (icalstring, uripart - icalstring);
+		g_string_append (str, uri);
+		g_string_append (str, uripart + 11);
+		g_free (icalstring);
+		g_free (uri);
+
+		icalstring = g_string_free (str, FALSE);
+	}
 
 	return icalstring;
 }
