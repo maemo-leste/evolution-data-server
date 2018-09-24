@@ -496,14 +496,75 @@ credentials_prompter_source_write_cb (GObject *source_object,
 				      GAsyncResult *result,
 				      gpointer user_data)
 {
+	ESource *source = E_SOURCE (source_object);
 	GError *error = NULL;
 
-	if (!e_source_write_finish (E_SOURCE (source_object), result, &error) &&
+	if (!e_source_write_finish (source, result, &error) &&
 	    !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED)) {
-		g_warning ("%s: Failed to write source changes: %s", G_STRFUNC, error ? error->message : "Unknown error");
+		g_warning ("%s: Failed to write source '%s' (%s) changes: %s", G_STRFUNC,
+			e_source_get_uid (source),
+			e_source_get_display_name (source),
+			error ? error->message : "Unknown error");
 	}
 
 	g_clear_error (&error);
+}
+
+static void
+credentials_prompter_update_username_for_children (ESourceRegistry *registry,
+						   ESource *collection_source,
+						   gboolean allow_source_save,
+						   const gchar *old_username,
+						   const gchar *new_username,
+						   GCancellable *cancellable)
+{
+	GList *sources, *link;
+	const gchar *parent_uid;
+	gchar *collection_host;
+	gboolean username_changed;
+
+	g_return_if_fail (E_IS_SOURCE_REGISTRY (registry));
+	g_return_if_fail (E_IS_SOURCE (collection_source));
+
+	parent_uid = e_source_get_uid (collection_source);
+	if (!parent_uid || !*parent_uid)
+		return;
+
+	collection_host = e_source_authentication_dup_host (e_source_get_extension (collection_source, E_SOURCE_EXTENSION_AUTHENTICATION));
+	username_changed = g_strcmp0 (old_username, new_username) != 0;
+	sources = e_source_registry_list_sources (registry, NULL);
+
+	for (link = sources; link; link = g_list_next (link)) {
+		ESource *child = link->data;
+
+		if (g_strcmp0 (e_source_get_parent (child), parent_uid) == 0 &&
+		    e_source_get_writable (child) && e_source_has_extension (child, E_SOURCE_EXTENSION_AUTHENTICATION)) {
+			ESourceAuthentication *auth_extension;
+			gchar *child_username, *child_host;
+
+			auth_extension = e_source_get_extension (child, E_SOURCE_EXTENSION_AUTHENTICATION);
+			child_username = e_source_authentication_dup_user (auth_extension);
+			child_host = e_source_authentication_dup_host (auth_extension);
+
+			if ((!child_host || !*child_host || !collection_host || !*collection_host ||
+			    g_ascii_strcasecmp (child_host, collection_host) == 0) &&
+			    (!child_username || !*child_username || !old_username || !*old_username ||
+			    (username_changed && g_strcmp0 (child_username, old_username) == 0))) {
+				e_source_authentication_set_user (auth_extension, new_username);
+
+				if (allow_source_save) {
+					e_source_write (child, cancellable,
+						credentials_prompter_source_write_cb, NULL);
+				}
+			}
+
+			g_free (child_username);
+			g_free (child_host);
+		}
+	}
+
+	g_list_free_full (sources, g_object_unref);
+	g_free (collection_host);
 }
 
 static void
@@ -511,6 +572,7 @@ e_credentials_prompter_prompt_finish_for_source (ECredentialsPrompter *prompter,
 						 ProcessPromptData *ppd,
 						 const ENamedParameters *credentials)
 {
+	ESource *cred_source;
 	gboolean changed = FALSE;
 
 	g_return_if_fail (E_IS_CREDENTIALS_PROMPTER (prompter));
@@ -519,31 +581,82 @@ e_credentials_prompter_prompt_finish_for_source (ECredentialsPrompter *prompter,
 	if (!credentials)
 		return;
 
-	if (e_source_has_extension (ppd->cred_source, E_SOURCE_EXTENSION_AUTHENTICATION)) {
-		ESourceAuthentication *auth_extension = e_source_get_extension (ppd->cred_source, E_SOURCE_EXTENSION_AUTHENTICATION);
+	cred_source = ppd->cred_source;
 
-		if (e_source_credentials_provider_can_store (e_credentials_prompter_get_provider (prompter), ppd->cred_source)) {
-			e_source_credentials_provider_store (e_credentials_prompter_get_provider (prompter), ppd->cred_source, credentials,
+	if (e_source_has_extension (cred_source, E_SOURCE_EXTENSION_AUTHENTICATION)) {
+		ESourceAuthentication *auth_extension = e_source_get_extension (cred_source, E_SOURCE_EXTENSION_AUTHENTICATION);
+		gboolean could_use_collection;
+
+		could_use_collection = e_source_has_extension (cred_source, E_SOURCE_EXTENSION_COLLECTION);
+
+		if (e_source_get_writable (cred_source)) {
+			const gchar *username;
+
+			username = e_named_parameters_get (credentials, E_SOURCE_CREDENTIAL_USERNAME);
+			if (username && *username) {
+				gchar *old_username;
+
+				old_username = e_source_authentication_dup_user (auth_extension);
+
+				/* Sync the changed user name to the child sources of the collection as well */
+				if (ppd->auth_source == cred_source && e_source_has_extension (cred_source, E_SOURCE_EXTENSION_COLLECTION)) {
+					credentials_prompter_update_username_for_children (
+						e_credentials_prompter_get_registry (prompter),
+						cred_source,
+						ppd->allow_source_save,
+						old_username,
+						username,
+						prompter->priv->cancellable);
+
+					/* Update the collection source as the last, due to tests for the old
+					   username in the credentials_prompter_update_username_for_children(). */
+					if (g_strcmp0 (username, old_username) != 0) {
+						e_source_authentication_set_user (auth_extension, username);
+						changed = TRUE;
+					}
+				} else if (g_strcmp0 (username, old_username) != 0) {
+					if (ppd->auth_source != cred_source &&
+					    e_source_has_extension (cred_source, E_SOURCE_EXTENSION_COLLECTION)) {
+						auth_extension = e_source_get_extension (ppd->auth_source, E_SOURCE_EXTENSION_AUTHENTICATION);
+						e_source_authentication_set_user (auth_extension, username);
+
+						if (ppd->allow_source_save && e_source_get_writable (ppd->auth_source)) {
+							e_source_write (ppd->auth_source, prompter->priv->cancellable,
+								credentials_prompter_source_write_cb, NULL);
+						}
+					} else {
+						e_source_authentication_set_user (auth_extension, username);
+						changed = TRUE;
+					}
+				}
+
+				g_free (old_username);
+			}
+		}
+
+		if (could_use_collection && !e_util_can_use_collection_as_credential_source (cred_source, ppd->auth_source)) {
+			/* Copy also the remember-password flag */
+			e_source_authentication_set_remember_password (e_source_get_extension (ppd->auth_source, E_SOURCE_EXTENSION_AUTHENTICATION),
+				e_credentials_prompter_eval_remember_password (cred_source));
+
+			cred_source = ppd->auth_source;
+		}
+	}
+
+	if (e_source_has_extension (cred_source, E_SOURCE_EXTENSION_AUTHENTICATION)) {
+		ESourceAuthentication *auth_extension = e_source_get_extension (cred_source, E_SOURCE_EXTENSION_AUTHENTICATION);
+
+		if (e_source_credentials_provider_can_store (e_credentials_prompter_get_provider (prompter), cred_source)) {
+			e_source_credentials_provider_store (e_credentials_prompter_get_provider (prompter), cred_source, credentials,
 				e_source_authentication_get_remember_password (auth_extension),
 				prompter->priv->cancellable,
 				credentials_prompter_store_credentials_cb, NULL);
 		}
-
-		if (e_source_get_writable (ppd->cred_source)) {
-			const gchar *username;
-
-			username = e_named_parameters_get (credentials, E_SOURCE_CREDENTIAL_USERNAME);
-			if (username && *username &&
-			    g_strcmp0 (username, e_source_authentication_get_user (auth_extension)) != 0) {
-				e_source_authentication_set_user (auth_extension, username);
-				changed = TRUE;
-			}
-		}
 	}
 
-	if (ppd->allow_source_save && e_source_get_writable (ppd->cred_source) &&
-	    (changed || (ppd->remember_password ? 1 : 0) != (e_credentials_prompter_eval_remember_password (ppd->cred_source) ? 1 : 0))) {
-		e_source_write (ppd->cred_source, prompter->priv->cancellable,
+	if (ppd->allow_source_save && e_source_get_writable (cred_source) &&
+	    (changed || (ppd->remember_password ? 1 : 0) != (e_credentials_prompter_eval_remember_password (cred_source) ? 1 : 0))) {
+		e_source_write (cred_source, prompter->priv->cancellable,
 			credentials_prompter_source_write_cb, NULL);
 	}
 
