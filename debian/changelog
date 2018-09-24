@@ -1,8 +1,10 @@
-evolution-data-server (3.30.1-1) UNRELEASED; urgency=medium
+evolution-data-server (3.30.1-1) unstable; urgency=medium
 
   * New upstream release
+  * Update dh_auto_test override for cmake but continue ignoring test
+    failures
 
- -- Jeremy Bicha <jbicha@debian.org>  Mon, 24 Sep 2018 10:34:42 -0400
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 24 Sep 2018 10:42:24 -0400
 
 evolution-data-server (3.30.0-1) unstable; urgency=medium
 
@@ -2661,4 +2663,3 @@ evolution-data-server (0.0.3-1) experimental; urgency=low
   * Initial Release.
 
  -- Takuo KITAME <kitame@debian.org>  Mon, 15 Dec 2003 10:36:50 +0900
-
