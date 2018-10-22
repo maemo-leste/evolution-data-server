@@ -1,3 +1,10 @@
+evolution-data-server (3.30.2-2) unstable; urgency=medium
+
+  * Fix postinst script if update-notifier is not installed
+    - Thanks Felix Zielcke for the suggested fix (Closes: #911603)
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 22 Oct 2018 17:31:43 -0400
+
 evolution-data-server (3.30.2-1) unstable; urgency=medium
 
   * New upstream release
