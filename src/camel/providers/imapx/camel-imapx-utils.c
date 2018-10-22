@@ -480,7 +480,9 @@ struct {
 	{ "MOVE", IMAPX_CAPABILITY_MOVE },
 	{ "NOTIFY", IMAPX_CAPABILITY_NOTIFY },
 	{ "SPECIAL-USE", IMAPX_CAPABILITY_SPECIAL_USE },
-	{ "X-GM-EXT-1", IMAPX_CAPABILITY_X_GM_EXT_1 }
+	{ "X-GM-EXT-1", IMAPX_CAPABILITY_X_GM_EXT_1 },
+	{ "UTF8=ACCEPT", IMAPX_CAPABILITY_UTF8_ACCEPT },
+	{ "UTF8=ONLY", IMAPX_CAPABILITY_UTF8_ONLY }
 };
 
 static GMutex capa_htable_lock;         /* capabilities lookup table lock */
@@ -942,6 +944,30 @@ imapx_parse_ext_optional (CamelIMAPXInputStream *stream,
 	return dinfo;
 }
 
+static gboolean
+imapx_is_budystructure_response_end (CamelIMAPXInputStream *stream,
+				     gboolean *out_is_response_end,
+				     GCancellable *cancellable,
+				     GError **error)
+{
+	gint tok;
+	guint len;
+	guchar *token;
+
+	g_return_val_if_fail (out_is_response_end != NULL, FALSE);
+
+	tok = camel_imapx_input_stream_token (stream, &token, &len, cancellable, error);
+
+	if (tok == IMAPX_TOK_ERROR)
+		return FALSE;
+
+	camel_imapx_input_stream_ungettoken (stream, tok, token, len);
+
+	*out_is_response_end = tok == ')';
+
+	return TRUE;
+}
+
 struct _CamelMessageContentInfo *
 imapx_parse_body_fields (CamelIMAPXInputStream *stream,
                          GCancellable *cancellable,
@@ -954,7 +980,7 @@ imapx_parse_body_fields (CamelIMAPXInputStream *stream,
 	gsize type_len;
 	guint64 number;
 	struct _CamelMessageContentInfo *cinfo;
-	gboolean success, is_broken_response = FALSE;
+	gboolean success, is_broken_response = FALSE, is_end = FALSE;
 
 	/* body_fields     ::= body_fld_param SPACE body_fld_id SPACE
 	 * body_fld_desc SPACE body_fld_enc SPACE
@@ -1032,42 +1058,61 @@ imapx_parse_body_fields (CamelIMAPXInputStream *stream,
 		return cinfo;
 	}
 
-	/* body_fld_id     ::= nstring */
-	success = camel_imapx_input_stream_nstring (
-		stream, &token, cancellable, error);
+	success = imapx_is_budystructure_response_end (stream, &is_end, cancellable, error);
 
 	if (!success)
 		goto error;
 
-	cinfo->id = g_strdup ((gchar *) token);
+	if (!is_end) {
+		/* body_fld_id     ::= nstring */
+		success = camel_imapx_input_stream_nstring (stream, &token, cancellable, error);
+		if (!success)
+			goto error;
 
-	/* body_fld_desc   ::= nstring */
-	success = camel_imapx_input_stream_nstring (
-		stream, &token, cancellable, error);
+		cinfo->id = g_strdup ((gchar *) token);
 
-	if (!success)
-		goto error;
+		success = imapx_is_budystructure_response_end (stream, &is_end, cancellable, error);
+		if (!success)
+			goto error;
+	}
 
-	cinfo->description = g_strdup ((gchar *) token);
+	if (!is_end) {
+		/* body_fld_desc   ::= nstring */
+		success = camel_imapx_input_stream_nstring (stream, &token, cancellable, error);
+		if (!success)
+			goto error;
 
-	/* body_fld_enc    ::= (<"> ("7BIT" / "8BIT" / "BINARY" / "BASE64"/
-	 * "QUOTED-PRINTABLE") <">) / string */
-	success = camel_imapx_input_stream_astring (
-		stream, &token, cancellable, error);
+		cinfo->description = g_strdup ((gchar *) token);
 
-	if (!success)
-		goto error;
+		success = imapx_is_budystructure_response_end (stream, &is_end, cancellable, error);
+		if (!success)
+			goto error;
+	}
 
-	cinfo->encoding = g_strdup ((gchar *) token);
+	if (!is_end) {
+		/* body_fld_enc    ::= (<"> ("7BIT" / "8BIT" / "BINARY" / "BASE64"/
+		 * "QUOTED-PRINTABLE") <">) / string */
+		success = camel_imapx_input_stream_astring (stream, &token, cancellable, error);
+		if (!success)
+			goto error;
 
-	/* body_fld_octets ::= number */
-	success = camel_imapx_input_stream_number (
-		stream, &number, cancellable, error);
+		cinfo->encoding = g_strdup ((gchar *) token);
 
-	if (!success)
-		goto error;
+		success = imapx_is_budystructure_response_end (stream, &is_end, cancellable, error);
+		if (!success)
+			goto error;
+	}
 
-	cinfo->size = number;
+	if (!is_end) {
+		/* body_fld_octets ::= number */
+		success = camel_imapx_input_stream_number (
+			stream, &number, cancellable, error);
+
+		if (!success)
+			goto error;
+
+		cinfo->size = number;
+	}
 
 	return cinfo;
 

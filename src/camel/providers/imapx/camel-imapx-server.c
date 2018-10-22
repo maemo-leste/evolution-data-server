@@ -320,6 +320,8 @@ struct _CamelIMAPXServerPrivate {
 	GHashTable *list_responses_hash; /* ghar *mailbox-name ~> CamelIMAPXListResponse *, both owned by list_responses */
 	GSList *list_responses;
 	GSList *lsub_responses;
+
+	gboolean utf8_accept; /* RFC 6855 */
 };
 
 enum {
@@ -3338,6 +3340,30 @@ imapx_reconnect (CamelIMAPXServer *is,
 preauthed:
 	/* Fetch namespaces (if supported). */
 	g_mutex_lock (&is->priv->stream_lock);
+
+	is->priv->utf8_accept = FALSE;
+
+	/* RFC 6855 */
+	if (CAMEL_IMAPX_HAVE_CAPABILITY (is->priv->cinfo, UTF8_ACCEPT) ||
+	    CAMEL_IMAPX_HAVE_CAPABILITY (is->priv->cinfo, UTF8_ONLY)) {
+		GError *local_error = NULL;
+
+		g_mutex_unlock (&is->priv->stream_lock);
+
+		ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_NAMESPACE, "ENABLE UTF8=ACCEPT");
+		camel_imapx_server_process_command_sync (is, ic, "Failed to issue ENABLE UTF8=ACCEPT", cancellable, &local_error);
+		camel_imapx_command_unref (ic);
+
+		if (local_error != NULL) {
+			g_propagate_error (error, local_error);
+			goto exception;
+		}
+
+		g_mutex_lock (&is->priv->stream_lock);
+
+		is->priv->utf8_accept = TRUE;
+	}
+
 	if (CAMEL_IMAPX_HAVE_CAPABILITY (is->priv->cinfo, NAMESPACE)) {
 		GError *local_error = NULL;
 
@@ -3383,19 +3409,26 @@ preauthed:
 
 		g_mutex_unlock (&is->priv->stream_lock);
 
+		#define NOTIFY_CMD(x) "NOTIFY SET " \
+			"(selected " \
+			"(MessageNew (UID RFC822.SIZE RFC822.HEADER FLAGS" x ")" \
+			" MessageExpunge" \
+			" FlagChange)) " \
+			"(personal " \
+			"(MessageNew" \
+			" MessageExpunge" \
+			" MailboxName" \
+			" SubscriptionChange))"
+
 		/* XXX The list of FETCH attributes is negotiable. */
-		ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_NOTIFY, "NOTIFY SET "
-			"(selected "
-			"(MessageNew (UID RFC822.SIZE RFC822.HEADER BODYSTRUCTURE FLAGS)"
-			" MessageExpunge"
-			" FlagChange)) "
-			"(personal "
-			"(MessageNew"
-			" MessageExpunge"
-			" MailboxName"
-			" SubscriptionChange))");
+		if (camel_imapx_store_get_bodystructure_enabled (store))
+			ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_NOTIFY, NOTIFY_CMD (" BODYSTRUCTURE"));
+		else
+			ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_NOTIFY, NOTIFY_CMD (""));
 		camel_imapx_server_process_command_sync (is, ic, _("Failed to issue NOTIFY"), cancellable, &local_error);
 		camel_imapx_command_unref (ic);
+
+		#undef NOTIFY_CMD
 
 		if (local_error != NULL) {
 			g_propagate_error (error, local_error);
@@ -5290,12 +5323,36 @@ imapx_server_fetch_changes (CamelIMAPXServer *is,
 				ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_REFRESH_INFO, "UID FETCH ");
 
 			if (imapx_uidset_add (&uidset, ic, uid) == 1 || (!link->next && ic && imapx_uidset_done (&uidset, ic))) {
-				camel_imapx_command_add (ic, " (RFC822.SIZE RFC822.HEADER BODYSTRUCTURE FLAGS)");
+				GError *local_error = NULL;
+				gboolean bodystructure_enabled;
+				CamelIMAPXStore *imapx_store;
 
-				success = camel_imapx_server_process_command_sync (is, ic, _("Error fetching message info"), cancellable, error);
+				imapx_store = camel_imapx_server_ref_store (is);
+				bodystructure_enabled = imapx_store && camel_imapx_store_get_bodystructure_enabled (imapx_store);
+
+				if (bodystructure_enabled)
+					camel_imapx_command_add (ic, " (RFC822.SIZE RFC822.HEADER BODYSTRUCTURE FLAGS)");
+				else
+					camel_imapx_command_add (ic, " (RFC822.SIZE RFC822.HEADER FLAGS)");
+
+				success = camel_imapx_server_process_command_sync (is, ic, _("Error fetching message info"), cancellable, &local_error);
 
 				camel_imapx_command_unref (ic);
 				ic = NULL;
+
+				/* Some servers can return broken BODYSTRUCTURE response, thus disable it
+				   even when it's not 100% sure the BODYSTRUCTURE response was the broken one. */
+				if (bodystructure_enabled && !success &&
+				    g_error_matches (local_error, CAMEL_IMAPX_ERROR, CAMEL_IMAPX_ERROR_SERVER_RESPONSE_MALFORMED)) {
+					camel_imapx_store_set_bodystructure_enabled (imapx_store, FALSE);
+					local_error->domain = CAMEL_IMAPX_SERVER_ERROR;
+					local_error->code = CAMEL_IMAPX_SERVER_ERROR_TRY_RECONNECT;
+				}
+
+				g_clear_object (&imapx_store);
+
+				if (local_error)
+					g_propagate_error (error, local_error);
 
 				if (!success)
 					break;
@@ -6541,8 +6598,10 @@ camel_imapx_server_uid_search_sync (CamelIMAPXServer *is,
 	if (!success)
 		return FALSE;
 
-	for (ii = 0; !need_charset && words && words[ii]; ii++) {
-		need_charset = !imapx_util_all_is_ascii (words[ii]);
+	if (!camel_imapx_server_get_utf8_accept (is)) {
+		for (ii = 0; !need_charset && words && words[ii]; ii++) {
+			need_charset = !imapx_util_all_is_ascii (words[ii]);
+		}
 	}
 
 	ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_UID_SEARCH, "UID SEARCH");
@@ -7128,6 +7187,14 @@ camel_imapx_server_set_tagprefix (CamelIMAPXServer *is,
 	g_return_if_fail ((tagprefix >= 'A' && tagprefix <= 'Z') || (tagprefix >= 'a' && tagprefix <= 'z'));
 
 	is->priv->tagprefix = tagprefix;
+}
+
+gboolean
+camel_imapx_server_get_utf8_accept (CamelIMAPXServer *is)
+{
+	g_return_val_if_fail (CAMEL_IS_IMAPX_SERVER (is), FALSE);
+
+	return is->priv->utf8_accept;
 }
 
 CamelIMAPXCommand *
