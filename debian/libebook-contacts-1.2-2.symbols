@@ -10,8 +10,6 @@ libebook-contacts-1.2.so.2 libebook-contacts-1.2-2 #MINVER#
  (c++|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"typeinfo name for i18n::phonenumbers::NullLogger@Base" 3.24.1
  (c++|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"typeinfo name for i18n::phonenumbers::Logger@Base" 3.24.1
  (c++|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"vtable for i18n::phonenumbers::NullLogger@Base" 3.24.1
- (c++|optional)"google::protobuf::internal::pLinuxKernelCmpxchg@Base" 3.24.1
- (c++|optional)"google::protobuf::internal::pLinuxKernelMemoryBarrier@Base" 3.24.1
  (c++|optional|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)@Base" 3.28.5
  e_address_western_copy@Base 3.24.1
  e_address_western_free@Base 3.16.2
