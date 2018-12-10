@@ -574,11 +574,11 @@ ebb_carddav_search_changes_cb (EBookCache *book_cache,
 	g_return_val_if_fail (ccd != NULL, FALSE);
 	g_return_val_if_fail (uid != NULL, FALSE);
 
-	/* Can be NULL for added components in offline mode */
-	if (extra && *extra) {
+	/* The 'extra' can be NULL for added contacts in offline mode */
+	if ((extra && *extra) || offline_state != E_OFFLINE_STATE_LOCALLY_CREATED) {
 		EBookMetaBackendInfo *nfo;
 
-		nfo = g_hash_table_lookup (ccd->known_items, extra);
+		nfo = (extra && *extra) ? g_hash_table_lookup (ccd->known_items, extra) : NULL;
 		if (nfo) {
 			if (g_strcmp0 (revision, nfo->revision) == 0) {
 				g_hash_table_remove (ccd->known_items, extra);
@@ -1038,6 +1038,8 @@ ebb_carddav_load_contact_sync (EBookMetaBackend *meta_backend,
 				g_propagate_error (&local_error, EDB_ERROR_EX (E_DATA_BOOK_STATUS_OTHER_ERROR, _("Server didn’t return object’s ETag")));
 			else
 				g_propagate_error (&local_error, EDB_ERROR_EX (E_DATA_BOOK_STATUS_OTHER_ERROR, _("Received object is not a valid vCard")));
+		} else if (out_extra) {
+			*out_extra = g_strdup (href);
 		}
 	}
 
