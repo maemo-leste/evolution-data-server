@@ -47,6 +47,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_cache_column_values_take@Base 3.25.90
  e_cache_column_values_take_value@Base 3.25.90
  e_cache_contains@Base 3.25.90
+ e_cache_copy_missing_to_column_values@Base 3.30.3
  e_cache_dup_key@Base 3.25.90
  e_cache_dup_revision@Base 3.25.90
  e_cache_erase@Base 3.25.90
@@ -106,6 +107,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_collection_backend_factory_prepare_mail@Base 3.17
  e_collection_backend_get_cache_dir@Base 3.17
  e_collection_backend_get_type@Base 3.17
+ e_collection_backend_is_new_source@Base 3.30.3
  e_collection_backend_list_calendar_sources@Base 3.17
  e_collection_backend_list_contacts_sources@Base 3.17
  e_collection_backend_list_mail_sources@Base 3.17
