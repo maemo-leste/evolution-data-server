@@ -1,3 +1,9 @@
+evolution-data-server (3.30.3-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 10 Dec 2018 10:15:49 -0500
+
 evolution-data-server (3.30.2-2) unstable; urgency=medium
 
   * Fix postinst script if update-notifier is not installed
