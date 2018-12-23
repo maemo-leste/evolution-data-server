@@ -1,7 +1,8 @@
 #!/usr/bin/make -f
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
-export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,defs -Wl,--as-needed
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,-O1 -Wl,-z,defs -Wl,--as-needed
+
 # see https://bugzilla.gnome.org/show_bug.cgi?id=594473 for details
 export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
 
