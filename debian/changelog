@@ -1,11 +1,11 @@
-evolution-data-server (3.30.4-1) UNRELEASED; urgency=medium
+evolution-data-server (3.30.4-1) unstable; urgency=medium
 
   * New upstream release
   * Drop obsolete Build-Depends on gnome-common
   * Restore -Wl,-O1 to our LDFLAGS
   * Bump Standards-Version to 4.3.0
 
- -- Jeremy Bicha <jbicha@debian.org>  Mon, 07 Jan 2019 08:06:37 -0500
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 07 Jan 2019 08:21:11 -0500
 
 evolution-data-server (3.30.3-1) unstable; urgency=medium
 
