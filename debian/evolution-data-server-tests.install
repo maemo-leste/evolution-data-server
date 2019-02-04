@@ -1,3 +1,3 @@
 usr/lib/*/libetestserverutils.so*
-usr/lib/evolution/evolution-data-server/installed-tests
+usr/libexec/evolution-data-server/installed-tests
 usr/share/installed-tests
