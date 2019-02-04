@@ -1649,6 +1649,7 @@ e_server_side_source_class_init (EServerSideSourceClass *class)
 			"The object providing OAuth 2.0 support",
 			E_TYPE_OAUTH2_SUPPORT,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	/* This overrides the "remote-creatable" property
@@ -1663,6 +1664,7 @@ e_server_side_source_class_init (EServerSideSourceClass *class)
 			"can create remote resources",
 			FALSE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	/* This overrides the "remote-deletable" property
@@ -1677,6 +1679,7 @@ e_server_side_source_class_init (EServerSideSourceClass *class)
 			"can delete remote resources",
 			FALSE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	/* This overrides the "removable" property
@@ -1690,6 +1693,7 @@ e_server_side_source_class_init (EServerSideSourceClass *class)
 			"Whether the data source is removable",
 			FALSE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
@@ -1715,6 +1719,7 @@ e_server_side_source_class_init (EServerSideSourceClass *class)
 			"Whether the data source is writable",
 			FALSE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	/* Do not use G_PARAM_CONSTRUCT.  We initialize the
@@ -1728,6 +1733,7 @@ e_server_side_source_class_init (EServerSideSourceClass *class)
 			"Directory in which to write changes to disk",
 			NULL,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 }
 
@@ -1792,7 +1798,7 @@ e_server_side_source_get_user_dir (void)
  *
  * Note the data source file itself is not created here, only its name.
  *
- * Returns: the #GFile for a new data source
+ * Returns: (transfer full): the #GFile for a new data source
  *
  * Since: 3.6
  **/
@@ -2056,7 +2062,7 @@ e_server_side_source_load (EServerSideSource *source,
  * Returns the #GFile from which data source content is loaded and to
  * which changes are saved.  Note the @source may not have a #GFile.
  *
- * Returns: the #GFile for @source, or %NULL
+ * Returns: (transfer none) (nullable): the #GFile for @source, or %NULL
  *
  * Since: 3.6
  **/
@@ -2080,7 +2086,7 @@ e_server_side_source_get_file (EServerSideSource *source)
  * Note that accessing other data sources this way is not thread-safe,
  * and this therefore function may be replaced at some later date.
  *
- * Returns: a #GNode, or %NULL
+ * Returns: (transfer none) (nullable): a #GNode, or %NULL
  *
  * Since: 3.6
  **/
@@ -2098,7 +2104,7 @@ e_server_side_source_get_node (EServerSideSource *source)
  *
  * Returns the #ESourceRegistryServer to which @source belongs.
  *
- * Returns: the #ESourceRegistryServer for @source
+ * Returns: (transfer none): the #ESourceRegistryServer for @source
  *
  * Since: 3.6
  **/
@@ -2117,9 +2123,8 @@ e_server_side_source_get_server (EServerSideSource *source)
  * Returns whether @source has been exported over D-Bus.
  *
  * The function returns %FALSE after @source is initially created, %TRUE
- * after passing @source to e_source_registry_add_source() (provided that
- * @source's #ESource:parent is also exported), and %FALSE after passing
- * @source to e_source_registry_remove_source().
+ * after passing @source uid to e_source_registry_server_ref_source() (provided
+ * that @source's #ESource:parent is also exported).
  *
  * Returns: whether @source has been exported
  *
@@ -2427,7 +2432,7 @@ e_server_side_source_set_remote_deletable (EServerSideSource *source,
  * The returned #EOAuth2Support object is referenced for thread-safety.
  * Unreference the object with g_object_unref() when finished with it.
  *
- * Returns: an #EOAuth2Support object, or %NULL
+ * Returns: (transfer full) (nullable): an #EOAuth2Support object, or %NULL
  *
  * Since: 3.8
  **/

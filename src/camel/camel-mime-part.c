@@ -967,6 +967,7 @@ mime_part_construct_from_parser_sync (CamelMimePart *mime_part,
 		/* set the default type of a message always */
 		camel_data_wrapper_take_mime_type_field (dw, camel_content_type_decode ("message/rfc822"));
 		/* coverity[fallthrough] */
+		/* falls through */
 
 	case CAMEL_MIME_PARSER_STATE_HEADER:
 	case CAMEL_MIME_PARSER_STATE_MULTIPART:
@@ -1046,7 +1047,8 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 			"Content ID",
 			NULL,
 			NULL,
-			G_PARAM_READWRITE));
+			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY));
 
 	g_object_class_install_property (
 		object_class,
@@ -1056,7 +1058,8 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 			"Content MD5",
 			NULL,
 			NULL,
-			G_PARAM_READWRITE));
+			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY));
 
 	g_object_class_install_property (
 		object_class,
@@ -1066,7 +1069,8 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 			"Description",
 			NULL,
 			NULL,
-			G_PARAM_READWRITE));
+			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY));
 
 	g_object_class_install_property (
 		object_class,
@@ -1076,7 +1080,8 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 			"Disposition",
 			NULL,
 			NULL,
-			G_PARAM_READWRITE));
+			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY));
 
 	init_header_name_table ();
 }

@@ -32,9 +32,7 @@
  * server or else poll the remote server at regular intervals and then
  * update the data source collection accordingly.
  *
- * As most remote servers require authentication, the backend may also
- * wish to implement the #ESourceAuthenticator interface so it can submit
- * its own #EAuthenticationSession instances to the #ESourceRegistryServer.
+ * The client is responsible to provide credentials to use to authenticate.
  **/
 
 #include "evolution-data-server-config.h"
@@ -1286,7 +1284,7 @@ e_collection_backend_init (ECollectionBackend *backend)
  * The returned data source should be passed to
  * e_source_registry_server_add_source() to export it over D-Bus.
  *
- * Return: a newly-created data source
+ * Return: (transfer full): a newly-created data source
  *
  * Since: 3.6
  **/
@@ -1335,7 +1333,7 @@ e_collection_backend_new_child (ECollectionBackend *backend,
  * Returns: %TRUE, when the @source is a new child; %FALSE when
  *    it had been known before.
  *
- * Since: 3.30.3
+ * Since: 3.32
  **/
 gboolean
 e_collection_backend_is_new_source (ECollectionBackend *backend,
@@ -1368,7 +1366,7 @@ e_collection_backend_is_new_source (ECollectionBackend *backend,
  * The returned #GProxyResolver is referenced for thread-safety and must
  * be unreferenced with g_object_unref() when finished with it.
  *
- * Returns: a #GProxyResolver, or %NULL
+ * Returns: (transfer full) (nullable): a #GProxyResolver, or %NULL
  *
  * Since: 3.12
  **/
@@ -1399,7 +1397,7 @@ e_collection_backend_ref_proxy_resolver (ECollectionBackend *backend)
  * Unreference the #ESourceRegistryServer with g_object_unref() when
  * finished with it.
  *
- * Returns: the #ESourceRegisterServer for @backend
+ * Returns: (transfer full) (type ESourceRegistryServer): the #ESourceRegistryServer for @backend
  *
  * Since: 3.6
  **/
@@ -1511,7 +1509,7 @@ e_collection_backend_dup_resource_id (ECollectionBackend *backend,
  *   g_list_free_full (list, g_object_unref);
  * ]|
  *
- * Returns: a list of previously used sources
+ * Returns: (element-type ESource) (transfer full): a list of previously used sources
  *
  * Since: 3.6
  **/
@@ -1552,7 +1550,7 @@ e_collection_backend_claim_all_resources (ECollectionBackend *backend)
  *   g_list_free_full (list, g_object_unref);
  * ]|
  *
- * Returns: a list of calendar sources
+ * Returns: (element-type ESource) (transfer full): a list of calendar sources
  *
  * Since: 3.6
  **/
@@ -1595,7 +1593,7 @@ e_collection_backend_list_calendar_sources (ECollectionBackend *backend)
  *   g_list_free_full (list, g_object_unref);
  * ]|
  *
- * Returns: a list of address book sources
+ * Returns: (element-type ESource) (transfer full): a list of address book sources
  *
  * Since: 3.6
  **/
@@ -1638,7 +1636,7 @@ e_collection_backend_list_contacts_sources (ECollectionBackend *backend)
  *   g_list_free_full (list, g_object_unref);
  * ]|
  *
- * Returns: a list of mail sources
+ * Returns: (element-type ESource) (transfer full): a list of mail sources
  *
  * Since: 3.6
  **/

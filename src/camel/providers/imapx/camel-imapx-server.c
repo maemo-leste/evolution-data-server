@@ -3397,7 +3397,7 @@ preauthed:
 		g_mutex_unlock (&is->priv->stream_lock);
 
 		ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_NAMESPACE, "ENABLE UTF8=ACCEPT");
-		camel_imapx_server_process_command_sync (is, ic, "Failed to issue ENABLE UTF8=ACCEPT", cancellable, &local_error);
+		camel_imapx_server_process_command_sync (is, ic, _("Failed to issue ENABLE UTF8=ACCEPT"), cancellable, &local_error);
 		camel_imapx_command_unref (ic);
 
 		if (local_error != NULL) {

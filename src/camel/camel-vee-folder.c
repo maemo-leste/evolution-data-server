@@ -1269,7 +1269,7 @@ vee_folder_folder_changed (CamelVeeFolder *vee_folder,
 	if (!vee_folder->priv->change_queue_busy) {
 		gchar *description;
 
-		description = g_strdup_printf ("Updating search folder '%s'", camel_folder_get_full_name (CAMEL_FOLDER (vee_folder)));
+		description = g_strdup_printf (_("Updating search folder “%s”"), camel_folder_get_full_name (CAMEL_FOLDER (vee_folder)));
 
 		camel_session_submit_job (
 			session, description, (CamelSessionCallback)
@@ -1332,6 +1332,7 @@ camel_vee_folder_class_init (CamelVeeFolderClass *class)
 			_("Automatically _update on change in source folders"),
 			TRUE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			CAMEL_PARAM_PERSISTENT));
 }
 

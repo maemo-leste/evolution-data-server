@@ -1574,6 +1574,7 @@ e_cal_client_class_init (ECalClientClass *class)
 			"Timezone used to resolve DATE "
 			"and floating DATE-TIME values",
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
@@ -3005,7 +3006,7 @@ generate_instances_got_objects_cb (struct get_objects_async_data *goad,
  *                   @cb_data; can be %NULL.
  *
  * Does a combination of e_cal_client_get_object_list() and
- * e_cal_client_recur_generate_instances(). Unlike
+ * e_cal_recur_generate_instances(). Unlike
  * e_cal_client_generate_instances_sync(), this returns immediately and the
  * @cb callback is called asynchronously.
  *
@@ -3061,7 +3062,7 @@ e_cal_client_generate_instances (ECalClient *client,
  * @cb_data: (closure): Closure data for the callback
  *
  * Does a combination of e_cal_client_get_object_list() and
- * e_cal_client_recur_generate_instances().
+ * e_cal_recur_generate_instances().
  *
  * The callback function should do a g_object_ref() of the calendar component
  * it gets passed if it intends to keep it around, since it will be unreffed
@@ -3183,7 +3184,7 @@ generate_instances_for_object_got_objects_cb (struct get_objects_async_data *goa
  *                   free @cb_data; can be %NULL.
  *
  * Does a combination of e_cal_client_get_object_list() and
- * e_cal_client_recur_generate_instances(), like
+ * e_cal_recur_generate_instances(), like
  * e_cal_client_generate_instances(), but for a single object. Unlike
  * e_cal_client_generate_instances_for_object_sync(), this returns immediately
  * and the @cb callback is called asynchronously.
@@ -3296,7 +3297,7 @@ e_cal_client_generate_instances_for_object (ECalClient *client,
  * @cb_data: (closure): Closure data for the callback
  *
  * Does a combination of e_cal_client_get_object_list() and
- * e_cal_client_recur_generate_instances(), like
+ * e_cal_recur_generate_instances(), like
  * e_cal_client_generate_instances_sync(), but for a single object.
  *
  * The callback function should do a g_object_ref() of the calendar component

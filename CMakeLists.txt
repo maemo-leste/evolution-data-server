@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.30.5
+	VERSION 3.31.90
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -12,7 +12,7 @@ set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issu
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.30)
+set(BASE_VERSION 3.32)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -25,7 +25,6 @@ set(GETTEXT_PO_DIR ${CMAKE_SOURCE_DIR}/po)
 # Required for 'disttest' and 'ditcheck' of DistTarget module
 set(PROJECT_DISTCONFIGURE_PARAMS
 	-DENABLE_GOA=ON
-	-DENABLE_UOA=ON
 	-DENABLE_EXAMPLES=ON
 	-DENABLE_INTROSPECTION=ON
 	-DENABLE_VALA_BINDINGS=ON
@@ -54,7 +53,7 @@ set(LIBEBACKEND_CURRENT 10)
 set(LIBEBACKEND_REVISION 0)
 set(LIBEBACKEND_AGE 0)
 
-set(LIBEDATASERVER_CURRENT 23)
+set(LIBEDATASERVER_CURRENT 24)
 set(LIBEDATASERVER_REVISION 0)
 set(LIBEDATASERVER_AGE 0)
 
@@ -450,21 +449,6 @@ if(ENABLE_GOA)
 
 	set(HAVE_GOA 1)
 endif(ENABLE_GOA)
-
-# ********************************
-# Check for Ubuntu Online Accounts
-# ********************************
-
-add_printable_option(ENABLE_UOA "Enable Ubuntu Online Accounts support" ON)
-
-if(ENABLE_UOA)
-	pkg_check_modules_for_option(ENABLE_UOA "Ubuntu Online Accounts support" LIBACCOUNTS_GLIB libaccounts-glib>=${libaccounts_glib_minimum_version})
-	pkg_check_modules_for_option(ENABLE_UOA "Ubuntu Online Accounts support" LIBSIGNON_GLIB libsignon-glib>=${libsignon_glib_minimum_version})
-	pkg_check_modules_for_option(ENABLE_UOA "Ubuntu Online Accounts support" JSON_GLIB json-glib-1.0)
-	pkg_check_modules_for_option(ENABLE_UOA "Ubuntu Online Accounts support" REST rest-0.7)
-
-	set(HAVE_UOA 1)
-endif(ENABLE_UOA)
 
 # **********************************************
 # Check if backend per process should be enabled
@@ -1019,6 +1003,7 @@ add_subdirectory(po)
 add_subdirectory(src)
 add_subdirectory(tests)
 
+# Add it as the last, because it looks for targets defined above
 if(ENABLE_GTK_DOC)
 	add_subdirectory(docs)
 endif(ENABLE_GTK_DOC)

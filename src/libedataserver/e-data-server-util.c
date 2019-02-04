@@ -199,6 +199,32 @@ e_util_strdup_strip (const gchar *string)
 }
 
 /**
+ * e_util_strcmp0:
+ * @str1: a C string on %NULL
+ * @str2: another C string or %NULL
+ *
+ * Compares @str1 and @str2 like g_strcmp0(), except it handles %NULL and
+ * empty strings as equal.
+ *
+ * Returns: an integer less than 0 when @str1 is before @str2; 0 when
+ *    the strings are equal and an integer greated than 0 when @str1 is after @str2.
+ *
+ * Since: 3.32
+ **/
+gint
+e_util_strcmp0 (const gchar *str1,
+		const gchar *str2)
+{
+	if (str1 && !*str1)
+		str1 = NULL;
+
+	if (str2 && !*str2)
+		str2 = NULL;
+
+	return g_strcmp0 (str1, str2);
+}
+
+/**
  * e_util_strstrcase:
  * @haystack: The string to search in.
  * @needle: The string to search for.
@@ -344,8 +370,9 @@ stripped_char (gunichar ch)
 		/* Ignore those */
 		return 0;
 	default:
-		/* Convert to lowercase, fall through */
+		/* Convert to lowercase */
 		ch = g_unichar_tolower (ch);
+		/* falls through */
 	case G_UNICODE_LOWERCASE_LETTER:
 		if ((dlen = g_unichar_fully_decompose (ch, FALSE, decomp, 4))) {
 			retval = decomp[0];
@@ -2722,7 +2749,7 @@ e_timeout_add_with_name (gint priority,
  *          or %NULL
  *
  * Similar to g_timeout_add_seconds_full(), but also names the #GSource as
- * %name.
+ * @name.
  *
  * You might find e_named_timeout_add_seconds() or
  * e_named_timeout_add_seconds_full() more convenient.  Those macros name
@@ -2807,9 +2834,9 @@ e_source_registry_debug_print (const gchar *format,
  * in a consistent format:
  * [domain] YYYY-MM-DD hh:mm:ss.ms - format
  *
- * Since: 3.30
- *
  * See: e_util_debug_printv()
+ *
+ * Since: 3.30
  **/
 void
 e_util_debug_print (const gchar *domain,
@@ -2836,9 +2863,9 @@ e_util_debug_print (const gchar *domain,
  * in a consistent form:
  * [@domain] YYYY-MM-DD hh:mm:ss.ms - @format
  *
- * Since: 3.30
- *
  * See: e_util_debug_print()
+ *
+ * Since: 3.30
  **/
 void
 e_util_debug_printv (const gchar *domain,
@@ -3232,11 +3259,13 @@ e_util_can_use_collection_as_credential_source (ESource *collection_source,
 			if (can_use_collection) {
 				gchar *method_source, *method_collection;
 
-				/* Also check the method; if different, then rather not use the collection */
+				/* Also check the method; if different, then rather not use the collection.
+				   Consider 'none' method on the child as the same as the collection method. */
 				method_source = e_source_authentication_dup_method (auth_source);
 				method_collection = e_source_authentication_dup_method (auth_collection);
 
 				can_use_collection = !method_source || !method_collection ||
+					g_ascii_strcasecmp (method_source, "none") == 0 ||
 					g_ascii_strcasecmp (method_source, method_collection) == 0;
 
 				g_free (method_source);

@@ -13,13 +13,13 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: evolution-data-server gnome-3.30\n"
+"Project-Id-Version: evolution-data-server\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/evolution-data-server/"
 "issues\n"
-"POT-Creation-Date: 2018-07-31 10:36+0000\n"
+"POT-Creation-Date: 2018-09-03 15:23+0000\n"
 "PO-Revision-Date: 2018-08-30 14:36+0200\n"
 "Last-Translator: Jiri Eischmann <jiri@eischmann.cz>\n"
-"Language-Team: čeština <>\n"
+"Language-Team: čeština <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,7 +29,6 @@ msgstr ""
 
 #: ../src/addressbook/backends/carddav/e-book-backend-carddav.c:220
 #, c-format
-#| msgid "Given URL “%s” doesn’t reference WebDAV address book"
 msgid "Given URL “%s” doesn’t reference CardDAV address book"
 msgstr "Zadaná adresa URL „%s“ neodkazuje na adresář WebDAV"
 
@@ -93,7 +92,6 @@ msgstr "Neznámá chyba"
 
 #: ../src/addressbook/backends/carddav/e-book-backend-carddav.c:1036
 #: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:1192
-#| msgid "Signon service did not return a secret"
 msgid "Server didn’t return object’s href"
 msgstr "Server nevrátil odkaz objektu"
 
@@ -127,31 +125,31 @@ msgid "Failed to create hardlink for resource “%s”: %s"
 msgstr "Selhalo vytvoření pevného odkazu pro zdroj „%s“: %s"
 
 #: ../src/addressbook/backends/file/e-book-backend-file.c:524
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1260
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1272
 msgid "No UID in the contact"
 msgstr "Žádné UID v tomto kontaktu"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:856
+#: ../src/addressbook/backends/file/e-book-backend-file.c:868
 #, c-format
 msgid "Conflicting UIDs found in added contacts"
 msgstr "V přidaných kontaktech nalezeno několik UID ve vzájemném konfliktu"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:994
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1006
 msgid "Loading..."
 msgstr "Načítá se…"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:996
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1008
 #: ../src/addressbook/backends/ldap/e-book-backend-ldap.c:4436
 msgid "Searching..."
 msgstr "Vyhledává se…"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1288
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1300
 #, c-format
 msgid "Tried to modify contact “%s” with out of sync revision"
 msgstr "Pokus změnit kontakt „%s“ s revizí mimo synchronizaci"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1479
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1564
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1491
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1576
 #: ../src/addressbook/libedata-book/e-book-backend-sqlitedb.c:3085
 #: ../src/addressbook/libedata-book/e-book-sqlite.c:7365
 #: ../src/addressbook/libedata-book/e-book-sqlite.c:7434
@@ -159,24 +157,24 @@ msgstr "Pokus změnit kontakt „%s“ s revizí mimo synchronizaci"
 msgid "Contact “%s” not found"
 msgstr "Kontakt „%s“ nebyl nalezen"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1624
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1705
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1636
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1717
 #, c-format
 msgid "Query “%s” not supported"
 msgstr "Dotaz „%s“ není podporován"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1633
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1714
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1645
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1726
 #, c-format
 msgid "Invalid Query “%s”"
 msgstr "Neplatný dotaz „%s“"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:1979
+#: ../src/addressbook/backends/file/e-book-backend-file.c:1991
 #: ../src/addressbook/libedata-book/e-book-meta-backend.c:2015
 msgid "Requested to delete an unrelated cursor"
 msgstr "Požadováno smazání nesouvisejícího kurzoru"
 
-#: ../src/addressbook/backends/file/e-book-backend-file.c:2050
+#: ../src/addressbook/backends/file/e-book-backend-file.c:2062
 #, c-format
 msgid "Failed to rename old database from “%s” to “%s”: %s"
 msgstr "Nelze přejmenovat starou databázi z „%s“ na „%s“: %s"
@@ -2817,7 +2815,6 @@ msgstr "Nelze přejmenovat „%s“ na „%s“: %s"
 #. the whole “%s : %s” is meant as an absolute identification of the folder.
 #: ../src/camel/camel-filter-driver.c:262
 #, c-format
-#| msgid "Scanning for changed messages in “%s : %s”"
 msgid "Transferring filtered messages in “%s : %s”"
 msgstr "Probíhá přesun filtrovaných zpráv v „%s : %s“"
 
@@ -2871,7 +2868,6 @@ msgstr "Selhalo na zprávě %d"
 #: ../src/camel/camel-filter-driver.c:1719
 #: ../src/camel/camel-filter-driver.c:1851
 #, c-format
-#| msgid "Failed on message %d"
 msgid "Failed to transfer messages: %s"
 msgstr "Selhal přesun zpráv: %s"
 
@@ -3934,7 +3930,6 @@ msgstr "Dekodér selhal"
 
 #: ../src/camel/camel-smime-context.c:1296
 #, c-format
-#| msgid "Cannot find certificate for “%s”"
 msgid "No valid or appropriate certificate for “%s” was found"
 msgstr "Nenalezen žádný platný nebo odpovídající certifikát pro „%s“"
 
@@ -4068,7 +4063,7 @@ msgstr "Nelze zpracovat adresu URL „%s“"
 msgid "Updating folder “%s”"
 msgstr "Aktualizace složky „%s“"
 
-#: ../src/camel/camel-vee-folder.c:965 ../src/camel/camel-vee-folder.c:1082
+#: ../src/camel/camel-vee-folder.c:965 ../src/camel/camel-vee-folder.c:1101
 #, c-format
 msgid "Cannot copy or move messages into a Virtual Folder"
 msgstr "Nelze kopírovat nebo přesunout zprávy do Virtuální složky"
@@ -4082,12 +4077,12 @@ msgstr "Nelze kopírovat nebo přesunout zprávy do Virtuální složky"
 msgid "No such message %s in “%s : %s”"
 msgstr "Taková zpráva %s v „%s : %s“ neexistuje"
 
-#: ../src/camel/camel-vee-folder.c:1058
+#: ../src/camel/camel-vee-folder.c:1077
 #, c-format
 msgid "Error storing “%s”: "
 msgstr "Chyba při ukládání „%s“: "
 
-#: ../src/camel/camel-vee-folder.c:1308
+#: ../src/camel/camel-vee-folder.c:1328
 msgid "Automatically _update on change in source folders"
 msgstr "Automaticky _aktualizovat po každé změně ve zdrojových složkách"
 
@@ -4133,7 +4128,7 @@ msgstr "Pro dokončení této operace musíte pracovat připojeni (%s)"
 #: ../src/camel/providers/nntp/camel-nntp-store.c:351
 #: ../src/camel/providers/nntp/camel-nntp-store.c:1346
 #: ../src/camel/providers/nntp/camel-nntp-store.c:2158
-#: ../src/camel/providers/nntp/camel-nntp-store.c:2306
+#: ../src/camel/providers/nntp/camel-nntp-store.c:2313
 #: ../src/camel/providers/pop3/camel-pop3-folder.c:450
 #: ../src/camel/providers/pop3/camel-pop3-folder.c:633
 #: ../src/camel/providers/pop3/camel-pop3-folder.c:922
@@ -4180,7 +4175,6 @@ msgstr "Informace o kvótě nejsou dostupné pro složku „%s : %s“"
 #. the whole “%s : %s” is meant as an absolute identification of the folder.
 #: ../src/camel/providers/imapx/camel-imapx-folder.c:1025
 #, c-format
-#| msgid "Storing changes in folder “%s : %s”"
 msgid "Removing stale cache files in folder “%s : %s”"
 msgstr "Odstraňují se zastaralé souborů mezipaměti ve složce „%s : %s“"
 
@@ -5397,11 +5391,12 @@ msgid "NNTP Command failed: "
 msgstr "Příkaz NNTP selhal: "
 
 #: ../src/camel/providers/nntp/camel-nntp-store.c:2215
+#: ../src/camel/providers/nntp/camel-nntp-store.c:2250
 #, c-format
 msgid "Not connected."
 msgstr "Nepřipojen."
 
-#: ../src/camel/providers/nntp/camel-nntp-store.c:2320
+#: ../src/camel/providers/nntp/camel-nntp-store.c:2327
 #, c-format
 msgid "No such folder: %s"
 msgstr "Taková složka neexistuje: %s"
@@ -6120,22 +6115,6 @@ msgid "A list of hints for OAuth2 services"
 msgstr "Seznam rad pro služby OAuth2"
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:13
-#| msgid ""
-#| "Users can extend the list of supported protocols and hostnames for "
-#| "defined OAuth2 services, in addition to those hard-coded. Each line can "
-#| "be of the form: servicename[-protocol]:hostname1,hostname2,... where "
-#| "'servicename' is the actual service name; the '-protocol' is optional, "
-#| "and if written, then the service can be used only if both 'protocol' and "
-#| "'hostnameX' match; the 'hostnameX' is the actual host name to compare "
-#| "with, case insensitively. Each line can contain multiple values, "
-#| "separated by comma. There can be provided multiple lines for one OAuth2 "
-#| "service. Note that the actual URL where the token is requested and "
-#| "refreshed cannot be changed here, the hostname is to allow other servers, "
-#| "where the OAuth2 service can be used. Examples: Company:mail.company.com "
-#| "- enables 'Company' OAuth2 authentication for 'mail.company.com' host "
-#| "Company-CalDAV:caldav.company.com - enables 'Company' OAuth2 "
-#| "authentication for any 'CalDAV' source, which reads data from 'caldav."
-#| "company.com' host"
 msgid ""
 "Users can extend the list of supported protocols and hostnames for defined "
 "OAuth2 services, in addition to those hard-coded. Each line can be of the "
@@ -6317,19 +6296,16 @@ msgstr "UID „%s“ se již používá"
 
 #: ../src/libebackend/e-source-registry-server.c:447
 #, c-format
-#| msgid "Cannot find certificate for “%s”"
 msgid "Cannot find corresponding collection backend for source “%s”"
 msgstr "Nelze najít odpovídající podpůrnou vrstvu kolekce pro zdroj „%s“"
 
 #: ../src/libebackend/e-source-registry-server.c:451
 #, c-format
-#| msgid "Source “%s” (%s) is not a valid OAuth2 source"
 msgid "Source “%s” is not a collection source"
 msgstr "Zdroj „%s“ není zdrojem kolekce"
 
 #: ../src/libebackend/e-source-registry-server.c:457
 #, c-format
-#| msgid "Cannot find certificate for “%s”"
 msgid "Cannot find source “%s”"
 msgstr "Nelze najít zdroj „%s“"
 
@@ -6488,34 +6464,38 @@ msgstr "Chyba D-Bus"
 msgid "Timeout was reached"
 msgstr "Dosažen časový limit"
 
+#: ../src/libedataserver/e-oauth2-service.c:925
+msgid "Malformed, no message body set"
+msgstr "Poškozeno, není nastaveno žádné tělo zprávy"
+
 #. Translators: The first %s is a display name of the source, the second is its UID and
 #. the third is the name of the OAuth service.
-#: ../src/libedataserver/e-oauth2-service.c:1208
+#: ../src/libedataserver/e-oauth2-service.c:1209
 #, c-format
 msgid "Source “%s” (%s) is not valid for “%s” OAuth2 service"
 msgstr "Zdroj „%s“ (%s) není platný pro službu OAuth2 „%s“"
 
-#: ../src/libedataserver/e-oauth2-service.c:1223
+#: ../src/libedataserver/e-oauth2-service.c:1224
 msgid "OAuth2 secret not found"
 msgstr "Tajemství OAuth2 nebylo nalezeno"
 
-#: ../src/libedataserver/e-oauth2-service.c:1411
+#: ../src/libedataserver/e-oauth2-service.c:1412
 #, c-format
 msgid "Received incorrect response from server “%s”."
 msgstr "Přijata nesprávná odpověď od serveru „%s“."
 
-#: ../src/libedataserver/e-oauth2-service.c:1420
+#: ../src/libedataserver/e-oauth2-service.c:1421
 msgid "Failed to refresh access token. Sign to the server again, please."
 msgstr ""
 "Selhalo občerstvení přístupového tiketu. Přihlaste se prosím k serveru znovu."
 
 #. Translators: The first %s is a display name of the source, the second is its UID.
-#: ../src/libedataserver/e-oauth2-service.c:1462
+#: ../src/libedataserver/e-oauth2-service.c:1463
 #, c-format
 msgid "Source “%s” (%s) is not a valid OAuth2 source"
 msgstr "Zdroj „%s“ (%s) není platný zdroj OAuth2"
 
-#: ../src/libedataserver/e-oauth2-service.c:1535
+#: ../src/libedataserver/e-oauth2-service.c:1536
 msgid ""
 "The access token is expired and it failed to refresh it. Sign to the server "
 "again, please."
@@ -7384,7 +7364,7 @@ msgstr "Nelze najít prvek Účet"
 msgid "Failed to find ASUrl and OABUrl in autodiscover response"
 msgstr "Nelze najít odpovědi autodiscover ASUrl a OABUrl"
 
-#: ../src/modules/gnome-online-accounts/module-gnome-online-accounts.c:1405
+#: ../src/modules/gnome-online-accounts/module-gnome-online-accounts.c:1406
 #, c-format
 msgid ""
 "Cannot find a corresponding account in the org.gnome.OnlineAccounts service "
@@ -7393,7 +7373,7 @@ msgstr ""
 "Nelze nalézt odpovídající účet ve službě org.gnome.OnlineAccounts, ze které "
 "se získává přístupový tiket pro „%s“"
 
-#: ../src/modules/gnome-online-accounts/module-gnome-online-accounts.c:1455
+#: ../src/modules/gnome-online-accounts/module-gnome-online-accounts.c:1456
 #, c-format
 msgid "Failed to obtain an access token for “%s”: "
 msgstr "Selhalo získání přístupového tiketu pro „%s“:"
@@ -7518,25 +7498,25 @@ msgstr ""
 "kompilace."
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:223
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:250
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:755
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:964
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:251
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:756
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:965
 msgid "Reminders"
 msgstr "Připomenutí"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:362
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:363
 msgid "Warning"
 msgstr "Varování"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:363
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:364
 msgid "_No"
 msgstr "_Ne"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:364
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:365
 msgid "_Yes"
 msgstr "_Ano"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:368
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:369
 #, c-format
 msgid ""
 "A calendar reminder is about to trigger. This reminder is configured to run "
@@ -7546,38 +7526,38 @@ msgid ""
 "\n"
 "Are you sure you want to run this program?"
 msgstr ""
-"Připomenutí z kalendáře se chystá spustit program a to konkrétně následující:"
-"\n"
+"Připomenutí z kalendáře se chystá spustit program a to konkrétně "
+"následující:\n"
 "\n"
 "        %s\n"
 "\n"
 "Opravdu chcete tento program spustit?"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:382
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:383
 msgid "Do not ask me about this program again"
 msgstr "Na tento program se mě již znovu neptat"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:660
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:661
 msgid "Display reminders in notification area _only"
 msgstr "Zobrazovat připomenutí p_ouze v oznamovací oblasti"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:661
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:662
 msgid "Keep reminder notification window always on _top"
 msgstr "Nechat okno s připomenutím vždy n_ahoře."
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:662
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:663
 msgid "Display reminders for _completed tasks"
 msgstr "Zobrazovat připomenutí pro _dokončené úkoly"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:663
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:664
 msgid "Display reminders for _past events"
 msgstr "Zobrazovat připomenutí pro u_plynulé události"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:677
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:678
 msgid "Reminders Options:"
 msgstr "Volby připomenutí:"
 
-#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:771
+#: ../src/services/evolution-alarm-notify/e-alarm-notify.c:772
 #, c-format
 msgid "You have %d reminder"
 msgid_plural "You have %d reminders"

@@ -749,6 +749,7 @@ e_backend_class_init (EBackendClass *class)
 			"Socket endpoint of a network service",
 			G_TYPE_SOCKET_CONNECTABLE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
@@ -772,6 +773,7 @@ e_backend_class_init (EBackendClass *class)
 			"Whether the backend is online",
 			TRUE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
@@ -942,7 +944,7 @@ e_backend_ensure_online_state_updated (EBackend *backend,
  *
  * Returns the #ESource to which @backend is paired.
  *
- * Returns: the #ESource to which @backend is paired
+ * Returns: (transfer none): the #ESource to which @backend is paired
  *
  * Since: 3.4
  **/
@@ -968,7 +970,7 @@ e_backend_get_source (EBackend *backend)
  * The returned #GSocketConnectable is referenced for thread-safety and
  * must be unreferenced with g_object_unref() when finished with it.
  *
- * Returns: a #GSocketConnectable, or %NULL
+ * Returns: (transfer full) (nullable): a #GSocketConnectable, or %NULL
  *
  * Since: 3.8
  **/
