@@ -1240,7 +1240,7 @@ ecb_caldav_save_component_sync (ECalMetaBackend *meta_backend,
 
 	cbdav = E_CAL_BACKEND_CALDAV (meta_backend);
 
-	vcalendar = e_cal_meta_backend_merge_instances (meta_backend, instances, cbdav->priv->is_icloud);
+	vcalendar = e_cal_meta_backend_merge_instances (meta_backend, instances, TRUE);
 	g_return_val_if_fail (vcalendar != NULL, FALSE);
 
 	for (subcomp = icalcomponent_get_first_component (vcalendar, ICAL_ANY_COMPONENT);
@@ -1317,6 +1317,9 @@ ecb_caldav_save_component_sync (ECalMetaBackend *meta_backend,
 		}
 
 		g_free (new_etag);
+	} else if (uid && ical_string) {
+		success = FALSE;
+		g_propagate_error (error, EDC_ERROR_EX (InvalidObject, _("Missing information about component URL, local cache is possibly incomplete or broken. Remove it, please.")));
 	} else {
 		success = FALSE;
 		g_propagate_error (error, EDC_ERROR (InvalidObject));
@@ -2031,11 +2034,11 @@ ecb_caldav_get_backend_property (ECalBackend *backend,
 	g_return_val_if_fail (prop_name != NULL, NULL);
 
 	if (g_str_equal (prop_name, CLIENT_BACKEND_PROPERTY_CAPABILITIES)) {
+		ECalBackendCalDAV *cbdav = E_CAL_BACKEND_CALDAV (backend);
 		ESourceWebdav *extension;
 		ESource *source;
 		GString *caps;
 		gchar *usermail;
-		const gchar *extension_name;
 
 		caps = g_string_new (
 			CAL_STATIC_CAPABILITY_NO_THISANDPRIOR ","
@@ -2045,15 +2048,13 @@ ecb_caldav_get_backend_property (ECalBackend *backend,
 		g_string_append (caps, ",");
 		g_string_append (caps, e_cal_meta_backend_get_capabilities (E_CAL_META_BACKEND (backend)));
 
-		usermail = ecb_caldav_get_usermail (E_CAL_BACKEND_CALDAV (backend));
+		usermail = ecb_caldav_get_usermail (cbdav);
 		if (!usermail || !*usermail)
 			g_string_append (caps, "," CAL_STATIC_CAPABILITY_NO_EMAIL_ALARMS);
 		g_free (usermail);
 
 		source = e_backend_get_source (E_BACKEND (backend));
-
-		extension_name = E_SOURCE_EXTENSION_WEBDAV_BACKEND;
-		extension = e_source_get_extension (source, extension_name);
+		extension = e_source_get_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND);
 
 		if (e_source_webdav_get_calendar_auto_schedule (extension)) {
 			g_string_append (
@@ -2072,6 +2073,38 @@ ecb_caldav_get_backend_property (ECalBackend *backend,
 	return E_CAL_BACKEND_CLASS (e_cal_backend_caldav_parent_class)->get_backend_property (backend, prop_name);
 }
 
+static void
+ecb_caldav_notify_property_changed_cb (GObject *object,
+				       GParamSpec *param,
+				       gpointer user_data)
+{
+	ECalBackendCalDAV *cbdav = user_data;
+	ECalBackend *cal_backend;
+	gboolean email_address_changed;
+	gboolean calendar_auto_schedule_changed;
+	gchar *value;
+
+	g_return_if_fail (E_IS_CAL_BACKEND_CALDAV (cbdav));
+
+	cal_backend = E_CAL_BACKEND (cbdav);
+
+	email_address_changed = param && g_strcmp0 (param->name, "email-address") == 0;
+	calendar_auto_schedule_changed = param && g_strcmp0 (param->name, "calendar-auto-schedule") == 0;
+
+	if (email_address_changed || calendar_auto_schedule_changed) {
+		value = ecb_caldav_get_backend_property (cal_backend, CLIENT_BACKEND_PROPERTY_CAPABILITIES);
+		e_cal_backend_notify_property_changed (cal_backend, CLIENT_BACKEND_PROPERTY_CAPABILITIES, value);
+		g_free (value);
+	}
+
+	if (email_address_changed) {
+		value = ecb_caldav_get_backend_property (cal_backend, CAL_BACKEND_PROPERTY_CAL_EMAIL_ADDRESS);
+		e_cal_backend_notify_property_changed (cal_backend, CAL_BACKEND_PROPERTY_CAL_EMAIL_ADDRESS, value);
+		e_cal_backend_notify_property_changed (cal_backend, CAL_BACKEND_PROPERTY_ALARM_EMAIL_ADDRESS, value);
+		g_free (value);
+	}
+}
+
 static gchar *
 ecb_caldav_dup_component_revision_cb (ECalCache *cal_cache,
 				      icalcomponent *icalcomp)
@@ -2086,6 +2119,8 @@ e_cal_backend_caldav_constructed (GObject *object)
 {
 	ECalBackendCalDAV *cbdav = E_CAL_BACKEND_CALDAV (object);
 	ECalCache *cal_cache;
+	ESource *source;
+	ESourceWebdav *webdav_extension;
 
 	/* Chain up to parent's method. */
 	G_OBJECT_CLASS (e_cal_backend_caldav_parent_class)->constructed (object);
@@ -2098,6 +2133,15 @@ e_cal_backend_caldav_constructed (GObject *object)
 	g_clear_object (&cal_cache);
 
 	ecb_caldav_update_tweaks (cbdav);
+
+	source = e_backend_get_source (E_BACKEND (cbdav));
+	webdav_extension = e_source_get_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND);
+
+	g_signal_connect_object (webdav_extension, "notify::calendar-auto-schedule",
+		G_CALLBACK (ecb_caldav_notify_property_changed_cb), cbdav, 0);
+
+	g_signal_connect_object (webdav_extension, "notify::email-address",
+		G_CALLBACK (ecb_caldav_notify_property_changed_cb), cbdav, 0);
 }
 
 static void

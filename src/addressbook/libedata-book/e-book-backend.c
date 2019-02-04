@@ -765,6 +765,7 @@ e_book_backend_class_init (EBookBackendClass *class)
 			"The backend's cache directory",
 			NULL,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
@@ -799,6 +800,7 @@ e_book_backend_class_init (EBookBackendClass *class)
 			"Whether the backend will accept changes",
 			FALSE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -3265,7 +3267,7 @@ e_book_backend_get_backend_property (EBookBackend *backend,
  * Checks if @backend's storage has been opened (and
  * authenticated, if necessary) and the backend itself
  * is ready for accessing. This property is changed automatically
- * within call of e_book_backend_notify_opened().
+ * after the @backend is successfully opened.
  *
  * Returns: %TRUE if fully opened, %FALSE otherwise.
  *
@@ -3579,7 +3581,7 @@ e_book_backend_notify_error (EBookBackend *backend,
  * e_book_backend_notify_property_changed:
  * @backend: an #EBookBackend
  * @prop_name: property name, which changed
- * @prop_value: new property value
+ * @prop_value: (nullable): new property value
  *
  * Notifies clients about property value change.
  *
@@ -3594,13 +3596,11 @@ e_book_backend_notify_property_changed (EBookBackend *backend,
 
 	g_return_if_fail (E_IS_BOOK_BACKEND (backend));
 	g_return_if_fail (prop_name != NULL);
-	g_return_if_fail (prop_value != NULL);
 
 	data_book = e_book_backend_ref_data_book (backend);
 
 	if (data_book != NULL) {
-		e_data_book_report_backend_property_changed (
-			data_book, prop_name, prop_value);
+		e_data_book_report_backend_property_changed (data_book, prop_name, prop_value ? prop_value : "");
 		g_object_unref (data_book);
 	}
 }

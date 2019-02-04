@@ -2085,6 +2085,7 @@ e_reminder_watcher_class_init (EReminderWatcherClass *klass)
 			"The default time zone",
 			E_TYPE_REMINDER_WATCHER_ZONE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -2107,6 +2108,7 @@ e_reminder_watcher_class_init (EReminderWatcherClass *klass)
 			"Whether can schedule timers",
 			TRUE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -2357,7 +2359,7 @@ e_reminder_watcher_get_timers_enabled (EReminderWatcher *watcher)
 /**
  * e_reminder_watcher_set_timers_enabled:
  * @watcher: an #EReminderWatcher
- * @enable: a value to set
+ * @enabled: a value to set
  *
  * The @watcher can be used both for scheduling the timers for the reminders
  * and respond to them through the "triggered" signal, or only to listen for

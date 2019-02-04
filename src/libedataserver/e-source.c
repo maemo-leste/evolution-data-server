@@ -2173,6 +2173,7 @@ e_source_class_init (ESourceClass *class)
 			_("Unnamed"),
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
 
@@ -2186,6 +2187,7 @@ e_source_class_init (ESourceClass *class)
 			TRUE,
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
 
@@ -2211,6 +2213,7 @@ e_source_class_init (ESourceClass *class)
 			"The unique identity of the parent data source",
 			NULL,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
 
@@ -2312,7 +2315,7 @@ e_source_class_init (ESourceClass *class)
 	 * The ::credentials-required signal is emitted when the @source
 	 * requires credentials to connect to (possibly remote)
 	 * data store. The credentials can be passed to the backend using
-	 * e_source_authenticate() function.
+	 * e_source_invoke_authenticate() function.
 	 **/
 	signals[CREDENTIALS_REQUIRED] = g_signal_new (
 		"credentials-required",
@@ -2723,7 +2726,7 @@ e_source_set_parent (ESource *source,
 
 	g_mutex_lock (&source->priv->property_lock);
 
-	if (g_strcmp0 (source->priv->parent, parent) == 0) {
+	if (e_util_strcmp0 (source->priv->parent, parent) == 0) {
 		g_mutex_unlock (&source->priv->property_lock);
 		return;
 	}
@@ -4453,7 +4456,7 @@ e_source_delete_password_finish (ESource *source,
  * @error: (allow-none): return location for a #GError, or %NULL
  *
  * Let's the client-side know that credentials are required. The @reason defines which
- * parameters are used. The client passed the credentials with an e_source_authenticate()
+ * parameters are used. The client passed the credentials with an e_source_invoke_authenticate()
  * call.
  *
  * The %E_SOURCE_CREDENTIALS_REASON_REQUIRED is used for the first credentials prompt,

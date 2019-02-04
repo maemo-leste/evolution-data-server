@@ -1592,10 +1592,17 @@ ecmb_create_object_sync (ECalMetaBackend *meta_backend,
 		return FALSE;
 	}
 
-	/* Set the created and last modified times on the component */
+	/* Set the created and last modified times on the component, if not there already */
 	itt = icaltime_current_time_with_zone (icaltimezone_get_utc_timezone ());
-	e_cal_component_set_created (comp, &itt);
-	e_cal_component_set_last_modified (comp, &itt);
+
+	if (!icalcomponent_get_first_property (icalcomp, ICAL_CREATED_PROPERTY)) {
+		/* Update both when CREATED is missing, to make sure the LAST-MODIFIED
+		   is not before CREATED */
+		e_cal_component_set_created (comp, &itt);
+		e_cal_component_set_last_modified (comp, &itt);
+	} else if (!icalcomponent_get_first_property (icalcomp, ICAL_LASTMODIFIED_PROPERTY)) {
+		e_cal_component_set_last_modified (comp, &itt);
+	}
 
 	if (*offline_flag == E_CACHE_OFFLINE_UNKNOWN) {
 		if (e_backend_get_online (E_BACKEND (meta_backend)) &&
@@ -3369,6 +3376,7 @@ e_cal_meta_backend_class_init (ECalMetaBackendClass *klass)
 			"Calendar Cache",
 			E_TYPE_CAL_CACHE,
 			G_PARAM_READWRITE |
+			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
 	/* This signal is meant for testing purposes mainly */
@@ -4836,7 +4844,7 @@ e_cal_meta_backend_get_changes_sync (ECalMetaBackend *meta_backend,
  * of loading it with e_cal_meta_backend_load_component_sync().
  *
  * It is mandatory to implement this virtual method by the descendant, unless
- * it implements its own get_changes_sync().
+ * it implements its own #ECalMetaBackendClass.get_changes_sync().
  *
  * The @out_existing_objects #GSList should be freed with
  * g_slist_free_full (objects, e_cal_meta_backend_info_free);

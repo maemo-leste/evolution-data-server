@@ -1286,6 +1286,7 @@ gpg_ctx_parse_status (struct _GpgCtx *gpg,
 			}
 			/* let if fall through to verify possible signatures too */
 			/* break; */
+			/* falls through */
 		case GPG_CTX_MODE_VERIFY:
 			if (!strncmp ((gchar *) status, "TRUST_", 6)) {
 				status += 6;
@@ -2890,7 +2891,8 @@ camel_gpg_context_class_init (CamelGpgContextClass *class)
 			NULL,
 			FALSE,
 			G_PARAM_READWRITE |
-			G_PARAM_CONSTRUCT));
+			G_PARAM_CONSTRUCT |
+			G_PARAM_EXPLICIT_NOTIFY));
 
 	g_object_class_install_property (
 		object_class,
@@ -2901,7 +2903,8 @@ camel_gpg_context_class_init (CamelGpgContextClass *class)
 			NULL,
 			FALSE,
 			G_PARAM_READWRITE |
-			G_PARAM_CONSTRUCT));
+			G_PARAM_CONSTRUCT |
+			G_PARAM_EXPLICIT_NOTIFY));
 }
 
 static void

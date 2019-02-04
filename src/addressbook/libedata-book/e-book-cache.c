@@ -2198,6 +2198,7 @@ query_preflight_check (PreflightContext *context,
 							     ii, FALSE,
 							     check_different_fields_cb,
 							     &data);
+				/* falls through */
 			case BOOK_QUERY_SUB_AND:
 				sub_query_context_push (ctx, elements[ii]->query, data.condition);
 				break;
@@ -2303,8 +2304,11 @@ query_preflight_check (PreflightContext *context,
 			 * or fields which hold multiple strings
 			 */
 			if (test->field) {
-				if (test->field->type != G_TYPE_STRING &&
-				    test->field->type != E_TYPE_CONTACT_ATTR_LIST) {
+				if (test->field->type == G_TYPE_BOOLEAN &&
+				    field_test == BOOK_QUERY_EXISTS) {
+					context->status = MAX (context->status, PREFLIGHT_NOT_SUMMARIZED);
+				} else if (test->field->type != G_TYPE_STRING &&
+					   test->field->type != E_TYPE_CONTACT_ATTR_LIST) {
 					context->status = MAX (context->status, PREFLIGHT_INVALID);
 				}
 			}
