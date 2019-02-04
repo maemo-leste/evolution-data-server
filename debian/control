@@ -8,7 +8,7 @@ Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Uploaders: Jeremy Bicha <jbicha@debian.org>
 Build-Depends: cmake,
-               debhelper (>= 11),
+               debhelper-compat (= 12),
                libtool,
                intltool (>= 0.35.5),
                libcanberra-gtk3-dev (>= 0.25),
