@@ -9,7 +9,7 @@ export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
 export SENDMAIL_PATH = /usr/sbin/sendmail
 
 %:
-	dh $@ --with gir,gnome
+	dh $@
 
 ifeq (,$(filter $(DEB_HOST_ARCH), hppa hurd-i386 kfreebsd-i386 kfreebsd-amd64))
 CONFFLAGS = -DWITH_PHONENUMBER=ON
