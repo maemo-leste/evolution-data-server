@@ -108,7 +108,7 @@ Description: Documentation files for the Evolution Data Server libraries
  This package contains the API documentation for all the individual
  Evolution Data Server libraries.
 
-Package: libedataserver-1.2-23
+Package: libedataserver-1.2-24
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -125,7 +125,7 @@ Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedataserver-1.2-23 (= ${binary:Version}),
+Depends: libedataserver-1.2-24 (= ${binary:Version}),
          gir1.2-edataserver-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
