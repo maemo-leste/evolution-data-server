@@ -267,6 +267,43 @@ libebook-1.2.so.19 libebook-1.2-19 #MINVER#
  e_dbus_address_book_set_writable@Base 3.17
  e_dbus_address_book_skeleton_get_type@Base 3.17
  e_dbus_address_book_skeleton_new@Base 3.17
+ e_dbus_address_book_view_call_dispose@Base 3.31.90
+ e_dbus_address_book_view_call_dispose_finish@Base 3.31.90
+ e_dbus_address_book_view_call_dispose_sync@Base 3.31.90
+ e_dbus_address_book_view_call_set_fields_of_interest@Base 3.31.90
+ e_dbus_address_book_view_call_set_fields_of_interest_finish@Base 3.31.90
+ e_dbus_address_book_view_call_set_fields_of_interest_sync@Base 3.31.90
+ e_dbus_address_book_view_call_set_flags@Base 3.31.90
+ e_dbus_address_book_view_call_set_flags_finish@Base 3.31.90
+ e_dbus_address_book_view_call_set_flags_sync@Base 3.31.90
+ e_dbus_address_book_view_call_start@Base 3.31.90
+ e_dbus_address_book_view_call_start_finish@Base 3.31.90
+ e_dbus_address_book_view_call_start_sync@Base 3.31.90
+ e_dbus_address_book_view_call_stop@Base 3.31.90
+ e_dbus_address_book_view_call_stop_finish@Base 3.31.90
+ e_dbus_address_book_view_call_stop_sync@Base 3.31.90
+ e_dbus_address_book_view_complete_dispose@Base 3.31.90
+ e_dbus_address_book_view_complete_set_fields_of_interest@Base 3.31.90
+ e_dbus_address_book_view_complete_set_flags@Base 3.31.90
+ e_dbus_address_book_view_complete_start@Base 3.31.90
+ e_dbus_address_book_view_complete_stop@Base 3.31.90
+ e_dbus_address_book_view_emit_complete@Base 3.31.90
+ e_dbus_address_book_view_emit_objects_added@Base 3.31.90
+ e_dbus_address_book_view_emit_objects_modified@Base 3.31.90
+ e_dbus_address_book_view_emit_objects_removed@Base 3.31.90
+ e_dbus_address_book_view_emit_progress@Base 3.31.90
+ e_dbus_address_book_view_get_type@Base 3.31.90
+ e_dbus_address_book_view_interface_info@Base 3.31.90
+ e_dbus_address_book_view_override_properties@Base 3.31.90
+ e_dbus_address_book_view_proxy_get_type@Base 3.31.90
+ e_dbus_address_book_view_proxy_new@Base 3.31.90
+ e_dbus_address_book_view_proxy_new_finish@Base 3.31.90
+ e_dbus_address_book_view_proxy_new_for_bus@Base 3.31.90
+ e_dbus_address_book_view_proxy_new_for_bus_finish@Base 3.31.90
+ e_dbus_address_book_view_proxy_new_for_bus_sync@Base 3.31.90
+ e_dbus_address_book_view_proxy_new_sync@Base 3.31.90
+ e_dbus_address_book_view_skeleton_get_type@Base 3.31.90
+ e_dbus_address_book_view_skeleton_new@Base 3.31.90
  e_dbus_direct_book_dup_backend_config@Base 3.17
  e_dbus_direct_book_dup_backend_name@Base 3.17
  e_dbus_direct_book_dup_backend_path@Base 3.17

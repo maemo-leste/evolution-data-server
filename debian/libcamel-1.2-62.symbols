@@ -310,6 +310,8 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_folder_get_folder_summary@Base 3.24.1
  camel_folder_get_frozen_count@Base 3.19.92
  camel_folder_get_full_name@Base 3.19.92
+ camel_folder_get_mark_seen@Base 3.31.90
+ camel_folder_get_mark_seen_timeout@Base 3.31.90
  camel_folder_get_message@Base 3.19.92
  camel_folder_get_message_cached@Base 3.22.5
  camel_folder_get_message_count@Base 3.19.92
@@ -378,6 +380,8 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_folder_set_flags@Base 3.24.1
  camel_folder_set_full_name@Base 3.19.92
  camel_folder_set_lock_async@Base 3.19.92
+ camel_folder_set_mark_seen@Base 3.31.90
+ camel_folder_set_mark_seen_timeout@Base 3.31.90
  camel_folder_set_message_flags@Base 3.19.92
  camel_folder_set_message_user_flag@Base 3.19.92
  camel_folder_set_message_user_tag@Base 3.19.92

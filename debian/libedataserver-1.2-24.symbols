@@ -328,79 +328,6 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_gdata_oauth2_authorizer_ref_source@Base 3.27.90
  e_gdata_oauth2_authorizer_set_credentials@Base 3.27.90
  e_gdata_oauth2_authorizer_supported@Base 3.27.90
- e_gdbus_async_op_keeper_cancel_op_sync@Base 3.17
- e_gdbus_async_op_keeper_create_pending_ops@Base 3.17
- e_gdbus_async_op_keeper_get_pending_ops@Base 3.17
- e_gdbus_async_op_keeper_get_type@Base 3.17
- e_gdbus_complete_async_method@Base 3.17
- e_gdbus_complete_sync_method_boolean@Base 3.17
- e_gdbus_complete_sync_method_string@Base 3.17
- e_gdbus_complete_sync_method_strv@Base 3.17
- e_gdbus_complete_sync_method_uint@Base 3.17
- e_gdbus_complete_sync_method_void@Base 3.17
- e_gdbus_proxy_async_method_done_boolean@Base 3.17
- e_gdbus_proxy_async_method_done_string@Base 3.17
- e_gdbus_proxy_async_method_done_strv@Base 3.17
- e_gdbus_proxy_async_method_done_uint@Base 3.17
- e_gdbus_proxy_async_method_done_void@Base 3.17
- e_gdbus_proxy_call_boolean@Base 3.17
- e_gdbus_proxy_call_string@Base 3.17
- e_gdbus_proxy_call_strv@Base 3.17
- e_gdbus_proxy_call_sync_boolean__void@Base 3.17
- e_gdbus_proxy_call_sync_string__string@Base 3.17
- e_gdbus_proxy_call_sync_string__strv@Base 3.17
- e_gdbus_proxy_call_sync_string__void@Base 3.17
- e_gdbus_proxy_call_sync_strv__string@Base 3.17
- e_gdbus_proxy_call_sync_strv__strv@Base 3.17
- e_gdbus_proxy_call_sync_strv__void@Base 3.17
- e_gdbus_proxy_call_sync_uint__void@Base 3.17
- e_gdbus_proxy_call_sync_void__boolean@Base 3.17
- e_gdbus_proxy_call_sync_void__string@Base 3.17
- e_gdbus_proxy_call_sync_void__strv@Base 3.17
- e_gdbus_proxy_call_sync_void__uint@Base 3.17
- e_gdbus_proxy_call_sync_void__void@Base 3.17
- e_gdbus_proxy_call_uint@Base 3.17
- e_gdbus_proxy_call_void@Base 3.17
- e_gdbus_proxy_emit_signal@Base 3.17
- e_gdbus_proxy_finish_call_boolean@Base 3.17
- e_gdbus_proxy_finish_call_string@Base 3.17
- e_gdbus_proxy_finish_call_strv@Base 3.17
- e_gdbus_proxy_finish_call_uint@Base 3.17
- e_gdbus_proxy_finish_call_void@Base 3.17
- e_gdbus_proxy_method_call_boolean@Base 3.17
- e_gdbus_proxy_method_call_finish_boolean@Base 3.17
- e_gdbus_proxy_method_call_finish_string@Base 3.17
- e_gdbus_proxy_method_call_finish_strv@Base 3.17
- e_gdbus_proxy_method_call_finish_uint@Base 3.17
- e_gdbus_proxy_method_call_finish_void@Base 3.17
- e_gdbus_proxy_method_call_string@Base 3.17
- e_gdbus_proxy_method_call_strv@Base 3.17
- e_gdbus_proxy_method_call_sync_boolean__void@Base 3.17
- e_gdbus_proxy_method_call_sync_string__string@Base 3.17
- e_gdbus_proxy_method_call_sync_string__void@Base 3.17
- e_gdbus_proxy_method_call_sync_strv__string@Base 3.17
- e_gdbus_proxy_method_call_sync_strv__void@Base 3.17
- e_gdbus_proxy_method_call_sync_uint__void@Base 3.17
- e_gdbus_proxy_method_call_sync_void__void@Base 3.17
- e_gdbus_proxy_method_call_uint@Base 3.17
- e_gdbus_proxy_method_call_void@Base 3.17
- e_gdbus_signal_emission_hook_async_boolean@Base 3.17
- e_gdbus_signal_emission_hook_async_string@Base 3.17
- e_gdbus_signal_emission_hook_async_strv@Base 3.17
- e_gdbus_signal_emission_hook_async_uint@Base 3.17
- e_gdbus_signal_emission_hook_async_void@Base 3.17
- e_gdbus_signal_emission_hook_boolean@Base 3.17
- e_gdbus_signal_emission_hook_string@Base 3.17
- e_gdbus_signal_emission_hook_strv@Base 3.17
- e_gdbus_signal_emission_hook_uint@Base 3.17
- e_gdbus_signal_emission_hook_uint_string@Base 3.17
- e_gdbus_signal_emission_hook_void@Base 3.17
- e_gdbus_stub_handle_method_call@Base 3.17
- e_gdbus_templates_decode_error@Base 3.17
- e_gdbus_templates_decode_two_strings@Base 3.17
- e_gdbus_templates_encode_error@Base 3.17
- e_gdbus_templates_encode_two_strings@Base 3.17
- e_gdbus_templates_init_main_thread@Base 3.17
  e_get_user_cache_dir@Base 3.17
  e_get_user_config_dir@Base 3.17
  e_get_user_data_dir@Base 3.17
@@ -742,18 +669,24 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_mail_account_dup_identity_uid@Base 3.17
  e_source_mail_account_get_archive_folder@Base 3.17
  e_source_mail_account_get_identity_uid@Base 3.17
+ e_source_mail_account_get_mark_seen@Base 3.31.90
+ e_source_mail_account_get_mark_seen_timeout@Base 3.31.90
  e_source_mail_account_get_needs_initial_setup@Base 3.19.92
  e_source_mail_account_get_type@Base 3.17
  e_source_mail_account_set_archive_folder@Base 3.17
  e_source_mail_account_set_identity_uid@Base 3.17
+ e_source_mail_account_set_mark_seen@Base 3.31.90
+ e_source_mail_account_set_mark_seen_timeout@Base 3.31.90
  e_source_mail_account_set_needs_initial_setup@Base 3.19.92
  e_source_mail_composition_dup_bcc@Base 3.17
  e_source_mail_composition_dup_cc@Base 3.17
  e_source_mail_composition_dup_drafts_folder@Base 3.17
+ e_source_mail_composition_dup_language@Base 3.31.90
  e_source_mail_composition_dup_templates_folder@Base 3.17
  e_source_mail_composition_get_bcc@Base 3.17
  e_source_mail_composition_get_cc@Base 3.17
  e_source_mail_composition_get_drafts_folder@Base 3.17
+ e_source_mail_composition_get_language@Base 3.31.90
  e_source_mail_composition_get_reply_style@Base 3.19.92
  e_source_mail_composition_get_sign_imip@Base 3.17
  e_source_mail_composition_get_start_bottom@Base 3.25.90
@@ -764,6 +697,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_mail_composition_set_bcc@Base 3.17
  e_source_mail_composition_set_cc@Base 3.17
  e_source_mail_composition_set_drafts_folder@Base 3.17
+ e_source_mail_composition_set_language@Base 3.31.90
  e_source_mail_composition_set_reply_style@Base 3.19.92
  e_source_mail_composition_set_sign_imip@Base 3.17
  e_source_mail_composition_set_start_bottom@Base 3.25.90
@@ -1078,6 +1012,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_util_identity_can_send@Base 3.25.90
  e_util_safe_free_string@Base 3.17
  e_util_slist_to_strv@Base 3.17
+ e_util_strcmp0@Base 3.31.90
  e_util_strdup_strip@Base 3.17
  e_util_strstrcase@Base 3.17
  e_util_strv_equal@Base 3.17
