@@ -958,6 +958,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_webdav_get_resource_path@Base 3.17
  e_source_webdav_get_resource_query@Base 3.17
  e_source_webdav_get_ssl_trust@Base 3.17
+ e_source_webdav_get_ssl_trust_response@Base 3.32.0
  e_source_webdav_get_type@Base 3.17
  e_source_webdav_set_avoid_ifmatch@Base 3.17
  e_source_webdav_set_calendar_auto_schedule@Base 3.17
@@ -968,6 +969,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_webdav_set_resource_query@Base 3.17
  e_source_webdav_set_soup_uri@Base 3.17
  e_source_webdav_set_ssl_trust@Base 3.17
+ e_source_webdav_set_ssl_trust_response@Base 3.32.0
  e_source_webdav_unset_temporary_ssl_trust@Base 3.17
  e_source_webdav_update_ssl_trust@Base 3.17
  e_source_webdav_verify_ssl_trust@Base 3.17
@@ -1078,6 +1080,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_webdav_session_new_request@Base 3.25.90
  e_webdav_session_options_sync@Base 3.25.90
  e_webdav_session_post_sync@Base 3.25.90
+ e_webdav_session_post_with_content_type_sync@Base 3.32.0
  e_webdav_session_principal_property_search_sync@Base 3.25.90
  e_webdav_session_propfind_sync@Base 3.25.90
  e_webdav_session_proppatch_sync@Base 3.25.90
@@ -1099,6 +1102,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_xml_document_add_attribute_double@Base 3.25.90
  e_xml_document_add_attribute_int@Base 3.25.90
  e_xml_document_add_attribute_time@Base 3.25.90
+ e_xml_document_add_attribute_time_ical@Base 3.32.0
  e_xml_document_add_empty_element@Base 3.25.90
  e_xml_document_add_namespaces@Base 3.25.90
  e_xml_document_end_element@Base 3.25.90
