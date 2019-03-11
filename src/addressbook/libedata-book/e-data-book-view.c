@@ -653,7 +653,7 @@ e_data_book_view_init (EDataBookView *view)
 
 /**
  * e_data_book_view_new:
- * @backend: an #EBookBackend
+ * @backend: (type EBookBackend): an #EBookBackend
  * @sexp: an #EBookBackendSExp
  * @connection: a #GDBusConnection
  * @object_path: an object path for the view
@@ -691,7 +691,7 @@ e_data_book_view_new (EBookBackend *backend,
  *
  * Gets the backend that @view is querying.
  *
- * Returns: The associated #EBookBackend.
+ * Returns: (type EBookBackend) (transfer none): The associated #EBookBackend.
  **/
 EBookBackend *
 e_data_book_view_get_backend (EDataBookView *view)
@@ -707,7 +707,7 @@ e_data_book_view_get_backend (EDataBookView *view)
  *
  * Gets the s-expression used for matching contacts to @view.
  *
- * Returns: The #EBookBackendSExp used.
+ * Returns: (transfer none): The #EBookBackendSExp used.
  *
  * Since: 3.8
  **/
@@ -726,7 +726,7 @@ e_data_book_view_get_sexp (EDataBookView *view)
  * Returns the #GDBusConnection on which the AddressBookView D-Bus
  * interface is exported.
  *
- * Returns: the #GDBusConnection
+ * Returns: (transfer none): the #GDBusConnection
  *
  * Since: 3.8
  **/
@@ -1146,9 +1146,9 @@ e_data_book_view_notify_progress (EDataBookView *view,
  * e_data_book_view_get_fields_of_interest:
  * @view: an #EDataBookView
  *
- * Returns: Hash table of field names which the listener is interested in.
- * Backends can return fully populated objects, but the listener advertised
- * that it will use only these. Returns %NULL for all available fields.
+ * Returns: (transfer none) (element-type utf8 gint) (nullable): Hash table of field names which
+ * the listener is interested in. Backends can return fully populated objects, but the listener
+ * advertised that it will use only these. Returns %NULL for all available fields.
  *
  * Note: The data pointer in the hash table has no special meaning, it's
  * only GINT_TO_POINTER(1) for easier checking. Also, field names are
