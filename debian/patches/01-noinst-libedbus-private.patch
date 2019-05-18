@@ -32,9 +32,11 @@ Signed-off-by: Emilio Pozuelo Monfort <pochu@debian.org>
  src/private/CMakeLists.txt |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/src/private/CMakeLists.txt
-+++ b/src/private/CMakeLists.txt
-@@ -149,7 +149,7 @@ gdbus_codegen_custom(org.gnome.evolution
+Index: evolution-data-server-3.32.2/src/private/CMakeLists.txt
+===================================================================
+--- evolution-data-server-3.32.2.orig/src/private/CMakeLists.txt
++++ evolution-data-server-3.32.2/src/private/CMakeLists.txt
+@@ -173,7 +173,7 @@ gdbus_codegen_custom(org.gnome.evolution
  	GENERATED_DBUS_SUBPROCESS_BACKEND
  	--c-generate-object-manager)
  

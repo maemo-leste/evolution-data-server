@@ -2,11 +2,11 @@ Description: Ubuntu's dh-translations can't handle variables
  for GETTEXT_PACKAGE
 Author: Sebastien Bacher <seb128@ubuntu.com>
 Bug: https://bugzilla.gnome.org/784877
-Index: evolution-data-server-3.24.3/CMakeLists.txt
+Index: evolution-data-server-3.32.2/CMakeLists.txt
 ===================================================================
---- evolution-data-server-3.24.3.orig/CMakeLists.txt
-+++ evolution-data-server-3.24.3/CMakeLists.txt
-@@ -18,7 +18,7 @@ set(BASE_VERSION 3.24)
+--- evolution-data-server-3.32.2.orig/CMakeLists.txt
++++ evolution-data-server-3.32.2/CMakeLists.txt
+@@ -19,7 +19,7 @@ set(BASE_VERSION 3.32)
  set(API_VERSION 1.2)
  
  # Required for FindIntltool module
