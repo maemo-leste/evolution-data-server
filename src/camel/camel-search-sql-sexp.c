@@ -100,11 +100,9 @@ func_and (CamelSExp *f,
 	g_string_append (string, " )");
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
 
-	if (strlen (string->str) == 4)
-		r->value.string = g_strdup ("");
-	else
-		r->value.string = string->str;
-	g_string_free (string, FALSE);
+	if (string->len == 4)
+		g_string_set_size (string, 0);
+	r->value.string = g_string_free (string, FALSE);
 
 	return r;
 }
@@ -135,8 +133,7 @@ func_or (CamelSExp *f,
 	g_string_append (string, " )");
 
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
-	r->value.string = string->str;
-	g_string_free (string, FALSE);
+	r->value.string = g_string_free (string, FALSE);
 	return r;
 }
 
@@ -232,8 +229,7 @@ eval_eq (struct _CamelSExp *f,
 		camel_sexp_result_free (f, r1);
 		camel_sexp_result_free (f, r2);
 		g_string_append (str, " )");
-		r->value.string = str->str;
-		g_string_free (str, FALSE);
+		r->value.string = g_string_free (str, FALSE);
 	} else {
 		r->value.string = g_strdup ("(0)");
 	}
@@ -275,8 +271,7 @@ eval_lt (struct _CamelSExp *f,
 		camel_sexp_result_free (f, r2);
 		g_string_append (str, " )");
 
-		r->value.string = str->str;
-		g_string_free (str, FALSE);
+		r->value.string = g_string_free (str, FALSE);
 	}
 	return r;
 }
@@ -317,8 +312,7 @@ eval_gt (struct _CamelSExp *f,
 		camel_sexp_result_free (f, r2);
 		g_string_append (str, " )");
 
-		r->value.string = str->str;
-		g_string_free (str, FALSE);
+		r->value.string = g_string_free (str, FALSE);
 	}
 	return r;
 }
@@ -366,8 +360,7 @@ match_threads (struct _CamelSExp *f,
 
 	g_string_append (str, " )");
 	r = camel_sexp_result_new (f, CAMEL_SEXP_RES_STRING);
-	r->value.string = str->str;
-	g_string_free (str, FALSE);
+	r->value.string = g_string_free (str, FALSE);
 
 	return r;
 }
@@ -763,8 +756,7 @@ sql_exp (struct _CamelSExp *f,
 		if (argv[i]->type == CAMEL_SEXP_RES_STRING && argv[i]->value.string)
 			g_string_append (str, argv[i]->value.string);
 	}
-	r->value.string = str->str;
-	g_string_free (str, FALSE);
+	r->value.string = g_string_free (str, FALSE);
 
 	return r;
 }

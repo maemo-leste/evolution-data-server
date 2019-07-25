@@ -23,49 +23,56 @@
 #ifndef E_CAL_CHECK_TIMEZONES_H
 #define E_CAL_CHECK_TIMEZONES_H
 
-#include <libical/ical.h>
+#include <libical-glib/libical-glib.h>
 #include <glib.h>
 #include <gio/gio.h>
 
+#include <libecal/e-cal-recur.h>
+
 G_BEGIN_DECLS
 
-gboolean	e_cal_client_check_timezones	(icalcomponent *comp,
-						 GList *comps,
-						 icaltimezone *(*tzlookup) (const gchar *tzid, gconstpointer ecalclient, GCancellable *cancellable, GError **error),
-						 gconstpointer ecalclient,
+gboolean	e_cal_client_check_timezones_sync
+						(ICalComponent *vcalendar,
+						 GSList *icalcomps, /* ICalComponent * */
+						 ECalRecurResolveTimezoneCb tzlookup,
+						 gpointer tzlookup_data,
 						 GCancellable *cancellable,
 						 GError **error);
 
-icaltimezone *	e_cal_client_tzlookup		(const gchar *tzid,
-						 gconstpointer ecalclient,
+ICalTimezone *	e_cal_client_tzlookup_cb	(const gchar *tzid,
+						 gpointer ecalclient, /* ECalClient * */
 						 GCancellable *cancellable,
 						 GError **error);
 
-icaltimezone *	e_cal_client_tzlookup_icomp
+/**
+ * ECalClientTzlookupICalCompData:
+ *
+ * Contains data used as lookup_data of e_cal_client_tzlookup_icalcomp_cb().
+ *
+ * Since: 3.34
+ **/
+typedef struct _ECalClientTzlookupICalCompData ECalClientTzlookupICalCompData;
+
+GType		e_cal_client_tzlookup_icalcomp_data_get_type
+						(void) G_GNUC_CONST;
+ECalClientTzlookupICalCompData *
+		e_cal_client_tzlookup_icalcomp_data_new
+						(ICalComponent *icomp);
+ECalClientTzlookupICalCompData *
+		e_cal_client_tzlookup_icalcomp_data_copy
+						(const ECalClientTzlookupICalCompData *lookup_data);
+void		e_cal_client_tzlookup_icalcomp_data_free
+						(ECalClientTzlookupICalCompData *lookup_data);
+ICalComponent *	e_cal_client_tzlookup_icalcomp_data_get_icalcomponent
+						(const ECalClientTzlookupICalCompData *lookup_data);
+
+ICalTimezone *	e_cal_client_tzlookup_icalcomp_cb
 						(const gchar *tzid,
-						 gconstpointer custom,
+						 gpointer lookup_data, /* ECalClientTzlookupICalCompData * */
 						 GCancellable *cancellable,
 						 GError **error);
 
 const gchar *	e_cal_match_tzid		(const gchar *tzid);
-
-#ifndef EDS_DISABLE_DEPRECATED
-
-gboolean	e_cal_check_timezones		(icalcomponent *comp,
-						 GList *comps,
-						 icaltimezone * (*tzlookup) (const gchar *tzid, gconstpointer custom, GError **error),
-						 gconstpointer custom,
-						 GError **error);
-
-icaltimezone *	e_cal_tzlookup_ecal		(const gchar *tzid,
-						 gconstpointer custom,
-						 GError **error);
-
-icaltimezone *	e_cal_tzlookup_icomp		(const gchar *tzid,
-						 gconstpointer custom,
-						 GError **error);
-
-#endif /* EDS_DISABLE_DEPRECATED */
 
 G_END_DECLS
 

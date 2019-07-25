@@ -67,7 +67,6 @@ struct _AsyncContext {
 	gchar *capabilities;
 	gchar *prop_name;
 	gchar *prop_value;
-	gboolean only_if_exists;
 };
 
 enum {
@@ -191,27 +190,62 @@ e_client_error_to_string (EClientError code)
 /**
  * e_client_error_create:
  * @code: an #EClientError code to create
- * @custom_msg: custom message to use for the error; can be %NULL
+ * @custom_msg: (nullable): custom message to use for the error; can be %NULL
  *
- * Returns: a new #GError containing an E_CLIENT_ERROR of the given
- * @code. If the @custom_msg is NULL, then the error message is
- * the one returned from e_client_error_to_string() for the @code,
- * otherwise the given message is used.
- *
- * Returned pointer should be freed with g_error_free().
+ * Returns: (transfer full): a new #GError containing an #E_CLIENT_ERROR of the given
+ *    @code. If the @custom_msg is NULL, then the error message is the one returned
+ *    from e_client_error_to_string() for the @code, otherwise the given message is used.
+ *    Returned pointer should be freed with g_error_free().
  *
  * Since: 3.2
- *
- * Deprecated: 3.8: Just use the #GError API directly.
  **/
 GError *
 e_client_error_create (EClientError code,
                        const gchar *custom_msg)
 {
-	if (custom_msg == NULL)
+	if (!custom_msg)
 		custom_msg = e_client_error_to_string (code);
 
 	return g_error_new_literal (E_CLIENT_ERROR, code, custom_msg);
+}
+
+/**
+ * e_client_error_create_fmt:
+ * @code: an #EClientError
+ * @format: (nullable): message format, or %NULL to use the default message for the @code
+ * @...: arguments for the format
+ *
+ * Similar as e_client_error_create(), only here, instead of custom_msg,
+ * is used a printf() format to create a custom message for the error.
+ *
+ * Returns: (transfer full): a newly allocated #GError, which should be
+ *   freed with g_error_free(), when no longer needed.
+ *   The #GError has set the custom message, or the default message for
+ *   @code, when @format is %NULL.
+ *
+ * Since: 3.34
+ **/
+GError *
+e_client_error_create_fmt (EClientError code,
+			   const gchar *format,
+			   ...)
+{
+	GError *error;
+	gchar *custom_msg;
+	va_list ap;
+
+	if (!format)
+		return e_client_error_create (code, NULL);
+
+	va_start (ap, format);
+	custom_msg = g_strdup_vprintf (format, ap);
+	va_end (ap);
+
+	error = e_client_error_create (code, custom_msg);
+
+	g_free (custom_msg);
+
+	return error;
 }
 
 static void
@@ -591,15 +625,9 @@ client_open_thread (GSimpleAsyncResult *simple,
                     GObject *source_object,
                     GCancellable *cancellable)
 {
-	AsyncContext *async_context;
 	GError *error = NULL;
 
-	async_context = g_simple_async_result_get_op_res_gpointer (simple);
-
-	e_client_open_sync (
-		E_CLIENT (source_object),
-		async_context->only_if_exists,
-		cancellable, &error);
+	e_client_open_sync (E_CLIENT (source_object), FALSE, cancellable, &error);
 
 	if (error != NULL)
 		g_simple_async_result_take_error (simple, error);
@@ -616,7 +644,6 @@ client_open (EClient *client,
 	AsyncContext *async_context;
 
 	async_context = g_slice_new0 (AsyncContext);
-	async_context->only_if_exists = only_if_exists;
 
 	simple = g_simple_async_result_new (
 		G_OBJECT (client), callback, user_data, client_open);
@@ -1567,8 +1594,7 @@ e_client_set_backend_property_sync (EClient *client,
 /**
  * e_client_open:
  * @client: an #EClient
- * @only_if_exists: if %TRUE, fail if this book doesn't already exist,
- *                  otherwise create it first
+ * @only_if_exists: this parameter is not used anymore
  * @cancellable: a #GCancellable; can be %NULL
  * @callback: callback to call when a result is ready
  * @user_data: user data for the @callback
@@ -1638,8 +1664,7 @@ e_client_open_finish (EClient *client,
 /**
  * e_client_open_sync:
  * @client: an #EClient
- * @only_if_exists: if %TRUE, fail if this book doesn't already exist,
- *                  otherwise create it first
+ * @only_if_exists: this parameter is not used anymore
  * @cancellable: a #GCancellable; can be %NULL
  * @error: (out): a #GError to set an error, if any
  *
