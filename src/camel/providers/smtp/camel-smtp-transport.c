@@ -77,6 +77,7 @@ static GHashTable *	esmtp_get_authtypes	(const guchar *buffer);
 static gboolean		smtp_helo		(CamelSmtpTransport *transport,
 						 CamelStreamBuffer *istream,
 						 CamelStream *ostream,
+						 gboolean ignore_8bitmime,
 						 GCancellable *cancellable,
 						 GError **error);
 static gboolean		smtp_mail		(CamelSmtpTransport *transport,
@@ -178,6 +179,7 @@ connect_to_server (CamelService *service,
 	GIOStream *tls_stream;
 	gchar *respbuf = NULL;
 	gboolean success = TRUE;
+	gboolean ignore_8bitmime;
 	gchar *host;
 
 	if (!CAMEL_SERVICE_CLASS (camel_smtp_transport_parent_class)->
@@ -247,9 +249,11 @@ connect_to_server (CamelService *service,
 	} while (*(respbuf+3) == '-'); /* if we got "220-" then loop again */
 	g_free (respbuf);
 
+	ignore_8bitmime = host && camel_strstrcase (host, "yahoo.com");
+
 	/* Try sending EHLO */
 	transport->flags |= CAMEL_SMTP_TRANSPORT_IS_ESMTP;
-	if (!smtp_helo (transport, istream, ostream, cancellable, error)) {
+	if (!smtp_helo (transport, istream, ostream, ignore_8bitmime, cancellable, error)) {
 		if (!transport->connected) {
 			success = FALSE;
 			goto exit;
@@ -259,7 +263,7 @@ connect_to_server (CamelService *service,
 		g_clear_error (error);
 		transport->flags &= ~CAMEL_SMTP_TRANSPORT_IS_ESMTP;
 
-		if (!smtp_helo (transport, istream, ostream, cancellable, error)) {
+		if (!smtp_helo (transport, istream, ostream, ignore_8bitmime, cancellable, error)) {
 			success = FALSE;
 			goto exit;
 		}
@@ -331,7 +335,7 @@ connect_to_server (CamelService *service,
 
 	/* We are supposed to re-EHLO after a successful STARTTLS to
 	 * re-fetch any supported extensions. */
-	if (!smtp_helo (transport, istream, ostream, cancellable, error)) {
+	if (!smtp_helo (transport, istream, ostream, ignore_8bitmime, cancellable, error)) {
 		success = FALSE;
 	}
 
@@ -855,6 +859,25 @@ smtp_transport_query_auth_types_sync (CamelService *service,
 }
 
 static gboolean
+message_has_8bit_or_qp_part_cb (CamelMimeMessage *message,
+				CamelMimePart *part,
+				CamelMimePart *parent_part,
+				gpointer user_data)
+{
+	CamelTransferEncoding encoding;
+	gint *has8bit = user_data;
+
+	/* check this part, and stop as soon as we are done */
+	encoding = camel_mime_part_get_encoding (part);
+
+	*has8bit = encoding == CAMEL_TRANSFER_ENCODING_8BIT ||
+		   encoding == CAMEL_TRANSFER_ENCODING_BINARY ||
+		   encoding == CAMEL_TRANSFER_ENCODING_QUOTEDPRINTABLE;
+
+	return !(*has8bit);
+}
+
+static gboolean
 smtp_transport_send_to_sync (CamelTransport *transport,
                              CamelMimeMessage *message,
                              CamelAddress *from,
@@ -867,7 +890,7 @@ smtp_transport_send_to_sync (CamelTransport *transport,
 	CamelInternetAddress *cia;
 	CamelStreamBuffer *istream;
 	CamelStream *ostream;
-	gboolean has_8bit_parts;
+	gboolean has_8bit_parts = FALSE;
 	const gchar *addr;
 	gint i, len;
 
@@ -897,8 +920,8 @@ smtp_transport_send_to_sync (CamelTransport *transport,
 
 	camel_operation_push_message (cancellable, _("Sending message"));
 
-	/* find out if the message has 8bit mime parts */
-	has_8bit_parts = camel_mime_message_has_8bit_parts (message);
+	/* find out if the message has 8bit mime parts; quoted-printable are reencoded to 8bit too */
+	camel_mime_message_foreach_part (message, message_has_8bit_or_qp_part_cb, &has_8bit_parts);
 
 	/* If the connection needs a ReSET, then do so */
 	if (smtp_transport->need_rset &&
@@ -1358,10 +1381,12 @@ static gboolean
 smtp_helo (CamelSmtpTransport *transport,
 	   CamelStreamBuffer *istream,
 	   CamelStream *ostream,
+	   gboolean ignore_8bitmime,
            GCancellable *cancellable,
            GError **error)
 {
 	gchar *name = NULL, *cmdbuf = NULL, *respbuf = NULL;
+	gboolean first_line = TRUE;
 	const gchar *token;
 	GResolver *resolver;
 	GInetAddress *address;
@@ -1446,9 +1471,17 @@ smtp_helo (CamelSmtpTransport *transport,
 
 		token = respbuf + 4;
 
+		if (first_line) {
+			ignore_8bitmime = ignore_8bitmime || camel_strstrcase (token, "yahoo.com") != NULL;
+			first_line = FALSE;
+		}
+
 		if (transport->flags & CAMEL_SMTP_TRANSPORT_IS_ESMTP) {
 			if (!g_ascii_strncasecmp (token, "8BITMIME", 8)) {
-				transport->flags |= CAMEL_SMTP_TRANSPORT_8BITMIME;
+				if (ignore_8bitmime)
+					d (fprintf (stderr, "[SMTP] Ignoring 8BITMIME extension\n"));
+				else
+					transport->flags |= CAMEL_SMTP_TRANSPORT_8BITMIME;
 			} else if (!g_ascii_strncasecmp (token, "ENHANCEDSTATUSCODES", 19)) {
 				transport->flags |= CAMEL_SMTP_TRANSPORT_ENHANCEDSTATUSCODES;
 			} else if (!g_ascii_strncasecmp (token, "STARTTLS", 8)) {
@@ -1505,7 +1538,7 @@ smtp_mail (CamelSmtpTransport *transport,
 	/* we gotta tell the smtp server who we are. (our email addy) */
 	gchar *cmdbuf, *respbuf = NULL;
 
-	if (transport->flags & CAMEL_SMTP_TRANSPORT_8BITMIME && has_8bit_parts)
+	if ((transport->flags & CAMEL_SMTP_TRANSPORT_8BITMIME) && has_8bit_parts)
 		cmdbuf = g_strdup_printf ("MAIL FROM:<%s> BODY=8BITMIME\r\n", sender);
 	else
 		cmdbuf = g_strdup_printf ("MAIL FROM:<%s>\r\n", sender);
@@ -1724,6 +1757,40 @@ smtp_data (CamelSmtpTransport *transport,
 	ret = camel_data_wrapper_write_to_stream_sync (
 		CAMEL_DATA_WRAPPER (message),
 		filtered_stream, cancellable, error);
+
+	if (camel_debug ("smtp")) {
+		CamelStream *mem_stream, *sec_filtered_stream;
+		GError *local_error = NULL;
+
+		mem_stream = camel_stream_mem_new ();
+		sec_filtered_stream = camel_stream_filter_new (mem_stream);
+
+		filter = camel_mime_filter_crlf_new (
+			CAMEL_MIME_FILTER_CRLF_ENCODE,
+			CAMEL_MIME_FILTER_CRLF_MODE_CRLF_DOTS);
+		camel_stream_filter_add (CAMEL_STREAM_FILTER (sec_filtered_stream), filter);
+		g_object_unref (filter);
+
+		if (camel_data_wrapper_write_to_stream_sync (CAMEL_DATA_WRAPPER (message), sec_filtered_stream, cancellable, &local_error) == -1) {
+			printf ("[SMTP] Failed to write message to memory stream: %s\n", local_error ? local_error->message : "Unknown error");
+		} else {
+			GByteArray *bytes;
+
+			camel_stream_flush (sec_filtered_stream, cancellable, NULL);
+
+			bytes = camel_stream_mem_get_byte_array (CAMEL_STREAM_MEM (mem_stream));
+
+			if (!bytes) {
+				printf ("[SMTP] Failed to get filtered stream bytes\n");
+			} else {
+				printf ("[SMTP] sent data (re-encoded):\n%.*s\n", (gint) bytes->len, (const gchar *) bytes->data);
+			}
+		}
+
+		g_clear_object (&sec_filtered_stream);
+		g_clear_object (&mem_stream);
+		g_clear_error (&local_error);
+	}
 
 	/* restore the bcc headers */
 	for (ii = 0; camel_name_value_array_get (previous_headers, ii, &header_name, &header_value); ii++) {

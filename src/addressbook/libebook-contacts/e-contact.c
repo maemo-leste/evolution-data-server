@@ -543,7 +543,6 @@ photo_setter (EContact *contact,
 	}
 }
 
-
 static gpointer
 fn_getter (EContact *contact,
            EVCardAttribute *attr)
@@ -1664,7 +1663,6 @@ e_contact_get (EContact *contact,
 		}
 		case E_CONTACT_CATEGORIES: {
 			EVCardAttribute *attr = e_vcard_get_attribute (E_VCARD (contact), EVC_CATEGORIES);
-			gchar *rv = NULL;
 
 			if (attr) {
 				GString *str = g_string_new ("");
@@ -1676,9 +1674,9 @@ e_contact_get (EContact *contact,
 						g_string_append_c (str, ',');
 				}
 
-				rv = g_string_free (str, FALSE);
+				return g_string_free (str, FALSE);
 			}
-			return rv;
+			return NULL;
 		}
 		default:
 			g_warning ("unhandled synthetic field 0x%02x", info->field_id);

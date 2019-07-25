@@ -417,7 +417,7 @@ camel_utf8_make_valid (const gchar *text)
  * Returns: (transfer full): Valid UTF-8 string, with replaced incorrect letters.
  *    Free it with g_free(), when no longer needed.
  *
- * Since: 3.32.2
+ * Since: 3.34
  **/
 gchar *
 camel_utf8_make_valid_len (const gchar *text,

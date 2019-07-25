@@ -7,7 +7,7 @@ src/addressbook/backends/file/e-book-backend-file-migrate-bdb.c
 src/addressbook/backends/google/e-book-backend-google.c
 src/addressbook/backends/google/e-book-google-utils.c
 src/addressbook/backends/ldap/e-book-backend-ldap.c
-src/addressbook/libebook-contacts/e-book-contacts-types.c
+src/addressbook/libebook-contacts/e-book-contacts-utils.c
 src/addressbook/libebook-contacts/e-contact.c
 src/addressbook/libebook-contacts/e-phone-number.c
 src/addressbook/libebook/e-book.c
@@ -31,7 +31,6 @@ src/calendar/backends/contacts/e-cal-backend-contacts.c
 src/calendar/backends/file/e-cal-backend-file.c
 src/calendar/backends/http/e-cal-backend-http.c
 src/calendar/backends/weather/e-cal-backend-weather.c
-src/calendar/libecal/e-cal.c
 src/calendar/libecal/e-cal-client.c
 src/calendar/libecal/e-cal-client-view.c
 src/calendar/libecal/e-cal-component.c

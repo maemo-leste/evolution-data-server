@@ -223,8 +223,16 @@ bookview_start_thread (gpointer data)
 {
 	EDataBookView *view = data;
 
-	if (view->priv->running)
+	if (view->priv->running) {
+		/* To avoid race condition when one thread is starting the view, while
+		   another thread wants to notify about created/modified/removed objects. */
+		e_book_backend_sexp_lock (view->priv->sexp);
+
 		e_book_backend_start_view (view->priv->backend, view);
+
+		e_book_backend_sexp_unlock (view->priv->sexp);
+	}
+
 	g_object_unref (view);
 
 	return NULL;
@@ -1073,7 +1081,6 @@ e_data_book_view_notify_complete (EDataBookView *view,
                                   const GError *error)
 {
 	gchar *error_name, *error_message;
-	const gchar *arg_error[3];
 
 	g_return_if_fail (E_IS_DATA_BOOK_VIEW (view));
 
@@ -1103,13 +1110,10 @@ e_data_book_view_notify_complete (EDataBookView *view,
 		error_message = g_strdup ("");
 	}
 
-	arg_error[0] = error_name;
-	arg_error[1] = error_message;
-	arg_error[2] = NULL;
-
 	e_dbus_address_book_view_emit_complete (
 		view->priv->dbus_object,
-		arg_error);
+		error_name,
+		error_message);
 
 	g_free (error_name);
 	g_free (error_message);

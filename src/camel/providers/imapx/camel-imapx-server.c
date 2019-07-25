@@ -27,7 +27,7 @@
 #include <glib/gi18n-lib.h>
 #include <gio/gnetworking.h>
 
-#include <libical/ical.h>
+#include <libical-glib/libical-glib.h>
 
 #ifndef G_OS_WIN32
 #include <glib-unix.h>
@@ -3408,6 +3408,9 @@ preauthed:
 		g_mutex_lock (&is->priv->stream_lock);
 
 		is->priv->utf8_accept = TRUE;
+
+		if (CAMEL_IS_IMAPX_INPUT_STREAM (is->priv->input_stream))
+			camel_imapx_input_stream_set_utf8_accept (CAMEL_IMAPX_INPUT_STREAM (is->priv->input_stream), TRUE);
 	}
 
 	if (CAMEL_IMAPX_HAVE_CAPABILITY (is->priv->cinfo, NAMESPACE)) {
@@ -4352,6 +4355,7 @@ camel_imapx_server_get_message_sync (CamelIMAPXServer *is,
 	data_size = camel_message_info_get_size (mi);
 	use_multi_fetch = data_size > MULTI_SIZE && camel_imapx_settings_get_use_multi_fetch (settings);
 	g_object_unref (settings);
+	g_clear_object (&mi);
 
 	g_warn_if_fail (is->priv->get_message_stream == NULL);
 
@@ -4848,6 +4852,7 @@ camel_imapx_server_copy_message_sync (CamelIMAPXServer *is,
 					if (camel_folder_change_info_changed (dest_changes)) {
 						camel_folder_summary_touch (destination_summary);
 						camel_folder_summary_save (destination_summary, NULL);
+						imapx_update_store_summary (destination_folder);
 						camel_folder_changed (destination_folder, dest_changes);
 					}
 
@@ -5103,6 +5108,7 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 		if (ic->status && ic->status->condition == IMAPX_APPENDUID) {
 			c (is->priv->tagprefix, "Got appenduid %u %u\n", (guint32) ic->status->u.appenduid.uidvalidity, ic->status->u.appenduid.uid);
 			if (ic->status->u.appenduid.uidvalidity == uidvalidity) {
+				CamelFolderChangeInfo *dest_changes;
 				gchar *uid;
 
 				uid = g_strdup_printf ("%u", ic->status->u.appenduid.uid);
@@ -5123,11 +5129,13 @@ camel_imapx_server_append_message_sync (CamelIMAPXServer *is,
 
 				camel_folder_summary_add (camel_folder_get_folder_summary (folder), clone, TRUE);
 
-				g_mutex_lock (&is->priv->changes_lock);
-				camel_folder_change_info_add_uid (is->priv->changes, camel_message_info_get_uid (clone));
-				g_mutex_unlock (&is->priv->changes_lock);
+				dest_changes = camel_folder_change_info_new ();
+				camel_folder_change_info_add_uid (dest_changes, camel_message_info_get_uid (clone));
 
 				camel_folder_summary_save (camel_folder_get_folder_summary (folder), NULL);
+				imapx_update_store_summary (folder);
+				camel_folder_changed (folder, dest_changes);
+				camel_folder_change_info_free (dest_changes);
 
 				if (appended_uid)
 					*appended_uid = uid;
@@ -5450,11 +5458,24 @@ static gboolean
 camel_imapx_server_skip_old_flags_update (CamelStore *store)
 {
 	CamelSession *session;
+	CamelSettings *settings;
 	GNetworkMonitor *network_monitor;
 	gboolean skip_old_flags_update = FALSE;
 
 	if (!CAMEL_IS_STORE (store))
 		return FALSE;
+
+	settings = camel_service_ref_settings (CAMEL_SERVICE (store));
+	if (settings) {
+		gboolean allow_update;
+
+		allow_update = camel_imapx_settings_get_full_update_on_metered_network (CAMEL_IMAPX_SETTINGS (settings));
+
+		g_object_unref (settings);
+
+		if (allow_update)
+			return FALSE;
+	}
 
 	session = camel_service_ref_session (CAMEL_SERVICE (store));
 	if (!session)
@@ -6386,7 +6407,7 @@ camel_imapx_server_expunge_sync (CamelIMAPXServer *is,
 
 				camel_folder_summary_remove_uids (folder_summary, removed);
 				camel_folder_summary_save (folder_summary, NULL);
-
+				imapx_update_store_summary (folder);
 				camel_folder_changed (folder, changes);
 				camel_folder_change_info_free (changes);
 
@@ -6410,29 +6431,33 @@ camel_imapx_server_expunge_sync (CamelIMAPXServer *is,
 
 gboolean
 camel_imapx_server_list_sync (CamelIMAPXServer *is,
-			      const gchar *pattern,
+			      const gchar *in_pattern,
 			      CamelStoreGetFolderInfoFlags flags,
 			      GCancellable *cancellable,
 			      GError **error)
 {
 	CamelIMAPXCommand *ic;
+	gchar *utf7_pattern = NULL;
 	gboolean success;
 
 	g_return_val_if_fail (CAMEL_IS_IMAPX_SERVER (is), FALSE);
-	g_return_val_if_fail (pattern != NULL, FALSE);
+	g_return_val_if_fail (in_pattern != NULL, FALSE);
 
 	g_warn_if_fail (is->priv->list_responses_hash == NULL);
 	g_warn_if_fail (is->priv->list_responses == NULL);
 	g_warn_if_fail (is->priv->lsub_responses == NULL);
 
+	if (!camel_imapx_server_get_utf8_accept (is))
+		utf7_pattern = camel_utf8_utf7 (in_pattern);
+
 	if (is->priv->list_return_opts != NULL) {
 		ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_LIST, "LIST \"\" %s RETURN (%t)",
-			pattern, is->priv->list_return_opts);
+			utf7_pattern ? utf7_pattern : in_pattern, is->priv->list_return_opts);
 	} else {
 		is->priv->list_responses_hash = g_hash_table_new (camel_strcase_hash, camel_strcase_equal);
 
 		ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_LIST, "LIST \"\" %s",
-			pattern);
+			utf7_pattern ? utf7_pattern : in_pattern);
 	}
 
 	success = camel_imapx_server_process_command_sync (is, ic, _("Error fetching folders"), cancellable, error);
@@ -6441,12 +6466,14 @@ camel_imapx_server_list_sync (CamelIMAPXServer *is,
 
 	if (success && !is->priv->list_return_opts) {
 		ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_LSUB, "LSUB \"\" %s",
-			pattern);
+			utf7_pattern ? utf7_pattern : in_pattern);
 
 		success = camel_imapx_server_process_command_sync (is, ic, _("Error fetching subscribed folders"), cancellable, error);
 
 		camel_imapx_command_unref (ic);
 	}
+
+	g_free (utf7_pattern);
 
 	if (is->priv->list_responses_hash) {
 		CamelIMAPXStore *imapx_store;
@@ -6503,17 +6530,11 @@ camel_imapx_server_create_mailbox_sync (CamelIMAPXServer *is,
 	camel_imapx_command_unref (ic);
 
 	if (success) {
-		gchar *utf7_pattern;
-
-		utf7_pattern = camel_utf8_utf7 (mailbox_name);
-
 		/* List the new mailbox so we trigger our untagged
 		 * LIST handler.  This simulates being notified of
 		 * a newly-created mailbox, so we can just let the
 		 * callback functions handle the bookkeeping. */
-		success = camel_imapx_server_list_sync (is, utf7_pattern, 0, cancellable, error);
-
-		g_free (utf7_pattern);
+		success = camel_imapx_server_list_sync (is, mailbox_name, 0, cancellable, error);
 	}
 
 	return success;
