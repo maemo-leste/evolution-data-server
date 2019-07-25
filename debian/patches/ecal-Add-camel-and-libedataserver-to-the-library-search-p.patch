@@ -1,0 +1,29 @@
+From: Iain Lane <laney@debian.org>
+Date: Thu, 25 Jul 2019 17:11:01 +0100
+Subject: ecal: Add camel and libedataserver to the library search path for
+ the gir
+
+They are needed to build it
+
+Forwarded: https://gitlab.gnome.org/GNOME/evolution-data-server/merge_requests/30
+
+---
+ src/calendar/libecal/CMakeLists.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/calendar/libecal/CMakeLists.txt b/src/calendar/libecal/CMakeLists.txt
+index 304b764..58cf6fc 100644
+--- a/src/calendar/libecal/CMakeLists.txt
++++ b/src/calendar/libecal/CMakeLists.txt
+@@ -124,7 +124,10 @@ set(gir_cflags
+ 	-I${CMAKE_BINARY_DIR}/src/calendar
+ 	-I${CMAKE_SOURCE_DIR}/src/calendar
+ )
+-set(gir_libdirs)
++set(gir_libdirs
++	${CMAKE_BINARY_DIR}/src/camel
++	${CMAKE_BINARY_DIR}/src/libedataserver
++)
+ set(gir_libs ecal)
+ set(gir_deps
+ 	${CMAKE_BINARY_DIR}/src/camel/Camel-${API_VERSION}.gir
