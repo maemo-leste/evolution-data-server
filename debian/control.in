@@ -20,7 +20,7 @@ Build-Depends: cmake,
                libgoa-1.0-dev (>= 3.8),
                libgtk-3-dev (>= 3.10),
                libgweather-3-dev (>= 3.10),
-               libical-dev (>= 2.0),
+               libical-dev (>= 3.0.5),
                libicu-dev,
                libjson-glib-dev (>= 1.0.4),
                libkrb5-dev,
@@ -178,7 +178,7 @@ Depends: libedataserverui-1.2-2 (= ${binary:Version}),
          ${misc:Depends},
          libedata-book1.2-dev,
          libcamel1.2-dev (= ${binary:Version}),
-         libecal1.2-dev (= ${binary:Version}),
+         libecal2.0-dev (= ${binary:Version}),
          libedataserver1.2-dev (= ${binary:Version}),
          libxml2-dev,
          libglib2.0-dev (>= 2.40),
@@ -261,7 +261,7 @@ Description: GObject introspection for the Camel library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libebook-1.2-19
+Package: libebook-1.2-20
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -277,7 +277,7 @@ Package: libebook1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libebook-1.2-19 (= ${binary:Version}),
+Depends: libebook-1.2-20 (= ${binary:Version}),
          gir1.2-ebook-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -308,7 +308,7 @@ Description: GObject introspection for the EBook library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libedata-book-1.2-25
+Package: libedata-book-1.2-26
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -324,7 +324,8 @@ Package: libedata-book1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedata-book-1.2-25 (= ${binary:Version}),
+Depends: libedata-book-1.2-26 (= ${binary:Version}),
+         gir1.2-edatabook-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libebook-contacts1.2-dev (= ${binary:Version}),
@@ -335,6 +336,21 @@ Description: Backend library for evolution address books (development files)
  distributed suite from Novell, Inc.
  .
  This package contains header files and static library for libedata-book.
+
+Package: gir1.2-edatabook-1.2
+Section: introspection
+Architecture: any
+Multi-Arch: same
+Depends: ${gir:Depends},
+         ${shlibs:Depends},
+         ${misc:Depends}
+Description: GObject introspection for the EBook library
+ The data server, called "Evolution Data Server" is responsible for managing
+ calendar and addressbook information.
+ .
+ This package contains introspection data for the libedataserver
+ library. It can be used by packages using the GIRepository format to
+ generate dynamic bindings.
 
 Package: gir1.2-ebookcontacts-1.2
 Section: introspection
@@ -351,7 +367,7 @@ Description: GObject introspection for the EBook Contacts library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libebook-contacts-1.2-2
+Package: libebook-contacts-1.2-3
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -367,7 +383,7 @@ Package: libebook-contacts1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libebook-contacts-1.2-2 (= ${binary:Version}),
+Depends: libebook-contacts-1.2-3 (= ${binary:Version}),
          gir1.2-ebookcontacts-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -380,7 +396,7 @@ Description: Client library for evolution contacts books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
 
-Package: libecal-1.2-19
+Package: libecal-2.0-1
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -399,7 +415,7 @@ Conflicts: almanah (<< 0.11.1-1+b9),
            gnome-shell (<< 3.26.2-1+b1),
            gnome-todo (<< 3.26.2-2),
            libabiword-3.0 (<< 3.0.2-5),
-           libedata-cal-1.2-29 (<< 3.26.3),
+           libedata-cal-2.0-1 (<< 3.26.3),
            libevolution (<< 3.26.3),
            libjana-ecal0 (<< 0.0.0+git20091215.9ec1da8a-4+b1),
            libjana-test (<< 0.0.0+git20091215.9ec1da8a-4+b1),
@@ -410,23 +426,41 @@ Description: Client library for evolution calendars
  .
  This package is a client library for evolution calendar.
 
-Package: libecal1.2-dev
+Package: libecal2.0-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libecal-1.2-19 (= ${binary:Version}),
+Depends: libecal-2.0-1 (= ${binary:Version}),
+         gir1.2-ecal-2.0 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libical-dev (>= 2.0),
          libedataserver1.2-dev (= ${binary:Version}),
          libglib2.0-dev (>= 2.40),
+Conflicts: libecal1.2-dev (<< 3.33.4)
+Replaces: libecal1.2-dev (<< 3.33.4)
 Description: Client library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
  This package contains header files and static library for libecal.
 
-Package: libedata-cal-1.2-29
+Package: gir1.2-ecal-2.0
+Section: introspection
+Architecture: any
+Multi-Arch: same
+Depends: ${gir:Depends},
+         ${shlibs:Depends},
+         ${misc:Depends}
+Description: GObject introspection for the ECal library
+ The data server, called "Evolution Data Server" is responsible for managing
+ calendar and addressbook information.
+ .
+ This package contains introspection data for the libedataserver
+ library. It can be used by packages using the GIRepository format to
+ generate dynamic bindings.
+
+Package: libedata-cal-2.0-1
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -441,22 +475,40 @@ Description: Backend library for evolution calendars
  .
  This package is a backend library for evolution calendar.
 
-Package: libedata-cal1.2-dev
+Package: libedata-cal2.0-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedata-cal-1.2-29 (= ${binary:Version}),
+Depends: libedata-cal-2.0-1 (= ${binary:Version}),
+         gir1.2-edatacal-2.0 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libical-dev (>= 2.0),
-         libecal1.2-dev (= ${binary:Version}),
+         libecal2.0-dev (= ${binary:Version}),
          libebackend1.2-dev (= ${binary:Version}),
          libglib2.0-dev (>= 2.40),
+Conflicts: libedata-cal1.2-dev (<< 3.33.4)
+Replaces: libedata-cal1.2-dev (<< 3.33.4)
 Description: Backend library for evolution calendars (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
  .
  This package contains header files and static library for libedata-cal.
+
+Package: gir1.2-edatacal-2.0
+Section: introspection
+Architecture: any
+Multi-Arch: same
+Depends: ${gir:Depends},
+         ${shlibs:Depends},
+         ${misc:Depends}
+Description: GObject introspection for the EDataCal library
+ The data server, called "Evolution Data Server" is responsible for managing
+ calendar and addressbook information.
+ .
+ This package contains introspection data for the libedata-cal
+ library. It can be used by packages using the GIRepository format to
+ generate dynamic bindings.
 
 Package: libebackend-1.2-10
 Section: libs
@@ -476,6 +528,7 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Depends: libebackend-1.2-10 (= ${binary:Version}),
+         gir1.2-ebackend-1.2 (= ${binary:Version}),
          ${misc:Depends},
          libedataserver1.2-dev (= ${binary:Version}),
          libglib2.0-dev (>= 2.40),
@@ -487,3 +540,18 @@ Description: Utility library for evolution data servers (development files)
  .
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
+
+Package: gir1.2-ebackend-1.2
+Section: introspection
+Architecture: any
+Multi-Arch: same
+Depends: ${gir:Depends},
+         ${shlibs:Depends},
+         ${misc:Depends}
+Description: GObject introspection for the EBackend library
+ The data server, called "Evolution Data Server" is responsible for managing
+ calendar and addressbook information.
+ .
+ This package contains introspection data for the libedataserver
+ library. It can be used by packages using the GIRepository format to
+ generate dynamic bindings.

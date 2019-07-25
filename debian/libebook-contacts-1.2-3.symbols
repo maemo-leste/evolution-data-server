@@ -1,4 +1,4 @@
-libebook-contacts-1.2.so.2 libebook-contacts-1.2-2 #MINVER#
+libebook-contacts-1.2.so.3 libebook-contacts-1.2-3 #MINVER#
 * Build-Depends-Package: libebook-contacts1.2-dev
  (c++|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"i18n::phonenumbers::NullLogger::WriteMessage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 3.24.1
  (c++|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"i18n::phonenumbers::NullLogger::~NullLogger()@Base" 3.24.1

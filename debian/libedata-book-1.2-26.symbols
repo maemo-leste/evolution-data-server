@@ -1,4 +1,4 @@
-libedata-book-1.2.so.25 libedata-book-1.2-25 #MINVER#
+libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
 * Build-Depends-Package: libedata-book1.2-dev
  e_book_backend_add_view@Base 3.17
  e_book_backend_cache_add_contact@Base 3.17
