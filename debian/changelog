@@ -1,8 +1,19 @@
 evolution-data-server (3.33.4-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * debian/*: Update package names for new SONAMEs. There are new gir
+    libraries too, for EDataCal / ECal / EDataBook / EBackend - add binary
+    packages for these.
+  * Bump libical BD per upstream.
+  * Refresh patches
+  * debian/evolution-data-server.docs: Drop TODO, it's removed upstream
+  * ecal-Add-camel-and-libedataserver-to-the-library-search-p.patch: Fix gir
+    build failure
+  * Update symbols files
+  * debian/evolution-data-server.lintian-overrides: Fix path of sgid binary
+  * debian/copyright: Update slightly
 
- -- Iain Lane <laney@debian.org>  Thu, 25 Jul 2019 02:29:44 +0100
+ -- Iain Lane <laney@debian.org>  Thu, 25 Jul 2019 21:05:23 +0100
 
 evolution-data-server (3.32.2-1) experimental; urgency=medium
 
