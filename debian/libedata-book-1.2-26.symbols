@@ -80,10 +80,12 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_book_backend_set_locale@Base 3.17
  e_book_backend_set_writable@Base 3.17
  e_book_backend_sexp_get_type@Base 3.17
+ e_book_backend_sexp_lock@Base 3.33.4
  e_book_backend_sexp_match_contact@Base 3.17
  e_book_backend_sexp_match_vcard@Base 3.17
  e_book_backend_sexp_new@Base 3.17
  e_book_backend_sexp_text@Base 3.17
+ e_book_backend_sexp_unlock@Base 3.33.4
  e_book_backend_sqlitedb_add_contact@Base 3.17
  e_book_backend_sqlitedb_add_contacts@Base 3.17
  e_book_backend_sqlitedb_check_summary_fields@Base 3.17
@@ -146,10 +148,19 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_book_backend_summary_save@Base 3.17
  e_book_backend_summary_search@Base 3.17
  e_book_backend_summary_touch@Base 3.17
- e_book_backend_sync@Base 3.17
+ e_book_backend_sync_create_contacts@Base 3.33.4
+ e_book_backend_sync_get_contact@Base 3.33.4
+ e_book_backend_sync_get_contact_list@Base 3.33.4
+ e_book_backend_sync_get_contact_list_uids@Base 3.33.4
+ e_book_backend_sync_get_type@Base 3.33.4
+ e_book_backend_sync_modify_contacts@Base 3.33.4
+ e_book_backend_sync_open@Base 3.33.4
+ e_book_backend_sync_refresh@Base 3.33.4
+ e_book_backend_sync_remove_contacts@Base 3.33.4
  e_book_cache_cursor_calculate@Base 3.25.90
  e_book_cache_cursor_compare_contact@Base 3.25.90
  e_book_cache_cursor_free@Base 3.25.90
+ e_book_cache_cursor_get_type@Base 3.33.4
  e_book_cache_cursor_new@Base 3.25.90
  e_book_cache_cursor_set_sexp@Base 3.25.90
  e_book_cache_cursor_set_target_alphabetic_index@Base 3.25.90
@@ -157,6 +168,7 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_book_cache_dup_contact_revision@Base 3.25.90
  e_book_cache_dup_locale@Base 3.25.90
  e_book_cache_get_contact@Base 3.25.90
+ e_book_cache_get_contact_custom_flags@Base 3.33.4
  e_book_cache_get_contact_extra@Base 3.25.90
  e_book_cache_get_type@Base 3.25.90
  e_book_cache_get_uids_with_extra@Base 3.25.90
@@ -176,6 +188,7 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_book_cache_search_data_new@Base 3.25.90
  e_book_cache_search_uids@Base 3.25.90
  e_book_cache_search_with_callback@Base 3.25.90
+ e_book_cache_set_contact_custom_flags@Base 3.33.4
  e_book_cache_set_contact_extra@Base 3.25.90
  e_book_cache_set_locale@Base 3.25.90
  e_book_meta_backend_connect_sync@Base 3.25.90
@@ -243,8 +256,6 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_book_sqlite_set_key_value_int@Base 3.17
  e_book_sqlite_set_locale@Base 3.17
  e_book_sqlite_unlock@Base 3.17
- e_data_book_create_error@Base 3.17
- e_data_book_create_error_fmt@Base 3.17
  e_data_book_cursor_cache_get_type@Base 3.25.90
  e_data_book_cursor_cache_new@Base 3.25.90
  e_data_book_cursor_contact_added@Base 3.17
@@ -264,7 +275,6 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_data_book_direct_get_type@Base 3.17
  e_data_book_direct_new@Base 3.17
  e_data_book_direct_register_gdbus_object@Base 3.17
- e_data_book_error_quark@Base 3.17
  e_data_book_factory_get_type@Base 3.17
  e_data_book_factory_new@Base 3.17
  e_data_book_get_connection@Base 3.17
@@ -283,7 +293,6 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_data_book_respond_refresh@Base 3.17
  e_data_book_respond_remove_contacts@Base 3.17
  e_data_book_set_locale@Base 3.17
- e_data_book_status_to_string@Base 3.17
  e_data_book_string_slist_to_comma_string@Base 3.17
  e_data_book_view_get_backend@Base 3.17
  e_data_book_view_get_connection@Base 3.17

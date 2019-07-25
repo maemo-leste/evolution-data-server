@@ -6,25 +6,6 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_backend_add_timezone_finish@Base 3.17
  e_cal_backend_add_timezone_sync@Base 3.17
  e_cal_backend_add_view@Base 3.17
- e_cal_backend_cache_get_component@Base 3.17
- e_cal_backend_cache_get_components@Base 3.17
- e_cal_backend_cache_get_components_by_uid@Base 3.17
- e_cal_backend_cache_get_default_timezone@Base 3.17
- e_cal_backend_cache_get_key_value@Base 3.17
- e_cal_backend_cache_get_keys@Base 3.17
- e_cal_backend_cache_get_marker@Base 3.17
- e_cal_backend_cache_get_server_utc_time@Base 3.17
- e_cal_backend_cache_get_timezone@Base 3.17
- e_cal_backend_cache_get_type@Base 3.17
- e_cal_backend_cache_new@Base 3.17
- e_cal_backend_cache_put_component@Base 3.17
- e_cal_backend_cache_put_default_timezone@Base 3.17
- e_cal_backend_cache_put_key_value@Base 3.17
- e_cal_backend_cache_put_server_utc_time@Base 3.17
- e_cal_backend_cache_put_timezone@Base 3.17
- e_cal_backend_cache_remove@Base 3.17
- e_cal_backend_cache_remove_component@Base 3.17
- e_cal_backend_cache_set_marker@Base 3.17
  e_cal_backend_create_cache_filename@Base 3.17
  e_cal_backend_create_objects@Base 3.17
  e_cal_backend_create_objects_finish@Base 3.17
@@ -33,7 +14,6 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_backend_discard_alarm_finish@Base 3.17
  e_cal_backend_discard_alarm_sync@Base 3.17
  e_cal_backend_dup_cache_dir@Base 3.17
- e_cal_backend_empty_cache@Base 3.17
  e_cal_backend_factory_get_type@Base 3.17
  e_cal_backend_get_attachment_uris@Base 3.17
  e_cal_backend_get_attachment_uris_finish@Base 3.17
@@ -99,35 +79,14 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_backend_sexp_func_time_day_end@Base 3.17
  e_cal_backend_sexp_func_time_now@Base 3.17
  e_cal_backend_sexp_get_type@Base 3.17
+ e_cal_backend_sexp_lock@Base 3.33.4
  e_cal_backend_sexp_match_comp@Base 3.17
  e_cal_backend_sexp_match_object@Base 3.17
  e_cal_backend_sexp_new@Base 3.17
  e_cal_backend_sexp_text@Base 3.17
+ e_cal_backend_sexp_unlock@Base 3.33.4
  e_cal_backend_start_view@Base 3.17
  e_cal_backend_stop_view@Base 3.17
- e_cal_backend_store_clean@Base 3.17
- e_cal_backend_store_freeze_changes@Base 3.17
- e_cal_backend_store_get_component@Base 3.17
- e_cal_backend_store_get_component_ids@Base 3.17
- e_cal_backend_store_get_components@Base 3.17
- e_cal_backend_store_get_components_by_uid@Base 3.17
- e_cal_backend_store_get_components_by_uid_as_ical_string@Base 3.17
- e_cal_backend_store_get_components_occuring_in_range@Base 3.17
- e_cal_backend_store_get_default_timezone@Base 3.17
- e_cal_backend_store_get_key_value@Base 3.17
- e_cal_backend_store_get_path@Base 3.17
- e_cal_backend_store_get_type@Base 3.17
- e_cal_backend_store_has_component@Base 3.17
- e_cal_backend_store_interval_tree_add_comp@Base 3.17
- e_cal_backend_store_load@Base 3.17
- e_cal_backend_store_new@Base 3.17
- e_cal_backend_store_put_component@Base 3.17
- e_cal_backend_store_put_component_with_time_range@Base 3.17
- e_cal_backend_store_put_key_value@Base 3.17
- e_cal_backend_store_ref_timezone_cache@Base 3.17
- e_cal_backend_store_remove_component@Base 3.17
- e_cal_backend_store_set_default_timezone@Base 3.17
- e_cal_backend_store_thaw_changes@Base 3.17
  e_cal_backend_sync_add_timezone@Base 3.17
  e_cal_backend_sync_create_objects@Base 3.17
  e_cal_backend_sync_discard_alarm@Base 3.17
@@ -150,6 +109,7 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_cache_dup_timezone_as_string@Base 3.25.90
  e_cal_cache_get_component@Base 3.25.90
  e_cal_cache_get_component_as_string@Base 3.25.90
+ e_cal_cache_get_component_custom_flags@Base 3.33.4
  e_cal_cache_get_component_extra@Base 3.25.90
  e_cal_cache_get_components_by_uid@Base 3.25.90
  e_cal_cache_get_components_by_uid_as_string@Base 3.25.90
@@ -173,7 +133,6 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_cache_remove_timezone@Base 3.29.90
  e_cal_cache_remove_timezones@Base 3.25.90
  e_cal_cache_resolve_timezone_cb@Base 3.25.90
- e_cal_cache_resolve_timezone_simple_cb@Base 3.25.90
  e_cal_cache_search@Base 3.25.90
  e_cal_cache_search_components@Base 3.25.90
  e_cal_cache_search_data_copy@Base 3.25.90
@@ -182,6 +141,7 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_cache_search_data_new@Base 3.25.90
  e_cal_cache_search_ids@Base 3.25.90
  e_cal_cache_search_with_callback@Base 3.25.90
+ e_cal_cache_set_component_custom_flags@Base 3.33.4
  e_cal_cache_set_component_extra@Base 3.25.90
  e_cal_meta_backend_connect_sync@Base 3.25.90
  e_cal_meta_backend_disconnect_sync@Base 3.25.90
@@ -217,9 +177,6 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_meta_backend_set_ever_connected@Base 3.25.90
  e_cal_meta_backend_split_changes_sync@Base 3.25.90
  e_cal_meta_backend_store_inline_attachments_sync@Base 3.25.90
- e_data_cal_create_error@Base 3.17
- e_data_cal_create_error_fmt@Base 3.17
- e_data_cal_error_quark@Base 3.17
  e_data_cal_factory_get_type@Base 3.17
  e_data_cal_factory_new@Base 3.17
  e_data_cal_get_connection@Base 3.17
@@ -244,7 +201,6 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_data_cal_respond_refresh@Base 3.17
  e_data_cal_respond_remove_objects@Base 3.17
  e_data_cal_respond_send_objects@Base 3.17
- e_data_cal_status_to_string@Base 3.17
  e_data_cal_view_component_matches@Base 3.17
  e_data_cal_view_get_backend@Base 3.17
  e_data_cal_view_get_component_string@Base 3.17

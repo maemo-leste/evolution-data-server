@@ -36,6 +36,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_client_check_refresh_supported@Base 3.17
  e_client_dup_bus_name@Base 3.17
  e_client_error_create@Base 3.17
+ e_client_error_create_fmt@Base 3.33.4
  e_client_error_quark@Base 3.17
  e_client_error_to_string@Base 3.17
  e_client_get_backend_property@Base 3.17
@@ -93,6 +94,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_collator_new_interpret_country@Base 3.17
  e_collator_ref@Base 3.17
  e_collator_unref@Base 3.17
+ e_conflict_resolution_get_type@Base 3.33.4
  e_credentials_clear@Base 3.17
  e_credentials_clear_peek@Base 3.17
  e_credentials_equal@Base 3.17
@@ -661,7 +663,9 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_local_dup_custom_file@Base 3.17.90
  e_source_local_get_custom_file@Base 3.17.90
  e_source_local_get_type@Base 3.17.90
+ e_source_local_get_writable@Base 3.33.4
  e_source_local_set_custom_file@Base 3.17.90
+ e_source_local_set_writable@Base 3.33.4
  e_source_lookup_password@Base 3.17
  e_source_lookup_password_finish@Base 3.17
  e_source_lookup_password_sync@Base 3.17
