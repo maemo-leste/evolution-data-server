@@ -3845,9 +3845,6 @@ func_exists (struct _ESExp *f,
 		if (!strcmp (propname, "x-evolution-any-field")) {
 			gint i;
 			GString *big_query;
-			gchar *match_str;
-
-			match_str = g_strdup ("=*)");
 
 			big_query = g_string_sized_new (G_N_ELEMENTS (prop_info) * 7);
 			g_string_append (big_query, "(|");
@@ -3859,14 +3856,12 @@ func_exists (struct _ESExp *f,
 				     !(prop_info[i].prop_type & PROP_CALENTRY))) {
 					g_string_append_c (big_query, '(');
 					g_string_append (big_query, prop_info[i].ldap_attr);
-					g_string_append (big_query, match_str);
+					g_string_append_len (big_query, "=*)", 3);
 				}
 			}
 			g_string_append_c (big_query, ')');
 
 			ldap_data->list = g_list_prepend (ldap_data->list, g_string_free (big_query, FALSE));
-
-			g_free (match_str);
 		}
 		else {
 			const gchar *ldap_attr = query_prop_to_ldap (propname, ldap_data->bl->priv->evolutionPersonSupported, ldap_data->bl->priv->calEntrySupported);
@@ -4403,22 +4398,28 @@ ldap_search_handler (LDAPOp *op,
 static void
 ldap_search_dtor (LDAPOp *op)
 {
+	EBookBackend *backend;
 	EBookBackendLDAP *bl;
 	LDAPSearchOp *search_op = (LDAPSearchOp *) op;
 
 	d (printf ("ldap_search_dtor (%p)\n", search_op->view));
 
-	bl = E_BOOK_BACKEND_LDAP (e_data_book_view_get_backend (op->view));
+	backend = e_data_book_view_ref_backend (op->view);
+	bl = backend ? E_BOOK_BACKEND_LDAP (backend) : NULL;
 
 	/* unhook us from our EDataBookView */
-	g_mutex_lock (&bl->priv->view_mutex);
+	if (bl)
+		g_mutex_lock (&bl->priv->view_mutex);
 	g_object_set_data (G_OBJECT (search_op->view), LDAP_SEARCH_OP_IDENT, NULL);
-	g_mutex_unlock (&bl->priv->view_mutex);
+	if (bl)
+		g_mutex_unlock (&bl->priv->view_mutex);
 
 	g_object_unref (search_op->view);
 
 	if (!search_op->aborted)
 		g_free (search_op);
+
+	g_clear_object (&backend);
 }
 
 static void
@@ -4689,8 +4690,10 @@ generate_cache_dtor (LDAPOp *op)
 	g_free (contact_list_op);
 
 	g_rec_mutex_lock (&eds_ldap_handler_lock);
-	if (ldap_backend && ldap_backend->priv)
+	if (ldap_backend && ldap_backend->priv) {
+		e_book_backend_foreach_view_notify_progress (E_BOOK_BACKEND (ldap_backend), TRUE, 0, NULL);
 		ldap_backend->priv->generate_cache_in_progress = FALSE;
+	}
 	g_rec_mutex_unlock (&eds_ldap_handler_lock);
 }
 
@@ -4751,6 +4754,7 @@ generate_cache (EBookBackendLDAP *book_backend_ldap)
 	}
 
 	priv->generate_cache_in_progress = TRUE;
+	e_book_backend_foreach_view_notify_progress (E_BOOK_BACKEND (book_backend_ldap), TRUE, 0, _("Refreshing…"));
 
 	g_rec_mutex_unlock (&eds_ldap_handler_lock);
 

@@ -454,6 +454,7 @@ e_webdav_discover_content_fill_discovered_sources (GtkTreeView *tree_view,
 	GtkTreeModel *model;
 	GtkTreeIter iter;
 	GSList *link;
+	guint num_displayed_items = 0;
 
 	/* It's okay to pass NULL here */
 	if (!tree_view)
@@ -477,6 +478,7 @@ e_webdav_discover_content_fill_discovered_sources (GtkTreeView *tree_view,
 		    (source->supports & E_WEBDAV_DISCOVER_SUPPORTS_SUBSCRIBED_ICALENDAR) != 0)
 			continue;
 
+		num_displayed_items++;
 		if (source->color && *source->color) {
 			gint rr, gg, bb;
 
@@ -541,6 +543,13 @@ e_webdav_discover_content_fill_discovered_sources (GtkTreeView *tree_view,
 		g_free (description_markup);
 		g_free (colorstr);
 		g_string_free (supports, TRUE);
+	}
+
+	/* If there is only one item, select it */
+	if (num_displayed_items == 1) {
+		GtkTreeSelection *tree_selection = gtk_tree_view_get_selection (tree_view);
+
+		gtk_tree_selection_select_iter (tree_selection, &iter);
 	}
 }
 
@@ -1000,6 +1009,7 @@ e_webdav_discover_content_show_error (GtkWidget *content,
 	gtk_info_bar_set_show_close_button (data->info_bar, TRUE);
 
 	label = gtk_label_new (error->message);
+	gtk_label_set_width_chars (GTK_LABEL (label), 20);
 	gtk_label_set_max_width_chars (GTK_LABEL (label), 120);
 	gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
 	gtk_label_set_selectable (GTK_LABEL (label), TRUE);
@@ -1090,6 +1100,7 @@ e_webdav_discover_dialog_new (GtkWindow *parent,
 	g_object_set_data (G_OBJECT (dialog), WEBDAV_DISCOVER_CONTENT_KEY, widget);
 
 	gtk_window_set_default_size (GTK_WINDOW (dialog), 400, 400);
+	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
 
 	selection = e_webdav_discover_content_get_tree_selection (widget);
 	g_signal_connect (selection, "changed", G_CALLBACK (e_webdav_discover_content_selection_changed_cb), dialog);
