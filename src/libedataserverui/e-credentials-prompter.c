@@ -883,6 +883,9 @@ credentials_prompter_credentials_required_cb (ESourceRegistry *registry,
 		return;
 	}
 
+	if (!e_source_registry_check_enabled (prompter->priv->registry, source))
+		return;
+
 	cred_source = e_source_credentials_provider_ref_credentials_source (e_credentials_prompter_get_provider (prompter), source);
 
 	/* Global auto-prompt or the source's auto-prompt is disabled. */
@@ -1572,9 +1575,9 @@ e_credentials_prompter_process_awaiting_credentials (ECredentialsPrompter *promp
  * @prompter: an #ECredentialsPrompter
  * @source: an #ESource
  *
- * Continues a credential prompt for @source. Returns, whether anything wil be done.
+ * Continues a credential prompt for @source. Returns, whether anything will be done.
  * The %FALSE either means that the @source<!-- -->'s connection status is not
- * the %E_SOURCE_CONNECTION_STATUS_AWAITING_CREDENTIALS.
+ * the %E_SOURCE_CONNECTION_STATUS_AWAITING_CREDENTIALS or it is disabled.
  *
  * Returns: Whether continues with the credentials prompt.
  *
@@ -1587,7 +1590,8 @@ e_credentials_prompter_process_source (ECredentialsPrompter *prompter,
 	g_return_val_if_fail (E_IS_CREDENTIALS_PROMPTER (prompter), FALSE);
 	g_return_val_if_fail (E_IS_SOURCE (source), FALSE);
 
-	if (e_source_get_connection_status (source) != E_SOURCE_CONNECTION_STATUS_AWAITING_CREDENTIALS)
+	if (e_source_get_connection_status (source) != E_SOURCE_CONNECTION_STATUS_AWAITING_CREDENTIALS ||
+	    !e_source_registry_check_enabled (prompter->priv->registry, source))
 		return FALSE;
 
 	e_source_get_last_credentials_required_arguments (source, prompter->priv->cancellable,

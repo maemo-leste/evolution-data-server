@@ -39,6 +39,8 @@ typedef struct _WebDAVDiscoverData {
 	GError **error;
 } WebDAVDiscoverData;
 
+#define CUSTOM_SUPPORTS_FLAGS (E_WEBDAV_DISCOVER_SUPPORTS_CALENDAR_AUTO_SCHEDULE | E_WEBDAV_DISCOVER_SUPPORTS_SUBSCRIBED_ICALENDAR)
+
 static void
 e_webdav_discover_split_resources (WebDAVDiscoverData *wdd,
 				   const GSList *resources)
@@ -52,11 +54,12 @@ e_webdav_discover_split_resources (WebDAVDiscoverData *wdd,
 
 		if (resource && (
 		    resource->kind == E_WEBDAV_RESOURCE_KIND_ADDRESSBOOK ||
-		    resource->kind == E_WEBDAV_RESOURCE_KIND_CALENDAR)) {
+		    resource->kind == E_WEBDAV_RESOURCE_KIND_CALENDAR ||
+		    resource->kind == E_WEBDAV_RESOURCE_KIND_SUBSCRIBED_ICALENDAR)) {
 			EWebDAVDiscoveredSource *discovered;
 
-			if (resource->kind == E_WEBDAV_RESOURCE_KIND_CALENDAR &&
-			    (wdd->only_supports & (~E_WEBDAV_DISCOVER_SUPPORTS_CALENDAR_AUTO_SCHEDULE)) != E_WEBDAV_DISCOVER_SUPPORTS_NONE &&
+			if ((resource->kind == E_WEBDAV_RESOURCE_KIND_CALENDAR || resource->kind == E_WEBDAV_RESOURCE_KIND_SUBSCRIBED_ICALENDAR) &&
+			    (wdd->only_supports & (~CUSTOM_SUPPORTS_FLAGS)) != E_WEBDAV_DISCOVER_SUPPORTS_NONE &&
 			    (resource->supports & wdd->only_supports) == 0)
 				continue;
 
@@ -70,6 +73,9 @@ e_webdav_discover_split_resources (WebDAVDiscoverData *wdd,
 			if (resource->kind == E_WEBDAV_RESOURCE_KIND_ADDRESSBOOK) {
 				wdd->addressbooks = g_slist_prepend (wdd->addressbooks, discovered);
 			} else {
+				if (resource->kind == E_WEBDAV_RESOURCE_KIND_SUBSCRIBED_ICALENDAR)
+					discovered->supports |= E_WEBDAV_DISCOVER_SUPPORTS_SUBSCRIBED_ICALENDAR;
+
 				wdd->calendars = g_slist_prepend (wdd->calendars, discovered);
 			}
 		}
@@ -103,6 +109,7 @@ e_webdav_discover_traverse_propfind_response_cb (EWebDAVSession *webdav,
 	} else if (status_code == SOUP_STATUS_OK) {
 		xmlXPathObjectPtr xpath_obj;
 		gchar *principal_href, *full_href;
+		gboolean is_calendar, is_addressbook;
 
 		xpath_obj = e_xml_xpath_eval (xpath_ctx, "%s/A:addressbook-home-set/D:href", xpath_prop_prefix);
 		if (xpath_obj) {
@@ -121,16 +128,17 @@ e_webdav_discover_traverse_propfind_response_cb (EWebDAVSession *webdav,
 					GError *local_error = NULL;
 
 					full_href = e_webdav_session_ensure_full_uri (webdav, request_uri, home_set_href);
-					if (full_href && *full_href && !g_hash_table_contains (wdd->covered_hrefs, full_href) &&
+					if (full_href && *full_href && GPOINTER_TO_INT (g_hash_table_contains (wdd->covered_hrefs, full_href)) != 2 &&
 					    e_webdav_session_list_sync (webdav, full_href, E_WEBDAV_DEPTH_THIS_AND_CHILDREN,
-						E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION | E_WEBDAV_LIST_COLOR,
+						E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION |
+						E_WEBDAV_LIST_COLOR | E_WEBDAV_LIST_ONLY_ADDRESSBOOK | E_WEBDAV_LIST_ALL,
 						&resources, wdd->cancellable, &local_error)) {
 						e_webdav_discover_split_resources (wdd, resources);
 						g_slist_free_full (resources, e_webdav_resource_free);
 					}
 
 					if (full_href && *full_href)
-						g_hash_table_insert (wdd->covered_hrefs, g_strdup (full_href), GINT_TO_POINTER (1));
+						g_hash_table_insert (wdd->covered_hrefs, g_strdup (full_href), GINT_TO_POINTER (2));
 
 					if (local_error && wdd->error && !*wdd->error)
 						g_propagate_error (wdd->error, local_error);
@@ -160,16 +168,17 @@ e_webdav_discover_traverse_propfind_response_cb (EWebDAVSession *webdav,
 					GError *local_error = NULL;
 
 					full_href = e_webdav_session_ensure_full_uri (webdav, request_uri, home_set_href);
-					if (full_href && *full_href && !g_hash_table_contains (wdd->covered_hrefs, full_href) &&
+					if (full_href && *full_href && GPOINTER_TO_INT (g_hash_table_contains (wdd->covered_hrefs, full_href)) != 2 &&
 					    e_webdav_session_list_sync (webdav, full_href, E_WEBDAV_DEPTH_THIS_AND_CHILDREN,
-						E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION | E_WEBDAV_LIST_COLOR,
+						E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION |
+						E_WEBDAV_LIST_COLOR | E_WEBDAV_LIST_ONLY_CALENDAR | E_WEBDAV_LIST_ALL,
 						&resources, wdd->cancellable, &local_error)) {
 						e_webdav_discover_split_resources (wdd, resources);
 						g_slist_free_full (resources, e_webdav_resource_free);
 					}
 
 					if (full_href && *full_href)
-						g_hash_table_insert (wdd->covered_hrefs, g_strdup (full_href), GINT_TO_POINTER (1));
+						g_hash_table_insert (wdd->covered_hrefs, g_strdup (full_href), GINT_TO_POINTER (2));
 
 					if (local_error && wdd->error && !*wdd->error)
 						g_propagate_error (wdd->error, local_error);
@@ -245,21 +254,24 @@ e_webdav_discover_traverse_propfind_response_cb (EWebDAVSession *webdav,
 
 		g_free (principal_href);
 
-		if (e_xml_xpath_eval_exists (xpath_ctx, "%s/D:resourcetype/C:calendar", xpath_prop_prefix) ||
-		    e_xml_xpath_eval_exists (xpath_ctx, "%s/D:resourcetype/A:addressbook", xpath_prop_prefix)) {
+		is_calendar = e_xml_xpath_eval_exists (xpath_ctx, "%s/D:resourcetype/C:calendar", xpath_prop_prefix);
+		is_addressbook = e_xml_xpath_eval_exists (xpath_ctx, "%s/D:resourcetype/A:addressbook", xpath_prop_prefix);
+
+		if (is_calendar || is_addressbook) {
 			GSList *resources = NULL;
 			GError *local_error = NULL;
 
-			if (!g_hash_table_contains (wdd->covered_hrefs, href) &&
+			if (GPOINTER_TO_INT (g_hash_table_contains (wdd->covered_hrefs, href)) != 2 &&
 			    !g_cancellable_is_cancelled (wdd->cancellable) &&
 			    e_webdav_session_list_sync (webdav, href, E_WEBDAV_DEPTH_THIS,
-				E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION | E_WEBDAV_LIST_COLOR,
+				E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION | E_WEBDAV_LIST_COLOR |
+				(is_calendar ? E_WEBDAV_LIST_ONLY_CALENDAR : 0) | (is_addressbook ? E_WEBDAV_LIST_ONLY_ADDRESSBOOK : 0) | E_WEBDAV_LIST_ALL,
 				&resources, wdd->cancellable, &local_error)) {
 				e_webdav_discover_split_resources (wdd, resources);
 				g_slist_free_full (resources, e_webdav_resource_free);
 			}
 
-			g_hash_table_insert (wdd->covered_hrefs, g_strdup (href), GINT_TO_POINTER (1));
+			g_hash_table_insert (wdd->covered_hrefs, g_strdup (href), GINT_TO_POINTER (2));
 
 			if (local_error && wdd->error && !*wdd->error)
 				g_propagate_error (wdd->error, local_error);
@@ -301,13 +313,13 @@ e_webdav_discover_propfind_uri_sync (EWebDAVSession *webdav,
 		e_xml_document_add_empty_element (xml, E_WEBDAV_NS_DAV, "principal-URL");
 	}
 
-	if (((wdd->only_supports & (~E_WEBDAV_DISCOVER_SUPPORTS_CALENDAR_AUTO_SCHEDULE)) == E_WEBDAV_DISCOVER_SUPPORTS_NONE ||
+	if (((wdd->only_supports & (~CUSTOM_SUPPORTS_FLAGS)) == E_WEBDAV_DISCOVER_SUPPORTS_NONE ||
 	    (wdd->only_supports & (E_WEBDAV_DISCOVER_SUPPORTS_EVENTS | E_WEBDAV_DISCOVER_SUPPORTS_MEMOS | E_WEBDAV_DISCOVER_SUPPORTS_TASKS)) != 0)) {
 		e_xml_document_add_empty_element (xml, E_WEBDAV_NS_CALDAV, "calendar-home-set");
 		e_xml_document_add_empty_element (xml, E_WEBDAV_NS_CALDAV, "calendar-user-address-set");
 	}
 
-	if (((wdd->only_supports & (~E_WEBDAV_DISCOVER_SUPPORTS_CALENDAR_AUTO_SCHEDULE)) == E_WEBDAV_DISCOVER_SUPPORTS_NONE ||
+	if (((wdd->only_supports & (~CUSTOM_SUPPORTS_FLAGS)) == E_WEBDAV_DISCOVER_SUPPORTS_NONE ||
 	    (wdd->only_supports & (E_WEBDAV_DISCOVER_SUPPORTS_CONTACTS)) != 0)) {
 		e_xml_document_add_empty_element (xml, E_WEBDAV_NS_CARDDAV, "addressbook-home-set");
 	}
@@ -656,19 +668,24 @@ e_webdav_discover_sources_finish (ESource *source,
 	return g_task_propagate_boolean (G_TASK (result), error);
 }
 
-static void
+/* Returns whether the target error contains an authentication error */
+static gboolean
 e_webdav_discover_maybe_replace_auth_error (GError **target,
 					    GError **candidate)
 {
-	g_return_if_fail (target != NULL);
-	g_return_if_fail (candidate != NULL);
+	g_return_val_if_fail (target != NULL, FALSE);
+	g_return_val_if_fail (candidate != NULL, FALSE);
 
 	if (!g_error_matches (*target, SOUP_HTTP_ERROR, SOUP_STATUS_UNAUTHORIZED) &&
 	    g_error_matches (*candidate, SOUP_HTTP_ERROR, SOUP_STATUS_UNAUTHORIZED)) {
 		g_clear_error (target);
 		*target = *candidate;
 		*candidate = NULL;
+
+		return TRUE;
 	}
+
+	return g_error_matches (*target, SOUP_HTTP_ERROR, SOUP_STATUS_UNAUTHORIZED);
 }
 
 /**
@@ -852,7 +869,7 @@ e_webdav_discover_sources_full_sync (ESource *source,
 		g_free (uri);
 
 		if (!g_cancellable_is_cancelled (cancellable) && !wdd.calendars &&
-		    ((only_supports & (~E_WEBDAV_DISCOVER_SUPPORTS_CALENDAR_AUTO_SCHEDULE)) == E_WEBDAV_DISCOVER_SUPPORTS_NONE ||
+		    ((only_supports & (~CUSTOM_SUPPORTS_FLAGS)) == E_WEBDAV_DISCOVER_SUPPORTS_NONE ||
 		    (only_supports & (E_WEBDAV_DISCOVER_SUPPORTS_EVENTS | E_WEBDAV_DISCOVER_SUPPORTS_MEMOS | E_WEBDAV_DISCOVER_SUPPORTS_TASKS)) != 0) &&
 		    (!soup_uri_get_path (soup_uri) || !strstr (soup_uri_get_path (soup_uri), "/.well-known/"))) {
 			gchar *saved_path;
@@ -867,21 +884,23 @@ e_webdav_discover_sources_full_sync (ESource *source,
 			wdd.error = &local_error_2nd;
 			wdd.only_supports = E_WEBDAV_DISCOVER_SUPPORTS_EVENTS | E_WEBDAV_DISCOVER_SUPPORTS_MEMOS | E_WEBDAV_DISCOVER_SUPPORTS_TASKS;
 
-			success = uri && *uri && e_webdav_discover_propfind_uri_sync (webdav, &wdd, uri, FALSE);
+			success = (uri && *uri && e_webdav_discover_propfind_uri_sync (webdav, &wdd, uri, FALSE)) || success;
 
 			g_free (uri);
 
 			soup_uri_set_path (soup_uri, saved_path);
 			g_free (saved_path);
 
-			e_webdav_discover_maybe_replace_auth_error (&local_error, &local_error_2nd);
+			if (e_webdav_discover_maybe_replace_auth_error (&local_error, &local_error_2nd))
+				success = FALSE;
+
 			g_clear_error (&local_error_2nd);
 
 			wdd.error = NULL;
 		}
 
 		if (!g_cancellable_is_cancelled (cancellable) && !wdd.addressbooks &&
-		    ((only_supports & (~E_WEBDAV_DISCOVER_SUPPORTS_CALENDAR_AUTO_SCHEDULE)) == E_WEBDAV_DISCOVER_SUPPORTS_NONE ||
+		    ((only_supports & (~CUSTOM_SUPPORTS_FLAGS)) == E_WEBDAV_DISCOVER_SUPPORTS_NONE ||
 		    (only_supports & (E_WEBDAV_DISCOVER_SUPPORTS_CONTACTS)) != 0) &&
 		    (!soup_uri_get_path (soup_uri) || !strstr (soup_uri_get_path (soup_uri), "/.well-known/"))) {
 			gchar *saved_path;
@@ -896,14 +915,16 @@ e_webdav_discover_sources_full_sync (ESource *source,
 			wdd.error = &local_error_2nd;
 			wdd.only_supports = E_WEBDAV_DISCOVER_SUPPORTS_CONTACTS;
 
-			success = uri && *uri && e_webdav_discover_propfind_uri_sync (webdav, &wdd, uri, FALSE);
+			success = (uri && *uri && e_webdav_discover_propfind_uri_sync (webdav, &wdd, uri, FALSE)) || success;
 
 			g_free (uri);
 
 			soup_uri_set_path (soup_uri, saved_path);
 			g_free (saved_path);
 
-			e_webdav_discover_maybe_replace_auth_error (&local_error, &local_error_2nd);
+			if (e_webdav_discover_maybe_replace_auth_error (&local_error, &local_error_2nd))
+				success = FALSE;
+
 			g_clear_error (&local_error_2nd);
 
 			wdd.error = NULL;

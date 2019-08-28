@@ -1339,8 +1339,7 @@ ixphone_str (gint country_code,
 {
 	GString *const str = g_string_sized_new (6 + national_len);
 	g_string_append_printf (str, "+%d|", country_code);
-	g_string_append_len (str, national_str, national_len);
-	return str;
+	return g_string_append_len (str, national_str, national_len);
 }
 
 static gint
@@ -3846,8 +3845,7 @@ convert_match_exp (struct _ESExp *f,
 					g_free (query_term);
 				}
 
-				str = names->str;
-				g_string_free (names, FALSE);
+				str = g_string_free (names, FALSE);
 
 			} else {
 				const gchar *const region =
@@ -6013,7 +6011,7 @@ cursor_count_position_locked (EBookBackendSqliteDB *ebsdb,
 }
 
 /**
- * e_book_backend_sqlitedb_cursor_new:
+ * e_book_backend_sqlitedb_cursor_new: (skip)
  * @ebsdb: An #EBookBackendSqliteDB
  * @folderid: folder id of the address-book
  * @sexp: search expression; use NULL or an empty string to get all stored contacts.
@@ -6094,7 +6092,7 @@ e_book_backend_sqlitedb_cursor_new (EBookBackendSqliteDB *ebsdb,
 }
 
 /**
- * e_book_backend_sqlitedb_cursor_free:
+ * e_book_backend_sqlitedb_cursor_free: (skip)
  * @ebsdb: An #EBookBackendSqliteDB
  * @cursor: The #EbSdbCursor to free
  *
@@ -6151,7 +6149,7 @@ collect_results_for_cursor_cb (gpointer ref,
 }
 
 /**
- * e_book_backend_sqlitedb_cursor_step:
+ * e_book_backend_sqlitedb_cursor_step: (skip)
  * @ebsdb: An #EBookBackendSqliteDB
  * @cursor: The #EbSdbCursor to use
  * @flags: The #EbSdbCursorStepFlags for this step
@@ -6370,7 +6368,7 @@ e_book_backend_sqlitedb_cursor_step (EBookBackendSqliteDB *ebsdb,
 }
 
 /**
- * e_book_backend_sqlitedb_cursor_set_target_alphabetic_index:
+ * e_book_backend_sqlitedb_cursor_set_target_alphabetic_index: (skip)
  * @ebsdb: An #EBookBackendSqliteDB
  * @cursor: The #EbSdbCursor to modify
  * @index: The alphabetic index
@@ -6419,7 +6417,7 @@ e_book_backend_sqlitedb_cursor_set_target_alphabetic_index (EBookBackendSqliteDB
 }
 
 /**
- * e_book_backend_sqlitedb_cursor_set_sexp:
+ * e_book_backend_sqlitedb_cursor_set_sexp: (skip)
  * @ebsdb: An #EBookBackendSqliteDB
  * @cursor: The #EbSdbCursor
  * @sexp: The new query expression for @cursor
@@ -6465,7 +6463,7 @@ e_book_backend_sqlitedb_cursor_set_sexp (EBookBackendSqliteDB *ebsdb,
 }
 
 /**
- * e_book_backend_sqlitedb_cursor_calculate:
+ * e_book_backend_sqlitedb_cursor_calculate: (skip)
  * @ebsdb: An #EBookBackendSqliteDB
  * @cursor: The #EbSdbCursor
  * @total: (out) (allow-none): A return location to store the total result set for this cursor
@@ -6550,7 +6548,7 @@ e_book_backend_sqlitedb_cursor_calculate (EBookBackendSqliteDB *ebsdb,
 }
 
 /**
- * e_book_backend_sqlitedb_cursor_compare_contact:
+ * e_book_backend_sqlitedb_cursor_compare_contact: (skip)
  * @ebsdb: An #EBookBackendSqliteDB
  * @cursor: The #EbSdbCursor
  * @contact: The #EContact to compare

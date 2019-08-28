@@ -1273,10 +1273,10 @@ append_latin1 (GString *out,
 		c = (guint) * in++;
 		len--;
 		if (c & 0x80) {
-			out = g_string_append_c (out, 0xc0 | ((c >> 6) & 0x3));  /* 110000xx */
-			out = g_string_append_c (out, 0x80 | (c & 0x3f));        /* 10xxxxxx */
+			g_string_append_c (out, 0xc0 | ((c >> 6) & 0x3));  /* 110000xx */
+			g_string_append_c (out, 0x80 | (c & 0x3f));        /* 10xxxxxx */
 		} else {
-			out = g_string_append_c (out, c);
+			g_string_append_c (out, c);
 		}
 	}
 	return out;
@@ -1448,9 +1448,7 @@ header_decode_text (const gchar *in,
 		}
 	}
 
-	decoded = g_string_free (out, FALSE);
-
-	return decoded;
+	return g_string_free (out, FALSE);
 }
 
 /**
@@ -1627,7 +1625,6 @@ header_encode_string_rfc2047 (const guchar *in,
 	const gchar *charset;
 	gint encoding;
 	GString *out;
-	gchar *outstr;
 
 	g_return_val_if_fail (g_utf8_validate ((const gchar *) in, -1, NULL), NULL);
 
@@ -1744,10 +1741,7 @@ header_encode_string_rfc2047 (const guchar *in,
 		}
 	}
 
-	outstr = out->str;
-	g_string_free (out, FALSE);
-
-	return outstr;
+	return g_string_free (out, FALSE);
 }
 
 /* TODO: Should this worry about quotes?? */
@@ -1958,7 +1952,6 @@ camel_header_encode_phrase (const guchar *in)
 	GList *words, *wordl;
 	const gchar *charset;
 	GString *out;
-	gchar *outstr;
 
 	if (in == NULL)
 		return NULL;
@@ -1984,12 +1977,12 @@ camel_header_encode_phrase (const guchar *in)
 		if (last_word && !(last_word->type == WORD_2047 && word->type == WORD_2047)) {
 			/* one or both of the words are not encoded so we write the spaces out untouched */
 			len = word->start - last_word->end;
-			out = g_string_append_len (out, (gchar *) last_word->end, len);
+			g_string_append_len (out, (gchar *) last_word->end, len);
 		}
 
 		switch (word->type) {
 		case WORD_ATOM:
-			out = g_string_append_len (out, (gchar *) word->start, word->end - word->start);
+			g_string_append_len (out, (gchar *) word->start, word->end - word->start);
 			break;
 		case WORD_QSTRING:
 			quote_word (out, TRUE, (gchar *) word->start, word->end - word->start);
@@ -2028,10 +2021,7 @@ camel_header_encode_phrase (const guchar *in)
 	g_free (word);
 	g_list_free (words);
 
-	outstr = out->str;
-	g_string_free (out, FALSE);
-
-	return outstr;
+	return g_string_free (out, FALSE);
 }
 
 /* these are all internal parser functions */
@@ -2558,22 +2548,21 @@ header_decode_domain (const gchar **in)
 {
 	const gchar *inptr = *in;
 	gint go = TRUE;
-	gchar *ret;
 	GString *domain = g_string_new ("");
 
 	/* domain ref | domain literal */
 	header_decode_lwsp (&inptr);
 	while (go) {
 		if (*inptr == '[') { /* domain literal */
-			domain = g_string_append_c (domain, '[');
+			g_string_append_c (domain, '[');
 			inptr++;
 			header_decode_lwsp (&inptr);
 			while (*inptr && camel_mime_is_dtext (*inptr)) {
-				domain = g_string_append_c (domain, *inptr);
+				g_string_append_c (domain, *inptr);
 				inptr++;
 			}
 			if (*inptr == ']') {
-				domain = g_string_append_c (domain, ']');
+				g_string_append_c (domain, ']');
 				inptr++;
 			} else {
 				w (g_warning ("closing ']' not found in domain: %s", *in));
@@ -2581,7 +2570,7 @@ header_decode_domain (const gchar **in)
 		} else {
 			gchar *a = header_decode_atom (&inptr);
 			if (a) {
-				domain = g_string_append (domain, a);
+				g_string_append (domain, a);
 				g_free (a);
 			} else {
 				w (g_warning ("missing atom from domain-ref"));
@@ -2590,7 +2579,7 @@ header_decode_domain (const gchar **in)
 		}
 		header_decode_lwsp (&inptr);
 		if (*inptr == '.') { /* next sub-domain? */
-			domain = g_string_append_c (domain, '.');
+			g_string_append_c (domain, '.');
 			inptr++;
 			header_decode_lwsp (&inptr);
 		} else
@@ -2599,9 +2588,7 @@ header_decode_domain (const gchar **in)
 
 	*in = inptr;
 
-	ret = domain->str;
-	g_string_free (domain, FALSE);
-	return ret;
+	return g_string_free (domain, FALSE);
 }
 
 static gchar *
@@ -2616,15 +2603,15 @@ header_decode_addrspec (const gchar **in)
 	/* addr-spec */
 	word = header_decode_word (&inptr);
 	if (word) {
-		addr = g_string_append (addr, word);
+		g_string_append (addr, word);
 		header_decode_lwsp (&inptr);
 		g_free (word);
 		while (*inptr == '.' && word) {
 			inptr++;
-			addr = g_string_append_c (addr, '.');
+			g_string_append_c (addr, '.');
 			word = header_decode_word (&inptr);
 			if (word) {
-				addr = g_string_append (addr, word);
+				g_string_append (addr, word);
 				header_decode_lwsp (&inptr);
 				g_free (word);
 			} else {
@@ -2633,10 +2620,10 @@ header_decode_addrspec (const gchar **in)
 		}
 		if (*inptr == '@') {
 			inptr++;
-			addr = g_string_append_c (addr, '@');
+			g_string_append_c (addr, '@');
 			word = header_decode_domain (&inptr);
 			if (word) {
-				addr = g_string_append (addr, word);
+				g_string_append (addr, word);
 				g_free (word);
 			} else {
 				w (g_warning ("Invalid address, missing domain: %s", *in));
@@ -2654,9 +2641,7 @@ header_decode_addrspec (const gchar **in)
 	/* FIXME: return null on error? */
 
 	*in = inptr;
-	word = addr->str;
-	g_string_free (addr, FALSE);
-	return word;
+	return g_string_free (addr, FALSE);
 }
 
 /*
@@ -2713,14 +2698,14 @@ header_decode_mailbox (const gchar **in,
 				    && (p > 6 && pre[0] == '=' && pre[1] == '?')) {
 					/* dont append ' ' */
 				} else {
-					name = g_string_append_c (name, ' ');
+					g_string_append_c (name, ' ');
 				}
 			} else {
 				/* Fix for stupidly-broken-mailers that like to put '.''s in names unquoted */
 				/* see bug #8147 */
 				while (!pre && *inptr && *inptr != '<') {
 					w (g_warning ("Working around stupid mailer bug #5: unescaped characters in names"));
-					name = g_string_append_c (name, *inptr++);
+					g_string_append_c (name, *inptr++);
 					pre = header_decode_word (&inptr);
 				}
 			}
@@ -2756,7 +2741,7 @@ header_decode_mailbox (const gchar **in,
 	}
 
 	if (pre) {
-		addr = g_string_append (addr, pre);
+		g_string_append (addr, pre);
 	} else {
 		w (g_warning ("No local-part for email address: %s", *in));
 	}
@@ -2766,9 +2751,9 @@ header_decode_mailbox (const gchar **in,
 		inptr++;
 		g_free (pre);
 		pre = header_decode_word (&inptr);
-		addr = g_string_append_c (addr, '.');
+		g_string_append_c (addr, '.');
 		if (pre)
-			addr = g_string_append (addr, pre);
+			g_string_append (addr, pre);
 		comment = inptr;
 		header_decode_lwsp (&inptr);
 	}
@@ -2779,10 +2764,10 @@ header_decode_mailbox (const gchar **in,
 		gchar *dom;
 
 		inptr++;
-		addr = g_string_append_c (addr, '@');
+		g_string_append_c (addr, '@');
 		comment = inptr;
 		dom = header_decode_domain (&inptr);
-		addr = g_string_append (addr, dom);
+		g_string_append (addr, dom);
 		g_free (dom);
 	} else if (*inptr != '>' || !closeme) {
 		/* If we get a <, the address was probably a name part, lets try again shall we? */
@@ -2980,8 +2965,8 @@ header_decode_address (const gchar **in,
 	/* pre-scan, trying to work out format, discard results */
 	header_decode_lwsp (&inptr);
 	while ((pre = header_decode_word (&inptr))) {
-		group = g_string_append (group, pre);
-		group = g_string_append (group, " ");
+		g_string_append (group, pre);
+		g_string_append_c (group, ' ');
 		g_free (pre);
 	}
 	header_decode_lwsp (&inptr);
@@ -3139,10 +3124,7 @@ camel_header_contentid_decode (const gchar *in)
 		header_decode_lwsp (&inptr);
 	}
 
-	buf = addr->str;
-	g_string_free (addr, FALSE);
-
-	return buf;
+	return g_string_free (addr, FALSE);
 }
 
 static void
@@ -3519,13 +3501,13 @@ header_encode_param (const guchar *in,
 	const gchar *charset;
 	GString *out;
 	guint32 c;
-	gchar *str;
 
 	*encoded = FALSE;
 
 	g_return_val_if_fail (in != NULL, NULL);
 
 	if (is_filename) {
+		gchar *str;
 		if (!g_utf8_validate ((gchar *) inptr, -1, NULL)) {
 			GString *buff = g_string_new ("");
 
@@ -3572,12 +3554,9 @@ header_encode_param (const guchar *in,
 			g_string_append_printf (out, "%%%c%c", tohex[(c >> 4) & 0xf], tohex[c & 0xf]);
 	}
 	g_free (outbuf);
-
-	str = out->str;
-	g_string_free (out, FALSE);
 	*encoded = TRUE;
 
-	return str;
+	return g_string_free (out, FALSE);
 }
 
 /* HACK: Set to non-zero when you want the 'filename' and 'name' headers encoded in RFC 2047 way,
@@ -3629,11 +3608,11 @@ camel_header_param_list_format_append (GString *out,
 
 		/* do not fold file names */
 		if (!is_filename && used + nlen + vlen > CAMEL_FOLD_SIZE - 8) {
-			out = g_string_append (out, ";\n\t");
+			g_string_append (out, ";\n\t");
 			here = out->len;
 			used = 0;
 		} else
-			out = g_string_append (out, "; ");
+			g_string_append (out, "; ");
 
 		if (!is_filename && nlen + vlen > CAMEL_FOLD_SIZE - 8) {
 			/* we need to do special rfc2184 parameter wrapping */
@@ -3699,12 +3678,9 @@ gchar *
 camel_header_param_list_format (struct _camel_header_param *p)
 {
 	GString *out = g_string_new ("");
-	gchar *ret;
 
 	camel_header_param_list_format_append (out, p);
-	ret = out->str;
-	g_string_free (out, FALSE);
-	return ret;
+	return g_string_free (out, FALSE);
 }
 
 CamelContentType *
@@ -3768,7 +3744,6 @@ gchar *
 camel_content_type_format (CamelContentType *ct)
 {
 	GString *out;
-	gchar *ret;
 
 	if (ct == NULL)
 		return NULL;
@@ -3788,10 +3763,7 @@ camel_content_type_format (CamelContentType *ct)
 	}
 	camel_header_param_list_format_append (out, ct->params);
 
-	ret = out->str;
-	g_string_free (out, FALSE);
-
-	return ret;
+	return g_string_free (out, FALSE);
 }
 
 gchar *
@@ -3880,21 +3852,14 @@ gchar *
 camel_content_disposition_format (CamelContentDisposition *d)
 {
 	GString *out;
-	gchar *ret;
 
 	if (d == NULL)
 		return NULL;
 
-	out = g_string_new ("");
-	if (d->disposition)
-		out = g_string_append (out, d->disposition);
-	else
-		out = g_string_append (out, "attachment");
+	out = g_string_new (d->disposition ? d->disposition : "attachment");
 	camel_header_param_list_format_append (out, d->params);
 
-	ret = out->str;
-	g_string_free (out, FALSE);
-	return ret;
+	return g_string_free (out, FALSE);
 }
 
 gboolean
@@ -3910,9 +3875,10 @@ camel_content_disposition_is_attachment_ex (const CamelContentDisposition *dispo
 					    const CamelContentType *parent_content_type)
 {
 	if (content_type && (
+	    camel_content_type_is (content_type, "application", "pkcs7-mime") ||
 	    camel_content_type_is (content_type, "application", "xpkcs7mime") ||
-	    camel_content_type_is (content_type, "application", "x-pkcs7-mime") ||
-	    camel_content_type_is (content_type, "application", "pkcs7-mime")))
+	    camel_content_type_is (content_type, "application", "xpkcs7-mime") ||
+	    camel_content_type_is (content_type, "application", "x-pkcs7-mime")))
 		return FALSE;
 
 	if (content_type && (
@@ -3925,9 +3891,9 @@ camel_content_disposition_is_attachment_ex (const CamelContentDisposition *dispo
 
 	if (content_type && (
 	    camel_content_type_is (content_type, "application", "pkcs7-signature") ||
+	    camel_content_type_is (content_type, "application", "xpkcs7signature") ||
 	    camel_content_type_is (content_type, "application", "xpkcs7-signature") ||
 	    camel_content_type_is (content_type, "application", "x-pkcs7-signature") ||
-	    camel_content_type_is (content_type, "application", "pkcs7-signature") ||
 	    camel_content_type_is (content_type, "application", "pgp-signature")))
 		return !parent_content_type || !camel_content_type_is (parent_content_type, "multipart", "signed");
 
@@ -4580,7 +4546,7 @@ camel_header_location_decode (const gchar *in)
 {
 	gint quote = 0;
 	GString *out = g_string_new ("");
-	gchar c, *res;
+	gchar c;
 
 	/* Sigh. RFC2557 says:
 	 *   content-location =   "Content-Location:" [CFWS] URI [CFWS]
@@ -4612,10 +4578,7 @@ camel_header_location_decode (const gchar *in)
 			g_string_append_c (out, c);
 	}
 
-	res = g_strdup (out->str);
-	g_string_free (out, TRUE);
-
-	return res;
+	return g_string_free (out, FALSE);
 }
 
 /**
@@ -5103,17 +5066,13 @@ gchar *
 camel_header_address_list_encode (CamelHeaderAddress *addrlist)
 {
 	GString *out;
-	gchar *ret;
 
 	if (!addrlist)
 		return NULL;
 
 	out = g_string_new ("");
 	header_address_list_encode_append (out, TRUE, addrlist);
-	ret = out->str;
-	g_string_free (out, FALSE);
-
-	return ret;
+	return g_string_free (out, FALSE);
 }
 
 /**
@@ -5127,7 +5086,6 @@ gchar *
 camel_header_address_list_format (CamelHeaderAddress *addrlist)
 {
 	GString *out;
-	gchar *ret;
 
 	if (!addrlist)
 		return NULL;
@@ -5135,10 +5093,8 @@ camel_header_address_list_format (CamelHeaderAddress *addrlist)
 	out = g_string_new ("");
 
 	header_address_list_encode_append (out, FALSE, addrlist);
-	ret = out->str;
-	g_string_free (out, FALSE);
 
-	return ret;
+	return g_string_free (out, FALSE);
 }
 
 gchar *
@@ -5148,7 +5104,6 @@ camel_header_address_fold (const gchar *in,
 	gsize len, outlen;
 	const gchar *inptr = in, *space, *p, *n;
 	GString *out;
-	gchar *ret;
 	gint i, needunfold = FALSE;
 
 	if (in == NULL)
@@ -5207,13 +5162,10 @@ camel_header_address_fold (const gchar *in,
 
 		inptr += len;
 	}
-	ret = out->str;
-	g_string_free (out, FALSE);
-
 	if (needunfold)
 		g_free ((gchar *) in);
 
-	return ret;
+	return g_string_free (out, FALSE);
 }
 
 /* simple header folding */
@@ -5225,7 +5177,6 @@ camel_header_fold (const gchar *in,
 	gsize len, outlen, tmplen;
 	const gchar *inptr = in, *space, *p, *n;
 	GString *out;
-	gchar *ret;
 	gint needunfold = FALSE;
 	gchar spc;
 
@@ -5296,13 +5247,10 @@ camel_header_fold (const gchar *in,
 		outlen += len;
 		inptr += len;
 	}
-	ret = out->str;
-	g_string_free (out, FALSE);
-
 	if (needunfold)
 		g_free ((gchar *) in);
 
-	return ret;
+	return g_string_free (out, FALSE);
 }
 
 gchar *

@@ -454,6 +454,7 @@ e_webdav_discover_content_fill_discovered_sources (GtkTreeView *tree_view,
 	GtkTreeModel *model;
 	GtkTreeIter iter;
 	GSList *link;
+	guint num_displayed_items = 0;
 
 	/* It's okay to pass NULL here */
 	if (!tree_view)
@@ -473,9 +474,11 @@ e_webdav_discover_content_fill_discovered_sources (GtkTreeView *tree_view,
 		gboolean show_color = FALSE;
 		GdkRGBA rgba;
 
-		if (!source || (supports_filter && (source->supports & supports_filter) == 0) || !source->display_name)
+		if (!source || (supports_filter && (source->supports & supports_filter) == 0) || !source->display_name ||
+		    (source->supports & E_WEBDAV_DISCOVER_SUPPORTS_SUBSCRIBED_ICALENDAR) != 0)
 			continue;
 
+		num_displayed_items++;
 		if (source->color && *source->color) {
 			gint rr, gg, bb;
 
@@ -541,6 +544,13 @@ e_webdav_discover_content_fill_discovered_sources (GtkTreeView *tree_view,
 		g_free (colorstr);
 		g_string_free (supports, TRUE);
 	}
+
+	/* If there is only one item, select it */
+	if (num_displayed_items == 1) {
+		GtkTreeSelection *tree_selection = gtk_tree_view_get_selection (tree_view);
+
+		gtk_tree_selection_select_iter (tree_selection, &iter);
+	}
 }
 
 static void
@@ -581,6 +591,7 @@ typedef struct _RefreshData {
 	gchar *base_url;
 	ENamedParameters *credentials;
 	ESourceRegistry *registry;
+	guint32 supports_filter;
 } RefreshData;
 
 static void
@@ -642,7 +653,7 @@ e_webdav_discover_content_trust_prompt_done_cb (GObject *source_object,
 		refresh_data_free (rd);
 	} else if (response == E_TRUST_PROMPT_RESPONSE_ACCEPT || response == E_TRUST_PROMPT_RESPONSE_ACCEPT_TEMPORARILY) {
 		/* Use NULL credentials to reuse those from the last time. */
-		e_webdav_discover_sources_full (source, rd->base_url, E_WEBDAV_DISCOVER_SUPPORTS_NONE, rd->credentials,
+		e_webdav_discover_sources_full (source, rd->base_url, rd->supports_filter, rd->credentials,
 			rd->registry ? (EWebDAVDiscoverRefSourceFunc) e_source_registry_ref_source : NULL, rd->registry,
 			rd->cancellable, e_webdav_discover_content_refresh_done_cb, rd);
 	} else {
@@ -689,7 +700,7 @@ e_webdav_discover_content_credentials_prompt_done_cb (GObject *source_object,
 			e_source_authentication_set_user (auth_extension, e_named_parameters_get (rd->credentials, E_SOURCE_CREDENTIAL_USERNAME));
 		}
 
-		e_webdav_discover_sources_full (source, rd->base_url, E_WEBDAV_DISCOVER_SUPPORTS_NONE, rd->credentials,
+		e_webdav_discover_sources_full (source, rd->base_url, rd->supports_filter, rd->credentials,
 			rd->registry ? (EWebDAVDiscoverRefSourceFunc) e_source_registry_ref_source : NULL, rd->registry,
 			rd->cancellable, e_webdav_discover_content_refresh_done_cb, rd);
 	}
@@ -849,6 +860,7 @@ e_webdav_discover_content_refresh (GtkWidget *content,
 	rd->base_url = g_strdup (data->base_url);
 	rd->credentials = NULL;
 	rd->registry = e_credentials_prompter_get_registry (data->credentials_prompter);
+	rd->supports_filter = data->supports_filter;
 
 	if (rd->registry)
 		g_object_ref (rd->registry);
@@ -896,7 +908,7 @@ e_webdav_discover_content_refresh (GtkWidget *content,
 
 	gtk_grid_attach (GTK_GRID (content), GTK_WIDGET (data->info_bar), 0, 2, 1, 1);
 
-	e_webdav_discover_sources_full (source, rd->base_url, E_WEBDAV_DISCOVER_SUPPORTS_NONE, rd->credentials,
+	e_webdav_discover_sources_full (source, rd->base_url, rd->supports_filter, rd->credentials,
 		rd->registry ? (EWebDAVDiscoverRefSourceFunc) e_source_registry_ref_source : NULL, rd->registry,
 		rd->cancellable, e_webdav_discover_content_refresh_done_cb, rd);
 
@@ -997,6 +1009,7 @@ e_webdav_discover_content_show_error (GtkWidget *content,
 	gtk_info_bar_set_show_close_button (data->info_bar, TRUE);
 
 	label = gtk_label_new (error->message);
+	gtk_label_set_width_chars (GTK_LABEL (label), 20);
 	gtk_label_set_max_width_chars (GTK_LABEL (label), 120);
 	gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
 	gtk_label_set_selectable (GTK_LABEL (label), TRUE);
@@ -1087,6 +1100,7 @@ e_webdav_discover_dialog_new (GtkWindow *parent,
 	g_object_set_data (G_OBJECT (dialog), WEBDAV_DISCOVER_CONTENT_KEY, widget);
 
 	gtk_window_set_default_size (GTK_WINDOW (dialog), 400, 400);
+	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
 
 	selection = e_webdav_discover_content_get_tree_selection (widget);
 	g_signal_connect (selection, "changed", G_CALLBACK (e_webdav_discover_content_selection_changed_cb), dialog);

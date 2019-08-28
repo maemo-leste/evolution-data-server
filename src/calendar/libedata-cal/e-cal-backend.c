@@ -29,7 +29,6 @@
 #include <glib/gi18n-lib.h>
 
 #include "e-cal-backend.h"
-#include "e-cal-backend-cache.h"
 
 #define E_CAL_BACKEND_GET_PRIVATE(obj) \
 	(G_TYPE_INSTANCE_GET_PRIVATE \
@@ -46,7 +45,7 @@ struct _ECalBackendPrivate {
 	gboolean opened;
 
 	/* The kind of components for this backend */
-	icalcomponent_kind kind;
+	ICalComponentKind kind;
 
 	GMutex views_mutex;
 	GList *views;
@@ -85,6 +84,7 @@ struct _AsyncContext {
 	time_t end;
 	GSList *compid_list;
 	GSList *string_list;
+	guint32 opflags;
 
 	/* Outputs */
 	GQueue result_queue;
@@ -112,7 +112,7 @@ struct _DispatchNode {
 
 struct _SignalClosure {
 	GWeakRef backend;
-	icaltimezone *cached_zone;
+	ICalTimezone *cached_zone;
 };
 
 enum {
@@ -159,7 +159,7 @@ async_context_free (AsyncContext *async_context)
 
 	g_slist_free_full (
 		async_context->compid_list,
-		(GDestroyNotify) e_cal_component_free_id);
+		(GDestroyNotify) e_cal_component_id_free);
 
 	g_slist_free_full (
 		async_context->string_list,
@@ -195,17 +195,9 @@ static void
 signal_closure_free (SignalClosure *signal_closure)
 {
 	g_weak_ref_clear (&signal_closure->backend);
-
-	/* The icaltimezone is cached in ECalBackend's internal
-	 * "zone_cache" hash table and must not be freed here. */
+	g_clear_object (&signal_closure->cached_zone);
 
 	g_slice_free (SignalClosure, signal_closure);
-}
-
-static void
-cal_backend_free_zone (icaltimezone *zone)
-{
-	icaltimezone_free (zone, 1);
 }
 
 static void
@@ -390,7 +382,7 @@ static void
 cal_backend_set_default_cache_dir (ECalBackend *backend)
 {
 	ESource *source;
-	icalcomponent_kind kind;
+	ICalComponentKind kind;
 	const gchar *component_type;
 	const gchar *user_cache_dir;
 	const gchar *uid;
@@ -405,13 +397,13 @@ cal_backend_set_default_cache_dir (ECalBackend *backend)
 	g_return_if_fail (uid != NULL);
 
 	switch (kind) {
-		case ICAL_VEVENT_COMPONENT:
+		case I_CAL_VEVENT_COMPONENT:
 			component_type = "calendar";
 			break;
-		case ICAL_VTODO_COMPONENT:
+		case I_CAL_VTODO_COMPONENT:
 			component_type = "tasks";
 			break;
-		case ICAL_VJOURNAL_COMPONENT:
+		case I_CAL_VJOURNAL_COMPONENT:
 			component_type = "memos";
 			break;
 		default:
@@ -547,7 +539,7 @@ cal_backend_emit_timezone_added_idle_cb (gpointer user_data)
 
 static void
 cal_backend_set_kind (ECalBackend *backend,
-                      icalcomponent_kind kind)
+		      ICalComponentKind kind)
 {
 	backend->priv->kind = kind;
 }
@@ -657,6 +649,11 @@ cal_backend_dispose (GObject *object)
 	g_clear_object (&priv->proxy_resolver);
 	g_clear_object (&priv->authentication_source);
 
+	g_mutex_lock (&priv->views_mutex);
+	g_list_free_full (priv->views, g_object_unref);
+	priv->views = NULL;
+	g_mutex_unlock (&priv->views_mutex);
+
 	g_hash_table_remove_all (priv->operation_ids);
 
 	while (!g_queue_is_empty (&priv->pending_operations))
@@ -675,7 +672,6 @@ cal_backend_finalize (GObject *object)
 
 	priv = E_CAL_BACKEND_GET_PRIVATE (object);
 
-	g_list_free (priv->views);
 	g_mutex_clear (&priv->views_mutex);
 	g_mutex_clear (&priv->property_lock);
 
@@ -797,7 +793,7 @@ _e_cal_backend_remove_cached_timezones (ECalBackend *cal_backend)
 
 static void
 cal_backend_add_cached_timezone (ETimezoneCache *cache,
-                                 icaltimezone *zone)
+				 ICalTimezone *zone)
 {
 	ECalBackendPrivate *priv;
 	const gchar *tzid;
@@ -806,38 +802,34 @@ cal_backend_add_cached_timezone (ETimezoneCache *cache,
 
 	/* XXX Apparently this function can sometimes return NULL.
 	 *     I'm not sure when or why that happens, but we can't
-	 *     cache the icaltimezone if it has no tzid string. */
-	tzid = icaltimezone_get_tzid (zone);
+	 *     cache the ICalTimezone if it has no tzid string. */
+	tzid = i_cal_timezone_get_tzid (zone);
 	if (tzid == NULL)
 		return;
 
 	g_mutex_lock (&priv->zone_cache_lock);
 
 	/* Avoid replacing an existing cache entry.  We don't want to
-	 * invalidate any icaltimezone pointers that may have already
+	 * invalidate any ICalTimezone pointers that may have already
 	 * been returned through e_timezone_cache_get_timezone(). */
 	if (!g_hash_table_contains (priv->zone_cache, tzid)) {
 		GSource *idle_source;
 		GMainContext *main_context;
 		SignalClosure *signal_closure;
-		icalcomponent *icalcomp;
-		icaltimezone *cached_zone;
+		ICalTimezone *cached_zone;
 
-		cached_zone = icaltimezone_new ();
-		icalcomp = icaltimezone_get_component (zone);
-		icalcomp = icalcomponent_new_clone (icalcomp);
-		icaltimezone_set_component (cached_zone, icalcomp);
+		cached_zone = e_cal_util_copy_timezone (zone);
 
 		g_hash_table_insert (
 			priv->zone_cache,
 			g_strdup (tzid), cached_zone);
 
 		/* The closure's backend reference will keep the
-		 * internally cached icaltimezone alive for the
+		 * internally cached ICalTimezone alive for the
 		 * duration of the idle callback. */
 		signal_closure = g_slice_new0 (SignalClosure);
 		g_weak_ref_init (&signal_closure->backend, cache);
-		signal_closure->cached_zone = cached_zone;
+		signal_closure->cached_zone = g_object_ref (cached_zone);
 
 		main_context = e_backend_ref_main_context (E_BACKEND (cache));
 
@@ -856,21 +848,21 @@ cal_backend_add_cached_timezone (ETimezoneCache *cache,
 	g_mutex_unlock (&priv->zone_cache_lock);
 }
 
-static icaltimezone *
+static ICalTimezone *
 cal_backend_get_cached_timezone (ETimezoneCache *cache,
                                  const gchar *tzid)
 {
 	ECalBackendPrivate *priv;
-	icaltimezone *zone = NULL;
-	icaltimezone *builtin_zone = NULL;
-	icalcomponent *icalcomp;
-	icalproperty *prop;
+	ICalTimezone *zone = NULL;
+	ICalTimezone *builtin_zone = NULL;
+	ICalComponent *icomp, *clone;
+	ICalProperty *prop;
 	const gchar *builtin_tzid;
 
 	priv = E_CAL_BACKEND_GET_PRIVATE (cache);
 
 	if (g_str_equal (tzid, "UTC"))
-		return icaltimezone_get_utc_timezone ();
+		return i_cal_timezone_get_utc_timezone ();
 
 	g_mutex_lock (&priv->zone_cache_lock);
 
@@ -883,53 +875,46 @@ cal_backend_get_cached_timezone (ETimezoneCache *cache,
 	/* Try to replace the original time zone with a more complete
 	 * and/or potentially updated built-in time zone.  Note this also
 	 * applies to TZIDs which match built-in time zones exactly: they
-	 * are extracted via icaltimezone_get_builtin_timezone_from_tzid(). */
+	 * are extracted via i_cal_timezone_get_builtin_timezone_from_tzid(). */
 
 	builtin_tzid = e_cal_match_tzid (tzid);
 
 	if (builtin_tzid != NULL)
-		builtin_zone = icaltimezone_get_builtin_timezone_from_tzid (
-			builtin_tzid);
+		builtin_zone = i_cal_timezone_get_builtin_timezone_from_tzid (builtin_tzid);
 
 	if (builtin_zone == NULL)
 		goto exit;
 
 	/* Use the built-in time zone *and* rename it.  Likely the caller
 	 * is asking for a specific TZID because it has an event with such
-	 * a TZID.  Returning an icaltimezone with a different TZID would
+	 * a TZID.  Returning an ICalTimezone with a different TZID would
 	 * lead to broken VCALENDARs in the caller. */
 
-	icalcomp = icaltimezone_get_component (builtin_zone);
-	icalcomp = icalcomponent_new_clone (icalcomp);
+	icomp = i_cal_timezone_get_component (builtin_zone);
+	clone = i_cal_component_clone (icomp);
+	g_object_unref (icomp);
+	icomp = clone;
 
-	prop = icalcomponent_get_first_property (
-		icalcomp, ICAL_ANY_PROPERTY);
-
-	while (prop != NULL) {
-		if (icalproperty_isa (prop) == ICAL_TZID_PROPERTY) {
-			icalproperty_set_value_from_string (prop, tzid, "NO");
+	for (prop = i_cal_component_get_first_property (icomp, I_CAL_ANY_PROPERTY);
+	     prop;
+	     g_object_unref (prop), prop = i_cal_component_get_next_property (icomp, I_CAL_ANY_PROPERTY)) {
+		if (i_cal_property_isa (prop) == I_CAL_TZID_PROPERTY) {
+			i_cal_property_set_value_from_string (prop, tzid, "NO");
+			g_object_unref (prop);
 			break;
 		}
-
-		prop = icalcomponent_get_next_property (
-			icalcomp, ICAL_ANY_PROPERTY);
 	}
 
-	if (icalcomp != NULL) {
-		zone = icaltimezone_new ();
-		if (icaltimezone_set_component (zone, icalcomp)) {
-			tzid = icaltimezone_get_tzid (zone);
-			g_hash_table_insert (
-				priv->zone_cache,
-				g_strdup (tzid), zone);
-		} else {
-			icalcomponent_free (icalcomp);
-			icaltimezone_free (zone, 1);
-			zone = NULL;
-		}
+	zone = i_cal_timezone_new ();
+	if (i_cal_timezone_set_component (zone, icomp)) {
+		tzid = i_cal_timezone_get_tzid (zone);
+		g_hash_table_insert (priv->zone_cache, g_strdup (tzid), zone);
+	} else {
+		g_clear_object (&zone);
 	}
+	g_clear_object (&icomp);
 
-exit:
+ exit:
 	g_mutex_unlock (&priv->zone_cache_lock);
 
 	return zone;
@@ -971,7 +956,7 @@ e_cal_backend_class_init (ECalBackendClass *class)
 	backend_class->prepare_shutdown = cal_backend_prepare_shutdown;
 
 	class->use_serial_dispatch_queue = TRUE;
-	class->get_backend_property = cal_backend_get_backend_property;
+	class->impl_get_backend_property = cal_backend_get_backend_property;
 	class->shutdown = cal_backend_shutdown;
 
 	g_object_class_install_property (
@@ -994,9 +979,9 @@ e_cal_backend_class_init (ECalBackendClass *class)
 			"Kind",
 			"The kind of iCalendar components "
 			"this backend manages",
-			ICAL_NO_COMPONENT,
-			ICAL_XLICMIMEPART_COMPONENT,
-			ICAL_NO_COMPONENT,
+			I_CAL_NO_COMPONENT,
+			I_CAL_XLICMIMEPART_COMPONENT,
+			I_CAL_NO_COMPONENT,
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT_ONLY |
 			G_PARAM_STATIC_STRINGS));
@@ -1076,9 +1061,9 @@ e_cal_backend_class_init (ECalBackendClass *class)
 static void
 e_cal_backend_timezone_cache_init (ETimezoneCacheInterface *iface)
 {
-	iface->add_timezone = cal_backend_add_cached_timezone;
-	iface->get_timezone = cal_backend_get_cached_timezone;
-	iface->list_timezones = cal_backend_list_cached_timezones;
+	iface->tzcache_add_timezone = cal_backend_add_cached_timezone;
+	iface->tzcache_get_timezone = cal_backend_get_cached_timezone;
+	iface->tzcache_list_timezones = cal_backend_list_cached_timezones;
 }
 
 static void
@@ -1090,7 +1075,7 @@ e_cal_backend_init (ECalBackend *backend)
 		(GHashFunc) g_str_hash,
 		(GEqualFunc) g_str_equal,
 		(GDestroyNotify) g_free,
-		(GDestroyNotify) cal_backend_free_zone);
+		(GDestroyNotify) g_object_unref);
 
 	backend->priv = E_CAL_BACKEND_GET_PRIVATE (backend);
 
@@ -1117,10 +1102,10 @@ e_cal_backend_init (ECalBackend *backend)
  *
  * Returns: The kind of components for this backend.
  */
-icalcomponent_kind
+ICalComponentKind
 e_cal_backend_get_kind (ECalBackend *backend)
 {
-	g_return_val_if_fail (E_IS_CAL_BACKEND (backend), ICAL_NO_COMPONENT);
+	g_return_val_if_fail (E_IS_CAL_BACKEND (backend), I_CAL_NO_COMPONENT);
 
 	return backend->priv->kind;
 }
@@ -1138,7 +1123,7 @@ e_cal_backend_get_kind (ECalBackend *backend)
  * The returned #EDataCal is referenced for thread-safety and must be
  * unreferenced with g_object_unref() when finished with it.
  *
- * Returns: an #EDataCal, or %NULL
+ * Returns: (transfer full): an #EDataCal, or %NULL
  *
  * Since: 3.10
  **/
@@ -1164,6 +1149,8 @@ e_cal_backend_ref_data_cal (ECalBackend *backend)
  * glue between incoming D-Bus requests and @backend's native API.
  *
  * An #EDataCal should be set only once after @backend is first created.
+ *
+ * The @backend adds its own reference on the @data_cal.
  *
  * Since: 3.10
  **/
@@ -1191,7 +1178,7 @@ e_cal_backend_set_data_cal (ECalBackend *backend,
  * The returned #GProxyResolver is referenced for thread-safety and must
  * be unreferenced with g_object_unref() when finished with it.
  *
- * Returns: a #GProxyResolver, or %NULL
+ * Returns: (transfer full) (nullable): a #GProxyResolver, or %NULL
  *
  * Since: 3.12
  **/
@@ -1218,7 +1205,7 @@ e_cal_backend_ref_proxy_resolver (ECalBackend *backend)
  *
  * Returns the data source registry to which #EBackend:source belongs.
  *
- * Returns: an #ESourceRegistry
+ * Returns: (transfer none): an #ESourceRegistry
  *
  * Since: 3.6
  **/
@@ -1443,9 +1430,9 @@ e_cal_backend_get_backend_property (ECalBackend *backend,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_val_if_fail (class != NULL, NULL);
-	g_return_val_if_fail (class->get_backend_property != NULL, NULL);
+	g_return_val_if_fail (class->impl_get_backend_property != NULL, NULL);
 
-	return class->get_backend_property (backend, prop_name);
+	return class->impl_get_backend_property (backend, prop_name);
 }
 
 /**
@@ -1475,7 +1462,7 @@ e_cal_backend_add_view (ECalBackend *backend,
 }
 
 /**
- * e_cal_backend_remove_view
+ * e_cal_backend_remove_view:
  * @backend: an #ECalBackend
  * @view: An #EDataCalView object, previously added with @ref e_cal_backend_add_view.
  *
@@ -1529,7 +1516,7 @@ e_cal_backend_remove_view (ECalBackend *backend,
  *   g_list_free_full (list, g_object_unref);
  * ]|
  *
- * Returns: (element-type EDataCalView): a list of cal views
+ * Returns: (element-type EDataCalView) (transfer full): a list of cal views
  *
  * Since: 3.8
  **/
@@ -1549,6 +1536,105 @@ e_cal_backend_list_views (ECalBackend *backend)
 	g_mutex_unlock (&backend->priv->views_mutex);
 
 	return list;
+}
+
+/**
+ * ECalBackendForeachViewFunc:
+ * @backend: an #ECalBackend
+ * @view: an #EDataCalView
+ * @user_data: user data for the function
+ *
+ * Callback function used by e_cal_backend_foreach_view().
+ *
+ * Returns: %TRUE, to continue, %FALSE to stop further processing.
+ *
+ * Since: 3.34
+ **/
+
+/**
+ * e_cal_backend_foreach_view:
+ * @backend: an #ECalBackend
+ * @func: (scope call): an #ECalBackendForeachViewFunc function to call
+ * @user_data: (closure func): user data to pass to @func
+ *
+ * Calls @func for each existing view (as returned by e_cal_backend_list_views()).
+ * The @func can return %FALSE to stop early.
+ *
+ * Returns: whether the call had been stopped by @func
+ *
+ * Since: 3.34
+ **/
+gboolean
+e_cal_backend_foreach_view (ECalBackend *backend,
+			    ECalBackendForeachViewFunc func,
+			    gpointer user_data)
+{
+	GList *views, *link;
+	gboolean stopped = FALSE;
+
+	g_return_val_if_fail (E_IS_CAL_BACKEND (backend), FALSE);
+	g_return_val_if_fail (func != NULL, FALSE);
+
+	views = e_cal_backend_list_views (backend);
+
+	for (link = views; link && !stopped; link = g_list_next (link)) {
+		stopped = !func (backend, link->data, user_data);
+	}
+
+	g_list_free_full (views, g_object_unref);
+
+	return stopped;
+}
+
+struct NotifyProgressData {
+	gboolean only_completed_views;
+	gint percent;
+	const gchar *message;
+};
+
+static gboolean
+ecb_notify_progress_cb (ECalBackend *backend,
+			EDataCalView *view,
+			gpointer user_data)
+{
+	struct NotifyProgressData *npd = user_data;
+
+	g_return_val_if_fail (E_IS_DATA_CAL_VIEW (view), FALSE);
+	g_return_val_if_fail (npd != NULL, FALSE);
+
+	if (!npd->only_completed_views || e_data_cal_view_is_completed (view))
+		e_data_cal_view_notify_progress (view, npd->percent, npd->message);
+
+	return TRUE;
+}
+
+/**
+ * e_cal_backend_foreach_view_notify_progress:
+ * @backend: an #ECalBackend
+ * @only_completed_views: whether notify in completed views only
+ * @percent: percent complete
+ * @message: (nullable): message describing the operation in progress, or %NULL
+ *
+ * Notifies each view of the @backend about progress. When @only_completed_views
+ * is %TRUE, notifies only completed views.
+ *
+ * Since: 3.34
+ **/
+void
+e_cal_backend_foreach_view_notify_progress (ECalBackend *backend,
+					    gboolean only_completed_views,
+					    gint percent,
+					    const gchar *message)
+{
+	struct NotifyProgressData npd;
+
+	g_return_if_fail (E_IS_CAL_BACKEND (backend));
+
+	npd.only_completed_views = only_completed_views;
+	npd.percent = percent;
+	npd.message = message;
+
+	e_cal_backend_foreach_view (backend, ecb_notify_progress_cb, &npd);
 }
 
 /**
@@ -1608,7 +1694,7 @@ cal_backend_open_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->open != NULL);
+	g_return_if_fail (class->impl_open != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -1623,7 +1709,7 @@ cal_backend_open_thread (GSimpleAsyncResult *simple,
 
 		e_backend_ensure_online_state_updated (E_BACKEND (backend), cancellable);
 
-		class->open (backend, data_cal, opid, cancellable, FALSE);
+		class->impl_open (backend, data_cal, opid, cancellable);
 	}
 
 	g_object_unref (data_cal);
@@ -1772,7 +1858,7 @@ cal_backend_refresh_thread (GSimpleAsyncResult *simple,
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
 
-	if (class->refresh == NULL) {
+	if (class->impl_refresh == NULL) {
 		g_simple_async_result_set_error (
 			simple, E_CLIENT_ERROR,
 			E_CLIENT_ERROR_NOT_SUPPORTED,
@@ -1793,7 +1879,7 @@ cal_backend_refresh_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->refresh (backend, data_cal, opid, cancellable);
+		class->impl_refresh (backend, data_cal, opid, cancellable);
 	}
 
 	g_object_unref (data_cal);
@@ -1942,7 +2028,7 @@ cal_backend_get_object_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->get_object != NULL);
+	g_return_if_fail (class->impl_get_object != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -1962,7 +2048,7 @@ cal_backend_get_object_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->get_object (
+		class->impl_get_object (
 			backend, data_cal, opid, cancellable,
 			async_context->uid,
 			async_context->rid);
@@ -2075,7 +2161,7 @@ e_cal_backend_get_object_finish (ECalBackend *backend,
  * e_cal_backend_get_object_list_sync:
  * @backend: an #ECalBackend
  * @query: a search query in S-expression format
- * @out_objects: a #GQueue in which to deposit results
+ * @out_objects: (element-type utf8): a #GQueue in which to deposit results
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
  *
@@ -2136,7 +2222,7 @@ cal_backend_get_object_list_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->get_object_list != NULL);
+	g_return_if_fail (class->impl_get_object_list != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -2156,7 +2242,7 @@ cal_backend_get_object_list_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->get_object_list (
+		class->impl_get_object_list (
 			backend, data_cal, opid, cancellable,
 			async_context->query);
 	}
@@ -2219,7 +2305,7 @@ e_cal_backend_get_object_list (ECalBackend *backend,
  * e_cal_backend_get_object_list_finish:
  * @backend: an #ECalBackend
  * @result: a #GAsyncResult
- * @out_objects: a #GQueue in which to deposit results
+ * @out_objects: (element-type utf8): a #GQueue in which to deposit results
  * @error: return location for a #GError, or %NULL
  *
  * Finishes the operation started with e_cal_backend_get_object_list().
@@ -2267,8 +2353,8 @@ e_cal_backend_get_object_list_finish (ECalBackend *backend,
  * @backend: an #ECalBackend
  * @start: start time
  * @end: end time
- * @users: a %NULL-terminated array of user strings
- * @out_freebusy: iCalendar strings with overall returned Free/Busy data
+ * @users: (array zero-terminated=1): a %NULL-terminated array of user strings
+ * @out_freebusy: (element-type utf8): iCalendar strings with overall returned Free/Busy data
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
  *
@@ -2332,7 +2418,7 @@ cal_backend_get_free_busy_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->get_free_busy != NULL);
+	g_return_if_fail (class->impl_get_free_busy != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -2352,7 +2438,7 @@ cal_backend_get_free_busy_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->get_free_busy (
+		class->impl_get_free_busy (
 			backend, data_cal, opid, cancellable,
 			async_context->string_list,
 			async_context->start,
@@ -2367,7 +2453,7 @@ cal_backend_get_free_busy_thread (GSimpleAsyncResult *simple,
  * @backend: an #ECalBackend
  * @start: start time
  * @end: end time
- * @users: a %NULL-terminated array of user strings
+ * @users: (array zero-terminated=1): a %NULL-terminated array of user strings
  * @cancellable: optional #GCancellable object, or %NULL
  * @callback: a #GAsyncReadyCallback to call when the request is satisfied
  * @user_data: data to pass to the callback function
@@ -2430,7 +2516,7 @@ e_cal_backend_get_free_busy (ECalBackend *backend,
  * e_cal_backend_get_free_busy_finish:
  * @backend: an #ECalBackend
  * @result: a #GAsyncResult
- * @out_freebusy: iCalendar strings with overall returned Free/Busy data
+ * @out_freebusy: (element-type utf8): iCalendar strings with overall returned Free/Busy data
  * @error: return location for a #GError, or %NULL
  *
  * Finishes the operation started with e_cal_backend_get_free_busy().
@@ -2490,6 +2576,7 @@ e_cal_backend_get_free_busy_finish (ECalBackend *backend,
  * e_cal_backend_create_objects_sync:
  * @backend: an #ECalBackend
  * @calobjs: a %NULL-terminated array of iCalendar strings
+ * @opflags: bit-or of #ECalOperationFlags
  * @out_uids: a #GQueue in which to deposit results
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
@@ -2508,6 +2595,7 @@ e_cal_backend_get_free_busy_finish (ECalBackend *backend,
 gboolean
 e_cal_backend_create_objects_sync (ECalBackend *backend,
                                    const gchar * const *calobjs,
+				   guint32 opflags,
                                    GQueue *out_uids,
                                    GCancellable *cancellable,
                                    GError **error)
@@ -2522,7 +2610,7 @@ e_cal_backend_create_objects_sync (ECalBackend *backend,
 	closure = e_async_closure_new ();
 
 	e_cal_backend_create_objects (
-		backend, calobjs, cancellable,
+		backend, calobjs, opflags, cancellable,
 		e_async_closure_callback, closure);
 
 	result = e_async_closure_wait (closure);
@@ -2556,7 +2644,7 @@ cal_backend_create_objects_thread (GSimpleAsyncResult *simple,
 
 	async_context = g_simple_async_result_get_op_res_gpointer (simple);
 
-	if (class->create_objects == NULL) {
+	if (class->impl_create_objects == NULL) {
 		g_simple_async_result_set_error (
 			simple, E_CLIENT_ERROR,
 			E_CLIENT_ERROR_NOT_SUPPORTED,
@@ -2577,9 +2665,9 @@ cal_backend_create_objects_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->create_objects (
+		class->impl_create_objects (
 			backend, data_cal, opid, cancellable,
-			async_context->string_list);
+			async_context->string_list, async_context->opflags);
 	}
 
 	g_object_unref (data_cal);
@@ -2589,6 +2677,7 @@ cal_backend_create_objects_thread (GSimpleAsyncResult *simple,
  * e_cal_backend_create_objects:
  * @backend: an #ECalBackend
  * @calobjs: a %NULL-terminated array of iCalendar strings
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @callback: a #GAsyncReadyCallback to call when the request is satisifed
  * @user_data: data to pass to the callback function
@@ -2604,6 +2693,7 @@ cal_backend_create_objects_thread (GSimpleAsyncResult *simple,
 void
 e_cal_backend_create_objects (ECalBackend *backend,
                               const gchar * const *calobjs,
+			      guint32 opflags,
                               GCancellable *cancellable,
                               GAsyncReadyCallback callback,
                               gpointer user_data)
@@ -2621,6 +2711,7 @@ e_cal_backend_create_objects (ECalBackend *backend,
 
 	async_context = g_slice_new0 (AsyncContext);
 	async_context->string_list = g_slist_reverse (list);
+	async_context->opflags = opflags;
 
 	simple = g_simple_async_result_new (
 		G_OBJECT (backend), callback, user_data,
@@ -2712,10 +2803,11 @@ e_cal_backend_create_objects_finish (ECalBackend *backend,
 }
 
 /**
- * e_cal_backend_modify_objects:
+ * e_cal_backend_modify_objects_sync:
  * @backend: an #ECalBackend
  * @calobjs: a %NULL-terminated array of iCalendar strings
  * @mod: modification type for recurrences
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
  *
@@ -2731,6 +2823,7 @@ gboolean
 e_cal_backend_modify_objects_sync (ECalBackend *backend,
                                    const gchar * const *calobjs,
                                    ECalObjModType mod,
+				   guint32 opflags,
                                    GCancellable *cancellable,
                                    GError **error)
 {
@@ -2744,7 +2837,7 @@ e_cal_backend_modify_objects_sync (ECalBackend *backend,
 	closure = e_async_closure_new ();
 
 	e_cal_backend_modify_objects (
-		backend, calobjs, mod, cancellable,
+		backend, calobjs, mod, opflags, cancellable,
 		e_async_closure_callback, closure);
 
 	result = e_async_closure_wait (closure);
@@ -2778,7 +2871,7 @@ cal_backend_modify_objects_thread (GSimpleAsyncResult *simple,
 
 	async_context = g_simple_async_result_get_op_res_gpointer (simple);
 
-	if (class->modify_objects == NULL) {
+	if (class->impl_modify_objects == NULL) {
 		g_simple_async_result_set_error (
 			simple, E_CLIENT_ERROR,
 			E_CLIENT_ERROR_NOT_SUPPORTED,
@@ -2799,10 +2892,11 @@ cal_backend_modify_objects_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->modify_objects (
+		class->impl_modify_objects (
 			backend, data_cal, opid, cancellable,
 			async_context->string_list,
-			async_context->mod);
+			async_context->mod,
+			async_context->opflags);
 	}
 
 	g_object_unref (data_cal);
@@ -2813,6 +2907,7 @@ cal_backend_modify_objects_thread (GSimpleAsyncResult *simple,
  * @backend: an #ECalBackend
  * @calobjs: a %NULL-terminated array of iCalendar strings
  * @mod: modification type for recurrences
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @callback: a #GAsyncReadyCallback to call when the request is satisfied
  * @user_data: data to pass to the callback function
@@ -2830,6 +2925,7 @@ void
 e_cal_backend_modify_objects (ECalBackend *backend,
                               const gchar * const *calobjs,
                               ECalObjModType mod,
+			      guint32 opflags,
                               GCancellable *cancellable,
                               GAsyncReadyCallback callback,
                               gpointer user_data)
@@ -2848,6 +2944,7 @@ e_cal_backend_modify_objects (ECalBackend *backend,
 	async_context = g_slice_new0 (AsyncContext);
 	async_context->string_list = g_slist_reverse (list);
 	async_context->mod = mod;
+	async_context->opflags = opflags;
 
 	simple = g_simple_async_result_new (
 		G_OBJECT (backend), callback, user_data,
@@ -2947,8 +3044,9 @@ e_cal_backend_modify_objects_finish (ECalBackend *backend,
 /**
  * e_cal_backend_remove_objects_sync:
  * @backend: an #ECalBackend
- * @component_ids: a #GList of #ECalComponentId structs
+ * @component_ids: (element-type ECalComponentId): a #GList of #ECalComponentId structs
  * @mod: modification type for recurrences
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
  *
@@ -2964,6 +3062,7 @@ gboolean
 e_cal_backend_remove_objects_sync (ECalBackend *backend,
                                    GList *component_ids,
                                    ECalObjModType mod,
+				   guint32 opflags,
                                    GCancellable *cancellable,
                                    GError **error)
 {
@@ -2977,7 +3076,7 @@ e_cal_backend_remove_objects_sync (ECalBackend *backend,
 	closure = e_async_closure_new ();
 
 	e_cal_backend_remove_objects (
-		backend, component_ids, mod, cancellable,
+		backend, component_ids, mod, opflags, cancellable,
 		e_async_closure_callback, closure);
 
 	result = e_async_closure_wait (closure);
@@ -3005,7 +3104,7 @@ cal_backend_remove_objects_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->remove_objects != NULL);
+	g_return_if_fail (class->impl_remove_objects != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -3025,10 +3124,11 @@ cal_backend_remove_objects_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->remove_objects (
+		class->impl_remove_objects (
 			backend, data_cal, opid, cancellable,
 			async_context->compid_list,
-			async_context->mod);
+			async_context->mod,
+			async_context->opflags);
 	}
 
 	g_object_unref (data_cal);
@@ -3037,8 +3137,9 @@ cal_backend_remove_objects_thread (GSimpleAsyncResult *simple,
 /**
  * e_cal_backend_remove_objects:
  * @backend: an #ECalBackend
- * @component_ids: a #GList of #ECalComponentId structs
+ * @component_ids: (element-type ECalComponentId): a #GList of #ECalComponentId structs
  * @mod: modification type for recurrences
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @callback: a #GAsyncReadyCallback to call when the request is satisfied
  * @user_data: data to pass to the callback function
@@ -3056,6 +3157,7 @@ void
 e_cal_backend_remove_objects (ECalBackend *backend,
                               GList *component_ids,
                               ECalObjModType mod,
+			      guint32 opflags,
                               GCancellable *cancellable,
                               GAsyncReadyCallback callback,
                               gpointer user_data)
@@ -3076,6 +3178,7 @@ e_cal_backend_remove_objects (ECalBackend *backend,
 	async_context = g_slice_new0 (AsyncContext);
 	async_context->compid_list = g_slist_reverse (list);
 	async_context->mod = mod;
+	async_context->opflags = opflags;
 
 	simple = g_simple_async_result_new (
 		G_OBJECT (backend), callback, user_data,
@@ -3165,7 +3268,7 @@ e_cal_backend_remove_objects_finish (ECalBackend *backend,
 		e_cal_backend_notify_component_removed (
 			backend, component_id, old_component, new_component);
 
-		e_cal_component_free_id (component_id);
+		e_cal_component_id_free (component_id);
 		g_clear_object (&old_component);
 		g_clear_object (&new_component);
 	}
@@ -3188,6 +3291,7 @@ e_cal_backend_remove_objects_finish (ECalBackend *backend,
  * e_cal_backend_receive_objects_sync:
  * @backend: an #ECalBackend
  * @calobj: an iCalendar string
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
  *
@@ -3203,6 +3307,7 @@ e_cal_backend_remove_objects_finish (ECalBackend *backend,
 gboolean
 e_cal_backend_receive_objects_sync (ECalBackend *backend,
                                     const gchar *calobj,
+				    guint32 opflags,
                                     GCancellable *cancellable,
                                     GError **error)
 {
@@ -3216,7 +3321,7 @@ e_cal_backend_receive_objects_sync (ECalBackend *backend,
 	closure = e_async_closure_new ();
 
 	e_cal_backend_receive_objects (
-		backend, calobj, cancellable,
+		backend, calobj, opflags, cancellable,
 		e_async_closure_callback, closure);
 
 	result = e_async_closure_wait (closure);
@@ -3244,7 +3349,7 @@ cal_backend_receive_objects_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->receive_objects != NULL);
+	g_return_if_fail (class->impl_receive_objects != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -3264,9 +3369,10 @@ cal_backend_receive_objects_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->receive_objects (
+		class->impl_receive_objects (
 			backend, data_cal, opid, cancellable,
-			async_context->calobj);
+			async_context->calobj,
+			async_context->opflags);
 	}
 
 	g_object_unref (data_cal);
@@ -3276,6 +3382,7 @@ cal_backend_receive_objects_thread (GSimpleAsyncResult *simple,
  * e_cal_backend_receive_objects:
  * @backend: an #ECalBackend
  * @calobj: an iCalendar string
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @callback: a #GAsyncReadyCallback to call when the request is satisfied
  * @user_data: data to pass to the callback function
@@ -3293,6 +3400,7 @@ cal_backend_receive_objects_thread (GSimpleAsyncResult *simple,
 void
 e_cal_backend_receive_objects (ECalBackend *backend,
                                const gchar *calobj,
+			       guint32 opflags,
                                GCancellable *cancellable,
                                GAsyncReadyCallback callback,
                                gpointer user_data)
@@ -3305,6 +3413,7 @@ e_cal_backend_receive_objects (ECalBackend *backend,
 
 	async_context = g_slice_new0 (AsyncContext);
 	async_context->calobj = g_strdup (calobj);
+	async_context->opflags = opflags;
 
 	simple = g_simple_async_result_new (
 		G_OBJECT (backend), callback, user_data,
@@ -3362,6 +3471,7 @@ e_cal_backend_receive_objects_finish (ECalBackend *backend,
  * e_cal_backend_send_objects_sync:
  * @backend: an #ECalBackend
  * @calobj: an iCalendar string
+ * @opflags: bit-or of #ECalOperationFlags
  * @out_users: a #GQueue in which to deposit results
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
@@ -3382,6 +3492,7 @@ e_cal_backend_receive_objects_finish (ECalBackend *backend,
 gchar *
 e_cal_backend_send_objects_sync (ECalBackend *backend,
                                  const gchar *calobj,
+				 guint32 opflags,
                                  GQueue *out_users,
                                  GCancellable *cancellable,
                                  GError **error)
@@ -3396,7 +3507,7 @@ e_cal_backend_send_objects_sync (ECalBackend *backend,
 	closure = e_async_closure_new ();
 
 	e_cal_backend_send_objects (
-		backend, calobj, cancellable,
+		backend, calobj, opflags, cancellable,
 		e_async_closure_callback, closure);
 
 	result = e_async_closure_wait (closure);
@@ -3424,7 +3535,7 @@ cal_backend_send_objects_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->send_objects != NULL);
+	g_return_if_fail (class->impl_send_objects != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -3444,9 +3555,10 @@ cal_backend_send_objects_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->send_objects (
+		class->impl_send_objects (
 			backend, data_cal, opid, cancellable,
-			async_context->calobj);
+			async_context->calobj,
+			async_context->opflags);
 	}
 
 	g_object_unref (data_cal);
@@ -3456,6 +3568,7 @@ cal_backend_send_objects_thread (GSimpleAsyncResult *simple,
  * e_cal_backend_send_objects:
  * @backend: an #ECalBackend
  * @calobj: an iCalendar string
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @callback: a #GAsyncReadyCallback to call when the request is satisfied
  * @user_data: data to pass to the callback function
@@ -3471,6 +3584,7 @@ cal_backend_send_objects_thread (GSimpleAsyncResult *simple,
 void
 e_cal_backend_send_objects (ECalBackend *backend,
                             const gchar *calobj,
+			    guint32 opflags,
                             GCancellable *cancellable,
                             GAsyncReadyCallback callback,
                             gpointer user_data)
@@ -3483,6 +3597,7 @@ e_cal_backend_send_objects (ECalBackend *backend,
 
 	async_context = g_slice_new0 (AsyncContext);
 	async_context->calobj = g_strdup (calobj);
+	async_context->opflags = opflags;
 
 	simple = g_simple_async_result_new (
 		G_OBJECT (backend), callback, user_data,
@@ -3622,7 +3737,7 @@ cal_backend_get_attachment_uris_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->get_attachment_uris != NULL);
+	g_return_if_fail (class->impl_get_attachment_uris != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -3642,7 +3757,7 @@ cal_backend_get_attachment_uris_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->get_attachment_uris (
+		class->impl_get_attachment_uris (
 			backend, data_cal, opid, cancellable,
 			async_context->uid,
 			async_context->rid);
@@ -3759,6 +3874,7 @@ e_cal_backend_get_attachment_uris_finish (ECalBackend *backend,
  * @uid: a unique ID for an iCalendar object
  * @rid: a recurrence ID, or %NULL
  * @alarm_uid: a unique ID for an iCalendar VALARM object
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
  *
@@ -3776,6 +3892,7 @@ e_cal_backend_discard_alarm_sync (ECalBackend *backend,
                                   const gchar *uid,
                                   const gchar *rid,
                                   const gchar *alarm_uid,
+				  guint32 opflags,
                                   GCancellable *cancellable,
                                   GError **error)
 {
@@ -3791,7 +3908,7 @@ e_cal_backend_discard_alarm_sync (ECalBackend *backend,
 	closure = e_async_closure_new ();
 
 	e_cal_backend_discard_alarm (
-		backend, uid, rid, alarm_uid, cancellable,
+		backend, uid, rid, alarm_uid, opflags, cancellable,
 		e_async_closure_callback, closure);
 
 	result = e_async_closure_wait (closure);
@@ -3825,7 +3942,7 @@ cal_backend_discard_alarm_thread (GSimpleAsyncResult *simple,
 
 	async_context = g_simple_async_result_get_op_res_gpointer (simple);
 
-	if (class->discard_alarm == NULL) {
+	if (class->impl_discard_alarm == NULL) {
 		g_simple_async_result_set_error (
 			simple, E_CLIENT_ERROR,
 			E_CLIENT_ERROR_NOT_SUPPORTED,
@@ -3846,11 +3963,12 @@ cal_backend_discard_alarm_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->discard_alarm (
+		class->impl_discard_alarm (
 			backend, data_cal, opid, cancellable,
 			async_context->uid,
 			async_context->rid,
-			async_context->alarm_uid);
+			async_context->alarm_uid,
+			async_context->opflags);
 	}
 
 	g_object_unref (data_cal);
@@ -3862,6 +3980,7 @@ cal_backend_discard_alarm_thread (GSimpleAsyncResult *simple,
  * @uid: a unique ID for an iCalendar object
  * @rid: a recurrence ID, or %NULL
  * @alarm_uid: a unique ID for an iCalendar VALARM object
+ * @opflags: bit-or of #ECalOperationFlags
  * @cancellable: optional #GCancellable object, or %NULL
  * @callback: a #GAsyncReadyCallback to call when the request is satisfied
  * @user_data: data to pass to the callback function
@@ -3880,6 +3999,7 @@ e_cal_backend_discard_alarm (ECalBackend *backend,
                              const gchar *uid,
                              const gchar *rid,
                              const gchar *alarm_uid,
+			     guint32 opflags,
                              GCancellable *cancellable,
                              GAsyncReadyCallback callback,
                              gpointer user_data)
@@ -3896,6 +4016,7 @@ e_cal_backend_discard_alarm (ECalBackend *backend,
 	async_context->uid = g_strdup (uid);
 	async_context->rid = g_strdup (rid);
 	async_context->alarm_uid = g_strdup (alarm_uid);
+	async_context->opflags = opflags;
 
 	simple = g_simple_async_result_new (
 		G_OBJECT (backend), callback, user_data,
@@ -4009,7 +4130,7 @@ cal_backend_get_timezone_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->get_timezone != NULL);
+	g_return_if_fail (class->impl_get_timezone != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -4029,7 +4150,7 @@ cal_backend_get_timezone_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->get_timezone (
+		class->impl_get_timezone (
 			backend, data_cal, opid, cancellable,
 			async_context->tzid);
 	}
@@ -4196,7 +4317,7 @@ cal_backend_add_timezone_thread (GSimpleAsyncResult *simple,
 
 	class = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (class != NULL);
-	g_return_if_fail (class->add_timezone != NULL);
+	g_return_if_fail (class->impl_add_timezone != NULL);
 
 	data_cal = e_cal_backend_ref_data_cal (backend);
 	g_return_if_fail (data_cal != NULL);
@@ -4216,7 +4337,7 @@ cal_backend_add_timezone_thread (GSimpleAsyncResult *simple,
 
 		opid = cal_backend_stash_operation (backend, simple);
 
-		class->add_timezone (
+		class->impl_add_timezone (
 			backend, data_cal, opid, cancellable,
 			async_context->tzobject);
 	}
@@ -4225,7 +4346,7 @@ cal_backend_add_timezone_thread (GSimpleAsyncResult *simple,
 }
 
 /**
- * e_cal_backend_add_timezone
+ * e_cal_backend_add_timezone:
  * @backend: an #ECalBackend
  * @tzobject: an iCalendar VTIMEZONE string
  * @cancellable: optional #GCancellable object, or %NULL
@@ -4328,9 +4449,9 @@ e_cal_backend_start_view (ECalBackend *backend,
 
 	klass = E_CAL_BACKEND_GET_CLASS (backend);
 	g_return_if_fail (klass != NULL);
-	g_return_if_fail (klass->start_view != NULL);
+	g_return_if_fail (klass->impl_start_view != NULL);
 
-	klass->start_view (backend, view);
+	klass->impl_start_view (backend, view);
 }
 
 /**
@@ -4355,8 +4476,8 @@ e_cal_backend_stop_view (ECalBackend *backend,
 	g_return_if_fail (klass != NULL);
 
 	/* backward compatibility, do not force each backend define this function */
-	if (klass->stop_view)
-		klass->stop_view (backend, view);
+	if (klass->impl_stop_view)
+		klass->impl_stop_view (backend, view);
 }
 
 /**
@@ -4409,12 +4530,11 @@ match_view_and_notify_component (EDataCalView *view,
 	else if (new_match)
 		e_data_cal_view_notify_components_added_1 (view, new_component);
 	else if (old_match) {
-
 		ECalComponentId *id = e_cal_component_get_id (old_component);
 
 		e_data_cal_view_notify_objects_removed_1 (view, id);
 
-		e_cal_component_free_id (id);
+		e_cal_component_id_free (id);
 	}
 }
 
@@ -4554,56 +4674,6 @@ e_cal_backend_notify_property_changed (ECalBackend *backend,
 		e_data_cal_report_backend_property_changed (data_cal, prop_name, prop_value ? prop_value : "");
 		g_object_unref (data_cal);
 	}
-}
-
-/**
- * e_cal_backend_empty_cache:
- * @backend: an #ECalBackend
- * @cache: Backend's cache to empty.
- *
- * Empties backend's cache with all notifications and so on, thus all listening
- * will know there is nothing in this backend.
- *
- * Since: 2.28
- **/
-void
-e_cal_backend_empty_cache (ECalBackend *backend,
-                           ECalBackendCache *cache)
-{
-	GList *comps_in_cache;
-
-	g_return_if_fail (backend != NULL);
-	g_return_if_fail (E_IS_CAL_BACKEND (backend));
-
-	if (!cache)
-		return;
-
-	g_return_if_fail (E_IS_CAL_BACKEND_CACHE (cache));
-
-	e_file_cache_freeze_changes (E_FILE_CACHE (cache));
-
-	for (comps_in_cache = e_cal_backend_cache_get_components (cache);
-	     comps_in_cache;
-	     comps_in_cache = comps_in_cache->next) {
-		ECalComponentId *id;
-		ECalComponent *comp = comps_in_cache->data;
-
-		id = e_cal_component_get_id (comp);
-
-		if (id) {
-			e_cal_backend_cache_remove_component (cache, id->uid, id->rid);
-
-			e_cal_backend_notify_component_removed (backend, id, comp, NULL);
-
-			e_cal_component_free_id (id);
-		}
-
-		g_object_unref (comp);
-	}
-
-	g_list_free (comps_in_cache);
-
-	e_file_cache_thaw_changes (E_FILE_CACHE (cache));
 }
 
 /**

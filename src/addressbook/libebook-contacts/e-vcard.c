@@ -617,10 +617,8 @@ read_attribute_params (EVCardAttribute *attr,
 						param_name = "TYPE";
 					}
 
-					if (param_name) {
-						param = e_vcard_attribute_param_new (param_name);
-						e_vcard_attribute_param_add_value (param, str->str);
-					}
+					param = e_vcard_attribute_param_new (param_name);
+					e_vcard_attribute_param_add_value (param, str->str);
 					g_string_set_size (str, 0);
 					if (!colon)
 						lp = g_utf8_next_char (lp);
@@ -911,7 +909,7 @@ e_vcard_escape_semicolons (const gchar *s)
 
 	for (p = s; p && *p; p++) {
 		if (*p == ';')
-			g_string_append (str, "\\");
+			g_string_append_c (str, '\\');
 
 		g_string_append_c (str, *p);
 	}

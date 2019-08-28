@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: evolution-data-server\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/evolution-data-server/"
 "issues\n"
-"POT-Creation-Date: 2019-03-11 15:57+0000\n"
-"PO-Revision-Date: 2019-03-11 18:58+0100\n"
+"POT-Creation-Date: 2019-03-03 10:01+0000\n"
+"PO-Revision-Date: 2019-03-10 10:18+0100\n"
 "Last-Translator: Марко М. Костић <marko.m.kostic@gmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
 "Language: sr\n"
@@ -25,9 +25,10 @@ msgstr ""
 "X-Poedit-Bookmarks: -1,450,-1,-1,-1,-1,-1,-1,-1,-1\n"
 
 #: ../src/addressbook/backends/carddav/e-book-backend-carddav.c:220
-#, c-format
+#, fuzzy, c-format
+#| msgid "Given URL “%s” doesn’t reference WebDAV address book"
 msgid "Given URL “%s” doesn’t reference CardDAV address book"
-msgstr "Унета адреса „%s“ се не односи на КалДАВ именик"
+msgstr "Унета адреса „%s“ се не односи на ВебДАВ именик"
 
 #: ../src/addressbook/backends/carddav/e-book-backend-carddav.c:279
 #: ../src/addressbook/backends/file/e-book-backend-file-migrate-bdb.c:148
@@ -89,8 +90,10 @@ msgstr "Непозната грешка"
 
 #: ../src/addressbook/backends/carddav/e-book-backend-carddav.c:1036
 #: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:1192
+#, fuzzy
+#| msgid "Signon service did not return a secret"
 msgid "Server didn’t return object’s href"
-msgstr "Сервер није вратио хреф објекта"
+msgstr "Услуга пријављивања није вратила тајну"
 
 #: ../src/addressbook/backends/carddav/e-book-backend-carddav.c:1038
 #: ../src/calendar/backends/caldav/e-cal-backend-caldav.c:1194
@@ -2431,9 +2434,11 @@ msgstr "Састанак се понавља"
 
 #: ../src/calendar/libecal/e-cal-recur.c:5748
 #: ../src/calendar/libecal/e-cal-recur.c:5771
+#, fuzzy
+#| msgid "Untitled appointment"
 msgctxt "recur-description"
 msgid "The appointment recurs"
-msgstr "Догађај се понавља у"
+msgstr "Неименовани заказани састанак"
 
 #: ../src/calendar/libecal/e-cal-recur.c:5751
 #: ../src/calendar/libecal/e-cal-recur.c:5774
@@ -2540,16 +2545,18 @@ msgstr "Без сажетка"
 #. the second %s with a duration, and the third %s with an event location,
 #. making it something like: "24.1.2018 10:30 (30 minutes) Meeting room A1"
 #: ../src/calendar/libecal/e-reminder-watcher.c:2540
-#, c-format
+#, fuzzy, c-format
+#| msgid "%s (%s)"
 msgctxt "overdue"
 msgid "%s (%s) %s"
-msgstr "%s (%s) %s"
+msgstr "%s (%s)"
 
 #. Translators: The first %s is replaced with the time string,
 #. the second %s with a duration, making is something like:
 #. "24.1.2018 10:30 (30 minutes)"
 #: ../src/calendar/libecal/e-reminder-watcher.c:2545
-#, c-format
+#, fuzzy, c-format
+#| msgid "%s (%s)"
 msgctxt "overdue"
 msgid "%s (%s)"
 msgstr "%s (%s)"
@@ -2841,9 +2848,10 @@ msgstr "Не могу да преименујем „%s“ у „%s“: %s"
 #. is replaced with a full path name. The spaces around “:” are intentional, as
 #. the whole “%s : %s” is meant as an absolute identification of the folder.
 #: ../src/camel/camel-filter-driver.c:262
-#, c-format
+#, fuzzy, c-format
+#| msgid "Scanning for changed messages in “%s : %s”"
 msgid "Transferring filtered messages in “%s : %s”"
-msgstr "Премештам филтриране поруке у „%s : %s“"
+msgstr "Прегледам измењене поруке у „%s : %s“"
 
 #: ../src/camel/camel-filter-driver.c:1120
 #: ../src/camel/camel-filter-search.c:934
@@ -2894,9 +2902,10 @@ msgstr "Нисам успео на %d. поруци"
 
 #: ../src/camel/camel-filter-driver.c:1712
 #: ../src/camel/camel-filter-driver.c:1844
-#, c-format
+#, fuzzy, c-format
+#| msgid "Failed on message %d"
 msgid "Failed to transfer messages: %s"
-msgstr "Нисам успео да преместим поруке: %s"
+msgstr "Нисам успео на %d. поруци"
 
 #: ../src/camel/camel-filter-driver.c:1722
 #: ../src/camel/camel-filter-driver.c:1858
@@ -3599,7 +3608,8 @@ msgstr "(Непознат код ГССАПИ механизма: %x)"
 #. Translators: the first '%s' is replaced with a generic error message,
 #. the second '%s' is replaced with additional error information.
 #: ../src/camel/camel-sasl-gssapi.c:172 ../src/camel/camel-sasl-gssapi.c:244
-#, c-format
+#, fuzzy, c-format
+#| msgid "%s (%s)"
 msgctxt "gssapi_error"
 msgid "%s (%s)"
 msgstr "%s (%s)"
@@ -3682,9 +3692,6 @@ msgid ""
 "line with “kinit” or open “Online Accounts” in “Settings” and add the "
 "Kerberos account there. Reported error was: %s"
 msgstr ""
-"Не могу да затражим Керберосов тикет. Набавите тикет ручно, рецимо преко "
-"командне линије са наредбом \"kinit\" или додајте Керберос налог у одељку "
-"„Налози на мрежи“ у „Подешавањима“. Пријављена грешка је: %s"
 
 #: ../src/camel/camel-sasl-gssapi.c:518
 #, c-format
@@ -3965,9 +3972,10 @@ msgid "Decoder failed"
 msgstr "Нисам успео да дешифрујем"
 
 #: ../src/camel/camel-smime-context.c:1296
-#, c-format
+#, fuzzy, c-format
+#| msgid "Cannot find certificate for “%s”"
 msgid "No valid or appropriate certificate for “%s” was found"
-msgstr "Нема исправног или одговарајућег уверења за „%s“"
+msgstr "Не могу да нађем уверење за „%s“"
 
 #: ../src/camel/camel-smime-context.c:1336
 msgid "Cannot find common bulk encryption algorithm"
@@ -4119,9 +4127,10 @@ msgid "Error storing “%s”: "
 msgstr "Грешка при смештању „%s“: "
 
 #: ../src/camel/camel-vee-folder.c:1272
-#, c-format
+#, fuzzy, c-format
+#| msgid "Updating folder “%s”"
 msgid "Updating search folder “%s”"
-msgstr "Ажурирам фасциклу претраги „%s“"
+msgstr "Ажурирам фасциклу „%s“"
 
 #: ../src/camel/camel-vee-folder.c:1332
 msgid "Automatically _update on change in source folders"
@@ -4215,9 +4224,10 @@ msgstr "Обавештење о количини није доступно за 
 #. is replaced with a full path name. The spaces around “:” are intentional, as
 #. the whole “%s : %s” is meant as an absolute identification of the folder.
 #: ../src/camel/providers/imapx/camel-imapx-folder.c:1037
-#, c-format
+#, fuzzy, c-format
+#| msgid "Storing changes in folder “%s : %s”"
 msgid "Removing stale cache files in folder “%s : %s”"
-msgstr "Уклањам бајате кеш датотеке у фасцикли „%s : %s“"
+msgstr "Чувам измене у фасциклу „%s : %s“"
 
 #: ../src/camel/providers/imapx/camel-imapx-folder.c:1131
 #: ../src/camel/providers/nntp/camel-nntp-folder.c:841
@@ -4400,8 +4410,10 @@ msgid "Failed to authenticate"
 msgstr "Нисам успео да потврдим идентитет"
 
 #: ../src/camel/providers/imapx/camel-imapx-server.c:3400
+#, fuzzy
+#| msgid "Failed to issue NAMESPACE"
 msgid "Failed to issue ENABLE UTF8=ACCEPT"
-msgstr "Нисам успео да издам поруку „ENABLE UTF8=ACCEPT“"
+msgstr "Нисам успео да издам поруку „NAMESPACE“"
 
 #: ../src/camel/providers/imapx/camel-imapx-server.c:3419
 msgid "Failed to issue NAMESPACE"
@@ -4496,61 +4508,58 @@ msgstr "Грешка преузимања података о поруци"
 msgid "Error running STATUS"
 msgstr "Грешка у покретању поруке „STATUS“"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6078
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6133
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6197
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6052
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6082
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6117
 msgid "Error syncing changes"
 msgstr "Грешка усклађивања измена"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6091
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6143
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6216
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6360
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6255
 msgid "Error expunging message"
 msgstr "Грешка избацивања поруке"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6438
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6333
 msgid "Error fetching folders"
 msgstr "Грешка преузимања фасцикле"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6446
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6341
 msgid "Error fetching subscribed folders"
 msgstr "Грешка преузимања пријављених фасцикли"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6501
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6396
 msgid "Error creating folder"
 msgstr "Грешка стварања фасцикле"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6557
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6452
 msgid "Error deleting folder"
 msgstr "Грешка брисања фасцикле"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6603
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6498
 msgid "Error renaming folder"
 msgstr "Грешка преименовања фасцикле"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6635
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6530
 msgid "Error subscribing to folder"
 msgstr "Грешка пријављивања на фасциклу"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6671
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6566
 msgid "Error unsubscribing from folder"
 msgstr "Грешка одјављивања са фасцикле"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6711
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6606
 msgid "IMAP server does not support quotas"
 msgstr "ИМАП сервер не подржава количине"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6723
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6618
 msgid "Error retrieving quota information"
 msgstr "Грешка довлачења обавештења о количини"
 
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6788
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6683
 msgid "Search failed"
 msgstr "Претрага није успела"
 
 #. Blocks, until the DONE is issued or on inactivity timeout, error, ...
-#: ../src/camel/providers/imapx/camel-imapx-server.c:6906
+#: ../src/camel/providers/imapx/camel-imapx-server.c:6801
 msgid "Error running IDLE"
 msgstr "Грешка у покретању поруке „IDLE“"
 
@@ -6007,76 +6016,71 @@ msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:7
 msgid "Past reminders for EReminderWatcher"
-msgstr "Прошли подсетници за надгледаче е-подсетника"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:8
 msgid "Snoozed reminders for EReminderWatcher"
-msgstr "Одложени подсетници за надгледаче е-подсетника"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:9
 msgid "Reminder programs"
-msgstr "Програми подсетника"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:10
 msgid "Programs that are allowed to be run by reminders"
-msgstr "Програми које подсетници смеју покретати"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:11
 msgid "Show reminders in notification tray only"
-msgstr "Прикажи подсетнике само у обавештајној зони"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:12
 msgid ""
 "When set to true, the reminders are shown only in the notification tray, "
 "otherwise the reminders dialog is shown immediately"
 msgstr ""
-"Када је тачно, подсетници ће бити приказани само у обавештајној зони, у "
-"супротном ће прозорче са подсетником бити приказано одмах"
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:13
 msgid "Show reminder notification dialog always on top"
-msgstr "Увек прикажи прозорче обавештења подсетника на врху"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:14
 msgid ""
 "Whether or not to show reminder notification dialog always on top. Note this "
 "works only as a hint for the window manager, which may or may not obey it."
 msgstr ""
-"Да ли да приказује прозорче обавештења подсетника увек на врху. Знајте да "
-"ово ради само као савет за управника прозора, који може а и не мора ово да "
-"одради."
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:15
 msgid "X position of the reminder notification dialog"
-msgstr "Икс положај за прозорче обавештења подсетника"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:16
 msgid "Y position of the reminder notification dialog"
-msgstr "Ипсилон положај за прозорче обавештења подсетника"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:17
 msgid "Width of the reminder notification dialog"
-msgstr "Ширина прозорчета обавештења подсетника"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:18
 msgid "Height of the reminder notification dialog"
-msgstr "Висина прозорчета обавештења подсетника"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:19
 msgid "Show reminder notification for completed tasks"
-msgstr "Прикажи обавештење подсетника за завршене задатке"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:20
 msgid "Show reminder notification for past events"
-msgstr "Прикажи обавештење подсетника за прошле догађаје"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:21
 msgid "The last used snooze time, in minutes"
-msgstr "Последње коришћено време одлагања, у минутима"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.calendar.gschema.xml.in.h:22
 msgid "User-defined snooze times, in minutes"
-msgstr "Кориснички постављено време одлагања, у минутима"
+msgstr ""
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:1
 msgid "Whether the migration of old setting was already done"
@@ -6158,6 +6162,23 @@ msgid "A list of hints for OAuth2 services"
 msgstr "Листа савета за ОАут2 услуге"
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:13
+#, fuzzy
+#| msgid ""
+#| "Users can extend the list of supported protocols and hostnames for "
+#| "defined OAuth2 services, in addition to those hard-coded. Each line can "
+#| "be of the form: servicename[-protocol]:hostname1,hostname2,... where "
+#| "'servicename' is the actual service name; the '-protocol' is optional, "
+#| "and if written, then the service can be used only if both 'protocol' and "
+#| "'hostnameX' match; the 'hostnameX' is the actual host name to compare "
+#| "with, case insensitively. Each line can contain multiple values, "
+#| "separated by comma. There can be provided multiple lines for one OAuth2 "
+#| "service. Note that the actual URL where the token is requested and "
+#| "refreshed cannot be changed here, the hostname is to allow other servers, "
+#| "where the OAuth2 service can be used. Examples: Company:mail.company.com "
+#| "- enables 'Company' OAuth2 authentication for 'mail.company.com' host "
+#| "Company-CalDAV:caldav.company.com - enables 'Company' OAuth2 "
+#| "authentication for any 'CalDAV' source, which reads data from 'caldav."
+#| "company.com' host"
 msgid ""
 "Users can extend the list of supported protocols and hostnames for defined "
 "OAuth2 services, in addition to those hard-coded. Each line can be of the "
@@ -6194,68 +6215,48 @@ msgid ""
 "An OAuth2 client ID to use to connect to Google servers, instead of the one "
 "provided during build time"
 msgstr ""
-"ОАут2 клијентски ИБ за повезивање на Гуглове сервере, уместо оног "
-"достављеног приликом градње програма"
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:15
 msgid ""
 "User-specified OAuth2 client ID for Google servers. Empty string means to "
 "use the one provided during build time. Change of this requires restart."
 msgstr ""
-"Кориснички наведени ОАут2 клијентски ИБ за Гуглове сервере. Празна ниска "
-"значи да треба користити онај који је достављен приликом градње програма. "
-"Промена овога захтева поновно покретање."
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:16
 msgid ""
 "An OAuth2 client secret to use to connect to Google servers, instead of the "
 "one provided during build time"
 msgstr ""
-"ОАут2 клијентска тајна за повезивање на Гуглове сервере, уместо оне "
-"достављене приликом градње програма"
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:17
 msgid ""
 "User-specified OAuth2 client secret for Google servers. Empty string means "
 "to use the one provided during build time. Change of this requires restart."
 msgstr ""
-"Кориснички наведена ОАут2 клијентска тајна за повезивање на Гуглове сервере. "
-"Празна ниска значи да треба користити ону која је достављена приликом градње "
-"програма. Промена овога захтева поновно покретање."
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:18
 msgid ""
 "An OAuth2 client ID to use to connect to Outlook servers, instead of the one "
 "provided during build time"
 msgstr ""
-"ОАут2 клијентски ИБ који се треба користити за повезивање на Аутлук сервер, "
-"уместо оног достављеног приликом градње програма"
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:19
 msgid ""
 "User-specified OAuth2 client ID for Outlook servers. Empty string means to "
 "use the one provided during build time. Change of this requires restart."
 msgstr ""
-"Кориснички наведени ОАут2 клијентски ИБ за Аутлук сервере. Празна ниска "
-"значи да треба користити онај који је достављен приликом градње сервере. "
-"Промена овога захтева поновно покретање."
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:20
 msgid ""
 "An OAuth2 client secret to use to connect to Outlook servers, instead of the "
 "one provided during build time"
 msgstr ""
-"ОАут2 клијентска тајна која се треба користити за повезивање на Аутлук "
-"сервере, уместо оне достављене приликом градње програма"
 
 #: ../data/org.gnome.evolution-data-server.gschema.xml.in.h:21
 msgid ""
 "User-specified OAuth2 client secret for Outlook servers. Empty string means "
 "to use the one provided during build time. Change of this requires restart."
 msgstr ""
-"Кориснички наведена ОАут2 клијентска тајна за Аутлук сервере. Празна ниска "
-"значи да треба користити ону достављену приликом градње програма. Промена "
-"овога захтева поновно покретање."
 
 #: ../data/org.gnome.evolution.shell.network-config.gschema.xml.in.h:1
 msgid "(Deprecated) Proxy type to use"
@@ -6321,11 +6322,13 @@ msgstr "(Застарело) Адреса за самоподешавање по
 
 #: ../data/org.gnome.Evolution-alarm-notify.desktop.in.in.h:1
 msgid "Evolution Alarm Notify"
-msgstr "Обавештење аларма Еволуције"
+msgstr ""
 
 #: ../data/org.gnome.Evolution-alarm-notify.desktop.in.in.h:2
+#, fuzzy
+#| msgid "Calendar authentication request"
 msgid "Calendar event notifications"
-msgstr "Обавештења о догађајима календара"
+msgstr "Захтев за пријаву на календар"
 
 #: ../src/libebackend/e-cache.c:754
 msgid "Out of memory"
@@ -6410,19 +6413,22 @@ msgid "UID “%s” is already in use"
 msgstr "УИД „%s“ је већ у употреби"
 
 #: ../src/libebackend/e-source-registry-server.c:447
-#, c-format
+#, fuzzy, c-format
+#| msgid "Cannot find certificate for “%s”"
 msgid "Cannot find corresponding collection backend for source “%s”"
-msgstr "Не могу да нађем одговарајућег позадинца сакупљача за „%s“"
+msgstr "Не могу да нађем уверење за „%s“"
 
 #: ../src/libebackend/e-source-registry-server.c:451
-#, c-format
+#, fuzzy, c-format
+#| msgid "Source “%s” (%s) is not a valid OAuth2 source"
 msgid "Source “%s” is not a collection source"
-msgstr "Извор „%s“ није извор сакупљања"
+msgstr "Извор „%s“ (%s) није исправан ОАут2 извор"
 
 #: ../src/libebackend/e-source-registry-server.c:457
-#, c-format
+#, fuzzy, c-format
+#| msgid "Cannot find certificate for “%s”"
 msgid "Cannot find source “%s”"
-msgstr "Не могу да нађем извор „%s“"
+msgstr "Не могу да нађем уверење за „%s“"
 
 #: ../src/libebackend/e-subprocess-factory.c:281
 #, c-format
@@ -6575,8 +6581,10 @@ msgid "Timeout was reached"
 msgstr "Временски рок је достигнут"
 
 #: ../src/libedataserver/e-oauth2-service.c:925
+#, fuzzy
+#| msgid "Failed on message %d"
 msgid "Malformed, no message body set"
-msgstr "Деформисано, нисам подесио тело поруке"
+msgstr "Нисам успео на %d. поруци"
 
 #. Translators: The first %s is a display name of the source, the second is its UID and
 #. the third is the name of the OAuth service.
@@ -7168,7 +7176,7 @@ msgstr "_Откажи"
 
 #: ../src/libedataserverui/e-credentials-prompter-impl-oauth2.c:679
 msgid "URL:"
-msgstr "Адреса:"
+msgstr ""
 
 #: ../src/libedataserverui/e-credentials-prompter-impl-password.c:132
 msgid "Address book authentication request"
@@ -7242,35 +7250,38 @@ msgstr "_Додајте ову лозинку у ваш привезак"
 
 #: ../src/libedataserverui/e-reminders-widget.c:225
 msgid "Add custom time…"
-msgstr "Додај прилагођено време…"
+msgstr ""
 
 #: ../src/libedataserverui/e-reminders-widget.c:229
 msgid "Clear custom times"
-msgstr "Очисти прилагођена времена"
+msgstr ""
 
 #: ../src/libedataserverui/e-reminders-widget.c:277
+#, fuzzy
+#| msgid "no"
 msgctxt "overdue"
 msgid "now"
-msgstr "сада"
+msgstr "не"
 
 #: ../src/libedataserverui/e-reminders-widget.c:295
 #, c-format
 msgid "%d year"
 msgid_plural "%d years"
-msgstr[0] "%d година"
-msgstr[1] "%d година"
-msgstr[2] "%d година"
-msgstr[3] "Једна година"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
 
 #: ../src/libedataserverui/e-reminders-widget.c:301
 msgctxt "overdue"
 msgid "overdue"
-msgstr "прекорачено"
+msgstr ""
 
 #: ../src/libedataserverui/e-reminders-widget.c:912
-#, c-format
+#, fuzzy, c-format
+#| msgid "Failed to create cache “%s”:"
 msgid "Failed to launch URI “%s”:"
-msgstr "Нисам успео да покренем УРИ „%s“:"
+msgstr "Нисам успео да створим кеш „%s“:"
 
 #: ../src/libedataserverui/e-reminders-widget.c:953
 msgid "Failed to dismiss reminder:"
@@ -7282,29 +7293,29 @@ msgstr "Не могу да одбацим све:"
 
 #: ../src/libedataserverui/e-reminders-widget.c:1110
 msgid "Set a custom snooze time for"
-msgstr "Подеси прилагођено време одлагања у трајању од"
+msgstr ""
 
 #. Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget
 #: ../src/libedataserverui/e-reminders-widget.c:1123
 msgctxt "reminders-snooze"
 msgid "da_ys"
-msgstr "да_на"
+msgstr ""
 
 #. Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget
 #: ../src/libedataserverui/e-reminders-widget.c:1139
 msgctxt "reminders-snooze"
 msgid "_hours"
-msgstr "са_ти"
+msgstr ""
 
 #. Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget
 #: ../src/libedataserverui/e-reminders-widget.c:1155
 msgctxt "reminders-snooze"
 msgid "_minutes"
-msgstr "_минута"
+msgstr ""
 
 #: ../src/libedataserverui/e-reminders-widget.c:1161
 msgid "_Add Snooze time"
-msgstr "До_дај време одлагања"
+msgstr ""
 
 #: ../src/libedataserverui/e-reminders-widget.c:1428
 #: ../src/services/evolution-user-prompter/prompt-user-gtk.c:119
@@ -7312,12 +7323,14 @@ msgid "_Dismiss"
 msgstr "_Занемари"
 
 #: ../src/libedataserverui/e-reminders-widget.c:1429
+#, fuzzy
+#| msgid "_Dismiss"
 msgid "Dismiss _All"
-msgstr "Занемари _све"
+msgstr "_Занемари"
 
 #: ../src/libedataserverui/e-reminders-widget.c:1431
 msgid "_Snooze"
-msgstr "Од_ложи"
+msgstr ""
 
 #: ../src/libedataserverui/e-trust-prompt.c:111
 #: ../src/modules/trust-prompt/trust-prompt-gtk.c:117
@@ -7523,19 +7536,19 @@ msgstr ""
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:760
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:969
 msgid "Reminders"
-msgstr "Подсетници"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:367
 msgid "Warning"
-msgstr "Упозорење"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:368
 msgid "_No"
-msgstr "_Не"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:369
 msgid "_Yes"
-msgstr "_Да"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:373
 #, c-format
@@ -7547,45 +7560,39 @@ msgid ""
 "\n"
 "Are you sure you want to run this program?"
 msgstr ""
-"Управо ће бити окинут подсетник у календару. Овај подсетник је подешен да "
-"покрене следећи програм:\n"
-"\n"
-"        %s\n"
-"\n"
-"Да ли сте сигурни да желите покренути овај програм?"
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:387
 msgid "Do not ask me about this program again"
-msgstr "Не питај ме више ово у случају овог програма"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:665
 msgid "Display reminders in notification area _only"
-msgstr "Прикажи подсетнике само у _обавештајној зони"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:666
 msgid "Keep reminder notification window always on _top"
-msgstr "Држи _прозор обавештења подсетника увек на врху"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:667
 msgid "Display reminders for _completed tasks"
-msgstr "Прикажи подсетнике за за_вршене задатке"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:668
 msgid "Display reminders for _past events"
-msgstr "Прикажи подсетнике за _прошле догађаје"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:682
 msgid "Reminders Options:"
-msgstr "Опције подсетника:"
+msgstr ""
 
 #: ../src/services/evolution-alarm-notify/e-alarm-notify.c:776
 #, c-format
 msgid "You have %d reminder"
 msgid_plural "You have %d reminders"
-msgstr[0] "Имате %d подестник"
-msgstr[1] "Имате %d подестника"
-msgstr[2] "Имате %d подестника"
-msgstr[3] "Имате један подсетник"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
 
 #: ../src/services/evolution-source-registry/builtin/birthdays.source.in.h:1
 msgid "Birthdays & Anniversaries"
