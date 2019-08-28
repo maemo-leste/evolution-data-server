@@ -1,4 +1,4 @@
-evolution-data-server (3.33.91-2) UNRELEASED; urgency=medium
+evolution-data-server (3.33.91-2) experimental; urgency=medium
 
   * Remove patch not needed in the new version
 
