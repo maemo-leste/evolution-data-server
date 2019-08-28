@@ -116,6 +116,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_collection_backend_ref_server@Base 3.17
  e_collection_backend_schedule_populate@Base 3.29.90
  e_data_factory_backend_closed@Base 3.29.90
+ e_data_factory_backend_closed_by_sender@Base 3.33.91
  e_data_factory_construct_path@Base 3.17
  e_data_factory_create_backend@Base 3.29.90
  e_data_factory_get_backend_per_process@Base 3.27.90

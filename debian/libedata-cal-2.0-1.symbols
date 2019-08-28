@@ -15,6 +15,8 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_backend_discard_alarm_sync@Base 3.17
  e_cal_backend_dup_cache_dir@Base 3.17
  e_cal_backend_factory_get_type@Base 3.17
+ e_cal_backend_foreach_view@Base 3.33.91
+ e_cal_backend_foreach_view_notify_progress@Base 3.33.91
  e_cal_backend_get_attachment_uris@Base 3.17
  e_cal_backend_get_attachment_uris_finish@Base 3.17
  e_cal_backend_get_attachment_uris_sync@Base 3.17
@@ -223,6 +225,7 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_data_cal_view_notify_objects_removed_1@Base 3.17
  e_data_cal_view_notify_progress@Base 3.17
  e_data_cal_view_object_matches@Base 3.17
+ e_data_cal_view_ref_backend@Base 3.33.91
  e_dbus_object_get_source@Base 3.17
  e_dbus_object_get_source_oauth2_support@Base 3.17
  e_dbus_object_get_source_remote_creatable@Base 3.17

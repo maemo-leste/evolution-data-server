@@ -35,6 +35,8 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_book_backend_dup_cache_dir@Base 3.17
  e_book_backend_dup_locale@Base 3.17
  e_book_backend_factory_get_type@Base 3.17
+ e_book_backend_foreach_view@Base 3.33.91
+ e_book_backend_foreach_view_notify_progress@Base 3.33.91
  e_book_backend_get_backend_property@Base 3.17
  e_book_backend_get_cache_dir@Base 3.17
  e_book_backend_get_contact@Base 3.17
@@ -301,6 +303,7 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_data_book_view_get_object_path@Base 3.17
  e_data_book_view_get_sexp@Base 3.17
  e_data_book_view_get_type@Base 3.17
+ e_data_book_view_is_completed@Base 3.33.91
  e_data_book_view_new@Base 3.17
  e_data_book_view_notify_complete@Base 3.17
  e_data_book_view_notify_progress@Base 3.17
@@ -308,6 +311,7 @@ libedata-book-1.2.so.26 libedata-book-1.2-26 #MINVER#
  e_data_book_view_notify_update@Base 3.17
  e_data_book_view_notify_update_prefiltered_vcard@Base 3.17
  e_data_book_view_notify_update_vcard@Base 3.17
+ e_data_book_view_ref_backend@Base 3.33.91
  e_dbus_address_book_call_close@Base 3.17
  e_dbus_address_book_call_close_finish@Base 3.17
  e_dbus_address_book_call_close_sync@Base 3.17
