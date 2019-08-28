@@ -1,4 +1,4 @@
-evolution-data-server (3.33.91-3) UNRELEASED; urgency=medium
+evolution-data-server (3.33.91-3) experimental; urgency=medium
 
   * Correctly update the symbols for the new version...
 
