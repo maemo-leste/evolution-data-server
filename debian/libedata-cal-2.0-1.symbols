@@ -119,6 +119,7 @@ libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
  e_cal_cache_get_components_in_range_as_strings@Base 3.25.90
  e_cal_cache_get_ids_with_extra@Base 3.25.90
  e_cal_cache_get_offline_changes@Base 3.25.90
+ e_cal_cache_get_offline_state@Base 3.34.0
  e_cal_cache_get_timezone@Base 3.25.90
  e_cal_cache_get_type@Base 3.25.90
  e_cal_cache_list_timezones@Base 3.25.90
