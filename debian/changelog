@@ -1,4 +1,4 @@
-evolution-data-server (3.34.0-2) UNRELEASED; urgency=medium
+evolution-data-server (3.34.0-2) experimental; urgency=medium
 
   * Correctly update debian/libedata-cal-2.0-1.symbols
 
