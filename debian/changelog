@@ -1,3 +1,9 @@
+evolution-data-server (3.34.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 07 Oct 2019 19:57:55 -0400
+
 evolution-data-server (3.34.0-3) unstable; urgency=medium
 
   * Team upload.
