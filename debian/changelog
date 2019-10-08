@@ -1,8 +1,9 @@
-evolution-data-server (3.34.1-1) UNRELEASED; urgency=medium
+evolution-data-server (3.34.1-1) unstable; urgency=medium
 
   * New upstream release
+  * debian/libedataserver-1.2-24.symbols: Add new symbols
 
- -- Jeremy Bicha <jbicha@debian.org>  Mon, 07 Oct 2019 19:57:55 -0400
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 07 Oct 2019 20:19:38 -0400
 
 evolution-data-server (3.34.0-3) unstable; urgency=medium
 
