@@ -5,6 +5,14 @@ evolution-data-server (3.34.3-1) unstable; urgency=medium
 
  -- Jeremy Bicha <jbicha@debian.org>  Sat, 01 Feb 2020 21:34:29 -0500
 
+evolution-data-server (3.34.1-2) unstable; urgency=medium
+
+  [ Steve Langasek ]
+  * debian/rules: Omit evolution-data-server{,-tests} packages on
+    ubuntu/i386. (Closes: #947186)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 09 Jan 2020 17:30:09 +0100
+
 evolution-data-server (3.34.1-1) unstable; urgency=medium
 
   * New upstream release

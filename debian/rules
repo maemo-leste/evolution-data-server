@@ -8,6 +8,10 @@ export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
 
 export SENDMAIL_PATH = /usr/sbin/sendmail
 
+ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes) $(DEB_HOST_ARCH), yes i386)
+   skip_packages = -Nevolution-data-server -N evolution-data-server-tests
+endif
+
 %:
 	dh $@
 
@@ -60,3 +64,9 @@ override_dh_strip:
 
 override_dh_auto_test:
 	dbus-run-session -- dh_auto_test || true
+
+override_dh_builddeb:
+	dh_builddeb ${skip_packages}
+
+override_dh_gencontrol:
+	dh_gencontrol ${skip_packages}
