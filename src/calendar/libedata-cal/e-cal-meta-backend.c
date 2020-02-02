@@ -817,10 +817,8 @@ ecmb_ensure_refresh_timeout_set_locked (ECalMetaBackend *meta_backend)
 	if (!meta_backend->priv->refresh_timeout_id) {
 		ESource *source = e_backend_get_source (E_BACKEND (meta_backend));
 
-		if (e_source_has_extension (source, E_SOURCE_EXTENSION_REFRESH)) {
-			meta_backend->priv->refresh_timeout_id = e_source_refresh_add_timeout (source, NULL,
-				ecmb_source_refresh_timeout_cb, e_weak_ref_new (meta_backend), (GDestroyNotify) e_weak_ref_free);
-		}
+		meta_backend->priv->refresh_timeout_id = e_source_refresh_add_timeout (source, NULL,
+			ecmb_source_refresh_timeout_cb, e_weak_ref_new (meta_backend), (GDestroyNotify) e_weak_ref_free);
 	}
 }
 
@@ -4681,12 +4679,7 @@ e_cal_meta_backend_process_changes_sync (ECalMetaBackend *meta_backend,
 		ECalMetaBackendInfo *nfo = link->data;
 		GError *local_error = NULL;
 
-		if (!nfo || !nfo->uid) {
-			g_warn_if_reached ();
-			continue;
-		}
-
-		if (!*nfo->uid ||
+		if (!nfo || !nfo->uid || !*nfo->uid ||
 		    g_hash_table_contains (covered_uids, nfo->uid))
 			continue;
 
@@ -4716,12 +4709,7 @@ e_cal_meta_backend_process_changes_sync (ECalMetaBackend *meta_backend,
 		ECalMetaBackendInfo *nfo = link->data;
 		GError *local_error = NULL;
 
-		if (!nfo || !nfo->uid) {
-			g_warn_if_reached ();
-			continue;
-		}
-
-		if (!*nfo->uid)
+		if (!nfo || !nfo->uid || !*nfo->uid)
 			continue;
 
 		success = ecmb_load_component_wrapper_sync (meta_backend, cal_cache, nfo->uid, nfo->object, nfo->extra, NULL, cancellable, &local_error);

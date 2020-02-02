@@ -916,10 +916,8 @@ ebmb_ensure_refresh_timeout_set_locked (EBookMetaBackend *meta_backend)
 	if (!meta_backend->priv->refresh_timeout_id) {
 		ESource *source = e_backend_get_source (E_BACKEND (meta_backend));
 
-		if (e_source_has_extension (source, E_SOURCE_EXTENSION_REFRESH)) {
-			meta_backend->priv->refresh_timeout_id = e_source_refresh_add_timeout (source, NULL,
-				ebmb_source_refresh_timeout_cb, e_weak_ref_new (meta_backend), (GDestroyNotify) e_weak_ref_free);
-		}
+		meta_backend->priv->refresh_timeout_id = e_source_refresh_add_timeout (source, NULL,
+			ebmb_source_refresh_timeout_cb, e_weak_ref_new (meta_backend), (GDestroyNotify) e_weak_ref_free);
 	}
 }
 
@@ -3546,12 +3544,7 @@ e_book_meta_backend_process_changes_sync (EBookMetaBackend *meta_backend,
 		EBookMetaBackendInfo *nfo = link->data;
 		GError *local_error = NULL;
 
-		if (!nfo || !nfo->uid) {
-			g_warn_if_reached ();
-			continue;
-		}
-
-		if (!*nfo->uid ||
+		if (!nfo || !nfo->uid || !*nfo->uid ||
 		    g_hash_table_contains (covered_uids, nfo->uid))
 			continue;
 
@@ -3581,12 +3574,7 @@ e_book_meta_backend_process_changes_sync (EBookMetaBackend *meta_backend,
 		EBookMetaBackendInfo *nfo = link->data;
 		GError *local_error = NULL;
 
-		if (!nfo || !nfo->uid) {
-			g_warn_if_reached ();
-			continue;
-		}
-
-		if (!*nfo->uid)
+		if (!nfo || !nfo->uid || !*nfo->uid)
 			continue;
 
 		success = ebmb_load_contact_wrapper_sync (meta_backend, book_cache, nfo->uid, nfo->object, nfo->extra, NULL, cancellable, &local_error);
