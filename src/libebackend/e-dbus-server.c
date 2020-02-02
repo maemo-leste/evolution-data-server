@@ -35,10 +35,6 @@
 
 #include "e-dbus-server.h"
 
-#define E_DBUS_SERVER_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_DBUS_SERVER, EDBusServerPrivate))
-
 #define INACTIVITY_TIMEOUT 10  /* seconds */
 
 struct _EDBusServerPrivate {
@@ -73,7 +69,80 @@ G_LOCK_DEFINE_STATIC (loaded_modules);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (
 	EDBusServer, e_dbus_server, G_TYPE_OBJECT,
+	G_ADD_PRIVATE (EDBusServer)
 	G_IMPLEMENT_INTERFACE (E_TYPE_EXTENSIBLE, NULL))
+
+typedef struct _ModuleLoadData {
+	GWeakRef server_wr;
+	gchar *filename;
+} ModuleLoadData;
+
+static ModuleLoadData *
+module_load_data_new (EDBusServer *server,
+		      const gchar *filename)
+{
+	ModuleLoadData *mld;
+
+	mld = g_slice_new0 (ModuleLoadData);
+	g_weak_ref_init (&mld->server_wr, server);
+	mld->filename = g_strdup (filename);
+
+	return mld;
+}
+
+static void
+module_load_data_free (gpointer ptr)
+{
+	ModuleLoadData *mld = ptr;
+
+	if (mld) {
+		g_weak_ref_clear (&mld->server_wr);
+		g_free (mld->filename);
+		g_slice_free (ModuleLoadData, mld);
+	}
+}
+
+static gboolean
+e_dbus_server_load_module_timeout_cb (gpointer user_data)
+{
+	ModuleLoadData *mld = user_data;
+	EDBusServer *server;
+
+	g_return_val_if_fail (mld != NULL, FALSE);
+
+	server = g_weak_ref_get (&mld->server_wr);
+	if (server) {
+		EModule *module;
+
+		e_source_registry_debug_print ("Loading module '%s'\n", mld->filename);
+
+		module = e_module_load_file (mld->filename);
+		if (module) {
+			g_type_module_unuse ((GTypeModule *) module);
+
+			e_dbus_server_quit (server, E_DBUS_SERVER_EXIT_RELOAD);
+		}
+
+		g_object_unref (server);
+	}
+
+	return FALSE;
+}
+
+static void
+e_dbus_server_schedule_module_load (EDBusServer *server,
+				    const gchar *filename)
+{
+	g_return_if_fail (E_IS_DBUS_SERVER (server));
+	g_return_if_fail (filename != NULL);
+
+	e_source_registry_debug_print ("Schedule load of module '%s'\n", filename);
+
+	/* Delay the load by 10 seconds, in case the module doesn't have placed
+	   all its libraries in the expected directories. */
+	g_timeout_add_seconds_full (G_PRIORITY_DEFAULT, 10, e_dbus_server_load_module_timeout_cb,
+		module_load_data_new (server, filename), module_load_data_free);
+}
 
 static void
 dbus_server_bus_acquired_cb (GDBusConnection *connection,
@@ -138,7 +207,7 @@ dbus_server_finalize (GObject *object)
 {
 	EDBusServerPrivate *priv;
 
-	priv = E_DBUS_SERVER_GET_PRIVATE (object);
+	priv = E_DBUS_SERVER (object)->priv;
 
 	g_main_loop_unref (priv->main_loop);
 
@@ -287,8 +356,6 @@ e_dbus_server_class_init (EDBusServerClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (EDBusServerPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->finalize = dbus_server_finalize;
 	object_class->dispose = dbus_server_dispose;
@@ -397,7 +464,7 @@ e_dbus_server_init (EDBusServer *server)
 	g_network_monitor_get_default ();
 #endif
 
-	server->priv = E_DBUS_SERVER_GET_PRIVATE (server);
+	server->priv = e_dbus_server_get_instance_private (server);
 	server->priv->main_loop = g_main_loop_new (NULL, FALSE);
 	server->priv->wait_for_client = FALSE;
 
@@ -559,38 +626,27 @@ dbus_server_module_directory_changed_cb (GFileMonitor *monitor,
 		if (event_type == G_FILE_MONITOR_EVENT_RENAMED && other_file) {
 			G_LOCK (loaded_modules);
 			if (!g_hash_table_contains (loaded_modules, filename)) {
+				gchar *other_filename = g_file_get_path (other_file);
+				e_source_registry_debug_print ("Module file '%s' renamed to '%s'\n", filename, other_filename);
 				g_free (filename);
-				filename = g_file_get_path (other_file);
+				filename = other_filename;
 				event_type = G_FILE_MONITOR_EVENT_CREATED;
 			}
 			G_UNLOCK (loaded_modules);
 		}
 
 		if (filename && g_str_has_suffix (filename, "." G_MODULE_SUFFIX)) {
-			gboolean any_loaded = FALSE;
-
 			if (event_type == G_FILE_MONITOR_EVENT_CREATED ||
 			    event_type == G_FILE_MONITOR_EVENT_MOVED_IN) {
 				G_LOCK (loaded_modules);
 
 				if (!g_hash_table_contains (loaded_modules, filename)) {
-					EModule *module;
-
 					g_hash_table_add (loaded_modules, g_strdup (filename));
-
-					module = e_module_load_file (filename);
-					if (module) {
-						any_loaded = TRUE;
-
-						g_type_module_unuse ((GTypeModule *) module);
-					}
+					e_dbus_server_schedule_module_load (server, filename);
 				}
 
 				G_UNLOCK (loaded_modules);
 			}
-
-			if (any_loaded)
-				e_dbus_server_quit (server, E_DBUS_SERVER_EXIT_RELOAD);
 		}
 
 		g_free (filename);

@@ -38,12 +38,6 @@
 #include <libsoup/soup-uri.h>
 #include "e-proxy.h"
 
-#define E_PROXY_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_PROXY, EProxyPrivate))
-
-G_DEFINE_TYPE (EProxy, e_proxy, G_TYPE_OBJECT)
-
 /* Debug */
 #define d(x)
 
@@ -101,6 +95,8 @@ enum {
 	LAST_SIGNAL
 };
 
+G_DEFINE_TYPE_WITH_PRIVATE (EProxy, e_proxy, G_TYPE_OBJECT)
+
 static guint signals[LAST_SIGNAL] = { 0 };
 
 /* Forward declarations.  */
@@ -113,15 +109,9 @@ static void
 ep_free_proxy_host_addr (ProxyHostAddr *host)
 {
 	if (host) {
-		if (host->addr) {
-			g_free (host->addr);
-			host->addr = NULL;
-		}
-		if (host->mask) {
-			g_free (host->mask);
-			host->mask = NULL;
-		}
-		g_free (host);
+		g_clear_pointer (&host->addr, g_free);
+		g_clear_pointer (&host->mask, g_free);
+		g_slice_free (ProxyHostAddr, host);
 	}
 }
 
@@ -555,7 +545,7 @@ ep_parse_ignore_host (gpointer data,
 		gint addr_len;
 		struct sockaddr * so_addr = NULL;
 
-		host_addr = g_new0 (ProxyHostAddr, 1);
+		host_addr = g_slice_new0 (ProxyHostAddr);
 
 		so_addr = soup_address_get_sockaddr (addr, &addr_len);
 
@@ -941,8 +931,6 @@ e_proxy_class_init (EProxyClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (EProxyPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->dispose = e_proxy_dispose;
 
@@ -965,7 +953,7 @@ e_proxy_class_init (EProxyClass *class)
 static void
 e_proxy_init (EProxy *proxy)
 {
-	proxy->priv = E_PROXY_GET_PRIVATE (proxy);
+	proxy->priv = e_proxy_get_instance_private (proxy);
 
 	proxy->priv->type = PROXY_TYPE_SYSTEM;
 

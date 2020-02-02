@@ -93,6 +93,7 @@ void _e_cal_cache_remove_loaded_timezones (ECalCache *cal_cache);
 static void ecc_timezone_cache_init (ETimezoneCacheInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ECalCache, e_cal_cache, E_TYPE_CACHE,
+			 G_ADD_PRIVATE (ECalCache)
 			 G_IMPLEMENT_INTERFACE (E_TYPE_EXTENSIBLE, NULL)
 			 G_IMPLEMENT_INTERFACE (E_TYPE_TIMEZONE_CACHE, ecc_timezone_cache_init))
 
@@ -126,7 +127,7 @@ e_cal_cache_offline_change_new (const gchar *uid,
 
 	g_return_val_if_fail (uid != NULL, NULL);
 
-	change = g_new0 (ECalCacheOfflineChange, 1);
+	change = g_slice_new0 (ECalCacheOfflineChange);
 	change->uid = g_strdup (uid);
 	change->rid = g_strdup (rid);
 	change->revision = g_strdup (revision);
@@ -174,7 +175,7 @@ e_cal_cache_offline_change_free (gpointer change)
 		g_free (chng->rid);
 		g_free (chng->revision);
 		g_free (chng->object);
-		g_free (chng);
+		g_slice_free (ECalCacheOfflineChange, chng);
 	}
 }
 
@@ -203,7 +204,7 @@ e_cal_cache_search_data_new (const gchar *uid,
 	g_return_val_if_fail (uid != NULL, NULL);
 	g_return_val_if_fail (object != NULL, NULL);
 
-	data = g_new0 (ECalCacheSearchData, 1);
+	data = g_slice_new0 (ECalCacheSearchData);
 	data->uid = g_strdup (uid);
 	data->rid = (rid && *rid) ? g_strdup (rid) : NULL;
 	data->object = g_strdup (object);
@@ -250,7 +251,7 @@ e_cal_cache_search_data_free (gpointer ptr)
 		g_free (data->rid);
 		g_free (data->object);
 		g_free (data->extra);
-		g_free (data);
+		g_slice_free (ECalCacheSearchData, data);
 	}
 }
 
@@ -1927,7 +1928,7 @@ timezone_migration_data_free (gpointer ptr)
 
 	if (tmd) {
 		g_clear_object (&tmd->zone);
-		g_free (tmd);
+		g_slice_free (TimezoneMigrationData, tmd);
 	}
 }
 
@@ -1990,7 +1991,7 @@ ecc_count_timezones_in_icalcomp_cb (ICalParameter *param,
 			zone = e_cal_util_copy_timezone (zone);
 
 		if (zone) {
-			tmd = g_new0 (TimezoneMigrationData, 1);
+			tmd = g_slice_new0 (TimezoneMigrationData);
 			tmd->is_deref = !ctd->is_inc;
 			tmd->refs = 1;
 			tmd->zone = zone;
@@ -2100,7 +2101,7 @@ e_cal_cache_fill_tmd_cb (ECache *cache,
 		if (zone) {
 			TimezoneMigrationData *tmd;
 
-			tmd = g_new0 (TimezoneMigrationData, 1);
+			tmd = g_slice_new0 (TimezoneMigrationData);
 			tmd->zone = zone;
 			tmd->refs = 0;
 
@@ -4508,8 +4509,6 @@ e_cal_cache_class_init (ECalCacheClass *klass)
 	GObjectClass *object_class;
 	ECacheClass *cache_class;
 
-	g_type_class_add_private (klass, sizeof (ECalCachePrivate));
-
 	object_class = G_OBJECT_CLASS (klass);
 	object_class->finalize = e_cal_cache_finalize;
 
@@ -4522,9 +4521,15 @@ e_cal_cache_class_init (ECalCacheClass *klass)
 
 	/**
 	 * ECalCache:dup-component-revision:
+	 * ECalCache::dup-component-revision:
+	 * @cal_cache: an #ECalCache
+	 * @icomp: an #ICalComponent
+	 *
 	 * A signal being called to get revision of an ICalComponent.
 	 * The default implementation uses a concatenation of
 	 * DTSTAMP '-' LASTMODIFIED '-' SEQUENCE.
+	 *
+	 * Returns: the revision string
 	 **/
 	signals[DUP_COMPONENT_REVISION] = g_signal_new (
 		"dup-component-revision",
@@ -4535,10 +4540,10 @@ e_cal_cache_class_init (ECalCacheClass *klass)
 		NULL,
 		g_cclosure_marshal_generic,
 		G_TYPE_STRING, 1,
-		G_TYPE_POINTER);
+		I_CAL_TYPE_COMPONENT);
 
 	/**
-	 * ECalCache:get-timezone:
+	 * ECalCache::get-timezone:
 	 * @cal_cache: an #ECalCache
 	 * @tzid: timezone ID
 	 *
@@ -4546,6 +4551,8 @@ e_cal_cache_class_init (ECalCacheClass *klass)
 	 * into the cache. It's used to make sure the cache contains
 	 * all timezones which are needed by the component. The returned
 	 * ICalTimezone will not be freed.
+	 *
+	 * Returns: (transfer none): an #ICalTimezone
 	 *
 	 * Since: 3.30
 	 **/
@@ -4557,7 +4564,7 @@ e_cal_cache_class_init (ECalCacheClass *klass)
 		g_signal_accumulator_first_wins,
 		NULL,
 		g_cclosure_marshal_generic,
-		G_TYPE_POINTER, 1,
+		I_CAL_TYPE_TIMEZONE, 1,
 		G_TYPE_STRING);
 }
 
@@ -4572,7 +4579,7 @@ ecc_timezone_cache_init (ETimezoneCacheInterface *iface)
 static void
 e_cal_cache_init (ECalCache *cal_cache)
 {
-	cal_cache->priv = G_TYPE_INSTANCE_GET_PRIVATE (cal_cache, E_TYPE_CAL_CACHE, ECalCachePrivate);
+	cal_cache->priv = e_cal_cache_get_instance_private (cal_cache);
 	cal_cache->priv->loaded_timezones = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, cal_cache_free_zone);
 	cal_cache->priv->modified_timezones = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, cal_cache_free_zone);
 

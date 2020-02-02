@@ -38,10 +38,6 @@
 
 #include <libedataserver/e-data-server-util.h>
 
-#define E_SOURCE_AUTHENTICATION_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_SOURCE_AUTHENTICATION, ESourceAuthenticationPrivate))
-
 struct _ESourceAuthenticationPrivate {
 	gchar *host;
 	gchar *method;
@@ -50,6 +46,7 @@ struct _ESourceAuthenticationPrivate {
 	gboolean remember_password;
 	gchar *user;
 	gchar *credential_name;
+	gboolean is_external;
 
 	/* GNetworkAddress caches data internally, so we maintain the
 	 * instance to preserve the cache as opposed to just creating
@@ -66,10 +63,11 @@ enum {
 	PROP_PROXY_UID,
 	PROP_REMEMBER_PASSWORD,
 	PROP_USER,
-	PROP_CREDENTIAL_NAME
+	PROP_CREDENTIAL_NAME,
+	PROP_IS_EXTERNAL
 };
 
-G_DEFINE_TYPE (
+G_DEFINE_TYPE_WITH_PRIVATE (
 	ESourceAuthentication,
 	e_source_authentication,
 	E_TYPE_SOURCE_EXTENSION)
@@ -142,6 +140,12 @@ source_authentication_set_property (GObject *object,
 				E_SOURCE_AUTHENTICATION (object),
 				g_value_get_string (value));
 			return;
+
+		case PROP_IS_EXTERNAL:
+			e_source_authentication_set_is_external (
+				E_SOURCE_AUTHENTICATION (object),
+				g_value_get_boolean (value));
+			return;
 	}
 
 	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -209,6 +213,13 @@ source_authentication_get_property (GObject *object,
 				e_source_authentication_dup_credential_name (
 				E_SOURCE_AUTHENTICATION (object)));
 			return;
+
+		case PROP_IS_EXTERNAL:
+			g_value_set_boolean (
+				value,
+				e_source_authentication_get_is_external (
+				E_SOURCE_AUTHENTICATION (object)));
+			return;
 	}
 
 	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -219,7 +230,7 @@ source_authentication_dispose (GObject *object)
 {
 	ESourceAuthenticationPrivate *priv;
 
-	priv = E_SOURCE_AUTHENTICATION_GET_PRIVATE (object);
+	priv = E_SOURCE_AUTHENTICATION (object)->priv;
 
 	g_clear_object (&priv->connectable);
 
@@ -232,7 +243,7 @@ source_authentication_finalize (GObject *object)
 {
 	ESourceAuthenticationPrivate *priv;
 
-	priv = E_SOURCE_AUTHENTICATION_GET_PRIVATE (object);
+	priv = E_SOURCE_AUTHENTICATION (object)->priv;
 
 	g_free (priv->host);
 	g_free (priv->method);
@@ -248,8 +259,6 @@ e_source_authentication_class_init (ESourceAuthenticationClass *class)
 {
 	GObjectClass *object_class;
 	ESourceExtensionClass *extension_class;
-
-	g_type_class_add_private (class, sizeof (ESourceAuthenticationPrivate));
 
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = source_authentication_set_property;
@@ -372,12 +381,26 @@ e_source_authentication_class_init (ESourceAuthenticationClass *class)
 			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
+
+	g_object_class_install_property (
+		object_class,
+		PROP_IS_EXTERNAL,
+		g_param_spec_boolean (
+			"is-external",
+			"Is External",
+			"Whether the authentication is done by another authentication manager (like any Single Sign On daemon)",
+			FALSE,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT |
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS |
+			E_SOURCE_PARAM_SETTING));
 }
 
 static void
 e_source_authentication_init (ESourceAuthentication *extension)
 {
-	extension->priv = E_SOURCE_AUTHENTICATION_GET_PRIVATE (extension);
+	extension->priv = e_source_authentication_get_instance_private (extension);
 }
 
 /**
@@ -965,4 +988,55 @@ e_source_authentication_set_credential_name (ESourceAuthentication *extension,
 	e_source_extension_property_unlock (E_SOURCE_EXTENSION (extension));
 
 	g_object_notify (G_OBJECT (extension), "credential-name");
+}
+
+/**
+ * e_source_authentication_get_is_external:
+ * @extension: an #ESourceAuthentication
+ *
+ * Get if the authentication is done by an external application such as a
+ * Single Sign On application (e.g. GNOME Online Accounts)
+ *
+ * Returns: %TRUE if the authentication is done by an external application,
+ * %FALSE otherwise
+ *
+ * Since: 3.36
+ **/
+gboolean
+e_source_authentication_get_is_external (ESourceAuthentication *extension)
+{
+	g_return_val_if_fail (E_IS_SOURCE_AUTHENTICATION (extension), FALSE);
+
+	return extension->priv->is_external;
+}
+
+/**
+ * e_source_authentication_set_is_external:
+ * @extension: an #ESourceAuthentication
+ * @is_external: %TRUE if the authentication is done using an external
+ * application, %FALSE otherwise
+ *
+ * Set if the authentication is done by an external application such as a
+ * Single Sign On application (e.g. GNOME Online Accounts)
+ *
+ * Since: 3.36
+ **/
+void
+e_source_authentication_set_is_external (ESourceAuthentication *extension,
+                                         gboolean is_external)
+{
+	g_return_if_fail (E_IS_SOURCE_AUTHENTICATION (extension));
+
+	e_source_extension_property_lock (E_SOURCE_EXTENSION (extension));
+
+	if (extension->priv->is_external == is_external) {
+		e_source_extension_property_unlock (E_SOURCE_EXTENSION (extension));
+		return;
+	}
+
+	extension->priv->is_external = is_external;
+
+	e_source_extension_property_unlock (E_SOURCE_EXTENSION (extension));
+
+	g_object_notify (G_OBJECT (extension), "is-external");
 }

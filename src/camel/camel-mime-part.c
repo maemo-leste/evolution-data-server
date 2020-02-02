@@ -45,10 +45,6 @@
 
 #define d(x) /*(printf("%s(%d): ", __FILE__, __LINE__),(x))*/
 
-#define CAMEL_MIME_PART_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), CAMEL_TYPE_MIME_PART, CamelMimePartPrivate))
-
 typedef struct _AsyncContext AsyncContext;
 
 struct _CamelMimePartPrivate {
@@ -92,7 +88,7 @@ typedef enum {
 static GHashTable *header_name_table;
 static GHashTable *header_formatted_table;
 
-G_DEFINE_TYPE (CamelMimePart, camel_mime_part, CAMEL_TYPE_MEDIUM)
+G_DEFINE_TYPE_WITH_PRIVATE (CamelMimePart, camel_mime_part, CAMEL_TYPE_MEDIUM)
 
 static void
 async_context_free (AsyncContext *async_context)
@@ -446,7 +442,7 @@ mime_part_finalize (GObject *object)
 {
 	CamelMimePartPrivate *priv;
 
-	priv = CAMEL_MIME_PART_GET_PRIVATE (object);
+	priv = CAMEL_MIME_PART (object)->priv;
 
 	g_free (priv->description);
 	g_free (priv->content_id);
@@ -1015,8 +1011,6 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 	CamelMediumClass *medium_class;
 	CamelDataWrapperClass *data_wrapper_class;
 
-	g_type_class_add_private (class, sizeof (CamelMimePartPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = mime_part_set_property;
 	object_class->get_property = mime_part_get_property;
@@ -1048,7 +1042,8 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 			NULL,
 			NULL,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
 		object_class,
@@ -1059,7 +1054,8 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 			NULL,
 			NULL,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
 		object_class,
@@ -1070,7 +1066,8 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 			NULL,
 			NULL,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
 		object_class,
@@ -1081,7 +1078,8 @@ camel_mime_part_class_init (CamelMimePartClass *class)
 			NULL,
 			NULL,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 
 	init_header_name_table ();
 }
@@ -1091,7 +1089,7 @@ camel_mime_part_init (CamelMimePart *mime_part)
 {
 	CamelDataWrapper *data_wrapper;
 
-	mime_part->priv = CAMEL_MIME_PART_GET_PRIVATE (mime_part);
+	mime_part->priv = camel_mime_part_get_instance_private (mime_part);
 	mime_part->priv->encoding = CAMEL_TRANSFER_ENCODING_DEFAULT;
 	mime_part->priv->headers = camel_name_value_array_new ();
 

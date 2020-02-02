@@ -45,10 +45,6 @@
 #include "e-cal-enums.h"
 #include "e-timezone-cache.h"
 
-#define E_CAL_CLIENT_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_CAL_CLIENT, ECalClientPrivate))
-
 /* Set this to a sufficiently large value
  * to cover most long-running operations. */
 #define DBUS_PROXY_TIMEOUT_MS (3 * 60 * 1000)  /* 3 minutes */
@@ -138,6 +134,7 @@ G_DEFINE_TYPE_WITH_CODE (
 	ECalClient,
 	e_cal_client,
 	E_TYPE_CLIENT,
+	G_ADD_PRIVATE (ECalClient)
 	G_IMPLEMENT_INTERFACE (
 		G_TYPE_INITABLE,
 		e_cal_client_initable_init)
@@ -697,7 +694,7 @@ idle_proxy_notify_data_free (gpointer ptr)
 		g_clear_object (&ipn->client);
 		g_free (ipn->property_name);
 		g_value_unset (&ipn->property_value);
-		g_free (ipn);
+		g_slice_free (IdleProxyNotifyData, ipn);
 	}
 }
 
@@ -727,7 +724,7 @@ cal_client_dbus_proxy_notify_cb (EDBusCalendar *dbus_proxy,
 	if (client == NULL)
 		return;
 
-	ipn = g_new0 (IdleProxyNotifyData, 1);
+	ipn = g_slice_new0 (IdleProxyNotifyData);
 	ipn->client = g_object_ref (client);
 	ipn->property_name = g_strdup (pspec->name);
 	g_value_init (&ipn->property_value, pspec->value_type);
@@ -866,7 +863,7 @@ cal_client_dispose (GObject *object)
 {
 	ECalClientPrivate *priv;
 
-	priv = E_CAL_CLIENT_GET_PRIVATE (object);
+	priv = E_CAL_CLIENT (object)->priv;
 
 	if (priv->dbus_proxy_error_handler_id > 0) {
 		g_signal_handler_disconnect (
@@ -908,7 +905,7 @@ cal_client_finalize (GObject *object)
 {
 	ECalClientPrivate *priv;
 
-	priv = E_CAL_CLIENT_GET_PRIVATE (object);
+	priv = E_CAL_CLIENT (object)->priv;
 
 	if (priv->name_watcher_id > 0)
 		g_bus_unwatch_name (priv->name_watcher_id);
@@ -991,7 +988,7 @@ cal_client_get_dbus_proxy (EClient *client)
 {
 	ECalClientPrivate *priv;
 
-	priv = E_CAL_CLIENT_GET_PRIVATE (client);
+	priv = E_CAL_CLIENT (client)->priv;
 
 	return G_DBUS_PROXY (priv->dbus_proxy);
 }
@@ -1191,7 +1188,7 @@ cal_client_init_in_dbus_thread (GSimpleAsyncResult *simple,
 	gulong handler_id;
 	GError *local_error = NULL;
 
-	priv = E_CAL_CLIENT_GET_PRIVATE (source_object);
+	priv = E_CAL_CLIENT (source_object)->priv;
 
 	client = E_CLIENT (source_object);
 	source = e_client_get_source (client);
@@ -1404,7 +1401,7 @@ cal_client_add_cached_timezone (ETimezoneCache *cache,
 	ECalClientPrivate *priv;
 	const gchar *tzid;
 
-	priv = E_CAL_CLIENT_GET_PRIVATE (cache);
+	priv = E_CAL_CLIENT (cache)->priv;
 
 	/* XXX Apparently this function can sometimes return NULL.
 	 *     I'm not sure when or why that happens, but we can't
@@ -1465,7 +1462,7 @@ cal_client_get_cached_timezone (ETimezoneCache *cache,
 	ICalProperty *prop;
 	const gchar *builtin_tzid;
 
-	priv = E_CAL_CLIENT_GET_PRIVATE (cache);
+	priv = E_CAL_CLIENT (cache)->priv;
 
 	if (g_str_equal (tzid, "UTC"))
 		return i_cal_timezone_get_utc_timezone ();
@@ -1534,7 +1531,7 @@ cal_client_list_cached_timezones (ETimezoneCache *cache)
 	ECalClientPrivate *priv;
 	GList *list;
 
-	priv = E_CAL_CLIENT_GET_PRIVATE (cache);
+	priv = E_CAL_CLIENT (cache)->priv;
 
 	g_mutex_lock (&priv->zone_cache_lock);
 
@@ -1550,8 +1547,6 @@ e_cal_client_class_init (ECalClientClass *class)
 {
 	GObjectClass *object_class;
 	EClientClass *client_class;
-
-	g_type_class_add_private (class, sizeof (ECalClientPrivate));
 
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = cal_client_set_property;
@@ -1630,7 +1625,7 @@ e_cal_client_init (ECalClient *client)
 
 	zone_cache = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 
-	client->priv = E_CAL_CLIENT_GET_PRIVATE (client);
+	client->priv = e_cal_client_get_instance_private (client);
 	client->priv->source_type = E_CAL_CLIENT_SOURCE_TYPE_LAST;
 	client->priv->default_zone = i_cal_timezone_get_utc_timezone ();
 	g_mutex_init (&client->priv->zone_cache_lock);
@@ -1816,7 +1811,7 @@ cal_client_connect_init_cb (GObject *source_object,
 	source_object = g_async_result_get_source_object (result);
 	closure = g_simple_async_result_get_op_res_gpointer (simple);
 
-	priv = E_CAL_CLIENT_GET_PRIVATE (source_object);
+	priv = E_CAL_CLIENT (source_object)->priv;
 
 	e_dbus_calendar_call_open (
 		priv->dbus_proxy,
@@ -2163,6 +2158,12 @@ struct comp_instance {
 	ICalTime *end;
 };
 
+static struct comp_instance *
+comp_instance_new (void)
+{
+	return g_slice_new0 (struct comp_instance);
+}
+
 static void
 comp_instance_free (gpointer ptr)
 {
@@ -2172,7 +2173,7 @@ comp_instance_free (gpointer ptr)
 		g_clear_object (&ci->comp);
 		g_clear_object (&ci->start);
 		g_clear_object (&ci->end);
-		g_free (ci);
+		g_slice_free (struct comp_instance, ci);
 	}
 }
 
@@ -2196,7 +2197,7 @@ add_instance_cb (ICalComponent *icomp,
 	instances_hold = user_data;
 	list = instances_hold->instances;
 
-	ci = g_new0 (struct comp_instance, 1);
+	ci = comp_instance_new ();
 
 	/* add the instance to the list */
 	ci->comp = e_cal_component_new_from_icalcomponent (i_cal_component_clone (icomp));
@@ -2378,7 +2379,7 @@ process_detached_instances (GSList *instances,
 	 * (ie, detached instances with no master object) */
 	while (unprocessed_instances != NULL) {
 		cid = unprocessed_instances->data;
-		ci = g_new0 (struct comp_instance, 1);
+		ci = comp_instance_new ();
 		ci->comp = g_object_ref (cid->comp);
 		ci->start = i_cal_time_clone (cid->start);
 		ci->end = i_cal_time_clone (cid->end);
@@ -2426,7 +2427,7 @@ generate_instances (ECalClient *client,
 			ECalComponentDateTime *dtstart, *dtend;
 
 			/* keep the detached instances apart */
-			ci = g_new0 (struct comp_instance, 1);
+			ci = comp_instance_new ();
 			ci->comp = g_object_ref (comp);
 
 			dtstart = e_cal_component_get_dtstart (comp);
@@ -2480,17 +2481,15 @@ generate_instances (ECalClient *client,
 				comp_instance_free (ci);
 			}
 		} else {
-			struct instances_info *instances_hold;
+			struct instances_info instances_hold;
 
-			instances_hold = g_new0 (struct instances_info, 1);
-			instances_hold->instances = &instances;
+			memset (&instances_hold, 0, sizeof (struct instances_info));
+			instances_hold.instances = &instances;
 
 			e_cal_recur_generate_instances_sync (
-				e_cal_component_get_icalcomponent (comp), starttt, endtt, add_instance_cb, instances_hold,
+				e_cal_component_get_icalcomponent (comp), starttt, endtt, add_instance_cb, &instances_hold,
 				e_cal_client_tzlookup_cb, client,
 				default_zone, cancellable, NULL);
-
-			g_free (instances_hold);
 		}
 	}
 
@@ -2608,7 +2607,7 @@ free_get_objects_async_data (struct get_objects_async_data *goad)
 		g_object_unref (goad->comp);
 	g_free (goad->query);
 	g_free (goad->uid);
-	g_free (goad);
+	g_slice_free (struct get_objects_async_data, goad);
 }
 
 static void
@@ -2786,7 +2785,7 @@ e_cal_client_generate_instances (ECalClient *client,
 	if (!use_cancellable)
 		use_cancellable = g_cancellable_new ();
 
-	goad = g_new0 (struct get_objects_async_data, 1);
+	goad = g_slice_new0 (struct get_objects_async_data);
 	goad->cancellable = g_object_ref (use_cancellable);
 	goad->client = g_object_ref (client);
 	goad->start = start;
@@ -2898,27 +2897,26 @@ static void
 generate_instances_for_object_got_objects_cb (struct get_objects_async_data *goad,
                                               GSList *objects)
 {
-	struct instances_info *instances_hold;
+	struct instances_info instances_hold;
 	GSList *instances = NULL;
 
 	g_return_if_fail (goad != NULL);
 
-	instances_hold = g_new0 (struct instances_info, 1);
-	instances_hold->instances = &instances;
+	memset (&instances_hold, 0, sizeof (struct instances_info));
+	instances_hold.instances = &instances;
 
 	/* generate all instances in the given time range */
 	generate_instances (
 		goad->client, goad->start, goad->end, objects,
-		goad->cancellable, add_instance_cb, instances_hold);
+		goad->cancellable, add_instance_cb, &instances_hold);
 
 	/* it also frees 'instances' GSList */
 	process_instances (
-		goad->client, goad->comp, *(instances_hold->instances),
+		goad->client, goad->comp, *(instances_hold.instances),
 		goad->cb, goad->cb_data);
 
 	/* clean up */
 	free_get_objects_async_data (goad);
-	g_free (instances_hold);
 }
 
 /**
@@ -2994,7 +2992,7 @@ e_cal_client_generate_instances_for_object (ECalClient *client,
 	if (!use_cancellable)
 		use_cancellable = g_cancellable_new ();
 
-	goad = g_new0 (struct get_objects_async_data, 1);
+	goad = g_slice_new0 (struct get_objects_async_data);
 	goad->cancellable = g_object_ref (use_cancellable);
 	goad->client = g_object_ref (client);
 	goad->start = start;
@@ -3043,7 +3041,7 @@ e_cal_client_generate_instances_for_object_sync (ECalClient *client,
 	ECalComponent *comp;
 	const gchar *uid;
 	GSList *instances = NULL;
-	struct instances_info *instances_hold;
+	struct instances_info instances_hold;
 
 	g_return_if_fail (E_IS_CAL_CLIENT (client));
 
@@ -3073,21 +3071,20 @@ e_cal_client_generate_instances_for_object_sync (ECalClient *client,
 
 	uid = e_cal_component_get_uid (comp);
 
-	instances_hold = g_new0 (struct instances_info, 1);
-	instances_hold->instances = &instances;
+	memset (&instances_hold, 0, sizeof (struct instances_info));
+	instances_hold.instances = &instances;
 
 	/* generate all instances in the given time range */
 	generate_instances (
 		client, start, end,
 		get_objects_sync (client, start, end, uid),
-		cancellable, add_instance_cb, instances_hold);
+		cancellable, add_instance_cb, &instances_hold);
 
 	/* it also frees 'instances' GSList */
-	process_instances (client, comp, *(instances_hold->instances), cb, cb_data);
+	process_instances (client, comp, *(instances_hold.instances), cb, cb_data);
 
 	/* clean up */
 	g_object_unref (comp);
-	g_free (instances_hold);
 }
 
 typedef struct _ForeachTZIDCallbackData ForeachTZIDCallbackData;

@@ -146,7 +146,7 @@ enum {
 
 static guint signals[LAST_SIGNAL];
 
-G_DEFINE_TYPE (CamelFolderSummary, camel_folder_summary, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE (CamelFolderSummary, camel_folder_summary, G_TYPE_OBJECT)
 
 /* Private function */
 void _camel_message_info_unset_summary (CamelMessageInfo *mi);
@@ -628,8 +628,6 @@ camel_folder_summary_class_init (CamelFolderSummaryClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (CamelFolderSummaryPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = folder_summary_set_property;
 	object_class->get_property = folder_summary_get_property;
@@ -775,7 +773,7 @@ camel_folder_summary_class_init (CamelFolderSummaryClass *class)
 static void
 camel_folder_summary_init (CamelFolderSummary *summary)
 {
-	summary->priv = G_TYPE_INSTANCE_GET_PRIVATE (summary, CAMEL_TYPE_FOLDER_SUMMARY, CamelFolderSummaryPrivate);
+	summary->priv = camel_folder_summary_get_instance_private (summary);
 
 	summary->priv->version = CAMEL_FOLDER_SUMMARY_VERSION;
 	summary->priv->flags = 0;
@@ -1406,7 +1404,7 @@ message_info_from_uid (CamelFolderSummary *summary,
 }
 
 /**
- * camel_folder_summary_get:
+ * camel_folder_summary_get: (virtual message_info_from_uid)
  * @summary: a #CamelFolderSummary object
  * @uid: a uid
  *
@@ -1601,7 +1599,7 @@ cfs_free_weakref (gpointer ptr)
 	if (weakref) {
 		g_weak_ref_set (weakref, NULL);
 		g_weak_ref_clear (weakref);
-		g_free (weakref);
+		g_slice_free (GWeakRef, weakref);
 	}
 }
 
@@ -1696,7 +1694,7 @@ cfs_schedule_info_release_timer (CamelFolderSummary *summary)
 		if (can_do) {
 			GWeakRef *weakref;
 
-			weakref = g_new0 (GWeakRef, 1);
+			weakref = g_slice_new0 (GWeakRef);
 			g_weak_ref_init (weakref, summary);
 
 			summary->priv->timeout_handle = g_timeout_add_seconds_full (
@@ -2451,7 +2449,7 @@ camel_folder_summary_add (CamelFolderSummary *summary,
 }
 
 /**
- * camel_folder_summary_info_new_from_headers:
+ * camel_folder_summary_info_new_from_headers: (virtual message_info_new_from_headers)
  * @summary: a #CamelFolderSummary object
  * @headers: rfc822 headers as #CamelNameValueArray
  *
@@ -2478,7 +2476,7 @@ camel_folder_summary_info_new_from_headers (CamelFolderSummary *summary,
 }
 
 /**
- * camel_folder_summary_info_new_from_parser:
+ * camel_folder_summary_info_new_from_parser: (virtual message_info_new_from_parser)
  * @summary: a #CamelFolderSummary object
  * @parser: a #CamelMimeParser object
  *
@@ -2557,7 +2555,7 @@ camel_folder_summary_info_new_from_parser (CamelFolderSummary *summary,
 }
 
 /**
- * camel_folder_summary_info_new_from_message:
+ * camel_folder_summary_info_new_from_message: (virtual message_info_new_from_message)
  * @summary: a #CamelFolderSummary object
  * @message: a #CamelMimeMessage object
  *

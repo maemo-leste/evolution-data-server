@@ -52,10 +52,6 @@
 /* an invalid pointer */
 #define FOLDER_INVALID ((gpointer)~0)
 
-#define CAMEL_FILTER_DRIVER_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), CAMEL_TYPE_FILTER_DRIVER, CamelFilterDriverPrivate))
-
 /* type of status for a log report */
 enum filter_log_t {
 	FILTER_LOG_NONE,
@@ -183,12 +179,18 @@ static struct {
 	{ "only-once",         (CamelSExpFunc) do_only_once, 0 }
 };
 
-G_DEFINE_TYPE (CamelFilterDriver, camel_filter_driver, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE (CamelFilterDriver, camel_filter_driver, G_TYPE_OBJECT)
 
 typedef struct _MessageTransferData {
 	GPtrArray *copy_uids;
 	GPtrArray *move_uids;
 } MessageTransferData;
+
+static MessageTransferData *
+message_transfer_data_new (void)
+{
+	return g_slice_new0 (MessageTransferData);
+}
 
 static void
 message_transfer_data_free (gpointer ptr)
@@ -200,7 +202,7 @@ message_transfer_data_free (gpointer ptr)
 			g_ptr_array_free (mtd->copy_uids, TRUE);
 		if (mtd->move_uids)
 			g_ptr_array_free (mtd->move_uids, TRUE);
-		g_free (mtd);
+		g_slice_free (MessageTransferData, mtd);
 	}
 }
 
@@ -223,7 +225,7 @@ filter_driver_add_to_transfers (CamelFilterDriver *driver,
 	mtd = g_hash_table_lookup (driver->priv->transfers, destination);
 
 	if (!mtd) {
-		mtd = g_new0 (MessageTransferData, 1);
+		mtd = message_transfer_data_new ();
 		g_hash_table_insert (driver->priv->transfers, g_object_ref (destination), mtd);
 	}
 
@@ -337,7 +339,7 @@ filter_driver_dispose (GObject *object)
 {
 	CamelFilterDriverPrivate *priv;
 
-	priv = CAMEL_FILTER_DRIVER_GET_PRIVATE (object);
+	priv = CAMEL_FILTER_DRIVER (object)->priv;
 
 	if (priv->transfers) {
 		g_hash_table_destroy (priv->transfers);
@@ -368,7 +370,7 @@ filter_driver_finalize (GObject *object)
 	CamelFilterDriverPrivate *priv;
 	struct _filter_rule *node;
 
-	priv = CAMEL_FILTER_DRIVER_GET_PRIVATE (object);
+	priv = CAMEL_FILTER_DRIVER (object)->priv;
 
 	/* close all folders that were opened for appending */
 	close_folders (CAMEL_FILTER_DRIVER (object), FALSE, NULL);
@@ -398,8 +400,6 @@ camel_filter_driver_class_init (CamelFilterDriverClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (CamelFilterDriverPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->dispose = filter_driver_dispose;
 	object_class->finalize = filter_driver_finalize;
@@ -410,7 +410,7 @@ camel_filter_driver_init (CamelFilterDriver *filter_driver)
 {
 	gint ii;
 
-	filter_driver->priv = CAMEL_FILTER_DRIVER_GET_PRIVATE (filter_driver);
+	filter_driver->priv = camel_filter_driver_get_instance_private (filter_driver);
 
 	g_queue_init (&filter_driver->priv->rules);
 

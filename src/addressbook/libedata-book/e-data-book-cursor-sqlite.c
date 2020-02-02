@@ -32,10 +32,6 @@
 
 #include "e-data-book-cursor-sqlite.h"
 
-#define E_DATA_BOOK_CURSOR_SQLITE_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_DATA_BOOK_CURSOR_SQLITE, EDataBookCursorSqlitePrivate))
-
 /* GObjectClass */
 static void e_data_book_cursor_sqlite_dispose      (GObject *object);
 static void e_data_book_cursor_sqlite_finalize     (GObject *object);
@@ -85,7 +81,7 @@ enum {
 	PROP_CURSOR,
 };
 
-G_DEFINE_TYPE (EDataBookCursorSqlite, e_data_book_cursor_sqlite, E_TYPE_DATA_BOOK_CURSOR);
+G_DEFINE_TYPE_WITH_PRIVATE (EDataBookCursorSqlite, e_data_book_cursor_sqlite, E_TYPE_DATA_BOOK_CURSOR);
 
 /************************************************
  *                  GObjectClass                *
@@ -116,7 +112,7 @@ e_data_book_cursor_sqlite_class_init (EDataBookCursorSqliteClass *class)
 			"ebsql", "EBookSqlite",
 			"The EBookSqlite to use for queries",
 			E_TYPE_BOOK_SQLITE,
-			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
 		object_class,
@@ -125,7 +121,7 @@ e_data_book_cursor_sqlite_class_init (EDataBookCursorSqliteClass *class)
 			"revision-key", "Revision Key",
 			"The key name to fetch the revision from the sqlite backend",
 			NULL,
-			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
 		object_class,
@@ -133,15 +129,13 @@ e_data_book_cursor_sqlite_class_init (EDataBookCursorSqliteClass *class)
 		g_param_spec_pointer (
 			"cursor", "Cursor",
 			"The EbSqlCursor pointer",
-			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-	g_type_class_add_private (class, sizeof (EDataBookCursorSqlitePrivate));
+			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 }
 
 static void
 e_data_book_cursor_sqlite_init (EDataBookCursorSqlite *cursor)
 {
-	cursor->priv = E_DATA_BOOK_CURSOR_SQLITE_GET_PRIVATE (cursor);
+	cursor->priv = e_data_book_cursor_sqlite_get_instance_private (cursor);
 }
 
 static void

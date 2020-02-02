@@ -45,7 +45,7 @@ struct _EWebDAVSessionPrivate {
 	gchar *last_dav_error_code;
 };
 
-G_DEFINE_TYPE (EWebDAVSession, e_webdav_session, E_TYPE_SOUP_SESSION)
+G_DEFINE_TYPE_WITH_PRIVATE (EWebDAVSession, e_webdav_session, E_TYPE_SOUP_SESSION)
 
 G_DEFINE_BOXED_TYPE (EWebDAVResource, e_webdav_resource, e_webdav_resource_copy, e_webdav_resource_free)
 G_DEFINE_BOXED_TYPE (EWebDAVPropertyChange, e_webdav_property_change, e_webdav_property_change_copy, e_webdav_property_change_free)
@@ -92,7 +92,7 @@ e_webdav_resource_new (EWebDAVResourceKind kind,
 {
 	EWebDAVResource *resource;
 
-	resource = g_new0 (EWebDAVResource, 1);
+	resource = g_slice_new0 (EWebDAVResource);
 	resource->kind = kind;
 	resource->supports = supports;
 	resource->href = g_strdup (href);
@@ -158,7 +158,7 @@ e_webdav_resource_free (gpointer ptr)
 		g_free (resource->content_type);
 		g_free (resource->description);
 		g_free (resource->color);
-		g_free (resource);
+		g_slice_free (EWebDAVResource, resource);
 	}
 }
 
@@ -170,7 +170,7 @@ e_webdav_property_change_new (EWebDAVPropertyChangeKind kind,
 {
 	EWebDAVPropertyChange *change;
 
-	change = g_new0 (EWebDAVPropertyChange, 1);
+	change = g_slice_new0 (EWebDAVPropertyChange);
 	change->kind = kind;
 	change->ns_uri = g_strdup (ns_uri);
 	change->name = g_strdup (name);
@@ -273,7 +273,7 @@ e_webdav_property_change_free (gpointer ptr)
 		g_free (change->ns_uri);
 		g_free (change->name);
 		g_free (change->value);
-		g_free (change);
+		g_slice_free (EWebDAVPropertyChange, change);
 	}
 }
 
@@ -288,7 +288,7 @@ e_webdav_property_change_free (gpointer ptr)
  * Describes one privilege entry. The @hint can be %E_WEBDAV_PRIVILEGE_HINT_UNKNOWN
  * for privileges which are not known to the #EWebDAVSession. It's possible, because
  * the servers can define their own privileges. The hint is also tried to pair with
- * known hnts when it's %E_WEBDAV_PRIVILEGE_HINT_UNKNOWN.
+ * known hints when it's %E_WEBDAV_PRIVILEGE_HINT_UNKNOWN.
  *
  * The @ns_uri and @name can be %NULL only if the @hint is one of the known
  * privileges. Otherwise it's an error to pass either of the two as %NULL.
@@ -391,7 +391,7 @@ e_webdav_privilege_new (const gchar *ns_uri,
 		}
 	}
 
-	privilege = g_new (EWebDAVPrivilege, 1);
+	privilege = g_slice_new (EWebDAVPrivilege);
 	privilege->ns_uri = g_strdup (ns_uri);
 	privilege->name = g_strdup (name);
 	privilege->description = g_strdup (description);
@@ -443,7 +443,7 @@ e_webdav_privilege_free (gpointer ptr)
 		g_free (privilege->ns_uri);
 		g_free (privilege->name);
 		g_free (privilege->description);
-		g_free (privilege);
+		g_slice_free (EWebDAVPrivilege, privilege);
 	}
 }
 
@@ -485,7 +485,7 @@ e_webdav_access_control_entry_new (EWebDAVACEPrincipalKind principal_kind,
 	else
 		g_return_val_if_fail (inherited_href == NULL, NULL);
 
-	ace = g_new0 (EWebDAVAccessControlEntry, 1);
+	ace = g_slice_new0 (EWebDAVAccessControlEntry);
 	ace->principal_kind = principal_kind;
 	ace->principal_href = g_strdup (principal_href);
 	ace->flags = flags;
@@ -552,7 +552,7 @@ e_webdav_access_control_entry_free (gpointer ptr)
 		g_free (ace->principal_href);
 		g_free (ace->inherited_href);
 		g_slist_free_full (ace->privileges, e_webdav_privilege_free);
-		g_free (ace);
+		g_slice_free (EWebDAVAccessControlEntry, ace);
 	}
 }
 
@@ -611,8 +611,6 @@ e_webdav_session_class_init (EWebDAVSessionClass *klass)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (klass, sizeof (EWebDAVSessionPrivate));
-
 	object_class = G_OBJECT_CLASS (klass);
 	object_class->finalize = e_webdav_session_finalize;
 }
@@ -620,7 +618,7 @@ e_webdav_session_class_init (EWebDAVSessionClass *klass)
 static void
 e_webdav_session_init (EWebDAVSession *webdav)
 {
-	webdav->priv = G_TYPE_INSTANCE_GET_PRIVATE (webdav, E_TYPE_WEBDAV_SESSION, EWebDAVSessionPrivate);
+	webdav->priv = e_webdav_session_get_instance_private (webdav);
 }
 
 /**
@@ -659,7 +657,7 @@ e_webdav_session_new (ESource *source)
  * Returns: (transfer none): a DAV error from the last request, or %NULL, when
  *    no error had been recognized.
  *
- * Since: 3.34.1
+ * Since: 3.36
  **/
 const gchar *
 e_webdav_session_get_last_dav_error_code (EWebDAVSession *webdav)
@@ -677,7 +675,7 @@ e_webdav_session_get_last_dav_error_code (EWebDAVSession *webdav)
  *    which means that user doesn't have permission for the operation. If there
  *    is no DAV error stored, then returns %FALSE.
  *
- * Since: 3.34.1
+ * Since: 3.36
  **/
 gboolean
 e_webdav_session_get_last_dav_error_is_permission (EWebDAVSession *webdav)
@@ -4099,31 +4097,27 @@ e_webdav_session_traverse_privilege_level (xmlXPathContextPtr xpath_ctx,
 					if (node->type == XML_ELEMENT_NODE &&
 					    node->name && *(node->name) &&
 					    node->ns && node->ns->href && *(node->ns->href)) {
-						break;
+						GNode *child;
+						gchar *description;
+						EWebDAVPrivilegeKind kind = E_WEBDAV_PRIVILEGE_KIND_COMMON;
+						EWebDAVPrivilegeHint hint = E_WEBDAV_PRIVILEGE_HINT_UNKNOWN;
+						EWebDAVPrivilege *privilege;
+
+						if (e_xml_xpath_eval_exists (xpath_ctx, "%s/D:abstract", prefix))
+							kind = E_WEBDAV_PRIVILEGE_KIND_ABSTRACT;
+						else if (e_xml_xpath_eval_exists (xpath_ctx, "%s/D:aggregate", prefix))
+							kind = E_WEBDAV_PRIVILEGE_KIND_AGGREGATE;
+
+						description = e_xml_xpath_eval_as_string (xpath_ctx, "%s/D:description", prefix);
+						privilege = e_webdav_privilege_new ((const gchar *) node->ns->href, (const gchar *) node->name, description, kind, hint);
+						child = g_node_new (privilege);
+						g_node_append (parent, child);
+
+						g_free (description);
+
+						if (e_xml_xpath_eval_exists (xpath_ctx, "%s/D:supported-privilege", prefix))
+							e_webdav_session_traverse_privilege_level (xpath_ctx, prefix, child);
 					}
-				}
-
-				if (node) {
-					GNode *child;
-					gchar *description;
-					EWebDAVPrivilegeKind kind = E_WEBDAV_PRIVILEGE_KIND_COMMON;
-					EWebDAVPrivilegeHint hint = E_WEBDAV_PRIVILEGE_HINT_UNKNOWN;
-					EWebDAVPrivilege *privilege;
-
-					if (e_xml_xpath_eval_exists (xpath_ctx, "%s/D:abstract", prefix))
-						kind = E_WEBDAV_PRIVILEGE_KIND_ABSTRACT;
-					else if (e_xml_xpath_eval_exists (xpath_ctx, "%s/D:aggregate", prefix))
-						kind = E_WEBDAV_PRIVILEGE_KIND_AGGREGATE;
-
-					description = e_xml_xpath_eval_as_string (xpath_ctx, "%s/D:description", prefix);
-					privilege = e_webdav_privilege_new ((const gchar *) node->ns->href, (const gchar *) node->name, description, kind, hint);
-					child = g_node_new (privilege);
-					g_node_append (parent, child);
-
-					g_free (description);
-
-					if (e_xml_xpath_eval_exists (xpath_ctx, "%s/D:supported-privilege", prefix))
-						e_webdav_session_traverse_privilege_level (xpath_ctx, prefix, child);
 				}
 			}
 
@@ -4294,11 +4288,10 @@ e_webdav_session_get_supported_privilege_set_sync (EWebDAVSession *webdav,
 	return success;
 }
 
-static EWebDAVPrivilege *
-e_webdav_session_extract_privilege_simple (xmlXPathObjectPtr xpath_obj_privilege)
+static void
+e_webdav_session_extract_privilege_simple (xmlXPathObjectPtr xpath_obj_privilege,
+					   GSList **out_privileges)
 {
-	EWebDAVPrivilege *privilege = NULL;
-
 	if (xpath_obj_privilege &&
 	    xpath_obj_privilege->type == XPATH_NODESET &&
 	    xpath_obj_privilege->nodesetval &&
@@ -4312,17 +4305,16 @@ e_webdav_session_extract_privilege_simple (xmlXPathObjectPtr xpath_obj_privilege
 			if (node->type == XML_ELEMENT_NODE &&
 			    node->name && *(node->name) &&
 			    node->ns && node->ns->href && *(node->ns->href)) {
-				break;
+				EWebDAVPrivilege *privilege;
+
+				privilege = e_webdav_privilege_new ((const gchar *) node->ns->href, (const gchar *) node->name,
+					NULL, E_WEBDAV_PRIVILEGE_KIND_COMMON, E_WEBDAV_PRIVILEGE_HINT_UNKNOWN);
+
+				if (privilege)
+					*out_privileges = g_slist_prepend (*out_privileges, privilege);
 			}
 		}
-
-		if (node) {
-			privilege = e_webdav_privilege_new ((const gchar *) node->ns->href, (const gchar *) node->name,
-				NULL, E_WEBDAV_PRIVILEGE_KIND_COMMON, E_WEBDAV_PRIVILEGE_HINT_UNKNOWN);
-		}
 	}
-
-	return privilege;
 }
 
 typedef struct _PrivilegeSetData {
@@ -4367,11 +4359,7 @@ e_webdav_session_current_user_privilege_set_cb (EWebDAVSession *webdav,
 				xpath_obj_privilege = e_xml_xpath_eval (xpath_ctx, "%s/D:current-user-privilege-set/D:privilege[%d]", xpath_prop_prefix, ii + 1);
 
 				if (xpath_obj_privilege) {
-					EWebDAVPrivilege *privilege;
-
-					privilege = e_webdav_session_extract_privilege_simple (xpath_obj_privilege);
-					if (privilege)
-						*(psd->out_privileges) = g_slist_prepend (*(psd->out_privileges), privilege);
+					e_webdav_session_extract_privilege_simple (xpath_obj_privilege, psd->out_privileges);
 
 					xmlXPathFreeObject (xpath_obj_privilege);
 				}
@@ -4642,11 +4630,7 @@ e_webdav_session_acl_cb (EWebDAVSession *webdav,
 							xpath_obj_privilege = e_xml_xpath_eval (xpath_ctx, "%s[%d]", privilege_prefix, ii + 1);
 
 							if (xpath_obj_privilege) {
-								EWebDAVPrivilege *privilege;
-
-								privilege = e_webdav_session_extract_privilege_simple (xpath_obj_privilege);
-								if (privilege)
-									ace->privileges = g_slist_prepend (ace->privileges, privilege);
+								e_webdav_session_extract_privilege_simple (xpath_obj_privilege, &ace->privileges);
 
 								xmlXPathFreeObject (xpath_obj_privilege);
 							}

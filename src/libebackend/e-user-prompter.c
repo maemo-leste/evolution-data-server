@@ -30,26 +30,21 @@
 #include "e-dbus-user-prompter.h"
 #include "e-user-prompter.h"
 
-#define E_USER_PROMPTER_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_USER_PROMPTER, EUserPrompterPrivate))
-
 struct _EUserPrompterPrivate {
 	gint dummy; /* not used */
 };
 
-G_DEFINE_TYPE (EUserPrompter, e_user_prompter, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE (EUserPrompter, e_user_prompter, G_TYPE_OBJECT)
 
 static void
 e_user_prompter_class_init (EUserPrompterClass *class)
 {
-	g_type_class_add_private (class, sizeof (EUserPrompterPrivate));
 }
 
 static void
 e_user_prompter_init (EUserPrompter *prompter)
 {
-	prompter->priv = E_USER_PROMPTER_GET_PRIVATE (prompter);
+	prompter->priv = e_user_prompter_get_instance_private (prompter);
 }
 
 /**
@@ -115,7 +110,7 @@ prompter_async_data_free (PrompterAsyncData *async_data)
 
 	g_free (async_data->response_signal_name);
 
-	g_free (async_data);
+	g_slice_free (PrompterAsyncData, async_data);
 }
 
 static void
@@ -368,7 +363,7 @@ e_user_prompter_prompt (EUserPrompter *prompter,
 		G_OBJECT (prompter), callback, user_data,
 		e_user_prompter_prompt);
 
-	async_data = g_new0 (PrompterAsyncData, 1);
+	async_data = g_slice_new0 (PrompterAsyncData);
 	async_data->type = g_strdup (type);
 	async_data->title = g_strdup (title);
 	async_data->primary_text = g_strdup (primary_text);
@@ -530,7 +525,7 @@ e_user_prompter_extension_prompt (EUserPrompter *prompter,
 		G_OBJECT (prompter), callback, user_data,
 		e_user_prompter_extension_prompt);
 
-	async_data = g_new0 (PrompterAsyncData, 1);
+	async_data = g_slice_new0 (PrompterAsyncData);
 	async_data->dialog_name = g_strdup (dialog_name);
 	if (in_parameters) {
 		async_data->in_parameters = e_named_parameters_new ();

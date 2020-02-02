@@ -83,7 +83,7 @@ static guint signals[LAST_SIGNAL];
 
 G_DEFINE_QUARK (e-cache-error-quark, e_cache_error)
 
-G_DEFINE_ABSTRACT_TYPE (ECache, e_cache, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ECache, e_cache, G_TYPE_OBJECT)
 
 G_DEFINE_BOXED_TYPE (ECacheColumnValues, e_cache_column_values, e_cache_column_values_copy, e_cache_column_values_free)
 G_DEFINE_BOXED_TYPE (ECacheOfflineChange, e_cache_offline_change, e_cache_offline_change_copy, e_cache_offline_change_free)
@@ -384,7 +384,7 @@ e_cache_offline_change_new (const gchar *uid,
 
 	g_return_val_if_fail (uid != NULL, NULL);
 
-	change = g_new0 (ECacheOfflineChange, 1);
+	change = g_slice_new0 (ECacheOfflineChange);
 	change->uid = g_strdup (uid);
 	change->revision = g_strdup (revision);
 	change->object = g_strdup (object);
@@ -430,7 +430,7 @@ e_cache_offline_change_free (gpointer change)
 		g_free (chng->uid);
 		g_free (chng->revision);
 		g_free (chng->object);
-		g_free (chng);
+		g_slice_free (ECacheOfflineChange, chng);
 	}
 }
 
@@ -455,7 +455,7 @@ e_cache_column_info_new (const gchar *name,
 	g_return_val_if_fail (name != NULL, NULL);
 	g_return_val_if_fail (type != NULL, NULL);
 
-	info = g_new0 (ECacheColumnInfo, 1);
+	info = g_slice_new0 (ECacheColumnInfo);
 	info->name = g_strdup (name);
 	info->type = g_strdup (type);
 	info->index_name = g_strdup (index_name);
@@ -500,7 +500,7 @@ e_cache_column_info_free (gpointer info)
 		g_free (nfo->name);
 		g_free (nfo->type);
 		g_free (nfo->index_name);
-		g_free (nfo);
+		g_slice_free (ECacheColumnInfo, nfo);
 	}
 }
 
@@ -2024,7 +2024,7 @@ foreach_update_row_data_free (gpointer ptr)
 		g_free (fr->revision);
 		g_free (fr->object);
 		g_ptr_array_free (fr->column_values, TRUE);
-		g_free (fr);
+		g_slice_free (struct ForeachUpdateRowData, fr);
 	}
 }
 
@@ -2106,7 +2106,7 @@ e_cache_foreach_update_cb (ECache *cache,
 		g_ptr_array_add (cvalues, g_strdup (column_values[ii]));
 	}
 
-	rd = g_new0 (struct ForeachUpdateRowData, 1);
+	rd = g_slice_new0 (struct ForeachUpdateRowData);
 	rd->uid = g_strdup (column_values[fu->uid_index]);
 	rd->revision = g_strdup (column_values[fu->revision_index]);
 	rd->object = g_strdup (column_values[fu->object_index]);
@@ -3108,8 +3108,6 @@ e_cache_class_init (ECacheClass *klass)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (klass, sizeof (ECachePrivate));
-
 	object_class = G_OBJECT_CLASS (klass);
 	object_class->finalize = e_cache_finalize;
 
@@ -3167,7 +3165,7 @@ e_cache_class_init (ECacheClass *klass)
 static void
 e_cache_init (ECache *cache)
 {
-	cache->priv = G_TYPE_INSTANCE_GET_PRIVATE (cache, E_TYPE_CACHE, ECachePrivate);
+	cache->priv = e_cache_get_instance_private (cache);
 
 	cache->priv->filename = NULL;
 	cache->priv->db = NULL;

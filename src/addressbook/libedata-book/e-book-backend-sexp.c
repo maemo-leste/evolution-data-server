@@ -32,25 +32,20 @@
 #include <locale.h>
 #include <string.h>
 
-#define E_BOOK_BACKEND_SEXP_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_BOOK_BACKEND_SEXP, EBookBackendSExpPrivate))
-
-G_DEFINE_TYPE (EBookBackendSExp, e_book_backend_sexp, G_TYPE_OBJECT)
-
-typedef struct _SearchContext SearchContext;
 typedef gboolean (*CompareFunc) (const gchar *, const gchar *, const gchar *);
+
+typedef struct _SearchContext {
+	EContact *contact;
+} SearchContext;
 
 struct _EBookBackendSExpPrivate {
 	ESExp *search_sexp;
 	gchar *text;
-	SearchContext *search_context;
+	SearchContext search_context;
 	GRecMutex search_context_lock;
 };
 
-struct _SearchContext {
-	EContact *contact;
-};
+G_DEFINE_TYPE_WITH_PRIVATE (EBookBackendSExp, e_book_backend_sexp, G_TYPE_OBJECT)
 
 static gboolean
 compare_im (EContact *contact,
@@ -1085,11 +1080,10 @@ book_backend_sexp_finalize (GObject *object)
 {
 	EBookBackendSExpPrivate *priv;
 
-	priv = E_BOOK_BACKEND_SEXP_GET_PRIVATE (object);
+	priv = E_BOOK_BACKEND_SEXP (object)->priv;
 
 	g_object_unref (priv->search_sexp);
 	g_free (priv->text);
-	g_free (priv->search_context);
 
 	g_rec_mutex_clear (&priv->search_context_lock);
 
@@ -1102,8 +1096,6 @@ e_book_backend_sexp_class_init (EBookBackendSExpClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (EBookBackendSExpPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->finalize = book_backend_sexp_finalize;
 }
@@ -1111,8 +1103,7 @@ e_book_backend_sexp_class_init (EBookBackendSExpClass *class)
 static void
 e_book_backend_sexp_init (EBookBackendSExp *sexp)
 {
-	sexp->priv = E_BOOK_BACKEND_SEXP_GET_PRIVATE (sexp);
-	sexp->priv->search_context = g_new (SearchContext, 1);
+	sexp->priv = e_book_backend_sexp_get_instance_private (sexp);
 
 	g_rec_mutex_init (&sexp->priv->search_context_lock);
 }
@@ -1163,13 +1154,13 @@ e_book_backend_sexp_new (const gchar *text)
 				sexp->priv->search_sexp, 0,
 				symbols[ii].name,
 				(ESExpIFunc *) symbols[ii].func,
-				sexp->priv->search_context);
+				&(sexp->priv->search_context));
 		} else {
 			e_sexp_add_function (
 				sexp->priv->search_sexp, 0,
 				symbols[ii].name,
 				symbols[ii].func,
-				sexp->priv->search_context);
+				&(sexp->priv->search_context));
 		}
 	}
 
@@ -1225,13 +1216,13 @@ e_book_backend_sexp_match_contact (EBookBackendSExp *sexp,
 
 	e_book_backend_sexp_lock (sexp);
 
-	sexp->priv->search_context->contact = g_object_ref (contact);
+	sexp->priv->search_context.contact = g_object_ref (contact);
 
 	r = e_sexp_eval (sexp->priv->search_sexp);
 
 	retval = (r && r->type == ESEXP_RES_BOOL && r->value.boolean);
 
-	g_object_unref (sexp->priv->search_context->contact);
+	g_object_unref (sexp->priv->search_context.contact);
 
 	e_sexp_result_free (sexp->priv->search_sexp, r);
 

@@ -48,6 +48,7 @@ enum {
 };
 
 G_DEFINE_TYPE_WITH_CODE (ESourceCredentialsProvider, e_source_credentials_provider, G_TYPE_OBJECT,
+	G_ADD_PRIVATE (ESourceCredentialsProvider)
 	G_IMPLEMENT_INTERFACE (E_TYPE_EXTENSIBLE, NULL))
 
 static ESource *
@@ -170,8 +171,6 @@ e_source_credentials_provider_class_init (ESourceCredentialsProviderClass *class
 	GObjectClass *object_class;
 	ESourceCredentialsProviderClass *provider_class;
 
-	g_type_class_add_private (class, sizeof (ESourceCredentialsProviderPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = source_credentials_provider_set_property;
 	object_class->get_property = source_credentials_provider_get_property;
@@ -206,7 +205,7 @@ e_source_credentials_provider_class_init (ESourceCredentialsProviderClass *class
 static void
 e_source_credentials_provider_init (ESourceCredentialsProvider *provider)
 {
-	provider->priv = G_TYPE_INSTANCE_GET_PRIVATE (provider, E_TYPE_SOURCE_CREDENTIALS_PROVIDER, ESourceCredentialsProviderPrivate);
+	provider->priv = e_source_credentials_provider_get_instance_private (provider);
 
 	g_weak_ref_init (&provider->priv->registry, NULL);
 	provider->priv->providers = NULL;
@@ -523,7 +522,7 @@ async_context_new (ESource *source,
 {
 	AsyncContext *async_context;
 
-	async_context = g_new0 (AsyncContext, 1);
+	async_context = g_slice_new0 (AsyncContext);
 	async_context->source = g_object_ref (source);
 	async_context->permanently = permanently;
 	if (credentials)
@@ -540,7 +539,7 @@ async_context_free (gpointer ptr)
 	if (async_context) {
 		g_clear_object (&async_context->source);
 		e_named_parameters_free (async_context->credentials);
-		g_free (async_context);
+		g_slice_free (AsyncContext, async_context);
 	}
 }
 

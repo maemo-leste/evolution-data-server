@@ -36,10 +36,6 @@
 
 #define d(...) camel_imapx_debug(debug, '?', __VA_ARGS__)
 
-#define CAMEL_IMAPX_FOLDER_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), CAMEL_TYPE_IMAPX_FOLDER, CamelIMAPXFolderPrivate))
-
 struct _CamelIMAPXFolderPrivate {
 	GMutex property_lock;
 	GWeakRef mailbox;
@@ -61,7 +57,7 @@ enum {
 	PROP_CHECK_FOLDER = 0x2502
 };
 
-G_DEFINE_TYPE (CamelIMAPXFolder, camel_imapx_folder, CAMEL_TYPE_OFFLINE_FOLDER)
+G_DEFINE_TYPE_WITH_PRIVATE (CamelIMAPXFolder, camel_imapx_folder, CAMEL_TYPE_OFFLINE_FOLDER)
 
 static gboolean imapx_folder_get_apply_filters (CamelIMAPXFolder *folder);
 
@@ -949,7 +945,7 @@ remove_cache_files_free (gpointer ptr)
 	if (rcf) {
 		g_clear_object (&rcf->imapx_folder);
 		g_slist_free_full (rcf->uids, (GDestroyNotify) camel_pstring_free);
-		g_free (rcf);
+		g_slice_free (RemoveCacheFiles, rcf);
 	}
 }
 
@@ -1025,7 +1021,7 @@ imapx_folder_changed (CamelFolder *folder,
 				RemoveCacheFiles *rcf;
 				gchar *description;
 
-				rcf = g_new0 (RemoveCacheFiles, 1);
+				rcf = g_slice_new0 (RemoveCacheFiles);
 				rcf->imapx_folder = g_object_ref (imapx_folder);
 				rcf->uids = removed_uids;
 
@@ -1092,8 +1088,6 @@ camel_imapx_folder_class_init (CamelIMAPXFolderClass *class)
 {
 	GObjectClass *object_class;
 	CamelFolderClass *folder_class;
-
-	g_type_class_add_private (class, sizeof (CamelIMAPXFolderPrivate));
 
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = imapx_folder_set_property;
@@ -1178,7 +1172,7 @@ camel_imapx_folder_init (CamelIMAPXFolder *imapx_folder)
 		(GDestroyNotify) camel_pstring_free,
 		(GDestroyNotify) NULL);
 
-	imapx_folder->priv = CAMEL_IMAPX_FOLDER_GET_PRIVATE (imapx_folder);
+	imapx_folder->priv = camel_imapx_folder_get_instance_private (imapx_folder);
 
 	camel_folder_set_flags (folder, camel_folder_get_flags (folder) | CAMEL_FOLDER_HAS_SUMMARY_CAPABILITY);
 

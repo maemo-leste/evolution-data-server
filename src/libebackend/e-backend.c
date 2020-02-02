@@ -41,10 +41,6 @@
 #include "e-backend.h"
 #include "e-user-prompter.h"
 
-#define E_BACKEND_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_BACKEND, EBackendPrivate))
-
 #define G_IS_IO_ERROR(error, code) \
 	(g_error_matches ((error), G_IO_ERROR, (code)))
 
@@ -83,12 +79,23 @@ enum {
 	PROP_USER_PROMPTER
 };
 
-G_DEFINE_ABSTRACT_TYPE (EBackend, e_backend, G_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (EBackend, e_backend, G_TYPE_OBJECT)
 
 typedef struct _CanReachData {
 	EBackend *backend;
 	GCancellable *cancellable;
 } CanReachData;
+
+static void
+can_reach_data_free (gpointer ptr)
+{
+	CanReachData *crd = ptr;
+
+	if (crd) {
+		g_clear_object (&crd->backend);
+		g_slice_free (CanReachData, crd);
+	}
+}
 
 static void
 backend_network_monitor_can_reach_cb (GObject *source_object,
@@ -117,8 +124,7 @@ backend_network_monitor_can_reach_cb (GObject *source_object,
 	if (G_IS_IO_ERROR (error, G_IO_ERROR_CANCELLED) ||
 	    host_is_reachable == e_backend_get_online (crd->backend)) {
 		g_clear_error (&error);
-		g_object_unref (crd->backend);
-		g_free (crd);
+		can_reach_data_free (crd);
 		return;
 	}
 
@@ -133,8 +139,7 @@ backend_network_monitor_can_reach_cb (GObject *source_object,
 		e_source_set_connection_status (source, E_SOURCE_CONNECTION_STATUS_DISCONNECTED);
 	}
 
-	g_object_unref (crd->backend);
-	g_free (crd);
+	can_reach_data_free (crd);
 }
 
 static GSocketConnectable *
@@ -203,7 +208,7 @@ backend_update_online_state_timeout_cb (gpointer user_data)
 
 		cancellable = g_cancellable_new ();
 
-		crd = g_new0 (CanReachData, 1);
+		crd = g_slice_new0 (CanReachData);
 		crd->backend = g_object_ref (backend);
 		crd->cancellable = cancellable;
 
@@ -320,7 +325,7 @@ authenticate_thread_data_new (EBackend *backend,
 {
 	AuthenticateThreadData *data;
 
-	data = g_new0 (AuthenticateThreadData, 1);
+	data = g_slice_new0 (AuthenticateThreadData);
 	data->backend = g_object_ref (backend);
 	data->cancellable = g_object_ref (cancellable);
 	data->credentials = credentials ? e_named_parameters_new_clone (credentials) : e_named_parameters_new ();
@@ -344,7 +349,7 @@ authenticate_thread_data_free (AuthenticateThreadData *data)
 		g_clear_object (&data->backend);
 		g_clear_object (&data->cancellable);
 		e_named_parameters_free (data->credentials);
-		g_free (data);
+		g_slice_free (AuthenticateThreadData, data);
 	}
 }
 
@@ -591,7 +596,7 @@ backend_dispose (GObject *object)
 {
 	EBackendPrivate *priv;
 
-	priv = E_BACKEND_GET_PRIVATE (object);
+	priv = E_BACKEND (object)->priv;
 
 	if (priv->network_changed_handler_id > 0) {
 		g_signal_handler_disconnect (
@@ -640,7 +645,7 @@ backend_finalize (GObject *object)
 {
 	EBackendPrivate *priv;
 
-	priv = E_BACKEND_GET_PRIVATE (object);
+	priv = E_BACKEND (object)->priv;
 
 	g_mutex_clear (&priv->property_lock);
 	g_mutex_clear (&priv->update_online_state_lock);
@@ -736,8 +741,6 @@ e_backend_class_init (EBackendClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (EBackendPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = backend_set_property;
 	object_class->get_property = backend_get_property;
@@ -815,7 +818,7 @@ e_backend_init (EBackend *backend)
 	GNetworkMonitor *network_monitor;
 	gulong handler_id;
 
-	backend->priv = E_BACKEND_GET_PRIVATE (backend);
+	backend->priv = e_backend_get_instance_private (backend);
 	backend->priv->prompter = e_user_prompter_new ();
 	backend->priv->main_context = g_main_context_ref_thread_default ();
 	backend->priv->tried_with_empty_credentials = FALSE;
@@ -1119,7 +1122,7 @@ credentials_required_data_free (gpointer ptr)
 	if (data) {
 		g_free (data->certificate_pem);
 		g_clear_error (&data->op_error);
-		g_free (data);
+		g_slice_free (CredentialsRequiredData, data);
 	}
 }
 
@@ -1179,7 +1182,7 @@ e_backend_credentials_required (EBackend *backend,
 
 	g_return_if_fail (E_IS_BACKEND (backend));
 
-	data = g_new0 (CredentialsRequiredData, 1);
+	data = g_slice_new0 (CredentialsRequiredData);
 	data->reason = reason;
 	data->certificate_pem = g_strdup (certificate_pem);
 	data->certificate_errors = certificate_errors;
