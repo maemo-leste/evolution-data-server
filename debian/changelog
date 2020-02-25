@@ -1,8 +1,8 @@
-evolution-data-server (3.35.91-1) UNRELEASED; urgency=medium
+evolution-data-server (3.35.91-1) experimental; urgency=medium
 
+  * New upstream release
   * debian/gbp.conf:
     - go back to use upstream/latest for the new serie
-  * New upstream release
   * debian/control.in:
     - updated the libical version requirement to 3.0.7
   * debian/libedataserver-1.2-24.symbols:
