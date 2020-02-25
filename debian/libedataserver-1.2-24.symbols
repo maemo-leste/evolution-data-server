@@ -499,6 +499,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_authentication_dup_user@Base 3.17
  e_source_authentication_get_credential_name@Base 3.17
  e_source_authentication_get_host@Base 3.17
+ e_source_authentication_get_is_external@Base 3.35.91
  e_source_authentication_get_method@Base 3.17
  e_source_authentication_get_port@Base 3.17
  e_source_authentication_get_proxy_uid@Base 3.17
@@ -510,6 +511,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_authentication_result_get_type@Base 3.17
  e_source_authentication_set_credential_name@Base 3.17
  e_source_authentication_set_host@Base 3.17
+ e_source_authentication_set_is_external@Base 3.35.91
  e_source_authentication_set_method@Base 3.17
  e_source_authentication_set_port@Base 3.17
  e_source_authentication_set_proxy_uid@Base 3.17
@@ -538,6 +540,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_collection_dup_calendar_url@Base 3.25.90
  e_source_collection_dup_contacts_url@Base 3.25.90
  e_source_collection_dup_identity@Base 3.17
+ e_source_collection_get_allow_sources_rename@Base 3.35.91
  e_source_collection_get_calendar_enabled@Base 3.17
  e_source_collection_get_calendar_url@Base 3.25.90
  e_source_collection_get_contacts_enabled@Base 3.17
@@ -545,6 +548,7 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_source_collection_get_identity@Base 3.17
  e_source_collection_get_mail_enabled@Base 3.17
  e_source_collection_get_type@Base 3.17
+ e_source_collection_set_allow_sources_rename@Base 3.35.91
  e_source_collection_set_calendar_enabled@Base 3.17
  e_source_collection_set_calendar_url@Base 3.25.90
  e_source_collection_set_contacts_enabled@Base 3.17

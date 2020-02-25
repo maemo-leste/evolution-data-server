@@ -5,6 +5,8 @@ evolution-data-server (3.35.91-1) UNRELEASED; urgency=medium
   * New upstream release
   * debian/control.in:
     - updated the libical version requirement to 3.0.7
+  * debian/libedataserver-1.2-24.symbols:
+    - refresh the symbols for the new version
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 25 Feb 2020 15:20:32 +0100
 
