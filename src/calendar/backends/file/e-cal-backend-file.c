@@ -38,10 +38,6 @@
 #define O_BINARY 0
 #endif
 
-#define E_CAL_BACKEND_FILE_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_CAL_BACKEND_FILE, ECalBackendFilePrivate))
-
 #define EC_ERROR(_code) e_client_error_create (_code, NULL)
 #define EC_ERROR_EX(_code, _msg) e_client_error_create (_code, _msg)
 #define EC_ERROR_NO_URI() e_client_error_create (E_CLIENT_ERROR_OTHER_ERROR, _("Cannot get URI"))
@@ -91,6 +87,9 @@ struct _ECalBackendFilePrivate {
 	GMutex refresh_lock;
 	/* set to TRUE to indicate thread should stop */
 	gboolean refresh_thread_stop;
+	/* set to TRUE when the refresh thread is running;
+	   it can happen that the refresh_cond is set, but the thread is gone */
+	gboolean refresh_thread_running;
 	/* condition for refreshing, not NULL when thread exists */
 	GCond *refresh_cond;
 	/* cond to know the refresh thread gone */
@@ -122,6 +121,7 @@ G_DEFINE_TYPE_WITH_CODE (
 	ECalBackendFile,
 	e_cal_backend_file,
 	E_TYPE_CAL_BACKEND_SYNC,
+	G_ADD_PRIVATE (ECalBackendFile)
 	G_IMPLEMENT_INTERFACE (
 		E_TYPE_TIMEZONE_CACHE,
 		e_cal_backend_file_timezone_cache_init))
@@ -344,7 +344,7 @@ e_cal_backend_file_finalize (GObject *object)
 {
 	ECalBackendFilePrivate *priv;
 
-	priv = E_CAL_BACKEND_FILE_GET_PRIVATE (object);
+	priv = E_CAL_BACKEND_FILE (object)->priv;
 
 	/* Clean up */
 
@@ -980,15 +980,24 @@ refresh_thread_func (gpointer data)
 
 	/* This returns a newly-created GFile. */
 	file = e_source_local_dup_custom_file (extension);
-	g_return_val_if_fail (G_IS_FILE (file), NULL);
+	if (!file) {
+		g_mutex_lock (&priv->refresh_lock);
+		priv->refresh_thread_running = FALSE;
+		g_cond_signal (priv->refresh_gone_cond);
+		g_mutex_unlock (&priv->refresh_lock);
+
+		return NULL;
+	}
 
 	info = g_file_query_info (
 		file, G_FILE_ATTRIBUTE_TIME_MODIFIED,
 		G_FILE_QUERY_INFO_NONE, NULL, NULL);
-	g_return_val_if_fail (info != NULL, NULL);
-
-	last_modified = g_file_info_get_attribute_uint64 (info, G_FILE_ATTRIBUTE_TIME_MODIFIED);
-	g_object_unref (info);
+	if (info) {
+		last_modified = g_file_info_get_attribute_uint64 (info, G_FILE_ATTRIBUTE_TIME_MODIFIED);
+		g_object_unref (info);
+	} else {
+		last_modified = 0;
+	}
 
 	g_mutex_lock (&priv->refresh_lock);
 	while (!priv->refresh_thread_stop) {
@@ -1028,6 +1037,7 @@ refresh_thread_func (gpointer data)
 	}
 
 	g_object_unref (file);
+	priv->refresh_thread_running = FALSE;
 	g_cond_signal (priv->refresh_gone_cond);
 	g_mutex_unlock (&priv->refresh_lock);
 
@@ -1093,6 +1103,7 @@ prepare_refresh_data (ECalBackendFile *cbfile)
 
 		priv->refresh_cond = g_new0 (GCond, 1);
 		priv->refresh_gone_cond = g_new0 (GCond, 1);
+		priv->refresh_thread_running = TRUE;
 
 		thread = g_thread_new (NULL, refresh_thread_func, cbfile);
 		g_thread_unref (thread);
@@ -1119,7 +1130,10 @@ free_refresh_data (ECalBackendFile *cbfile)
 	if (priv->refresh_cond) {
 		priv->refresh_thread_stop = TRUE;
 		g_cond_signal (priv->refresh_cond);
-		g_cond_wait (priv->refresh_gone_cond, &priv->refresh_lock);
+
+		while (priv->refresh_thread_running) {
+			g_cond_wait (priv->refresh_gone_cond, &priv->refresh_lock);
+		}
 
 		g_cond_clear (priv->refresh_cond);
 		g_free (priv->refresh_cond);
@@ -3765,7 +3779,7 @@ cal_backend_file_add_cached_timezone (ETimezoneCache *cache,
 	const gchar *tzid;
 	gboolean timezone_added = FALSE;
 
-	priv = E_CAL_BACKEND_FILE_GET_PRIVATE (cache);
+	priv = E_CAL_BACKEND_FILE (cache)->priv;
 
 	g_rec_mutex_lock (&priv->idle_save_rmutex);
 
@@ -3797,7 +3811,7 @@ cal_backend_file_get_cached_timezone (ETimezoneCache *cache,
 	ECalBackendFilePrivate *priv;
 	ICalTimezone *zone;
 
-	priv = E_CAL_BACKEND_FILE_GET_PRIVATE (cache);
+	priv = E_CAL_BACKEND_FILE (cache)->priv;
 
 	g_rec_mutex_lock (&priv->idle_save_rmutex);
 	zone = g_hash_table_lookup (priv->cached_timezones, tzid);
@@ -3833,8 +3847,6 @@ e_cal_backend_file_class_init (ECalBackendFileClass *class)
 	GObjectClass *object_class;
 	ECalBackendClass *backend_class;
 	ECalBackendSyncClass *sync_class;
-
-	g_type_class_add_private (class, sizeof (ECalBackendFilePrivate));
 
 	object_class = (GObjectClass *) class;
 	backend_class = (ECalBackendClass *) class;
@@ -3876,7 +3888,7 @@ e_cal_backend_file_timezone_cache_init (ETimezoneCacheInterface *iface)
 static void
 e_cal_backend_file_init (ECalBackendFile *cbfile)
 {
-	cbfile->priv = E_CAL_BACKEND_FILE_GET_PRIVATE (cbfile);
+	cbfile->priv = e_cal_backend_file_get_instance_private (cbfile);
 
 	cbfile->priv->file_name = g_strdup ("calendar.ics");
 

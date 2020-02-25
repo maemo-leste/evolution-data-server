@@ -23,10 +23,6 @@
 
 #include "e-source-ldap.h"
 
-#define E_SOURCE_LDAP_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_SOURCE_LDAP, ESourceLDAPPrivate))
-
 struct _ESourceLDAPPrivate {
 	gboolean can_browse;
 	gchar *filter;
@@ -50,7 +46,7 @@ enum {
 	PROP_SECURITY
 };
 
-G_DEFINE_TYPE (
+G_DEFINE_TYPE_WITH_PRIVATE (
 	ESourceLDAP,
 	e_source_ldap,
 	E_TYPE_SOURCE_EXTENSION)
@@ -284,7 +280,7 @@ source_ldap_finalize (GObject *object)
 {
 	ESourceLDAPPrivate *priv;
 
-	priv = E_SOURCE_LDAP_GET_PRIVATE (object);
+	priv = E_SOURCE_LDAP (object)->priv;
 
 	g_free (priv->filter);
 	g_free (priv->root_dn);
@@ -340,8 +336,6 @@ e_source_ldap_class_init (ESourceLDAPClass *class)
 	GObjectClass *object_class;
 	ESourceExtensionClass *extension_class;
 
-	g_type_class_add_private (class, sizeof (ESourceLDAPPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = source_ldap_set_property;
 	object_class->get_property = source_ldap_get_property;
@@ -363,7 +357,8 @@ e_source_ldap_class_init (ESourceLDAPClass *class)
 			E_TYPE_SOURCE_LDAP_AUTHENTICATION,
 			E_SOURCE_LDAP_AUTHENTICATION_NONE,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
 		object_class,
@@ -376,6 +371,7 @@ e_source_ldap_class_init (ESourceLDAPClass *class)
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
 			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
 
 	g_object_class_install_property (
@@ -389,6 +385,7 @@ e_source_ldap_class_init (ESourceLDAPClass *class)
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
 			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
 
 	g_object_class_install_property (
@@ -402,6 +399,7 @@ e_source_ldap_class_init (ESourceLDAPClass *class)
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
 			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
 
 	g_object_class_install_property (
@@ -415,6 +413,7 @@ e_source_ldap_class_init (ESourceLDAPClass *class)
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
 			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
 
 	g_object_class_install_property (
@@ -429,6 +428,7 @@ e_source_ldap_class_init (ESourceLDAPClass *class)
 			G_PARAM_READWRITE |
 			G_PARAM_CONSTRUCT |
 			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS |
 			E_SOURCE_PARAM_SETTING));
 
 	/* This is bound to the security extension.
@@ -443,13 +443,14 @@ e_source_ldap_class_init (ESourceLDAPClass *class)
 			E_TYPE_SOURCE_LDAP_SECURITY,
 			E_SOURCE_LDAP_SECURITY_NONE,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 }
 
 static void
 e_source_ldap_init (ESourceLDAP *extension)
 {
-	extension->priv = E_SOURCE_LDAP_GET_PRIVATE (extension);
+	extension->priv = e_source_ldap_get_instance_private (extension);
 }
 
 ESourceLDAPAuthentication

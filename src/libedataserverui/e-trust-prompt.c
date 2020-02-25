@@ -455,7 +455,7 @@ save_source_data_free (gpointer ptr)
 
 	if (data) {
 		g_clear_error (&data->error);
-		g_free (data);
+		g_slice_free (SaveSourceData, data);
 	}
 }
 
@@ -558,19 +558,17 @@ e_trust_prompt_run_for_source (GtkWindow *parent,
 	g_return_if_fail (E_IS_SOURCE (source));
 	g_return_if_fail (certificate_pem != NULL);
 
-	if (e_source_has_extension (source, E_SOURCE_EXTENSION_GOA) ||
-	    e_source_has_extension (source, E_SOURCE_EXTENSION_UOA)) {
-		/* Make sure that GOA/UOA collection sources contain these extensions too */
-		g_warn_if_fail (e_source_get_extension (source, E_SOURCE_EXTENSION_AUTHENTICATION));
+	if (e_source_has_extension (source, E_SOURCE_EXTENSION_AUTHENTICATION))
+		extension_authentication = e_source_get_extension (source, E_SOURCE_EXTENSION_AUTHENTICATION);
+
+	if (extension_authentication && e_source_authentication_get_is_external (extension_authentication)) {
 		g_warn_if_fail (e_source_get_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND));
 	}
 
-	if (e_source_has_extension (source, E_SOURCE_EXTENSION_AUTHENTICATION))
-		extension_authentication = e_source_get_extension (source, E_SOURCE_EXTENSION_AUTHENTICATION);
 	if (e_source_has_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND))
 		extension_webdav = e_source_get_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND);
 
-	save_data = g_new0 (SaveSourceData, 1);
+	save_data = g_slice_new0 (SaveSourceData);
 	save_data->response = E_TRUST_PROMPT_RESPONSE_UNKNOWN;
 	save_data->call_save = FALSE;
 

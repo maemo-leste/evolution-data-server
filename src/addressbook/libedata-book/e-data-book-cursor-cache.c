@@ -44,7 +44,7 @@ enum {
 	PROP_CURSOR,
 };
 
-G_DEFINE_TYPE (EDataBookCursorCache, e_data_book_cursor_cache, E_TYPE_DATA_BOOK_CURSOR);
+G_DEFINE_TYPE_WITH_PRIVATE (EDataBookCursorCache, e_data_book_cursor_cache, E_TYPE_DATA_BOOK_CURSOR);
 
 static gboolean
 edbcc_set_sexp (EDataBookCursor *cursor,
@@ -356,7 +356,7 @@ e_data_book_cursor_cache_class_init (EDataBookCursorCacheClass *class)
 			"Book Cache",
 			"The EBookCache to use for queries",
 			E_TYPE_BOOK_CACHE,
-			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (
 		object_class,
@@ -365,15 +365,13 @@ e_data_book_cursor_cache_class_init (EDataBookCursorCacheClass *class)
 			"cursor",
 			"Cursor",
 			"The EBookCacheCursor pointer",
-			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
-
-	g_type_class_add_private (class, sizeof (EDataBookCursorCachePrivate));
+			G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 }
 
 static void
 e_data_book_cursor_cache_init (EDataBookCursorCache *cache_cursor)
 {
-	cache_cursor->priv = G_TYPE_INSTANCE_GET_PRIVATE (cache_cursor, E_TYPE_DATA_BOOK_CURSOR_CACHE, EDataBookCursorCachePrivate);
+	cache_cursor->priv = e_data_book_cursor_cache_get_instance_private (cache_cursor);
 }
 
 /**

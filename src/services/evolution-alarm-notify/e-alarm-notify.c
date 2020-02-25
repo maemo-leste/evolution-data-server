@@ -69,7 +69,30 @@ struct _EAlarmNotifyPrivate {
 static void	e_alarm_notify_initable_init	(GInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (EAlarmNotify, e_alarm_notify, GTK_TYPE_APPLICATION,
+	G_ADD_PRIVATE (EAlarmNotify)
 	G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, e_alarm_notify_initable_init))
+
+static void
+ean_debug_print (const gchar *format,
+		 ...) G_GNUC_PRINTF (1, 2);
+
+static void
+ean_debug_print (const gchar *format,
+		 ...)
+{
+	static gint enabled = -1;
+	va_list args;
+
+	if (enabled == -1)
+		enabled = g_strcmp0 (g_getenv ("EAN_DEBUG"), "1") == 0 ? 1 : 0;
+
+	if (enabled != 1)
+		return;
+
+	va_start (args, format);
+	e_util_debug_printv ("EAN", format, args);
+	va_end (args);
+}
 
 static void
 e_alarm_notify_show_window (EAlarmNotify *an,
@@ -121,25 +144,62 @@ e_alarm_notify_audio (EAlarmNotify *an,
 
 			filename = g_filename_from_uri (url, NULL, &error);
 
-			if (error != NULL) {
-				g_warning ("%s: Failed to convert URI to filename: %s", G_STRFUNC, error->message);
-				g_error_free (error);
-			} else if (filename && g_file_test (filename, G_FILE_TEST_EXISTS)) {
+			if (!filename) {
+				ean_debug_print ("Audio notify: Failed to convert URI '%s' to filename: %s\n", url, error ? error->message : "Unknown error");
+			} else if (g_file_test (filename, G_FILE_TEST_EXISTS)) {
 #ifdef HAVE_CANBERRA
-				did_play = ca_context_play (ca_gtk_context_get (), 0,
+				gint err = ca_context_play (ca_gtk_context_get (), 0,
 					CA_PROP_MEDIA_FILENAME, filename,
-					NULL) == 0;
+					NULL);
+
+				did_play = !err;
+
+				if (err)
+					ean_debug_print ("Audio notify: Cannot play file '%s': %s\n", filename, ca_strerror (err));
+#else
+				ean_debug_print ("Audio notify: Cannot play file '%s': Not compiled with libcanberra\n", filename);
 #endif
+			} else {
+				ean_debug_print ("Audio notify: File '%s' does not exist\n", filename);
 			}
 
+			g_clear_error (&error);
 			g_free (filename);
+		} else {
+			ean_debug_print ("Audio notify: Alarm has stored empty URL, fallback to default sound\n");
 		}
+	} else if (!attach) {
+		ean_debug_print ("Audio notify: Alarm has no attachment, fallback to default sound\n");
+	} else {
+		ean_debug_print ("Audio notify: Alarm attachment is not a URL to sound file, fallback to default sound\n");
 	}
 
-	if (!did_play)
-		gdk_beep ();
+#ifdef HAVE_CANBERRA
+	if (!did_play) {
+		gint err = ca_context_play (ca_gtk_context_get (), 0,
+			CA_PROP_EVENT_ID, "alarm-clock-elapsed",
+			NULL);
 
-	g_slist_free_full (attachments, g_object_unref);
+		did_play = !err;
+
+		if (err)
+			ean_debug_print ("Audio notify: Cannot play event sound: %s\n", ca_strerror (err));
+	}
+#endif
+
+	if (!did_play) {
+		GdkDisplay *display;
+
+		display = an->priv->window ? gtk_widget_get_display (an->priv->window) : NULL;
+
+		if (!display)
+			display = gdk_display_get_default ();
+
+		if (display)
+			gdk_display_beep (display);
+		else
+			ean_debug_print ("Audio notify: Cannot beep, no display found\n");
+	}
 
 	return FALSE;
 }
@@ -456,12 +516,9 @@ e_alarm_notify_procedure (EAlarmNotify *an,
 	if (!result)
 		goto fallback;
 
-	g_slist_free_full (attachments, g_object_unref);
-
 	return FALSE;
 
  fallback:
-	g_slist_free_full (attachments, g_object_unref);
 
 	return e_alarm_notify_display (an, rd, alarm);
 }
@@ -1079,8 +1136,6 @@ e_alarm_notify_class_init (EAlarmNotifyClass *klass)
 	GObjectClass *object_class;
 	GApplicationClass *application_class;
 
-	g_type_class_add_private (klass, sizeof (EAlarmNotifyPrivate));
-
 	object_class = G_OBJECT_CLASS (klass);
 	object_class->dispose = e_alarm_notify_dispose;
 	object_class->finalize = e_alarm_notify_finalize;
@@ -1099,7 +1154,7 @@ e_alarm_notify_initable_init (GInitableIface *iface)
 static void
 e_alarm_notify_init (EAlarmNotify *an)
 {
-	an->priv = G_TYPE_INSTANCE_GET_PRIVATE (an, E_TYPE_ALARM_NOTIFY, EAlarmNotifyPrivate);
+	an->priv = e_alarm_notify_get_instance_private (an);
 	an->priv->notification_ids = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 	an->priv->last_n_reminders = G_MAXINT32;
 

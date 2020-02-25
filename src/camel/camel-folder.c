@@ -39,10 +39,6 @@
 #include "camel-vtrash-folder.h"
 #include "camel-string-utils.h"
 
-#define CAMEL_FOLDER_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), CAMEL_TYPE_FOLDER, CamelFolderPrivate))
-
 #define d(x)
 #define w(x)
 
@@ -130,7 +126,7 @@ enum {
 
 static guint signals[LAST_SIGNAL];
 
-G_DEFINE_ABSTRACT_TYPE (CamelFolder, camel_folder, CAMEL_TYPE_OBJECT)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (CamelFolder, camel_folder, CAMEL_TYPE_OBJECT)
 
 G_DEFINE_BOXED_TYPE (CamelFolderQuotaInfo,
 		camel_folder_quota_info,
@@ -701,7 +697,7 @@ folder_finalize (GObject *object)
 {
 	CamelFolderPrivate *priv;
 
-	priv = CAMEL_FOLDER_GET_PRIVATE (object);
+	priv = CAMEL_FOLDER (object)->priv;
 
 	g_mutex_clear (&priv->property_lock);
 
@@ -1236,8 +1232,6 @@ camel_folder_class_init (CamelFolderClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (CamelFolderPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = folder_set_property;
 	object_class->get_property = folder_get_property;
@@ -1426,7 +1420,7 @@ camel_folder_class_init (CamelFolderClass *class)
 static void
 camel_folder_init (CamelFolder *folder)
 {
-	folder->priv = CAMEL_FOLDER_GET_PRIVATE (folder);
+	folder->priv = camel_folder_get_instance_private (folder);
 	folder->priv->frozen = 0;
 	folder->priv->changed_frozen = camel_folder_change_info_new ();
 
@@ -4269,7 +4263,7 @@ uid_index_pair_free (gpointer ptr)
 		g_ptr_array_unref (uip->uids);
 		if (uip->indexes)
 			g_ptr_array_unref (uip->indexes);
-		g_free (uip);
+		g_slice_free (UidIndexPair, uip);
 	}
 }
 
@@ -4364,7 +4358,7 @@ camel_folder_transfer_messages_to_sync (CamelFolder *source,
 
 				uip = g_hash_table_lookup (todo, folder);
 				if (!uip) {
-					uip = g_new0 (UidIndexPair, 1);
+					uip = g_slice_new0 (UidIndexPair);
 					uip->uids = g_ptr_array_new_with_free_func ((GDestroyNotify) camel_pstring_free);
 					if (transferred_uids)
 						uip->indexes = g_ptr_array_new ();

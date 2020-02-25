@@ -112,6 +112,7 @@ static GList *		(* ecmb_timezone_cache_parent_list_timezones) (ETimezoneCache *c
 static void e_cal_meta_backend_timezone_cache_init (ETimezoneCacheInterface *iface);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ECalMetaBackend, e_cal_meta_backend, E_TYPE_CAL_BACKEND_SYNC,
+	G_ADD_PRIVATE (ECalMetaBackend)
 	G_IMPLEMENT_INTERFACE (E_TYPE_TIMEZONE_CACHE, e_cal_meta_backend_timezone_cache_init))
 
 G_DEFINE_BOXED_TYPE (ECalMetaBackendInfo, e_cal_meta_backend_info, e_cal_meta_backend_info_copy, e_cal_meta_backend_info_free)
@@ -164,7 +165,7 @@ e_cal_meta_backend_info_new (const gchar *uid,
 
 	g_return_val_if_fail (uid != NULL, NULL);
 
-	info = g_new0 (ECalMetaBackendInfo, 1);
+	info = g_slice_new0 (ECalMetaBackendInfo);
 	info->uid = g_strdup (uid);
 	info->revision = g_strdup (revision);
 	info->object = g_strdup (object);
@@ -211,7 +212,7 @@ e_cal_meta_backend_info_free (gpointer ptr)
 		g_free (info->revision);
 		g_free (info->object);
 		g_free (info->extra);
-		g_free (info);
+		g_slice_free (ECalMetaBackendInfo, info);
 	}
 }
 
@@ -3400,8 +3401,6 @@ e_cal_meta_backend_class_init (ECalMetaBackendClass *klass)
 	ECalBackendClass *cal_backend_class;
 	ECalBackendSyncClass *cal_backend_sync_class;
 
-	g_type_class_add_private (klass, sizeof (ECalMetaBackendPrivate));
-
 	klass->get_changes_sync = ecmb_get_changes_sync;
 	klass->search_sync = ecmb_search_sync;
 	klass->search_components_sync = ecmb_search_components_sync;
@@ -3487,7 +3486,7 @@ e_cal_meta_backend_class_init (ECalMetaBackendClass *klass)
 static void
 e_cal_meta_backend_init (ECalMetaBackend *meta_backend)
 {
-	meta_backend->priv = G_TYPE_INSTANCE_GET_PRIVATE (meta_backend, E_TYPE_CAL_META_BACKEND, ECalMetaBackendPrivate);
+	meta_backend->priv = e_cal_meta_backend_get_instance_private (meta_backend);
 
 	g_mutex_init (&meta_backend->priv->connect_lock);
 	g_mutex_init (&meta_backend->priv->property_lock);
@@ -4068,9 +4067,8 @@ e_cal_meta_backend_inline_local_attachments_sync (ECalMetaBackend *meta_backend,
 					gchar *base64;
 
 					base64 = g_base64_encode ((const guchar *) content, len);
-					new_attach = i_cal_attach_new_from_data (base64, NULL, NULL);
+					new_attach = i_cal_attach_new_from_data (base64, (GFunc) g_free, NULL);
 					g_free (content);
-					g_free (base64);
 
 					ecmb_remove_all_but_filename_parameter (prop);
 

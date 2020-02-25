@@ -116,10 +116,6 @@
 
 #include "e-source.h"
 
-#define E_SOURCE_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_SOURCE, ESourcePrivate))
-
 #define PRIMARY_GROUP_NAME	"Data Source"
 
 typedef struct _AsyncContext AsyncContext;
@@ -206,6 +202,7 @@ G_DEFINE_TYPE_WITH_CODE (
 	ESource,
 	e_source,
 	G_TYPE_OBJECT,
+	G_ADD_PRIVATE (ESource)
 	G_IMPLEMENT_INTERFACE (
 		G_TYPE_INITABLE,
 		e_source_initable_init)
@@ -1220,7 +1217,7 @@ source_dispose (GObject *object)
 {
 	ESourcePrivate *priv;
 
-	priv = E_SOURCE_GET_PRIVATE (object);
+	priv = E_SOURCE (object)->priv;
 
 	/* Lock & unlock to make sure any pending operations in other threads
 	   which use this lock are already done */
@@ -1282,7 +1279,7 @@ source_finalize (GObject *object)
 {
 	ESourcePrivate *priv;
 
-	priv = E_SOURCE_GET_PRIVATE (object);
+	priv = E_SOURCE (object)->priv;
 
 	g_mutex_clear (&priv->changed_lock);
 	g_mutex_clear (&priv->connection_status_change_lock);
@@ -2156,8 +2153,6 @@ e_source_class_init (ESourceClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (ESourcePrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = source_set_property;
 	object_class->get_property = source_get_property;
@@ -2444,7 +2439,7 @@ e_source_init (ESource *source)
 		(GDestroyNotify) g_free,
 		(GDestroyNotify) g_object_unref);
 
-	source->priv = E_SOURCE_GET_PRIVATE (source);
+	source->priv = e_source_get_instance_private (source);
 	g_mutex_init (&source->priv->changed_lock);
 	g_mutex_init (&source->priv->connection_status_change_lock);
 	g_mutex_init (&source->priv->property_lock);
@@ -4631,7 +4626,7 @@ invoke_credentials_required_data_free (gpointer ptr)
 	if (data) {
 		g_free (data->certificate_pem);
 		g_clear_error (&data->op_error);
-		g_free (data);
+		g_slice_free (InvokeCredentialsRequiredData, data);
 	}
 }
 
@@ -4691,7 +4686,7 @@ e_source_invoke_credentials_required (ESource *source,
 
 	g_return_if_fail (E_IS_SOURCE (source));
 
-	data = g_new0 (InvokeCredentialsRequiredData, 1);
+	data = g_slice_new0 (InvokeCredentialsRequiredData);
 	data->reason = reason;
 	data->certificate_pem = g_strdup (certificate_pem);
 	data->certificate_errors = certificate_errors;
@@ -5038,7 +5033,7 @@ source_get_last_credentials_required_arguments_thread (GTask *task,
 	InvokeCredentialsRequiredData *data;
 	GError *local_error = NULL;
 
-	data = g_new0 (InvokeCredentialsRequiredData, 1);
+	data = g_slice_new0 (InvokeCredentialsRequiredData);
 	data->reason = E_SOURCE_CREDENTIALS_REASON_UNKNOWN;
 	data->certificate_pem = NULL;
 	data->certificate_errors = 0;
@@ -5051,6 +5046,7 @@ source_get_last_credentials_required_arguments_thread (GTask *task,
 
 	if (local_error != NULL) {
 		g_task_return_error (task, local_error);
+		invoke_credentials_required_data_free (data);
 	} else {
 		g_task_return_pointer (task, data, invoke_credentials_required_data_free);
 	}

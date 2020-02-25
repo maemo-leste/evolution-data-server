@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.34.3
+	VERSION 3.35.91
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -12,7 +12,7 @@ set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issu
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.34)
+set(BASE_VERSION 3.36)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -111,7 +111,7 @@ add_definitions(-DSOUP_VERSION_MIN_REQUIRED=${soup_encoded_version})
 
 set(gcr_minimum_version 3.4)
 set(libgdata_minimum_version 0.15.1)
-set(libical_glib_minimum_version 3.0.5)
+set(libical_glib_minimum_version 3.0.7)
 set(libsecret_minimum_version 0.5)
 set(libxml_minimum_version 2.0.0)
 set(sqlite_minimum_version 3.7.17)

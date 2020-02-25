@@ -107,7 +107,7 @@ enum {
 
 static guint signals[LAST_SIGNAL];
 
-G_DEFINE_ABSTRACT_TYPE (EBookMetaBackend, e_book_meta_backend, E_TYPE_BOOK_BACKEND_SYNC)
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (EBookMetaBackend, e_book_meta_backend, E_TYPE_BOOK_BACKEND_SYNC)
 
 G_DEFINE_BOXED_TYPE (EBookMetaBackendInfo, e_book_meta_backend_info, e_book_meta_backend_info_copy, e_book_meta_backend_info_free)
 
@@ -151,7 +151,7 @@ e_book_meta_backend_info_new (const gchar *uid,
 
 	g_return_val_if_fail (uid != NULL, NULL);
 
-	info = g_new0 (EBookMetaBackendInfo, 1);
+	info = g_slice_new0 (EBookMetaBackendInfo);
 	info->uid = g_strdup (uid);
 	info->revision = g_strdup (revision);
 	info->object = g_strdup (object);
@@ -198,7 +198,7 @@ e_book_meta_backend_info_free (gpointer ptr)
 		g_free (info->revision);
 		g_free (info->object);
 		g_free (info->extra);
-		g_free (info);
+		g_slice_free (EBookMetaBackendInfo, info);
 	}
 }
 
@@ -2459,8 +2459,6 @@ e_book_meta_backend_class_init (EBookMetaBackendClass *klass)
 	EBookBackendClass *book_backend_class;
 	EBookBackendSyncClass *book_backend_sync_class;
 
-	g_type_class_add_private (klass, sizeof (EBookMetaBackendPrivate));
-
 	klass->backend_factory_type_name = NULL;
 	klass->backend_module_filename = NULL;
 	klass->get_changes_sync = ebmb_get_changes_sync;
@@ -2548,7 +2546,7 @@ e_book_meta_backend_class_init (EBookMetaBackendClass *klass)
 static void
 e_book_meta_backend_init (EBookMetaBackend *meta_backend)
 {
-	meta_backend->priv = G_TYPE_INSTANCE_GET_PRIVATE (meta_backend, E_TYPE_BOOK_META_BACKEND, EBookMetaBackendPrivate);
+	meta_backend->priv = e_book_meta_backend_get_instance_private (meta_backend);
 
 	g_mutex_init (&meta_backend->priv->connect_lock);
 	g_mutex_init (&meta_backend->priv->property_lock);

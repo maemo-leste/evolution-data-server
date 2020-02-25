@@ -461,10 +461,6 @@
 #include "e-book-client.h"
 #include "e-book-client-cursor.h"
 
-#define E_BOOK_CLIENT_CURSOR_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_BOOK_CLIENT_CURSOR, EBookClientCursorPrivate))
-
 /* Forward declarations */
 typedef struct _SetSexpContext        SetSexpContext;
 typedef struct _StepContext           StepContext;
@@ -668,6 +664,7 @@ G_DEFINE_TYPE_WITH_CODE (
 	EBookClientCursor,
 	e_book_client_cursor,
 	G_TYPE_OBJECT,
+	G_ADD_PRIVATE (EBookClientCursor)
 	G_IMPLEMENT_INTERFACE (
 		G_TYPE_INITABLE,
 		e_book_client_cursor_initable_init))
@@ -706,7 +703,8 @@ e_book_client_cursor_class_init (EBookClientCursorClass *class)
 			"The #EContactField names to sort this cursor with",
 			G_TYPE_STRV,
 			G_PARAM_WRITABLE |
-			G_PARAM_CONSTRUCT_ONLY));
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * EBookClientCursor:client:
@@ -724,7 +722,8 @@ e_book_client_cursor_class_init (EBookClientCursorClass *class)
 			"The EBookClient for the cursor",
 			E_TYPE_BOOK_CLIENT,
 			G_PARAM_READWRITE |
-			G_PARAM_CONSTRUCT_ONLY));
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * EBookClientCursor:context:
@@ -746,7 +745,8 @@ e_book_client_cursor_class_init (EBookClientCursorClass *class)
 			"The GMainContext in which this cursor was created",
 			G_TYPE_MAIN_CONTEXT,
 			G_PARAM_WRITABLE |
-			G_PARAM_CONSTRUCT_ONLY));
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * EBookClientCursor:connection:
@@ -769,7 +769,8 @@ e_book_client_cursor_class_init (EBookClientCursorClass *class)
 			"to create the D-Bus proxy",
 			G_TYPE_DBUS_CONNECTION,
 			G_PARAM_WRITABLE |
-			G_PARAM_CONSTRUCT_ONLY));
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * EBookClientCursor:object-path:
@@ -815,7 +816,8 @@ e_book_client_cursor_class_init (EBookClientCursorClass *class)
 			"The EDataBookCursor for direct read access",
 			E_TYPE_DATA_BOOK_CURSOR,
 			G_PARAM_WRITABLE |
-			G_PARAM_CONSTRUCT_ONLY));
+			G_PARAM_CONSTRUCT_ONLY |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * EBookClientCursor:alphabet:
@@ -868,7 +870,8 @@ e_book_client_cursor_class_init (EBookClientCursorClass *class)
 			"Total",
 			"The total contacts for this cursor's query",
 			0, G_MAXINT, 0,
-			G_PARAM_READABLE));
+			G_PARAM_READABLE |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * EBookClientCursor:position:
@@ -901,7 +904,8 @@ e_book_client_cursor_class_init (EBookClientCursorClass *class)
 			"Position",
 			"The current cursor position",
 			0, G_MAXINT, 0,
-			G_PARAM_READABLE));
+			G_PARAM_READABLE |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * EBookClientCursor::refresh:
@@ -923,14 +927,12 @@ e_book_client_cursor_class_init (EBookClientCursorClass *class)
 		G_STRUCT_OFFSET (EBookClientCursorClass, refresh),
 		NULL, NULL, NULL,
 		G_TYPE_NONE, 0);
-
-	g_type_class_add_private (class, sizeof (EBookClientCursorPrivate));
 }
 
 static void
 e_book_client_cursor_init (EBookClientCursor *cursor)
 {
-	cursor->priv = E_BOOK_CLIENT_CURSOR_GET_PRIVATE (cursor);
+	cursor->priv = e_book_client_cursor_get_instance_private (cursor);
 
 	g_mutex_init (&cursor->priv->main_context_lock);
 	g_mutex_init (&cursor->priv->notifications_lock);

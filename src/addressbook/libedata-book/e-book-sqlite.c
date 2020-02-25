@@ -59,10 +59,6 @@
 
 #include "e-book-backend-sexp.h"
 
-#define E_BOOK_SQLITE_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), E_TYPE_BOOK_SQLITE, EBookSqlitePrivate))
-
 /******************************************************
  *                 Debugging Macros                   *
  ******************************************************
@@ -405,7 +401,9 @@ enum {
 static guint signals[LAST_SIGNAL];
 
 G_DEFINE_TYPE_WITH_CODE (EBookSqlite, e_book_sqlite, G_TYPE_OBJECT,
+			 G_ADD_PRIVATE (EBookSqlite)
 			 G_IMPLEMENT_INTERFACE (E_TYPE_EXTENSIBLE, NULL))
+
 G_DEFINE_QUARK (e-book-backend-sqlite-error-quark,
 		e_book_sqlite_error)
 
@@ -3177,10 +3175,15 @@ remove_leading_zeros (gchar *number)
 	gchar *trimmed = NULL;
 	gchar *tmp = number;
 
-	g_return_val_if_fail (NULL != number, NULL);
+	if (!number)
+		return NULL;
 
 	while ('0' == *tmp)
 		tmp++;
+
+	if (tmp == number)
+		return number;
+
 	trimmed = g_strdup (tmp);
 	g_free (number);
 
@@ -6478,8 +6481,6 @@ e_book_sqlite_class_init (EBookSqliteClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (EBookSqlitePrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->dispose = e_book_sqlite_dispose;
 	object_class->finalize = e_book_sqlite_finalize;
@@ -6501,7 +6502,7 @@ e_book_sqlite_class_init (EBookSqliteClass *class)
 		g_cclosure_marshal_generic,
 		G_TYPE_BOOLEAN, 6,
 		G_TYPE_POINTER,
-		G_TYPE_OBJECT,
+		E_TYPE_CONTACT,
 		G_TYPE_STRING,
 		G_TYPE_BOOLEAN,
 		G_TYPE_OBJECT,
@@ -6518,14 +6519,14 @@ e_book_sqlite_class_init (EBookSqliteClass *class)
 		G_TYPE_BOOLEAN, 4,
 		G_TYPE_POINTER,
 		G_TYPE_STRING,
-		G_TYPE_OBJECT,
+		G_TYPE_CANCELLABLE,
 		G_TYPE_POINTER);
 }
 
 static void
 e_book_sqlite_init (EBookSqlite *ebsql)
 {
-	ebsql->priv = E_BOOK_SQLITE_GET_PRIVATE (ebsql);
+	ebsql->priv = e_book_sqlite_get_instance_private (ebsql);
 
 	g_mutex_init (&ebsql->priv->lock);
 	g_mutex_init (&ebsql->priv->updates_lock);

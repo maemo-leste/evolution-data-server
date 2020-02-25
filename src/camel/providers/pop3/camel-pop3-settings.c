@@ -17,16 +17,13 @@
 
 #include "camel-pop3-settings.h"
 
-#define CAMEL_POP3_SETTINGS_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), CAMEL_TYPE_POP3_SETTINGS, CamelPOP3SettingsPrivate))
-
 struct _CamelPOP3SettingsPrivate {
 	gint delete_after_days;
 	gboolean delete_expunged;
 	gboolean disable_extensions;
 	gboolean keep_on_server;
 	gboolean auto_fetch;
+	gboolean enable_utf8;
 	guint32 last_cache_expunge;
 };
 
@@ -42,6 +39,7 @@ enum {
 	PROP_SECURITY_METHOD,
 	PROP_USER,
 	PROP_AUTO_FETCH,
+	PROP_ENABLE_UTF8,
 	PROP_LAST_CACHE_EXPUNGE
 };
 
@@ -49,6 +47,7 @@ G_DEFINE_TYPE_WITH_CODE (
 	CamelPOP3Settings,
 	camel_pop3_settings,
 	CAMEL_TYPE_STORE_SETTINGS,
+	G_ADD_PRIVATE (CamelPOP3Settings)
 	G_IMPLEMENT_INTERFACE (
 		CAMEL_TYPE_NETWORK_SETTINGS, NULL))
 
@@ -121,6 +120,12 @@ pop3_settings_set_property (GObject *object,
 
 		case PROP_AUTO_FETCH:
 			camel_pop3_settings_set_auto_fetch  (
+				CAMEL_POP3_SETTINGS (object),
+				g_value_get_boolean (value));
+			return;
+
+		case PROP_ENABLE_UTF8:
+			camel_pop3_settings_set_enable_utf8  (
 				CAMEL_POP3_SETTINGS (object),
 				g_value_get_boolean (value));
 			return;
@@ -212,6 +217,13 @@ pop3_settings_get_property (GObject *object,
 				camel_pop3_settings_get_auto_fetch (
 				CAMEL_POP3_SETTINGS (object)));
 			return;
+
+		case PROP_ENABLE_UTF8:
+			g_value_set_boolean (
+				value,
+				camel_pop3_settings_get_enable_utf8 (
+				CAMEL_POP3_SETTINGS (object)));
+			return;
 	}
 
 	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -221,8 +233,6 @@ static void
 camel_pop3_settings_class_init (CamelPOP3SettingsClass *class)
 {
 	GObjectClass *object_class;
-
-	g_type_class_add_private (class, sizeof (CamelPOP3SettingsPrivate));
 
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = pop3_settings_set_property;
@@ -324,6 +334,19 @@ camel_pop3_settings_class_init (CamelPOP3SettingsClass *class)
 			G_PARAM_EXPLICIT_NOTIFY |
 			G_PARAM_STATIC_STRINGS));
 
+	g_object_class_install_property (
+		object_class,
+		PROP_ENABLE_UTF8,
+		g_param_spec_boolean (
+			"enable-utf8",
+			"Enable UTF8",
+			"Whether can use UTF-8 extension, when the server supports it",
+			TRUE,
+			G_PARAM_READWRITE |
+			G_PARAM_CONSTRUCT |
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
+
 	/* Inherited from CamelNetworkSettings. */
 	g_object_class_override_property (
 		object_class,
@@ -346,7 +369,7 @@ camel_pop3_settings_class_init (CamelPOP3SettingsClass *class)
 static void
 camel_pop3_settings_init (CamelPOP3Settings *settings)
 {
-	settings->priv = CAMEL_POP3_SETTINGS_GET_PRIVATE (settings);
+	settings->priv = camel_pop3_settings_get_instance_private (settings);
 }
 
 /**
@@ -596,4 +619,43 @@ camel_pop3_settings_set_last_cache_expunge (CamelPOP3Settings *settings,
 	settings->priv->last_cache_expunge = last_cache_expunge;
 
 	g_object_notify (G_OBJECT (settings), "last-cache-expunge");
+}
+
+/**
+ * camel_pop3_settings_get_enable_utf8:
+ * @settings: a #CamelPOP3Settings
+ *
+ * Returns: Whether can use UTF-8 extension, when the server supports it
+ *
+ * Since: 3.36
+ **/
+gboolean
+camel_pop3_settings_get_enable_utf8 (CamelPOP3Settings *settings)
+{
+	g_return_val_if_fail (CAMEL_IS_POP3_SETTINGS (settings), FALSE);
+
+	return settings->priv->enable_utf8;
+}
+
+/**
+ * camel_pop3_settings_set_enable_utf8:
+ * @settings: a #CamelPOP3Settings
+ * @enable: the value to set
+ *
+ * Sets whether can use UTF-8 extension, when the server supports it
+ *
+ * Since: 3.36
+ **/
+void
+camel_pop3_settings_set_enable_utf8 (CamelPOP3Settings *settings,
+				     gboolean enable)
+{
+	g_return_if_fail (CAMEL_IS_POP3_SETTINGS (settings));
+
+	if ((settings->priv->enable_utf8 ? 1 : 0) == (enable ? 1 : 0))
+		return;
+
+	settings->priv->enable_utf8 = enable;
+
+	g_object_notify (G_OBJECT (settings), "enable-utf8");
 }

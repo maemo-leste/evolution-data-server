@@ -37,7 +37,7 @@ enum {
 	PROP_SERVER_USER_TAGS
 };
 
-G_DEFINE_TYPE (CamelIMAPXMessageInfo, camel_imapx_message_info, CAMEL_TYPE_MESSAGE_INFO_BASE)
+G_DEFINE_TYPE_WITH_PRIVATE (CamelIMAPXMessageInfo, camel_imapx_message_info, CAMEL_TYPE_MESSAGE_INFO_BASE)
 
 static CamelMessageInfo *
 imapx_message_info_clone (const CamelMessageInfo *mi,
@@ -262,8 +262,6 @@ camel_imapx_message_info_class_init (CamelIMAPXMessageInfoClass *class)
 	CamelMessageInfoClass *mi_class;
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (CamelIMAPXMessageInfoPrivate));
-
 	mi_class = CAMEL_MESSAGE_INFO_CLASS (class);
 	mi_class->clone = imapx_message_info_clone;
 	mi_class->load = imapx_message_info_load;
@@ -290,7 +288,8 @@ camel_imapx_message_info_class_init (CamelIMAPXMessageInfoClass *class)
 			NULL,
 			0, G_MAXUINT32, 0,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * CamelIMAPXMessageInfo:server-user-flags
@@ -309,7 +308,8 @@ camel_imapx_message_info_class_init (CamelIMAPXMessageInfoClass *class)
 			NULL,
 			CAMEL_TYPE_NAMED_FLAGS,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * CamelIMAPXMessageInfo:server-user-tags
@@ -328,13 +328,14 @@ camel_imapx_message_info_class_init (CamelIMAPXMessageInfoClass *class)
 			NULL,
 			CAMEL_TYPE_NAME_VALUE_ARRAY,
 			G_PARAM_READWRITE |
-			G_PARAM_EXPLICIT_NOTIFY));
+			G_PARAM_EXPLICIT_NOTIFY |
+			G_PARAM_STATIC_STRINGS));
 }
 
 static void
 camel_imapx_message_info_init (CamelIMAPXMessageInfo *imi)
 {
-	imi->priv = G_TYPE_INSTANCE_GET_PRIVATE (imi, CAMEL_TYPE_IMAPX_MESSAGE_INFO, CamelIMAPXMessageInfoPrivate);
+	imi->priv = camel_imapx_message_info_get_instance_private (imi);
 }
 
 guint32

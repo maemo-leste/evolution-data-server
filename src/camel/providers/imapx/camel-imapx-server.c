@@ -47,10 +47,6 @@
 #include "camel-imapx-summary.h"
 #include "camel-imapx-utils.h"
 
-#define CAMEL_IMAPX_SERVER_GET_PRIVATE(obj) \
-	(G_TYPE_INSTANCE_GET_PRIVATE \
-	((obj), CAMEL_TYPE_IMAPX_SERVER, CamelIMAPXServerPrivate))
-
 #define c(...) camel_imapx_debug(command, __VA_ARGS__)
 #define e(...) camel_imapx_debug(extra, __VA_ARGS__)
 
@@ -366,7 +362,7 @@ static gint	imapx_uids_array_cmp		(gconstpointer ap,
 						 gconstpointer bp);
 static void	imapx_sync_free_user		(GArray *user_set);
 
-G_DEFINE_TYPE (CamelIMAPXServer, camel_imapx_server, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE (CamelIMAPXServer, camel_imapx_server, G_TYPE_OBJECT)
 
 typedef struct _FetchChangesInfo {
 	guint32 server_flags;
@@ -380,7 +376,7 @@ fetch_changes_info_free (gpointer ptr)
 
 	if (nfo) {
 		camel_named_flags_free (nfo->server_user_flags);
-		g_free (nfo);
+		g_slice_free (FetchChangesInfo, nfo);
 	}
 }
 
@@ -1204,7 +1200,7 @@ imapx_untagged_fetch (CamelIMAPXServer *is,
 
 			nfo = g_hash_table_lookup (is->priv->fetch_changes_infos, finfo->uid);
 			if (!nfo) {
-				nfo = g_new0 (FetchChangesInfo, 1);
+				nfo = g_slice_new0 (FetchChangesInfo);
 
 				g_hash_table_insert (is->priv->fetch_changes_infos, (gpointer) camel_pstring_strdup (finfo->uid), nfo);
 			}
@@ -2163,7 +2159,7 @@ imapx_untagged (CamelIMAPXServer *is,
 	 * we will need to protect this data structure with locks
 	 */
 	g_return_val_if_fail (is->priv->context == NULL, FALSE);
-	is->priv->context = g_new0 (CamelIMAPXServerUntaggedContext, 1);
+	is->priv->context = g_slice_new0 (CamelIMAPXServerUntaggedContext);
 
 	settings = camel_imapx_server_ref_settings (is);
 	fetch_order = camel_imapx_settings_get_fetch_order (settings);
@@ -2252,7 +2248,7 @@ imapx_untagged (CamelIMAPXServer *is,
 		CAMEL_IMAPX_INPUT_STREAM (input_stream), cancellable, error);
 
 exit:
-	g_free (is->priv->context);
+	g_slice_free (CamelIMAPXServerUntaggedContext, is->priv->context);
 	is->priv->context = NULL;
 
 	return success;
@@ -3049,7 +3045,8 @@ connected:
 
 			/* See if we got new capabilities
 			 * in the STARTTLS response. */
-			imapx_free_capability (is->priv->cinfo);
+			if (is->priv->cinfo)
+				imapx_free_capability (is->priv->cinfo);
 			is->priv->cinfo = NULL;
 			if (ic->status->condition == IMAPX_CAPABILITY) {
 				is->priv->cinfo = ic->status->u.cinfo;
@@ -3144,6 +3141,25 @@ camel_imapx_server_is_connected (CamelIMAPXServer *imapx_server)
 	return imapx_server->priv->state >= IMAPX_CONNECTED;
 }
 
+static gboolean
+imapx_password_contains_nonascii (CamelService *service)
+{
+	const gchar *password;
+
+	g_return_val_if_fail (CAMEL_IS_SERVICE (service), FALSE);
+
+	password = camel_service_get_password (service);
+
+	while (password && *password) {
+		if (*password < 0)
+			return TRUE;
+
+		password++;
+	}
+
+	return FALSE;
+}
+
 CamelAuthenticationResult
 camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 				      const gchar *mechanism,
@@ -3159,6 +3175,8 @@ camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 	CamelSasl *sasl = NULL;
 	gchar *host;
 	gchar *user;
+	gboolean can_retry_login = FALSE;
+	gboolean success;
 
 	g_return_val_if_fail (
 		CAMEL_IS_IMAPX_SERVER (is),
@@ -3207,6 +3225,14 @@ camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 
 	if (sasl != NULL) {
 		ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_AUTHENTICATE, "AUTHENTICATE %A", sasl);
+	} else if (CAMEL_IMAPX_HAVE_CAPABILITY (is->priv->cinfo, LOGINDISABLED)) {
+			g_set_error (
+				error, CAMEL_SERVICE_ERROR,
+				CAMEL_SERVICE_ERROR_CANT_AUTHENTICATE,
+				_("Plaintext authentication disallowed on insecure connections. Change encryption to STARTTLS or TLS for account “%s”."),
+				camel_service_get_display_name (service));
+			result = CAMEL_AUTHENTICATION_ERROR;
+			goto exit;
 	} else {
 		const gchar *password;
 
@@ -3231,10 +3257,32 @@ camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 		}
 
 		ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_LOGIN, "LOGIN %s %s", user, password);
+
+		can_retry_login = TRUE;
 	}
 
-	if (!camel_imapx_server_process_command_sync (is, ic, _("Failed to authenticate"), cancellable, error) && (
-	    !ic->status || ic->status->result != IMAPX_NO))
+	success = camel_imapx_server_process_command_sync (is, ic, _("Failed to authenticate"), cancellable, error);
+	if (!success && can_retry_login && imapx_password_contains_nonascii (service)) {
+		const gchar *password;
+		gchar *password_latin1;
+
+		can_retry_login = -1;
+
+		password = camel_service_get_password (service);
+		password_latin1 = g_convert_with_fallback (password, -1, "ISO-8859-1", "UTF-8", "", NULL, NULL, NULL);
+
+		if (password_latin1 && g_strcmp0 (password, password_latin1) != 0) {
+			camel_imapx_command_unref (ic);
+			ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_LOGIN, "LOGIN %S %S", user, password_latin1);
+			g_free (password_latin1);
+
+			success = camel_imapx_server_process_command_sync (is, ic, _("Failed to authenticate"), cancellable, NULL);
+		} else {
+			g_free (password_latin1);
+		}
+	}
+
+	if (!success && (!ic->status || ic->status->result != IMAPX_NO))
 		result = CAMEL_AUTHENTICATION_ERROR;
 	else if (ic->status->result == IMAPX_OK)
 		result = CAMEL_AUTHENTICATION_ACCEPTED;
@@ -3609,7 +3657,7 @@ imapx_server_finalize (GObject *object)
 	camel_folder_change_info_free (is->priv->changes);
 	imapx_free_status (is->priv->copyuid_status);
 
-	g_free (is->priv->context);
+	g_slice_free (CamelIMAPXServerUntaggedContext, is->priv->context);
 	g_hash_table_destroy (is->priv->untagged_handlers);
 
 	if (is->priv->inactivity_timeout != NULL)
@@ -3657,8 +3705,6 @@ camel_imapx_server_class_init (CamelIMAPXServerClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (CamelIMAPXServerPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = imapx_server_set_property;
 	object_class->get_property = imapx_server_get_property;
@@ -3691,7 +3737,7 @@ camel_imapx_server_class_init (CamelIMAPXServerClass *class)
 static void
 camel_imapx_server_init (CamelIMAPXServer *is)
 {
-	is->priv = CAMEL_IMAPX_SERVER_GET_PRIVATE (is);
+	is->priv = camel_imapx_server_get_instance_private (is);
 
 	is->priv->untagged_handlers = create_initial_untagged_handler_table ();
 
@@ -6848,6 +6894,18 @@ typedef struct _IdleThreadData {
 	gint idle_stamp;
 } IdleThreadData;
 
+static void
+idle_thread_data_free (gpointer ptr)
+{
+	IdleThreadData *itd = ptr;
+
+	if (itd) {
+		g_clear_object (&itd->is);
+		g_clear_object (&itd->idle_cancellable);
+		g_slice_free (IdleThreadData, itd);
+	}
+}
+
 static gpointer
 imapx_server_idle_thread (gpointer user_data)
 {
@@ -6878,9 +6936,7 @@ imapx_server_idle_thread (gpointer user_data)
 		g_cond_broadcast (&is->priv->idle_cond);
 		g_mutex_unlock (&is->priv->idle_lock);
 
-		g_clear_object (&itd->is);
-		g_clear_object (&itd->idle_cancellable);
-		g_free (itd);
+		idle_thread_data_free (itd);
 
 		return NULL;
 	}
@@ -6961,9 +7017,7 @@ imapx_server_idle_thread (gpointer user_data)
 	g_clear_object (&mailbox);
 	g_clear_error (&local_error);
 
-	g_clear_object (&itd->is);
-	g_clear_object (&itd->idle_cancellable);
-	g_free (itd);
+	idle_thread_data_free (itd);
 
 	return NULL;
 }
@@ -6989,7 +7043,7 @@ imapx_server_run_idle_thread_cb (gpointer user_data)
 			GThread *thread;
 			GError *local_error = NULL;
 
-			itd = g_new0 (IdleThreadData, 1);
+			itd = g_slice_new0 (IdleThreadData);
 			itd->is = g_object_ref (is);
 			itd->idle_cancellable = g_object_ref (is->priv->idle_cancellable);
 			itd->idle_stamp = is->priv->idle_stamp;
@@ -7000,9 +7054,7 @@ imapx_server_run_idle_thread_cb (gpointer user_data)
 			} else {
 				g_warning ("%s: Failed to create IDLE thread: %s", G_STRFUNC, local_error ? local_error->message : "Unknown error");
 
-				g_clear_object (&itd->is);
-				g_clear_object (&itd->idle_cancellable);
-				g_free (itd);
+				idle_thread_data_free (itd);
 			}
 
 			g_clear_error (&local_error);

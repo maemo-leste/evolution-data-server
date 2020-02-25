@@ -102,7 +102,7 @@ sync_request_thread_cb (gpointer task_data,
 	g_mutex_unlock (&sync_data->cFile->pending_syncs_lock);
 
 	done = sync_data->done;
-	g_free (sync_data);
+	g_slice_free (struct SyncRequestData, sync_data);
 
 	if (done != NULL) {
 		g_mutex_lock (&done->mutex);
@@ -139,7 +139,7 @@ sync_push_request (CamelSqlite3File *cFile,
 		done->is_set = FALSE;
 	}
 
-	data = g_new0 (struct SyncRequestData, 1);
+	data = g_slice_new0 (struct SyncRequestData);
 	data->cFile = cFile;
 	data->flags = cFile->flags;
 	data->done = done;
@@ -497,7 +497,7 @@ struct _CamelDBPrivate {
 	gboolean is_foldersdb;
 };
 
-G_DEFINE_TYPE (CamelDB, camel_db, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE (CamelDB, camel_db, G_TYPE_OBJECT)
 
 static void
 camel_db_finalize (GObject *object)
@@ -520,8 +520,6 @@ camel_db_class_init (CamelDBClass *class)
 {
 	GObjectClass *object_class;
 
-	g_type_class_add_private (class, sizeof (CamelDBPrivate));
-
 	object_class = G_OBJECT_CLASS (class);
 	object_class->finalize = camel_db_finalize;
 }
@@ -529,7 +527,7 @@ camel_db_class_init (CamelDBClass *class)
 static void
 camel_db_init (CamelDB *cdb)
 {
-	cdb->priv = G_TYPE_INSTANCE_GET_PRIVATE (cdb, CAMEL_TYPE_DB, CamelDBPrivate);
+	cdb->priv = camel_db_get_instance_private (cdb);
 
 	g_rw_lock_init (&cdb->priv->rwlock);
 	g_mutex_init (&cdb->priv->transaction_lock);
@@ -2565,11 +2563,11 @@ camel_db_camel_mir_free (CamelMIRecord *record)
 {
 	if (record) {
 		camel_pstring_free (record->uid);
-		g_free (record->subject);
-		g_free (record->from);
-		g_free (record->to);
-		g_free (record->cc);
-		g_free (record->mlist);
+		camel_pstring_free (record->subject);
+		camel_pstring_free (record->from);
+		camel_pstring_free (record->to);
+		camel_pstring_free (record->cc);
+		camel_pstring_free (record->mlist);
 		g_free (record->followup_flag);
 		g_free (record->followup_completed_on);
 		g_free (record->followup_due_by);
