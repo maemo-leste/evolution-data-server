@@ -1,3 +1,10 @@
+evolution-data-server (3.34.3-3) UNRELEASED; urgency=medium
+
+  * debian/gbp.conf:
+    - go back to use upstream/latest for the new serie
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 25 Feb 2020 15:18:33 +0100
+
 evolution-data-server (3.34.3-2) unstable; urgency=medium
 
   [ Iain Lane ]
