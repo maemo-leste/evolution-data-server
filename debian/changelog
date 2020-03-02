@@ -1,3 +1,9 @@
+evolution-data-server (3.35.92-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 02 Mar 2020 16:34:52 +0100
+
 evolution-data-server (3.35.91-1) experimental; urgency=medium
 
   * New upstream release
