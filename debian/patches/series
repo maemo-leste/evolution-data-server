@@ -1,2 +1,3 @@
 01-noinst-libedbus-private.patch
 ubuntu_gettext_domain.patch
+git_stable_bugfixes.patch
