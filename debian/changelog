@@ -1,4 +1,4 @@
-evolution-data-server (3.36.1-2) UNRELEASED; urgency=medium
+evolution-data-server (3.36.1-2) unstable; urgency=medium
 
   * debian/patches/git_stable_bugfixes.patch:
     - backport upstream fixes for webdav and goa calendar issues
