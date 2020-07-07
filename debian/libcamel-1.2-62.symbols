@@ -1219,6 +1219,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_strcase_equal@Base 3.19.92
  camel_strcase_hash@Base 3.19.92
  camel_strdown@Base 3.19.92
+ camel_stream_buffer_discard_cache@Base 3.36.4
  camel_stream_buffer_get_type@Base 3.19.92
  camel_stream_buffer_gets@Base 3.19.92
  camel_stream_buffer_new@Base 3.19.92
