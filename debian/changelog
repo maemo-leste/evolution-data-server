@@ -1,3 +1,9 @@
+evolution-data-server (3.36.4-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 07 Jul 2020 12:38:22 +0200
+
 evolution-data-server (3.36.3-1) unstable; urgency=medium
 
   * New stable version (lp: #1883116)
