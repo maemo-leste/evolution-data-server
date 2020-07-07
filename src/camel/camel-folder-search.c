@@ -617,8 +617,10 @@ match_words_1message (CamelDataWrapper *object,
 			if (camel_ustrstrcase ((const gchar *) byte_array->data, words->words[i]->word) != NULL) {
 				*mask |= (1 << i);
 				/* shortcut a match */
-				if (*mask == (1 << (words->len)) - 1)
-					return TRUE;
+				if (*mask == (1 << (words->len)) - 1) {
+					truth = TRUE;
+					break;
+				}
 			}
 		}
 
@@ -2256,10 +2258,10 @@ camel_folder_search_count (CamelFolderSearch *search,
 
 		dd (printf ("sexp is : [%s]\n", expr));
 		tmp1 = camel_db_sqlize_string (full_name);
-		tmp = g_strdup_printf ("SELECT COUNT (*) FROM %s %s %s", tmp1, sql_query ? "WHERE" : "", sql_query ? sql_query : "");
+		tmp = g_strdup_printf ("SELECT COUNT (*) FROM %s %s %s", tmp1, (sql_query && *sql_query) ? "WHERE" : "", sql_query ? sql_query : "");
 		camel_db_free_sqlized_string (tmp1);
 		g_free (sql_query);
-		dd (printf ("Equivalent sql %s\n", tmp));
+		dd (printf ("Equivalent sql: \"%s\"\n", tmp));
 
 		cdb = camel_store_get_db (parent_store);
 		camel_db_count_message_info  (cdb, tmp, &count, &local_error);
@@ -2432,10 +2434,10 @@ camel_folder_search_search (CamelFolderSearch *search,
 
 		dd (printf ("sexp is : [%s]\n", expr));
 		tmp1 = camel_db_sqlize_string (full_name);
-		tmp = g_strdup_printf ("SELECT uid FROM %s %s %s", tmp1, sql_query ? "WHERE":"", sql_query ? sql_query:"");
+		tmp = g_strdup_printf ("SELECT uid FROM %s %s %s", tmp1, (sql_query && *sql_query) ? "WHERE" : "", sql_query ? sql_query : "");
 		camel_db_free_sqlized_string (tmp1);
 		g_free (sql_query);
-		dd (printf ("Equivalent sql %s\n", tmp));
+		dd (printf ("Equivalent sql: \"%s\"\n", tmp));
 
 		matches = g_ptr_array_new ();
 		cdb = camel_store_get_db (parent_store);
