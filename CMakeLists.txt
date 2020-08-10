@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.36.4
+	VERSION 3.37.90
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -12,7 +12,7 @@ set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issu
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.36)
+set(BASE_VERSION 3.38)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -56,7 +56,7 @@ set(LIBEBACKEND_CURRENT 10)
 set(LIBEBACKEND_REVISION 0)
 set(LIBEBACKEND_AGE 0)
 
-set(LIBEDATASERVER_CURRENT 24)
+set(LIBEDATASERVER_CURRENT 25)
 set(LIBEDATASERVER_REVISION 0)
 set(LIBEDATASERVER_AGE 0)
 
@@ -93,8 +93,8 @@ set(gdk_minimum_version 3.10)
 set(gdk_encoded_version GDK_VERSION_3_10)
 
 # Keep these two definitions in agreement.
-set(soup_minimum_version 2.42)
-set(soup_encoded_version SOUP_VERSION_2_42)
+set(soup_minimum_version 2.58)
+set(soup_encoded_version SOUP_VERSION_2_58)
 
 # Warn about API usage that violates our minimum requirements.
 add_definitions(-DGLIB_VERSION_MAX_ALLOWED=${glib_encoded_version})
@@ -122,7 +122,7 @@ set(gweather_minimum_version 3.10)
 set(libaccounts_glib_minimum_version 1.4)
 set(libsignon_glib_minimum_version 1.8)
 set(json_glib_minimum_version 1.0.4)
-set(webkit2gtk_minimum_version 2.11.91)
+set(webkit2gtk_minimum_version 2.28.0)
 set(libcanberra_gtk_minimum_version 0.25)
 
 # Load modules from the source tree
@@ -781,7 +781,9 @@ else(WIN32 AND ENABLE_DOT_LOCKING)
 	set(USE_DOT_LOCKING ${ENABLE_DOT_LOCKING})
 endif(WIN32 AND ENABLE_DOT_LOCKING)
 
-add_printable_variable(ENABLE_FILE_LOCKING "Enable support for locking mail files with file locking (one of fcntl/flock/no)" "fcntl")
+add_printable_variable(ENABLE_FILE_LOCKING "Enable support for locking mail files with file locking" "fcntl")
+set(enable_file_locking_values fcntl flock no)
+set_property(CACHE ENABLE_FILE_LOCKING PROPERTY STRINGS ${enable_file_locking_values})
 
 if(NOT WIN32)
 	if (${ENABLE_FILE_LOCKING} STREQUAL "fcntl")

@@ -1,6 +1,7 @@
 add_pkgconfig_file(libedataserverui.pc.in libedataserverui-${API_VERSION}.pc)
 
 set(SOURCES
+	e-buffer-tagger.c
 	e-cell-renderer-color.c
 	e-credentials-prompter.c
 	e-credentials-prompter-impl.c
@@ -15,6 +16,7 @@ set(SOURCES
 
 set(HEADERS
 	libedataserverui.h
+	e-buffer-tagger.h
 	e-cell-renderer-color.h
 	e-credentials-prompter.h
 	e-credentials-prompter-impl.h
@@ -27,7 +29,6 @@ set(HEADERS
 
 set(DEPENDENCIES
 	camel
-	ebackend
 	ecal
 	edataserver
 )
@@ -54,7 +55,6 @@ target_compile_definitions(edataserverui PRIVATE
 )
 
 target_compile_options(edataserverui PUBLIC
-	${BACKEND_CFLAGS}
 	${DATA_SERVER_CFLAGS}
 	${CAMEL_CFLAGS}
 	${CODE_COVERAGE_CFLAGS}
@@ -71,7 +71,6 @@ target_include_directories(edataserverui PUBLIC
 	${CMAKE_BINARY_DIR}/src
 	${CMAKE_SOURCE_DIR}/src
 	${CMAKE_CURRENT_BINARY_DIR}
-	${BACKEND_INCLUDE_DIRS}
 	${DATA_SERVER_INCLUDE_DIRS}
 	${CAMEL_INCLUDE_DIRS}
 	${CODE_COVERAGE_INCLUDE_DIRS}
@@ -85,7 +84,6 @@ target_include_directories(edataserverui PUBLIC
 
 target_link_libraries(edataserverui
 	${DEPENDENCIES}
-	${BACKEND_LDFLAGS}
 	${DATA_SERVER_LDFLAGS}
 	${CAMEL_LDFLAGS}
 	${CODE_COVERAGE_LDFLAGS}
