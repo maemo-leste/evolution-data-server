@@ -526,7 +526,7 @@ camel_stream_buffer_read_line (CamelStreamBuffer *sbf,
  * Discards any cached data in the @sbf. The next read reads
  * from the stream.
  *
- * Since: 3.36.4
+ * Since: 3.38
  **/
 void
 camel_stream_buffer_discard_cache (CamelStreamBuffer *sbf)

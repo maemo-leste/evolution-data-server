@@ -31,6 +31,7 @@
 
 #include "e-oauth2-services.h"
 #include "e-soup-auth-bearer.h"
+#include "e-soup-logger.h"
 #include "e-soup-ssl-trust.h"
 #include "e-source-authentication.h"
 #include "e-source-webdav.h"
@@ -70,6 +71,7 @@ e_soup_session_ensure_auth_usage (ESoupSession *session,
 				  SoupMessage *message,
 				  SoupAuth *soup_auth)
 {
+	SoupAuthManager *auth_manager;
 	SoupSessionFeature *feature;
 	SoupURI *soup_uri;
 	GType auth_type;
@@ -106,7 +108,12 @@ e_soup_session_ensure_auth_usage (ESoupSession *session,
 		}
 	}
 
-	soup_auth_manager_use_auth (SOUP_AUTH_MANAGER (feature), soup_uri, soup_auth);
+	auth_manager = SOUP_AUTH_MANAGER (feature);
+
+	/* This will make sure the 'soup_auth' is used regardless of the current 'auth_manager' state.
+	   See https://gitlab.gnome.org/GNOME/libsoup/-/issues/196 for more information. */
+	soup_auth_manager_clear_cached_credentials (auth_manager);
+	soup_auth_manager_use_auth (auth_manager, soup_uri, soup_auth);
 
 	if (!in_soup_uri)
 		soup_uri_free (soup_uri);
@@ -1065,6 +1072,9 @@ e_soup_session_send_request_sync (ESoupSession *session,
 		if (input_stream) {
 			message = soup_request_http_get_message (request);
 
+			if (message && e_soup_session_get_log_level (session) == SOUP_LOGGER_LOG_BODY)
+				input_stream = e_soup_logger_attach (message, input_stream);
+
 			if (message && SOUP_STATUS_IS_REDIRECTION (message->status_code)) {
 				/* libsoup uses 20, but the constant is not in any public header */
 				if (resend_count >= 30) {
@@ -1179,12 +1189,6 @@ e_soup_session_send_request_simple_sync (ESoupSession *session,
 
 	g_free (buffer);
 	g_object_unref (input_stream);
-
-	if (bytes->len > 0 && e_soup_session_get_log_level (session) == SOUP_LOGGER_LOG_BODY) {
-		fwrite (bytes->data, 1, bytes->len, stdout);
-		fprintf (stdout, "\n");
-		fflush (stdout);
-	}
 
 	if (success)
 		success = e_soup_session_check_result (session, request, bytes->data, bytes->len, error);
