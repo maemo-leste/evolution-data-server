@@ -1380,6 +1380,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_vee_folder_get_vee_uid_folder@Base 3.19.92
  camel_vee_folder_ignore_next_changed_event@Base 3.19.92
  camel_vee_folder_new@Base 3.19.92
+ camel_vee_folder_propagate_skipped_changes@Base 3.37.90
  camel_vee_folder_rebuild_folder@Base 3.19.92
  camel_vee_folder_ref_folders@Base 3.27.90
  camel_vee_folder_remove_folder@Base 3.19.92

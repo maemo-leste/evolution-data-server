@@ -1,4 +1,4 @@
-libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
+libedataserver-1.2.so.25 libedataserver-1.2-25 #MINVER#
 * Build-Depends-Package: libedataserver1.2-dev
  (c++|regex|optional=template)"icu_[0-9]+::StringByteSink<.*@Base" 3.17.90
  __e_source_private_replace_dbus_object@Base 3.17
@@ -469,6 +469,8 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_soup_auth_bearer_get_type@Base 3.17.90
  e_soup_auth_bearer_is_expired@Base 3.21.92
  e_soup_auth_bearer_set_access_token@Base 3.17.90
+ e_soup_logger_attach@Base 3.37.90
+ e_soup_logger_get_type@Base 3.37.90
  e_soup_session_check_result@Base 3.25.90
  e_soup_session_dup_credentials@Base 3.25.90
  e_soup_session_get_authentication_requires_credentials@Base 3.27.90
@@ -1128,9 +1130,19 @@ libedataserver-1.2.so.24 libedataserver-1.2-24 #MINVER#
  e_xml_document_write_int@Base 3.25.90
  e_xml_document_write_string@Base 3.25.90
  e_xml_document_write_time@Base 3.25.90
+ e_xml_dup_node_content@Base 3.37.90
+ e_xml_find_child@Base 3.37.90
+ e_xml_find_child_and_dup_content@Base 3.37.90
+ e_xml_find_child_and_get_text@Base 3.37.90
+ e_xml_find_children_nodes@Base 3.37.90
+ e_xml_find_in_hierarchy@Base 3.37.90
+ e_xml_find_next_sibling@Base 3.37.90
+ e_xml_find_sibling@Base 3.37.90
  e_xml_from_hash@Base 3.17
  e_xml_get_child_by_name@Base 3.17
+ e_xml_get_node_text@Base 3.37.90
  e_xml_initialize_in_main@Base 3.26.2
+ e_xml_is_element_name@Base 3.37.90
  e_xml_new_xpath_context_with_namespaces@Base 3.25.90
  e_xml_parse_data@Base 3.25.90
  e_xml_parse_file@Base 3.17

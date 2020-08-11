@@ -428,6 +428,7 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_obj_mod_type_get_type@Base 3.17
  e_cal_operation_flags_get_type@Base 3.33.4
  e_cal_recur_describe_recurrence@Base 3.29.90
+ e_cal_recur_describe_recurrence_ex@Base 3.37.90
  e_cal_recur_describe_recurrence_flags_get_type@Base 3.33.4
  e_cal_recur_ensure_end_dates@Base 3.17
  e_cal_recur_generate_instances_sync@Base 3.19.92

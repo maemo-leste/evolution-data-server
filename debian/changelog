@@ -2,6 +2,7 @@ evolution-data-server (3.37.90-1) UNRELEASED; urgency=medium
 
   * New upstream release
   * Updated for the libedataserver soname change
+  * Refreshed the symbols for the new version
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 10 Aug 2020 15:20:12 +0200
 
