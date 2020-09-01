@@ -1,3 +1,9 @@
+evolution-data-server (3.30.5-2) unstable; urgency=medium
+
+  * Add evcard-virtual-attribute-methods.patch
+
+ --  -- Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>  Tue, 01 Sep 2020 06:38:33 +0300
+
 evolution-data-server (3.30.5-1) unstable; urgency=medium
 
   * New upstream release
