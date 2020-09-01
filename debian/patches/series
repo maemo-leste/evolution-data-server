@@ -6,3 +6,12 @@ M-112-Update-for-removal-of-WebKitGTK-sandbox-API.patch
 M-113-Don-t-accidentally-disable-sandbox-for-GTK-3-users.patch
 M-114-OAuth2-stop-trying-to-disable-WebKit-plugins.patch
 M-114-OAuth2-use-WebKitNetworkSession-to-manage-proxy-set.patch
+||||||| parent of e9fd86cf0 (Add EVCard virtual attribute methods)
+I-281-GLibTools.cmake-Use-basename-in-glib-mkenums-templa.patch
+M-62-GObjectIntrospection.cmake-Specify-the-sources-top-d.patch
+I-282-tests-Avoid-build-source-directories-in-executables.patch
+0001-CardDAV-Recognize-OPTIONS-Bad-Request-response-as-su.patch
+0002-Fix-e_webdav_session_util_item_href_equal.patch
+0003-Addressbook-Switch-from-GData-Contacts-API-to-CardDA.patch
+EWebDAVCollectionBackend-Preset-also-auth-method-on-the-n.patch
+evcard-virtual-attribute-methods.patch
