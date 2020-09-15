@@ -105,7 +105,9 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_collection_backend_dup_resource_id@Base 3.17
  e_collection_backend_factory_get_type@Base 3.17
  e_collection_backend_factory_prepare_mail@Base 3.17
+ e_collection_backend_freeze_populate@Base 3.38.0
  e_collection_backend_get_cache_dir@Base 3.17
+ e_collection_backend_get_populate_frozen@Base 3.38.0
  e_collection_backend_get_type@Base 3.17
  e_collection_backend_is_new_source@Base 3.30.3
  e_collection_backend_list_calendar_sources@Base 3.17
@@ -115,6 +117,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_collection_backend_ref_proxy_resolver@Base 3.17
  e_collection_backend_ref_server@Base 3.17
  e_collection_backend_schedule_populate@Base 3.29.90
+ e_collection_backend_thaw_populate@Base 3.38.0
  e_data_factory_backend_closed@Base 3.29.90
  e_data_factory_backend_closed_by_sender@Base 3.33.91
  e_data_factory_construct_path@Base 3.17

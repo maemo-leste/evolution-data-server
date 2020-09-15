@@ -485,6 +485,7 @@ libedataserver-1.2.so.25 libedataserver-1.2-25 #MINVER#
  e_soup_session_send_request_sync@Base 3.25.90
  e_soup_session_set_credentials@Base 3.25.90
  e_soup_session_setup_logging@Base 3.25.90
+ e_soup_session_util_normalize_uri_path@Base 3.38.0
  e_soup_session_util_status_to_string@Base 3.25.90
  e_soup_ssl_trust_connect@Base 3.17.90
  e_source_address_book_get_type@Base 3.17

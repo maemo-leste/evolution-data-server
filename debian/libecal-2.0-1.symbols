@@ -466,6 +466,7 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_util_mark_task_complete_sync@Base 3.29.90
  e_cal_util_new_component@Base 3.17
  e_cal_util_new_top_level@Base 3.17
+ e_cal_util_normalize_rrule_until_value@Base 3.38.0
  e_cal_util_operation_flags_to_conflict_resolution@Base 3.33.4
  e_cal_util_parse_ics_file@Base 3.17
  e_cal_util_parse_ics_string@Base 3.17
@@ -473,8 +474,10 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_util_priority_to_string@Base 3.17
  e_cal_util_property_has_parameter@Base 3.33.4
  e_cal_util_remove_instances@Base 3.17
+ e_cal_util_remove_instances_ex@Base 3.38.0
  e_cal_util_seconds_to_string@Base 3.29.90
  e_cal_util_split_at_instance@Base 3.17
+ e_cal_util_split_at_instance_ex@Base 3.38.0
  e_cal_util_tm_to_icaltime@Base 3.33.4
  e_dbus_calendar_call_add_timezone@Base 3.17
  e_dbus_calendar_call_add_timezone_finish@Base 3.17
