@@ -62,4 +62,5 @@ override_dh_strip:
 	dh_strip --dbgsym-migration='evolution-data-server-dbg (<< 3.20.2-2~)'
 
 override_dh_auto_test:
-	dbus-run-session -- dh_auto_test || true
+	#dbus-run-session -- dh_auto_test || true
+	@echo "No tests"
