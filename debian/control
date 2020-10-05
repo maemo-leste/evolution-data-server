@@ -67,7 +67,7 @@ Description: evolution database backend server
  mail, calendar, addressbook, tasks and memo information.
 
 Package: evolution-data-server-common
-Architecture: all
+Architecture: any
 Depends: ${misc:Depends}
 Multi-arch: foreign
 Description: architecture independent files for Evolution Data Server
@@ -102,7 +102,7 @@ Description: Development files for evolution-data-server (metapackage)
 
 Package: evolution-data-server-doc
 Section: doc
-Architecture: all
+Architecture: any
 Depends: ${misc:Depends}
 Suggests: devhelp
 Description: Documentation files for the Evolution Data Server libraries
