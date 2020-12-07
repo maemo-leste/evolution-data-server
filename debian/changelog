@@ -1,11 +1,11 @@
-evolution-data-server (3.38.2-1) UNRELEASED; urgency=medium
+evolution-data-server (3.38.2-1) unstable; urgency=medium
 
   * New upstream release
     - debian/*.symbols: Add newly exported symbols
   * debian/rules: Add reproducible=+fixfilepath option to
     DEB_BUILD_MAINT_OPTIONS to try to make the package reproductible
 
- -- Laurent Bigonville <bigon@debian.org>  Mon, 07 Dec 2020 17:10:16 +0100
+ -- Laurent Bigonville <bigon@debian.org>  Mon, 07 Dec 2020 17:49:01 +0100
 
 evolution-data-server (3.38.1-2) unstable; urgency=medium
 
