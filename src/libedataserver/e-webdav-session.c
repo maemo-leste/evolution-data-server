@@ -29,6 +29,7 @@
 #include "evolution-data-server-config.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <glib/gi18n-lib.h>
 
 #include "camel/camel.h"
@@ -3218,17 +3219,21 @@ e_webdav_session_traverse_propstat_response (EWebDAVSession *webdav,
 
 		full_uri = e_webdav_session_ensure_full_uri (webdav, request_uri, (const gchar *) href_content);
 
-		e_xml_find_children_nodes (propstat_node, 2,
-			E_WEBDAV_NS_DAV, "status", &status_node,
-			E_WEBDAV_NS_DAV, "prop", &prop_node);
+		while (propstat_node && !do_stop) {
+			e_xml_find_children_nodes (propstat_node, 2,
+				E_WEBDAV_NS_DAV, "status", &status_node,
+				E_WEBDAV_NS_DAV, "prop", &prop_node);
 
-		status_content = e_xml_get_node_text (status_node);
+			status_content = e_xml_get_node_text (status_node);
 
-		if (!status_content || !soup_headers_parse_status_line ((const gchar *) status_content, NULL, &status_code, NULL))
-			status_code = 0;
+			if (!status_content || !soup_headers_parse_status_line ((const gchar *) status_content, NULL, &status_code, NULL))
+				status_code = 0;
 
-		if (prop_node && prop_node->children)
-			do_stop = !func (webdav, prop_node, request_uri, full_uri ? full_uri : (const gchar *) href_content, status_code, func_user_data);
+			if (prop_node && prop_node->children)
+				do_stop = !func (webdav, prop_node, request_uri, full_uri ? full_uri : (const gchar *) href_content, status_code, func_user_data);
+
+			propstat_node = e_xml_find_next_sibling (propstat_node, E_WEBDAV_NS_DAV, "propstat");
+		}
 
 		g_free (full_uri);
 	}
@@ -3841,7 +3846,7 @@ e_webdav_session_list_sync (EWebDAVSession *webdav,
  * e_webdav_session_update_properties_sync:
  * @webdav: an #EWebDAVSession
  * @uri: (nullable): URI to issue the request for, or %NULL to read from #ESource
- * @changes: (element-type EWebDAVResource): a #GSList with request changes
+ * @changes: (element-type EWebDAVPropertyChange): a #GSList with request changes
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: return location for a #GError, or %NULL
  *
@@ -5132,4 +5137,147 @@ e_webdav_session_util_free_privileges (GNode *privileges)
 
 	g_node_traverse (privileges, G_PRE_ORDER, G_TRAVERSE_ALL, -1, e_webdav_session_free_in_traverse_cb, NULL);
 	g_node_destroy (privileges);
+}
+
+static gint
+e_webdav_session_uricmp (const gchar *str1,
+			 const gchar *str2,
+			 gint len,
+			 gboolean case_sensitive)
+{
+	const gchar *p1, *p2;
+	gchar c1, c2;
+	gint len1, len2;
+
+	g_return_val_if_fail (len >= 0, -1);
+	g_return_val_if_fail (str1 != NULL, -1);
+	g_return_val_if_fail (str2 != NULL, -1);
+
+	if (!len)
+		return 0;
+
+	/* Decode %-encoded letters, if needed */
+	#define get_next_char(str, ll, cc) G_STMT_START { \
+		if (!*str) { \
+			cc = 0; \
+		} else if (*str == '%' && ll >= 2 && g_ascii_isxdigit (str[1]) && g_ascii_isxdigit (str[2])) { \
+			cc = ((str[1] >= '0' && str[1] <= '9') ? (str[1] - '0') : \
+			      (str[1] >= 'a' && str[1] <= 'f') ? (str[1] - 'a' + 10) : \
+			      (str[1] >= 'A' && str[1] <= 'F') ? (str[1] - 'A' + 10) : 0) * 16 + \
+			     ((str[2] >= '0' && str[2] <= '9') ? (str[2] - '0') : \
+			      (str[2] >= 'a' && str[2] <= 'f') ? (str[2] - 'a' + 10) : \
+			      (str[2] >= 'A' && str[2] <= 'F') ? (str[2] - 'A' + 10) : 0); \
+			str += 3; \
+			ll -= 3; \
+		} else { \
+			cc = *str; \
+			str++; \
+			ll--; \
+		} \
+	} G_STMT_END
+
+	p1 = str1;
+	p2 = str2;
+
+	len1 = len;
+	len2 = len;
+
+	c1 = *p1;
+	c2 = *p2;
+
+	while (len1 > 0 && len2 > 0 && *p1 && *p2) {
+		get_next_char (p1, len1, c1);
+		get_next_char (p2, len2, c2);
+
+		if ((case_sensitive && c1 != c2) || (!case_sensitive && g_ascii_tolower (c1) != g_ascii_tolower (c2)))
+			break;
+	}
+
+	#undef get_next_char
+
+	return c1 - c2;
+}
+
+/**
+ * e_webdav_session_util_item_href_equal:
+ * @href1: the first href
+ * @href2: the second href
+ *
+ * Compares two hrefs and return whether they reference
+ * the same item on the server. The comparison is done in
+ * a relaxed way, not considering scheme part and comparing
+ * the host name case insensitively, while the path
+ * case sensitively. It also ignores the username/password
+ * information in the hostname part, if it's included.
+ * The function doesn't decode any URI-encoded characters.
+ *
+ * Returns: whether the two href-s reference the same item
+ *
+ * Since: 3.38.2
+ **/
+gboolean
+e_webdav_session_util_item_href_equal (const gchar *href1,
+				       const gchar *href2)
+{
+	const gchar *ptr, *from1, *from2, *next1, *next2;
+
+	if (!href1 || !href2)
+		return href1 == href2;
+
+	if (g_strcmp0 (href1, href2) == 0)
+		return TRUE;
+
+	/* skip the scheme part */
+	ptr = strstr (href1, "://");
+	if (ptr)
+		href1 = ptr + 3;
+
+	ptr = strstr (href2, "://");
+	if (ptr)
+		href2 = ptr + 3;
+
+	for (from1 = href1, from2 = href2; from1 && from2; from1 = next1, from2 = next2) {
+		gint len;
+
+		ptr = strchr (from1, '/');
+		if (ptr)
+			ptr++;
+		next1 = ptr;
+
+		ptr = strchr (from2, '/');
+		if (ptr)
+			ptr++;
+		next2 = ptr;
+
+		if ((!next1 && next2) || (next1 && !next2))
+			break;
+
+		len = next1 ? next1 - from1 : strlen (from1);
+
+		if (!len)
+			len = next2 ? next2 - from2 : strlen (from2);
+
+		/* it's the hostname part */
+		if (from1 == href1) {
+			const gchar *dash;
+
+			/* ignore the username/password part */
+			ptr = strchr (from1, '@');
+			dash = strchr (from1, '/');
+			if (ptr && (!dash || dash > ptr))
+				from1 = ptr + 1;
+
+			ptr = strchr (from2, '@');
+			dash = strchr (from2, '/');
+			if (ptr && (!dash || dash > ptr))
+				from2 = ptr + 1;
+
+			if (e_webdav_session_uricmp (from1, from2, len, FALSE) != 0)
+				return FALSE;
+		} else if (e_webdav_session_uricmp (from1, from2, len, TRUE) != 0) {
+			return FALSE;
+		}
+	}
+
+	return !from1 && !from2;
 }
