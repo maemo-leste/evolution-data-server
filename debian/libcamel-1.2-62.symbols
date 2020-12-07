@@ -1155,6 +1155,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_store_folder_info_stale@Base 3.19.92
  camel_store_folder_opened@Base 3.19.92
  camel_store_folder_renamed@Base 3.19.92
+ camel_store_get_can_auto_save_changes@Base 3.38.2
  camel_store_get_db@Base 3.24.1
  camel_store_get_flags@Base 3.24.1
  camel_store_get_folder@Base 3.19.92
@@ -1191,8 +1192,10 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_store_set_flags@Base 3.24.1
  camel_store_set_permissions@Base 3.24.1
  camel_store_settings_get_filter_inbox@Base 3.19.92
+ camel_store_settings_get_store_changes_interval@Base 3.38.2
  camel_store_settings_get_type@Base 3.19.92
  camel_store_settings_set_filter_inbox@Base 3.19.92
+ camel_store_settings_set_store_changes_interval@Base 3.38.2
  camel_store_summary_add@Base 3.19.92
  camel_store_summary_add_from_path@Base 3.19.92
  camel_store_summary_array@Base 3.19.92

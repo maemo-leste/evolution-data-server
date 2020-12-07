@@ -1109,6 +1109,7 @@ libedataserver-1.2.so.25 libedataserver-1.2-25 #MINVER#
  e_webdav_session_unlock_sync@Base 3.25.90
  e_webdav_session_update_properties_sync@Base 3.25.90
  e_webdav_session_util_free_privileges@Base 3.25.90
+ e_webdav_session_util_item_href_equal@Base 3.38.2
  e_webdav_session_util_maybe_dequote@Base 3.25.90
  e_xml_destroy_hash@Base 3.17
  e_xml_document_add_attribute@Base 3.25.90
