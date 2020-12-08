@@ -1,3 +1,10 @@
+evolution-data-server (3.38.2-2) unstable; urgency=medium
+
+  * Add a patch from upstream to remove absolute build paths from header
+    files, that should make them reproducible and fix multi-arch
+
+ -- Laurent Bigonville <bigon@debian.org>  Tue, 08 Dec 2020 10:42:08 +0100
+
 evolution-data-server (3.38.2-1) unstable; urgency=medium
 
   * New upstream release
