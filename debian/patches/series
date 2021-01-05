@@ -1,3 +1,4 @@
 01-noinst-libedbus-private.patch
 ubuntu_gettext_domain.patch
 I-281-GLibTools.cmake-Use-basename-in-glib-mkenums-templa.patch
+M-62-GObjectIntrospection.cmake-Specify-the-sources-top-d.patch
