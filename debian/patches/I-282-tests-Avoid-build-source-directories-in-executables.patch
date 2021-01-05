@@ -1,0 +1,2465 @@
+From: Milan Crha <mcrha@redhat.com>
+Date: Tue, 5 Jan 2021 15:28:22 +0100
+Subject: I#282 - tests: Avoid build/source directories in executables
+
+Closes https://gitlab.gnome.org/GNOME/evolution-data-server/-/issues/282
+---
+ cmake/modules/CheckTarget.cmake                    |   2 +-
+ tests/CMakeLists.txt                               |   2 +-
+ tests/book-migration/CMakeLists.txt                |   2 +-
+ tests/book-migration/setup-migration-test.c        |   2 +-
+ tests/book-migration/test-migration.c              |   5 +-
+ tests/libebook/CMakeLists.txt                      |   2 +-
+ tests/libebook/client/CMakeLists.txt               |   2 +-
+ tests/libebook/client/client-test-utils.c          |  29 ++++-
+ tests/libebook/client/client-test-utils.h          |   3 +
+ .../client/test-book-client-add-and-get-async.c    |   6 +-
+ .../client/test-book-client-add-and-get-sync.c     |   6 +-
+ .../libebook/client/test-book-client-add-contact.c |   6 +-
+ .../client/test-book-client-cursor-create.c        |   6 +-
+ .../client/test-book-client-cursor-operations.c    |   6 +-
+ .../client/test-book-client-custom-summary.c       |  10 +-
+ .../libebook/client/test-book-client-e164-param.c  |   6 +-
+ .../client/test-book-client-get-contact-uids.c     |   6 +-
+ .../libebook/client/test-book-client-get-contact.c |   6 +-
+ .../client/test-book-client-get-revision.c         |   6 +-
+ tests/libebook/client/test-book-client-get-view.c  |   6 +-
+ .../client/test-book-client-modify-contact.c       |   6 +-
+ .../client/test-book-client-photo-is-uri.c         |   6 +-
+ .../client/test-book-client-preserve-uid.c         |   6 +-
+ tests/libebook/client/test-book-client-refresh.c   |   6 +-
+ .../test-book-client-remove-contact-by-uid.c       |   6 +-
+ .../client/test-book-client-remove-contact.c       |   6 +-
+ .../client/test-book-client-remove-contacts.c      |   6 +-
+ .../client/test-book-client-revision-view.c        |   6 +-
+ tests/libebook/client/test-book-client-self.c      |   6 +-
+ .../test-book-client-suppress-notifications.c      |   6 +-
+ .../client/test-book-client-uid-only-view.c        |   6 +-
+ .../client/test-book-client-view-operations.c      |   6 +-
+ .../libebook/client/test-book-client-write-write.c |   6 +-
+ tests/libebook/ebook-test-utils.c                  |  29 ++++-
+ tests/libebook/ebook-test-utils.h                  |   6 +-
+ tests/libebook/test-ebook-add-contact.c            |   6 +-
+ tests/libebook/test-ebook-commit-contact.c         |   6 +-
+ tests/libebook/test-ebook-get-book-view.c          |   6 +-
+ tests/libebook/test-ebook-get-contact.c            |   6 +-
+ tests/libebook/test-ebook-get-required-fields.c    |   6 +-
+ .../libebook/test-ebook-get-static-capabilities.c  |   6 +-
+ .../test-ebook-get-supported-auth-methods.c        |   6 +-
+ tests/libebook/test-ebook-get-supported-fields.c   |   6 +-
+ tests/libebook/test-ebook-remove-contact-by-id.c   |   6 +-
+ tests/libebook/test-ebook-remove-contact.c         |   6 +-
+ tests/libebook/test-ebook-remove-contacts.c        |   6 +-
+ tests/libecal/test-cal-client-add-timezone.c       |   2 +-
+ tests/libecal/test-cal-client-bulk-methods.c       |   2 +-
+ tests/libecal/test-cal-client-create-object.c      |   2 +-
+ .../libecal/test-cal-client-get-attachment-uris.c  |   2 +-
+ tests/libecal/test-cal-client-get-free-busy.c      |   2 +-
+ tests/libecal/test-cal-client-get-object-list.c    |   2 +-
+ tests/libecal/test-cal-client-get-revision.c       |   2 +-
+ tests/libecal/test-cal-client-get-view.c           |   2 +-
+ tests/libecal/test-cal-client-modify-object.c      |   2 +-
+ tests/libecal/test-cal-client-receive-objects.c    |   2 +-
+ tests/libecal/test-cal-client-refresh.c            |   2 +-
+ tests/libecal/test-cal-client-remove-object.c      |   2 +-
+ tests/libecal/test-cal-client-revision-view.c      |   2 +-
+ tests/libecal/test-cal-client-send-objects.c       |   2 +-
+ tests/libecal/test-cal-recur.c                     |   2 +-
+ tests/libedata-book/CMakeLists.txt                 |   6 +-
+ tests/libedata-book/data-test-utils.c              |  39 ++++---
+ tests/libedata-book/data-test-utils.h              |   3 +
+ .../libedata-book/test-book-cache-create-cursor.c  |   5 +-
+ .../test-book-cache-cursor-calculate.c             |   5 +-
+ .../test-book-cache-cursor-change-locale.c         |   5 +-
+ .../test-book-cache-cursor-move-by-de-DE.c         |   5 +-
+ .../test-book-cache-cursor-move-by-en-US.c         |   5 +-
+ .../test-book-cache-cursor-move-by-fr-CA.c         |   5 +-
+ .../test-book-cache-cursor-move-by-posix.c         |   5 +-
+ .../test-book-cache-cursor-set-sexp.c              |   5 +-
+ .../test-book-cache-cursor-set-target.c            |   5 +-
+ tests/libedata-book/test-book-cache-get-contact.c  |   5 +-
+ tests/libedata-book/test-book-cache-offline.c      |   5 +-
+ tests/libedata-book/test-book-cache-utils.c        |  39 ++++---
+ tests/libedata-book/test-book-cache-utils.h        |   3 +
+ tests/libedata-book/test-book-meta-backend.c       |   5 +-
+ tests/libedata-book/test-sqlite-create-cursor.c    |   5 +-
+ tests/libedata-book/test-sqlite-cursor-calculate.c |   5 +-
+ .../test-sqlite-cursor-change-locale.c             |   5 +-
+ .../test-sqlite-cursor-move-by-de-DE.c             |   5 +-
+ .../test-sqlite-cursor-move-by-en-US.c             |   5 +-
+ .../test-sqlite-cursor-move-by-fr-CA.c             |   5 +-
+ .../test-sqlite-cursor-move-by-posix.c             |   5 +-
+ tests/libedata-book/test-sqlite-cursor-set-sexp.c  |   5 +-
+ .../libedata-book/test-sqlite-cursor-set-target.c  |   5 +-
+ tests/libedata-book/test-sqlite-get-contact.c      |   5 +-
+ tests/libedata-cal/CMakeLists.txt                  |   6 +-
+ tests/libedata-cal/test-cal-cache-getters.c        |   5 +-
+ tests/libedata-cal/test-cal-cache-intervals.c      |   5 +-
+ tests/libedata-cal/test-cal-cache-offline.c        |   5 +-
+ tests/libedata-cal/test-cal-cache-search.c         |   5 +-
+ tests/libedata-cal/test-cal-cache-utils.c          |  39 ++++---
+ tests/libedata-cal/test-cal-cache-utils.h          |   3 +
+ tests/libedata-cal/test-cal-meta-backend.c         |   5 +-
+ tests/libedataserver/e-source-registry-test.c      |   2 +-
+ tests/libedataserver/libedataserver-test.c         |   2 +-
+ tests/test-server-utils/CMakeLists.txt             |  13 +--
+ tests/test-server-utils/e-test-server-utils.c      | 117 ++++++++++++++++-----
+ tests/test-server-utils/e-test-server-utils.h      |  11 +-
+ tests/test-server-utils/test-fixture.c             |   2 +-
+ 102 files changed, 523 insertions(+), 225 deletions(-)
+
+diff --git a/cmake/modules/CheckTarget.cmake b/cmake/modules/CheckTarget.cmake
+index 71824a9..85966e3 100644
+--- a/cmake/modules/CheckTarget.cmake
++++ b/cmake/modules/CheckTarget.cmake
+@@ -16,6 +16,6 @@ set(CMAKE_CTEST_COMMAND ${CMAKE_CTEST_COMMAND} -V)
+ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+ 
+ macro(add_check_test _name)
+-	add_test(NAME ${_name} COMMAND ${_name})
++	add_test(NAME ${_name} COMMAND ${_name} ${ARGN})
+ 	add_dependencies(check ${_name})
+ endmacro(add_check_test)
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index bba0428..b3359a8 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -48,7 +48,7 @@ endmacro(build_only_installable_test)
+ macro(add_installable_test _test_ident _sourcesvar _depsvar _defsvar _cflagsvar _incdirsvar _ldflagsvar _ittype _itenviron)
+ 	build_only_installable_test(${_test_ident} ${_sourcesvar} ${_depsvar} ${_defsvar} ${_cflagsvar} ${_incdirsvar} ${_ldflagsvar})
+ 
+-	add_check_test(${_test_ident})
++	add_check_test(${_test_ident} --build-dir "${CMAKE_BINARY_DIR}" ${ARGN})
+ 	install_test_if_enabled(${_test_ident} ${_ittype} ${_itenviron})
+ endmacro(add_installable_test)
+ 
+diff --git a/tests/book-migration/CMakeLists.txt b/tests/book-migration/CMakeLists.txt
+index 13e7585..b3508a7 100644
+--- a/tests/book-migration/CMakeLists.txt
++++ b/tests/book-migration/CMakeLists.txt
+@@ -55,7 +55,7 @@ foreach(_test ${TESTS})
+ 		extra_incdirs
+ 		extra_ldflags
+ 	)
+-	add_check_test(${_test})
++	add_check_test(${_test} --build-dir "${CMAKE_BINARY_DIR}")
+ 	if(HAVE_DB_LOAD)
+ 		add_dependencies(${_test} libdb-addressbooks)
+ 	endif(HAVE_DB_LOAD)
+diff --git a/tests/book-migration/setup-migration-test.c b/tests/book-migration/setup-migration-test.c
+index dbc830c..e484b0c 100644
+--- a/tests/book-migration/setup-migration-test.c
++++ b/tests/book-migration/setup-migration-test.c
+@@ -341,7 +341,7 @@ main (gint argc,
+ 			setup_migration_run,
+ 			e_test_server_utils_teardown);
+ 
+-		return e_test_server_utils_run ();
++		return e_test_server_utils_run (argc, argv);
+ #else
+ 		g_error (
+ 			"Requested sandboxed setup but that is not available until EDS 3.10, current version is %d.%d",
+diff --git a/tests/book-migration/test-migration.c b/tests/book-migration/test-migration.c
+index b7b40e2..40acc41 100644
+--- a/tests/book-migration/test-migration.c
++++ b/tests/book-migration/test-migration.c
+@@ -409,7 +409,6 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	GList *sandboxes, *l;
+-	gint ret;
+ 
+ #if !GLIB_CHECK_VERSION (2, 35, 1)
+ 	g_type_init ();
+@@ -433,7 +432,5 @@ main (gint argc,
+ 
+ 	g_list_free_full (sandboxes, g_free);
+ 
+-	ret = e_test_server_utils_run ();
+-
+-	return ret;
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/CMakeLists.txt b/tests/libebook/CMakeLists.txt
+index 0596acb..5a8e704 100644
+--- a/tests/libebook/CMakeLists.txt
++++ b/tests/libebook/CMakeLists.txt
+@@ -4,7 +4,6 @@ set(extra_deps
+ )
+ 
+ set(extra_defines
+-	-DSRCDIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+ 	-DINSTALLED_TEST_DIR=\"${INSTALLED_TESTS_EXEC_DIR}\"
+ )
+ 
+@@ -100,6 +99,7 @@ foreach(_test ${TESTS})
+ 		extra_ldflags
+ 		"session-exclusive"
+ 		"TEST_INSTALLED_SERVICES=1"
++		--data-dir "${CMAKE_CURRENT_SOURCE_DIR}/data/vcards"
+ 	)
+ endforeach(_test)
+ 
+diff --git a/tests/libebook/client/CMakeLists.txt b/tests/libebook/client/CMakeLists.txt
+index e484162..27d2df6 100644
+--- a/tests/libebook/client/CMakeLists.txt
++++ b/tests/libebook/client/CMakeLists.txt
+@@ -6,7 +6,6 @@ set(extra_deps
+ )
+ 
+ set(extra_defines
+-	-DSRCDIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+ 	-DINSTALLED_TEST_DIR=\"${INSTALLED_TESTS_EXEC_DIR}\"
+ )
+ 
+@@ -127,6 +126,7 @@ foreach(_test ${TESTS})
+ 		extra_ldflags
+ 		"session-exclusive"
+ 		"TEST_INSTALLED_SERVICES=1"
++		--data-dir "${CMAKE_CURRENT_SOURCE_DIR}/../data/vcards"
+ 	)
+ endforeach(_test)
+ 
+diff --git a/tests/libebook/client/client-test-utils.c b/tests/libebook/client/client-test-utils.c
+index f6ff536..975c6fc 100644
+--- a/tests/libebook/client/client-test-utils.c
++++ b/tests/libebook/client/client-test-utils.c
+@@ -27,6 +27,23 @@
+ 
+ #include "client-test-utils.h"
+ 
++static const gchar *args_data_dir = NULL;
++
++void
++client_test_utils_read_args (gint argc,
++			     gchar **argv)
++{
++	gint ii;
++
++	for (ii = 0; ii < argc; ii++) {
++		if (g_strcmp0 (argv[ii], "--data-dir") == 0) {
++			if (ii + 1 < argc)
++				args_data_dir = argv[ii + 1];
++			break;
++		}
++	}
++}
++
+ void
+ print_email (EContact *contact)
+ {
+@@ -61,10 +78,16 @@ new_vcard_from_test_case (const gchar *case_name)
+ 	/* In the case of installed tests, they run in ${pkglibexecdir}/installed-tests
+ 	 * and the vcards are installed in ${pkglibexecdir}/installed-tests/vcards
+ 	 */
+-	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL)
++	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL) {
+ 		filename = g_build_filename (INSTALLED_TEST_DIR, "vcards", case_filename, NULL);
+-	else
+-		filename = g_build_filename (SRCDIR, "..", "data", "vcards", case_filename, NULL);
++	} else {
++		if (!args_data_dir) {
++			g_warning ("Data directory not set, pass it with `--data-dir PATH`");
++			exit(1);
++		}
++
++		filename = g_build_filename (args_data_dir, case_filename, NULL);
++	}
+ 
+ 	file = g_file_new_for_path (filename);
+ 	if (!g_file_load_contents (file, NULL, &vcard, NULL, NULL, &error)) {
+diff --git a/tests/libebook/client/client-test-utils.h b/tests/libebook/client/client-test-utils.h
+index a7cbd48..2560425 100644
+--- a/tests/libebook/client/client-test-utils.h
++++ b/tests/libebook/client/client-test-utils.h
+@@ -25,6 +25,9 @@
+ 
+ #include <libebook/libebook.h>
+ 
++void	client_test_utils_read_args	(gint argc,
++					 gchar **argv);
++
+ void print_email (EContact *contact);
+ 
+ gboolean add_contact_from_test_case_verify (EBookClient *book_client, const gchar *case_name, EContact **contact);
+diff --git a/tests/libebook/client/test-book-client-add-and-get-async.c b/tests/libebook/client/test-book-client-add-and-get-async.c
+index 3267aad..aaabd6e 100644
+--- a/tests/libebook/client/test-book-client-add-and-get-async.c
++++ b/tests/libebook/client/test-book-client-add-and-get-async.c
+@@ -212,7 +212,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/AddAndGet/Async",
+@@ -222,5 +224,5 @@ main (gint argc,
+ 		test_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-add-and-get-sync.c b/tests/libebook/client/test-book-client-add-and-get-sync.c
+index 2c23990..2fb68c7 100644
+--- a/tests/libebook/client/test-book-client-add-and-get-sync.c
++++ b/tests/libebook/client/test-book-client-add-and-get-sync.c
+@@ -104,7 +104,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/AddAndGet/Sync",
+@@ -114,5 +116,5 @@ main (gint argc,
+ 		test_client,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-add-contact.c b/tests/libebook/client/test-book-client-add-contact.c
+index 6ce86f7..8f6375f 100644
+--- a/tests/libebook/client/test-book-client-add-contact.c
++++ b/tests/libebook/client/test-book-client-add-contact.c
+@@ -81,7 +81,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/AddContact/Sync",
+@@ -98,5 +100,5 @@ main (gint argc,
+ 		test_add_contact_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-cursor-create.c b/tests/libebook/client/test-book-client-cursor-create.c
+index d0243c3..b69d5bd 100644
+--- a/tests/libebook/client/test-book-client-cursor-create.c
++++ b/tests/libebook/client/test-book-client-cursor-create.c
+@@ -261,7 +261,9 @@ main (gint argc,
+ 	gint i, j;
+ 
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	for (i = 0; i < 2; i++) {
+ 
+@@ -295,5 +297,5 @@ main (gint argc,
+ 		}
+ 	}
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-cursor-operations.c b/tests/libebook/client/test-book-client-cursor-operations.c
+index 9063d3d..63845f0 100644
+--- a/tests/libebook/client/test-book-client-cursor-operations.c
++++ b/tests/libebook/client/test-book-client-cursor-operations.c
+@@ -2114,7 +2114,9 @@ main (gint argc,
+ 		test_regex = g_regex_new (test_filter, 0, 0, NULL);
+ 
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	for (i = 0; i < G_N_ELEMENTS (base_params); i++) {
+ 
+@@ -2769,5 +2771,5 @@ main (gint argc,
+ 		}
+ 	}
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-custom-summary.c b/tests/libebook/client/test-book-client-custom-summary.c
+index c9e7594..2654c2c 100644
+--- a/tests/libebook/client/test-book-client-custom-summary.c
++++ b/tests/libebook/client/test-book-client-custom-summary.c
+@@ -336,7 +336,7 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	GOptionContext *context;
+-	gint ret, i;
++	gint i;
+ 	SuiteType suites[] = {
+ 		{ search_test, FALSE, FALSE, "/EBookClient/Default/Search" },
+ 		{ uid_test,    FALSE, FALSE, "/EBookClient/Default/SearchUID" },
+@@ -358,7 +358,9 @@ main (gint argc,
+ 		test_regex = g_regex_new (test_filter, 0, 0, NULL);
+ 
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	/* Change environment so that the addressbook factory inherits this setting */
+ 	if (!g_setenv ("LC_ALL", "en_US.UTF-8", TRUE)) {
+@@ -1244,7 +1246,5 @@ main (gint argc,
+ 			FALSE);
+ 	}
+ 
+-	ret = e_test_server_utils_run ();
+-
+-	return ret;
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-e164-param.c b/tests/libebook/client/test-book-client-e164-param.c
+index f254bfe..c48a2cf 100644
+--- a/tests/libebook/client/test-book-client-e164-param.c
++++ b/tests/libebook/client/test-book-client-e164-param.c
+@@ -134,7 +134,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ #ifdef ENABLE_PHONENUMBER
+ 
+@@ -185,5 +187,5 @@ main (gint argc,
+ 
+ #endif /* ENABLE_PHONENUMBER */
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-get-contact-uids.c b/tests/libebook/client/test-book-client-get-contact-uids.c
+index d4d3bba..1653a7e 100644
+--- a/tests/libebook/client/test-book-client-get-contact-uids.c
++++ b/tests/libebook/client/test-book-client-get-contact-uids.c
+@@ -110,7 +110,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/GetContactUids/Sync",
+@@ -141,5 +143,5 @@ main (gint argc,
+ 		test_get_contact_uids_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-get-contact.c b/tests/libebook/client/test-book-client-get-contact.c
+index f38728a..ff23b55 100644
+--- a/tests/libebook/client/test-book-client-get-contact.c
++++ b/tests/libebook/client/test-book-client-get-contact.c
+@@ -85,7 +85,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/GetContact/Sync",
+@@ -116,5 +118,5 @@ main (gint argc,
+ 		test_get_contact_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-get-revision.c b/tests/libebook/client/test-book-client-get-revision.c
+index 83a5bcf..bf837e2 100644
+--- a/tests/libebook/client/test-book-client-get-revision.c
++++ b/tests/libebook/client/test-book-client-get-revision.c
+@@ -92,7 +92,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/GetRevision",
+@@ -102,5 +104,5 @@ main (gint argc,
+ 		test_get_revision,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-get-view.c b/tests/libebook/client/test-book-client-get-view.c
+index 0615d81..4a3ea4a 100644
+--- a/tests/libebook/client/test-book-client-get-view.c
++++ b/tests/libebook/client/test-book-client-get-view.c
+@@ -160,7 +160,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/GetBookClientView/Sync",
+@@ -191,5 +193,5 @@ main (gint argc,
+ 		test_get_view_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-modify-contact.c b/tests/libebook/client/test-book-client-modify-contact.c
+index 11a48b9..2759c33 100644
+--- a/tests/libebook/client/test-book-client-modify-contact.c
++++ b/tests/libebook/client/test-book-client-modify-contact.c
+@@ -146,7 +146,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/ModifyContact/Sync",
+@@ -163,5 +165,5 @@ main (gint argc,
+ 		test_modify_contact_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-photo-is-uri.c b/tests/libebook/client/test-book-client-photo-is-uri.c
+index 1f33c1a..077e15c 100644
+--- a/tests/libebook/client/test-book-client-photo-is-uri.c
++++ b/tests/libebook/client/test-book-client-photo-is-uri.c
+@@ -358,7 +358,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/PhotoIsUri",
+@@ -368,5 +370,5 @@ main (gint argc,
+ 		test_photo_is_uri,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-preserve-uid.c b/tests/libebook/client/test-book-client-preserve-uid.c
+index fa0aa4d..dd7360a 100644
+--- a/tests/libebook/client/test-book-client-preserve-uid.c
++++ b/tests/libebook/client/test-book-client-preserve-uid.c
+@@ -87,7 +87,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/AddContact/PreserveUid",
+@@ -104,5 +106,5 @@ main (gint argc,
+ 		test_uid_conflict,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-refresh.c b/tests/libebook/client/test-book-client-refresh.c
+index 397085a..ceeadfe 100644
+--- a/tests/libebook/client/test-book-client-refresh.c
++++ b/tests/libebook/client/test-book-client-refresh.c
+@@ -91,7 +91,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/Refresh/Sync",
+@@ -108,5 +110,5 @@ main (gint argc,
+ 		test_refresh_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-remove-contact-by-uid.c b/tests/libebook/client/test-book-client-remove-contact-by-uid.c
+index b333a8d..505efcb 100644
+--- a/tests/libebook/client/test-book-client-remove-contact-by-uid.c
++++ b/tests/libebook/client/test-book-client-remove-contact-by-uid.c
+@@ -107,7 +107,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/RemoveContactByUid/Sync",
+@@ -124,5 +126,5 @@ main (gint argc,
+ 		test_remove_contact_by_uid_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-remove-contact.c b/tests/libebook/client/test-book-client-remove-contact.c
+index 850be97..01828e2 100644
+--- a/tests/libebook/client/test-book-client-remove-contact.c
++++ b/tests/libebook/client/test-book-client-remove-contact.c
+@@ -129,7 +129,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	setlocale (LC_ALL, "en_US.UTF-8");
+ 
+@@ -166,5 +168,5 @@ main (gint argc,
+ 		test_remove_contact_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-remove-contacts.c b/tests/libebook/client/test-book-client-remove-contacts.c
+index d7ca105..3871e13 100644
+--- a/tests/libebook/client/test-book-client-remove-contacts.c
++++ b/tests/libebook/client/test-book-client-remove-contacts.c
+@@ -139,7 +139,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/RemoveContacts/Sync",
+@@ -156,5 +158,5 @@ main (gint argc,
+ 		test_remove_contacts_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-revision-view.c b/tests/libebook/client/test-book-client-revision-view.c
+index 9d1c588..51549a0 100644
+--- a/tests/libebook/client/test-book-client-revision-view.c
++++ b/tests/libebook/client/test-book-client-revision-view.c
+@@ -208,7 +208,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/RevisionView/Sync",
+@@ -225,5 +227,5 @@ main (gint argc,
+ 		test_revision_view_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-self.c b/tests/libebook/client/test-book-client-self.c
+index b146bbf..75e6923 100644
+--- a/tests/libebook/client/test-book-client-self.c
++++ b/tests/libebook/client/test-book-client-self.c
+@@ -103,7 +103,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/Self/Get",
+@@ -120,5 +122,5 @@ main (gint argc,
+ 		test_set_self,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-suppress-notifications.c b/tests/libebook/client/test-book-client-suppress-notifications.c
+index feff23a..5a6ba47 100644
+--- a/tests/libebook/client/test-book-client-suppress-notifications.c
++++ b/tests/libebook/client/test-book-client-suppress-notifications.c
+@@ -201,7 +201,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/SuppressNotifications/Sync",
+@@ -232,5 +234,5 @@ main (gint argc,
+ 		test_suppress_notifications_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-uid-only-view.c b/tests/libebook/client/test-book-client-uid-only-view.c
+index c40dbb0..8a3b2ec 100644
+--- a/tests/libebook/client/test-book-client-uid-only-view.c
++++ b/tests/libebook/client/test-book-client-uid-only-view.c
+@@ -294,7 +294,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookClient/UidOnlyView/Sync/AllData",
+@@ -326,5 +328,5 @@ main (gint argc,
+ 		test_get_view_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-view-operations.c b/tests/libebook/client/test-book-client-view-operations.c
+index 7ad3db4..a9a5453 100644
+--- a/tests/libebook/client/test-book-client-view-operations.c
++++ b/tests/libebook/client/test-book-client-view-operations.c
+@@ -384,7 +384,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	setlocale (LC_ALL, "en_US.UTF-8");
+ 
+@@ -417,5 +419,5 @@ main (gint argc,
+ 		test_concurrent_views_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/client/test-book-client-write-write.c b/tests/libebook/client/test-book-client-write-write.c
+index e31f52d..d87e0e5 100644
+--- a/tests/libebook/client/test-book-client-write-write.c
++++ b/tests/libebook/client/test-book-client-write-write.c
+@@ -319,7 +319,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	client_test_utils_read_args (argc, argv);
+ 
+ 	setlocale (LC_ALL, "en_US.UTF-8");
+ 
+@@ -331,5 +333,5 @@ main (gint argc,
+ 		test_concurrent_writes,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/ebook-test-utils.c b/tests/libebook/ebook-test-utils.c
+index 65e5d79..4078307 100644
+--- a/tests/libebook/ebook-test-utils.c
++++ b/tests/libebook/ebook-test-utils.c
+@@ -52,6 +52,23 @@ ebook_test_utils_callback_quit (gpointer user_data)
+ 	return FALSE;
+ }
+ 
++static const gchar *args_data_dir = NULL;
++
++void
++ebook_test_utils_read_args (gint argc,
++			    gchar **argv)
++{
++	gint ii;
++
++	for (ii = 0; ii < argc; ii++) {
++		if (g_strcmp0 (argv[ii], "--data-dir") == 0) {
++			if (ii + 1 < argc)
++				args_data_dir = argv[ii + 1];
++			break;
++		}
++	}
++}
++
+ gchar *
+ ebook_test_utils_new_vcard_from_test_case (const gchar *case_name)
+ {
+@@ -66,10 +83,16 @@ ebook_test_utils_new_vcard_from_test_case (const gchar *case_name)
+ 	/* In the case of installed tests, they run in ${pkglibexecdir}/installed-tests
+ 	 * and the vcards are installed in ${pkglibexecdir}/installed-tests/vcards
+ 	 */
+-	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL)
++	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL) {
+ 		filename = g_build_filename (INSTALLED_TEST_DIR, "vcards", case_filename, NULL);
+-	else
+-		filename = g_build_filename (SRCDIR, EBOOK_TEST_UTILS_DATA_DIR, EBOOK_TEST_UTILS_VCARDS_DIR, case_filename, NULL);
++	} else {
++		if (!args_data_dir) {
++			g_warning ("Data directory not set, pass it with `--data-dir PATH`");
++			exit(1);
++		}
++
++		filename = g_build_filename (args_data_dir, case_filename, NULL);
++	}
+ 
+ 	file = g_file_new_for_path (filename);
+ 	if (!g_file_load_contents (file, NULL, &vcard, NULL, NULL, &error)) {
+diff --git a/tests/libebook/ebook-test-utils.h b/tests/libebook/ebook-test-utils.h
+index e5ef8b6..e30b36d 100644
+--- a/tests/libebook/ebook-test-utils.h
++++ b/tests/libebook/ebook-test-utils.h
+@@ -22,9 +22,6 @@
+ 
+ #include <libebook/libebook.h>
+ 
+-#define EBOOK_TEST_UTILS_DATA_DIR "data"
+-#define EBOOK_TEST_UTILS_VCARDS_DIR "vcards"
+-
+ typedef struct {
+         GSourceFunc  cb;
+         gpointer     user_data;
+@@ -35,6 +32,9 @@ typedef struct {
+ void
+ test_print (const gchar *format,
+ 	    ...);
++void
++ebook_test_utils_read_args (gint argc,
++			    gchar **argv);
+ 
+ gboolean
+ ebook_test_utils_callback_quit (gpointer user_data);
+diff --git a/tests/libebook/test-ebook-add-contact.c b/tests/libebook/test-ebook-add-contact.c
+index ab8d546..aac6333 100644
+--- a/tests/libebook/test-ebook-add-contact.c
++++ b/tests/libebook/test-ebook-add-contact.c
+@@ -63,7 +63,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/AddContact/Sync",
+@@ -80,5 +82,5 @@ main (gint argc,
+ 		test_add_contact_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-commit-contact.c b/tests/libebook/test-ebook-commit-contact.c
+index a7dc89c..ed91f3f 100644
+--- a/tests/libebook/test-ebook-commit-contact.c
++++ b/tests/libebook/test-ebook-commit-contact.c
+@@ -114,7 +114,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/CommitContact/Sync",
+@@ -131,5 +133,5 @@ main (gint argc,
+ 		test_commit_contact_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-get-book-view.c b/tests/libebook/test-ebook-get-book-view.c
+index c4f33c0..91b4068 100644
+--- a/tests/libebook/test-ebook-get-book-view.c
++++ b/tests/libebook/test-ebook-get-book-view.c
+@@ -158,7 +158,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/GetBookView/Sync",
+@@ -175,5 +177,5 @@ main (gint argc,
+ 		test_get_book_view_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-get-contact.c b/tests/libebook/test-ebook-get-contact.c
+index df90267..8382fbc 100644
+--- a/tests/libebook/test-ebook-get-contact.c
++++ b/tests/libebook/test-ebook-get-contact.c
+@@ -61,7 +61,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/GetContact/Sync",
+@@ -78,5 +80,5 @@ main (gint argc,
+ 		test_get_contact_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-get-required-fields.c b/tests/libebook/test-ebook-get-required-fields.c
+index a5028cb..fa7b23e 100644
+--- a/tests/libebook/test-ebook-get-required-fields.c
++++ b/tests/libebook/test-ebook-get-required-fields.c
+@@ -87,7 +87,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/GetRequiredFields/Sync",
+@@ -104,5 +106,5 @@ main (gint argc,
+ 		test_get_required_fields_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-get-static-capabilities.c b/tests/libebook/test-ebook-get-static-capabilities.c
+index 7c2075f..2350db3 100644
+--- a/tests/libebook/test-ebook-get-static-capabilities.c
++++ b/tests/libebook/test-ebook-get-static-capabilities.c
+@@ -41,7 +41,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/GetStaticCapabilities/Sync",
+@@ -51,5 +53,5 @@ main (gint argc,
+ 		test_get_static_capabilities_sync,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-get-supported-auth-methods.c b/tests/libebook/test-ebook-get-supported-auth-methods.c
+index 07a5540..f9e6fab 100644
+--- a/tests/libebook/test-ebook-get-supported-auth-methods.c
++++ b/tests/libebook/test-ebook-get-supported-auth-methods.c
+@@ -111,7 +111,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/GetSupportedAuthMethods/Sync",
+@@ -128,5 +130,5 @@ main (gint argc,
+ 		test_get_supported_auth_methods_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-get-supported-fields.c b/tests/libebook/test-ebook-get-supported-fields.c
+index 919155d..7981164 100644
+--- a/tests/libebook/test-ebook-get-supported-fields.c
++++ b/tests/libebook/test-ebook-get-supported-fields.c
+@@ -89,7 +89,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/GetSupportedFields/Sync",
+@@ -106,5 +108,5 @@ main (gint argc,
+ 		test_get_supported_fields_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-remove-contact-by-id.c b/tests/libebook/test-ebook-remove-contact-by-id.c
+index e84a447..e6b48db 100644
+--- a/tests/libebook/test-ebook-remove-contact-by-id.c
++++ b/tests/libebook/test-ebook-remove-contact-by-id.c
+@@ -44,7 +44,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/RemoveContactById/Async",
+@@ -54,5 +56,5 @@ main (gint argc,
+ 		test_remove_contact_by_id_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-remove-contact.c b/tests/libebook/test-ebook-remove-contact.c
+index 90c9772..f5acb11 100644
+--- a/tests/libebook/test-ebook-remove-contact.c
++++ b/tests/libebook/test-ebook-remove-contact.c
+@@ -69,7 +69,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/RemoveContact/Sync",
+@@ -86,5 +88,5 @@ main (gint argc,
+ 		test_remove_contact_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libebook/test-ebook-remove-contacts.c b/tests/libebook/test-ebook-remove-contacts.c
+index 5e1f0aa..dd5ddb8 100644
+--- a/tests/libebook/test-ebook-remove-contacts.c
++++ b/tests/libebook/test-ebook-remove-contacts.c
+@@ -85,7 +85,9 @@ main (gint argc,
+       gchar **argv)
+ {
+ 	g_test_init (&argc, &argv, NULL);
+-	g_test_bug_base ("http://bugzilla.gnome.org/");
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	ebook_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBook/RemoveContacts/Sync",
+@@ -102,5 +104,5 @@ main (gint argc,
+ 		test_remove_contacts_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-add-timezone.c b/tests/libecal/test-cal-client-add-timezone.c
+index 7b7ecb6..7717382 100644
+--- a/tests/libecal/test-cal-client-add-timezone.c
++++ b/tests/libecal/test-cal-client-add-timezone.c
+@@ -163,5 +163,5 @@ main (gint argc,
+ 		test_add_timezone_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-bulk-methods.c b/tests/libecal/test-cal-client-bulk-methods.c
+index 6d0fe09..908f27d 100644
+--- a/tests/libecal/test-cal-client-bulk-methods.c
++++ b/tests/libecal/test-cal-client-bulk-methods.c
+@@ -403,5 +403,5 @@ main (gint argc,
+ 		run_test_bulk_methods_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-create-object.c b/tests/libecal/test-cal-client-create-object.c
+index 94cde4d..ee4c94b 100644
+--- a/tests/libecal/test-cal-client-create-object.c
++++ b/tests/libecal/test-cal-client-create-object.c
+@@ -271,5 +271,5 @@ main (gint argc,
+ 		test_create_object_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-get-attachment-uris.c b/tests/libecal/test-cal-client-get-attachment-uris.c
+index fcd7b04..bc9e03e 100644
+--- a/tests/libecal/test-cal-client-get-attachment-uris.c
++++ b/tests/libecal/test-cal-client-get-attachment-uris.c
+@@ -181,5 +181,5 @@ main (gint argc,
+ 		test_get_attachment_uris_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-get-free-busy.c b/tests/libecal/test-cal-client-get-free-busy.c
+index 0fbfce3..298d30a 100644
+--- a/tests/libecal/test-cal-client-get-free-busy.c
++++ b/tests/libecal/test-cal-client-get-free-busy.c
+@@ -258,5 +258,5 @@ main (gint argc,
+ 		test_get_free_busy_async,
+ 		teardown_fixture);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-get-object-list.c b/tests/libecal/test-cal-client-get-object-list.c
+index c4e31c4..828de0f 100644
+--- a/tests/libecal/test-cal-client-get-object-list.c
++++ b/tests/libecal/test-cal-client-get-object-list.c
+@@ -169,5 +169,5 @@ main (gint argc,
+ 		test_get_object_list_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-get-revision.c b/tests/libecal/test-cal-client-get-revision.c
+index bc3760e..9b38559 100644
+--- a/tests/libecal/test-cal-client-get-revision.c
++++ b/tests/libecal/test-cal-client-get-revision.c
+@@ -117,5 +117,5 @@ main (gint argc,
+ 		test_get_revision,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-get-view.c b/tests/libecal/test-cal-client-get-view.c
+index 7ce83a1..ea76a8c 100644
+--- a/tests/libecal/test-cal-client-get-view.c
++++ b/tests/libecal/test-cal-client-get-view.c
+@@ -246,5 +246,5 @@ main (gint argc,
+ 		test_get_view_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-modify-object.c b/tests/libecal/test-cal-client-modify-object.c
+index 0e31a90..91c2a39 100644
+--- a/tests/libecal/test-cal-client-modify-object.c
++++ b/tests/libecal/test-cal-client-modify-object.c
+@@ -166,5 +166,5 @@ main (gint argc,
+ 		test_modify_object_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-receive-objects.c b/tests/libecal/test-cal-client-receive-objects.c
+index ef74398..b7ee059 100644
+--- a/tests/libecal/test-cal-client-receive-objects.c
++++ b/tests/libecal/test-cal-client-receive-objects.c
+@@ -121,5 +121,5 @@ main (gint argc,
+ 		test_receive_objects_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-refresh.c b/tests/libecal/test-cal-client-refresh.c
+index dfc47c3..7e1fe88 100644
+--- a/tests/libecal/test-cal-client-refresh.c
++++ b/tests/libecal/test-cal-client-refresh.c
+@@ -130,5 +130,5 @@ main (gint argc,
+ 		test_refresh_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-remove-object.c b/tests/libecal/test-cal-client-remove-object.c
+index 274dae6..ac99e94 100644
+--- a/tests/libecal/test-cal-client-remove-object.c
++++ b/tests/libecal/test-cal-client-remove-object.c
+@@ -156,5 +156,5 @@ main (gint argc,
+ 		test_remove_object_empty_uid,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-revision-view.c b/tests/libecal/test-cal-client-revision-view.c
+index 9da57b1..64c95c6 100644
+--- a/tests/libecal/test-cal-client-revision-view.c
++++ b/tests/libecal/test-cal-client-revision-view.c
+@@ -321,5 +321,5 @@ main (gint argc,
+ 		test_get_revision_view_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-client-send-objects.c b/tests/libecal/test-cal-client-send-objects.c
+index c1b70ea..5b1edaa 100644
+--- a/tests/libecal/test-cal-client-send-objects.c
++++ b/tests/libecal/test-cal-client-send-objects.c
+@@ -181,5 +181,5 @@ main (gint argc,
+ 		test_send_objects_async,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libecal/test-cal-recur.c b/tests/libecal/test-cal-recur.c
+index 6948ac0..ccb8735 100644
+--- a/tests/libecal/test-cal-recur.c
++++ b/tests/libecal/test-cal-recur.c
+@@ -624,5 +624,5 @@ main (gint argc,
+ 		test_recur_duration,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/libedata-book/CMakeLists.txt b/tests/libedata-book/CMakeLists.txt
+index 8bcc6c1..98faf46 100644
+--- a/tests/libedata-book/CMakeLists.txt
++++ b/tests/libedata-book/CMakeLists.txt
+@@ -8,12 +8,7 @@ set(extra_deps
+ )
+ 
+ set(extra_defines
+-	-DSRCDIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+ 	-DINSTALLED_TEST_DIR=\"${INSTALLED_TESTS_EXEC_DIR}\"
+-	-DBACKENDDIR=\"${ebook_backenddir}\"
+-	-DDATADIR=\"${SHARE_INSTALL_PREFIX}\"
+-	-DBUILDDIR=\"${CAMKE_BINARY_DIR}\"
+-	-DCAMEL_PROVIDERDIR=\"${camel_providerdir}\"
+ )
+ 
+ set(extra_cflags
+@@ -132,6 +127,7 @@ foreach(_test ${TESTS})
+ 		extra_ldflags
+ 		"session-exclusive"
+ 		"TEST_INSTALLED_SERVICES=1"
++		--data-dir "${CMAKE_CURRENT_SOURCE_DIR}/../libebook/data/vcards"
+ 	)
+ endforeach(_test)
+ 
+diff --git a/tests/libedata-book/data-test-utils.c b/tests/libedata-book/data-test-utils.c
+index f562b5b..633771b 100644
+--- a/tests/libedata-book/data-test-utils.c
++++ b/tests/libedata-book/data-test-utils.c
+@@ -30,6 +30,23 @@
+ 
+ #include "data-test-utils.h"
+ 
++static const gchar *args_data_dir = NULL;
++
++void
++data_test_utils_read_args (gint argc,
++			   gchar **argv)
++{
++	gint ii;
++
++	for (ii = 0; ii < argc; ii++) {
++		if (g_strcmp0 (argv[ii], "--data-dir") == 0) {
++			if (ii + 1 < argc)
++				args_data_dir = argv[ii + 1];
++			break;
++		}
++	}
++}
++
+ gchar *
+ new_vcard_from_test_case (const gchar *case_name)
+ {
+@@ -44,10 +61,16 @@ new_vcard_from_test_case (const gchar *case_name)
+ 	/* In the case of installed tests, they run in ${pkglibexecdir}/installed-tests
+ 	 * and the vcards are installed in ${pkglibexecdir}/installed-tests/vcards
+ 	 */
+-	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL)
++	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL) {
+ 		filename = g_build_filename (INSTALLED_TEST_DIR, "vcards", case_filename, NULL);
+-	else
+-		filename = g_build_filename (SRCDIR, "..", "libebook", "data", "vcards", case_filename, NULL);
++	} else {
++		if (!args_data_dir) {
++			g_warning ("Data directory not set, pass it with `--data-dir PATH`");
++			exit(1);
++		}
++
++		filename = g_build_filename (args_data_dir, case_filename, NULL);
++	}
+ 
+ 	file = g_file_new_for_path (filename);
+ 	if (!g_file_load_contents (file, NULL, &vcard, NULL, NULL, &error))
+@@ -199,18 +222,8 @@ e_sqlite_fixture_setup (EbSqlFixture *fixture,
+ 	EbSqlClosure *closure = (EbSqlClosure *) user_data;
+ 	ESourceBackendSummarySetup *setup = NULL;
+ 	gchar  *filename, *directory;
+-	const gchar *provider_dir;
+ 	GError *error = NULL;
+ 
+-	provider_dir = g_getenv (EDS_CAMEL_PROVIDER_DIR);
+-	if (!provider_dir)
+-		provider_dir = CAMEL_PROVIDERDIR;
+-
+-	if (!g_file_test (provider_dir, G_FILE_TEST_IS_DIR | G_FILE_TEST_EXISTS)) {
+-		if (g_mkdir_with_parents (provider_dir, 0700) == -1)
+-			g_warning ("%s: Failed to create folder '%s': %s\n", G_STRFUNC, provider_dir, g_strerror (errno));
+-	}
+-
+ 	fixture->contacts =
+ 		g_hash_table_new_full (
+ 			g_str_hash,
+diff --git a/tests/libedata-book/data-test-utils.h b/tests/libedata-book/data-test-utils.h
+index e415101..d477909 100644
+--- a/tests/libedata-book/data-test-utils.h
++++ b/tests/libedata-book/data-test-utils.h
+@@ -63,6 +63,9 @@ G_BEGIN_DECLS
+  *     http://demo.icu-project.org/icu-bin/locexp?_=en_US&d_=en&x=col
+  */
+ 
++void	data_test_utils_read_args	(gint argc,
++					 gchar **argv);
++
+ /* 13 contacts in the test data have an email address ending with ".com" */
+ #define N_FILTERED_CONTACTS  13
+ #define N_SORTED_CONTACTS    20
+diff --git a/tests/libedata-book/test-book-cache-create-cursor.c b/tests/libedata-book/test-book-cache-create-cursor.c
+index 301a81f..78f0506 100644
+--- a/tests/libedata-book/test-book-cache-create-cursor.c
++++ b/tests/libedata-book/test-book-cache-create-cursor.c
+@@ -104,6 +104,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -122,5 +125,5 @@ main (gint argc,
+ 		"/EBookCacheCursor/Create/MissingSort", TCUFixture, &closure,
+ 		tcu_fixture_setup, test_create_cursor_missing_sort, tcu_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-cursor-calculate.c b/tests/libedata-book/test-book-cache-cursor-calculate.c
+index 8d32229..9520981 100644
+--- a/tests/libedata-book/test-book-cache-cursor-calculate.c
++++ b/tests/libedata-book/test-book-cache-cursor-calculate.c
+@@ -603,6 +603,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookCacheCursor/Calculate/Initial", TCUCursorFixture, &ascending_closure,
+@@ -692,5 +695,5 @@ main (gint argc,
+ 		test_cursor_calculate_descending_after_modification,
+ 		tcu_cursor_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-cursor-change-locale.c b/tests/libedata-book/test-book-cache-cursor-change-locale.c
+index ea88b8f..cce27a0 100644
+--- a/tests/libedata-book/test-book-cache-cursor-change-locale.c
++++ b/tests/libedata-book/test-book-cache-cursor-change-locale.c
+@@ -40,6 +40,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	for (ii = 0; ii < G_N_ELEMENTS (params); ii++) {
+ 
+@@ -99,5 +102,5 @@ main (gint argc,
+ 	}
+ 
+ 	/* On this case, we want to delete the work directory and start fresh */
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-cursor-move-by-de-DE.c b/tests/libedata-book/test-book-cache-cursor-move-by-de-DE.c
+index 673123c..200be96 100644
+--- a/tests/libedata-book/test-book-cache-cursor-move-by-de-DE.c
++++ b/tests/libedata-book/test-book-cache-cursor-move-by-de-DE.c
+@@ -40,6 +40,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	for (ii = 0; ii < G_N_ELEMENTS (params); ii++) {
+ 
+@@ -79,5 +82,5 @@ main (gint argc,
+ 		tcu_step_test_add (data, TRUE);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-cursor-move-by-en-US.c b/tests/libedata-book/test-book-cache-cursor-move-by-en-US.c
+index 7b88db0..7fbb97c 100644
+--- a/tests/libedata-book/test-book-cache-cursor-move-by-en-US.c
++++ b/tests/libedata-book/test-book-cache-cursor-move-by-en-US.c
+@@ -40,6 +40,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	for (ii = 0; ii < G_N_ELEMENTS (params); ii++) {
+ 
+@@ -97,5 +100,5 @@ main (gint argc,
+ 		tcu_step_test_add (data, FALSE);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-cursor-move-by-fr-CA.c b/tests/libedata-book/test-book-cache-cursor-move-by-fr-CA.c
+index 81cbe56..725574b 100644
+--- a/tests/libedata-book/test-book-cache-cursor-move-by-fr-CA.c
++++ b/tests/libedata-book/test-book-cache-cursor-move-by-fr-CA.c
+@@ -40,6 +40,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	for (ii = 0; ii < G_N_ELEMENTS (params); ii++) {
+ 
+@@ -79,5 +82,5 @@ main (gint argc,
+ 		tcu_step_test_add (data, TRUE);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-cursor-move-by-posix.c b/tests/libedata-book/test-book-cache-cursor-move-by-posix.c
+index b72c77b..5f791e3 100644
+--- a/tests/libedata-book/test-book-cache-cursor-move-by-posix.c
++++ b/tests/libedata-book/test-book-cache-cursor-move-by-posix.c
+@@ -40,6 +40,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	for (ii = 0; ii < G_N_ELEMENTS (params); ii++) {
+ 
+@@ -79,5 +82,5 @@ main (gint argc,
+ 		tcu_step_test_add (data, TRUE);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-cursor-set-sexp.c b/tests/libedata-book/test-book-cache-cursor-set-sexp.c
+index 108b122..f8a8e8b 100644
+--- a/tests/libedata-book/test-book-cache-cursor-set-sexp.c
++++ b/tests/libedata-book/test-book-cache-cursor-set-sexp.c
+@@ -140,6 +140,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EBookCacheCursor/SetSexp/CalculatePosition", TCUCursorFixture, &book_closure,
+@@ -152,5 +155,5 @@ main (gint argc,
+ 		test_cursor_sexp_and_step,
+ 		tcu_cursor_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-cursor-set-target.c b/tests/libedata-book/test-book-cache-cursor-set-target.c
+index ee6ba75..7e23fa5 100644
+--- a/tests/libedata-book/test-book-cache-cursor-set-target.c
++++ b/tests/libedata-book/test-book-cache-cursor-set-target.c
+@@ -193,6 +193,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	for (ii = 0; ii < G_N_ELEMENTS (closures); ii++) {
+ 		gchar *path;
+@@ -222,5 +225,5 @@ main (gint argc,
+ 		g_free (path);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-get-contact.c b/tests/libedata-book/test-book-cache-get-contact.c
+index e9e810a..7a36c0f 100644
+--- a/tests/libedata-book/test-book-cache-get-contact.c
++++ b/tests/libedata-book/test-book-cache-get-contact.c
+@@ -85,6 +85,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -96,5 +99,5 @@ main (gint argc,
+ 			tcu_fixture_setup, ii < 2 ? test_get_contact : test_search_boolean, tcu_fixture_teardown);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-offline.c b/tests/libedata-book/test-book-cache-offline.c
+index 745aa8e..f2460c5 100644
+--- a/tests/libedata-book/test-book-cache-offline.c
++++ b/tests/libedata-book/test-book-cache-offline.c
+@@ -1188,6 +1188,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -1218,5 +1221,5 @@ main (gint argc,
+ 	g_test_add ("/EBookCache/Offline/DeleteResync", TCUFixture, &closure,
+ 		tcu_fixture_setup, test_offline_delete_resync, tcu_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-book-cache-utils.c b/tests/libedata-book/test-book-cache-utils.c
+index b2589bc..6ff2945 100644
+--- a/tests/libedata-book/test-book-cache-utils.c
++++ b/tests/libedata-book/test-book-cache-utils.c
+@@ -30,6 +30,23 @@
+ 
+ #include "test-book-cache-utils.h"
+ 
++static const gchar *args_data_dir = NULL;
++
++void
++tcu_read_args (gint argc,
++	       gchar **argv)
++{
++	gint ii;
++
++	for (ii = 0; ii < argc; ii++) {
++		if (g_strcmp0 (argv[ii], "--data-dir") == 0) {
++			if (ii + 1 < argc)
++				args_data_dir = argv[ii + 1];
++			break;
++		}
++	}
++}
++
+ gchar *
+ tcu_new_vcard_from_test_case (const gchar *case_name)
+ {
+@@ -44,10 +61,16 @@ tcu_new_vcard_from_test_case (const gchar *case_name)
+ 	/* In the case of installed tests, they run in ${pkglibexecdir}/installed-tests
+ 	 * and the vcards are installed in ${pkglibexecdir}/installed-tests/vcards
+ 	 */
+-	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL)
++	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL) {
+ 		filename = g_build_filename (INSTALLED_TEST_DIR, "vcards", case_filename, NULL);
+-	else
+-		filename = g_build_filename (SRCDIR, "..", "libebook", "data", "vcards", case_filename, NULL);
++	} else {
++		if (!args_data_dir) {
++			g_warning ("Data directory not set, pass it with `--data-dir PATH`");
++			exit(1);
++		}
++
++		filename = g_build_filename (args_data_dir, case_filename, NULL);
++	}
+ 
+ 	file = g_file_new_for_path (filename);
+ 	if (!g_file_load_contents (file, NULL, &vcard, NULL, NULL, &error))
+@@ -172,18 +195,8 @@ tcu_fixture_setup (TCUFixture *fixture,
+ 	TCUClosure *closure = (TCUClosure *) user_data;
+ 	ESourceBackendSummarySetup *setup = NULL;
+ 	gchar *filename, *directory;
+-	const gchar *provider_dir;
+ 	GError *error = NULL;
+ 
+-	provider_dir = g_getenv (EDS_CAMEL_PROVIDER_DIR);
+-	if (!provider_dir)
+-		provider_dir = CAMEL_PROVIDERDIR;
+-
+-	if (!g_file_test (provider_dir, G_FILE_TEST_IS_DIR | G_FILE_TEST_EXISTS)) {
+-		if (g_mkdir_with_parents (provider_dir, 0700) == -1)
+-			g_warning ("%s: Failed to create folder '%s': %s\n", G_STRFUNC, provider_dir, g_strerror (errno));
+-	}
+-
+ 	/* Cleanup from last test */
+ 	directory = g_build_filename (g_get_tmp_dir (), "test-book-cache", NULL);
+ 	delete_work_directory (directory);
+diff --git a/tests/libedata-book/test-book-cache-utils.h b/tests/libedata-book/test-book-cache-utils.h
+index 4718665..52d99e1 100644
+--- a/tests/libedata-book/test-book-cache-utils.h
++++ b/tests/libedata-book/test-book-cache-utils.h
+@@ -63,6 +63,9 @@ G_BEGIN_DECLS
+  *     http://demo.icu-project.org/icu-bin/locexp?_=en_US&d_=en&x=col
+  */
+ 
++void	tcu_read_args	(gint argc,
++			 gchar **argv);
++
+ /* 13 contacts in the test data have an email address ending with ".com" */
+ #define N_FILTERED_CONTACTS  13
+ #define N_SORTED_CONTACTS    20
+diff --git a/tests/libedata-book/test-book-meta-backend.c b/tests/libedata-book/test-book-meta-backend.c
+index 8100575..39e765f 100644
+--- a/tests/libedata-book/test-book-meta-backend.c
++++ b/tests/libedata-book/test-book-meta-backend.c
+@@ -1861,12 +1861,15 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+ 	setlocale (LC_ALL, "");
+ 
+-	e_test_server_utils_prepare_run (0);
++	e_test_server_utils_prepare_run (argc, argv, 0);
+ 	e_test_server_utils_setup (&tsfixture, &tsclosure);
+ 
+ 	glob_registry = tsfixture.registry;
+diff --git a/tests/libedata-book/test-sqlite-create-cursor.c b/tests/libedata-book/test-sqlite-create-cursor.c
+index 61a78e9..3e740fc 100644
+--- a/tests/libedata-book/test-sqlite-create-cursor.c
++++ b/tests/libedata-book/test-sqlite-create-cursor.c
+@@ -104,6 +104,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -122,5 +125,5 @@ main (gint argc,
+ 		"/EbSqlCursor/Create/MissingSort", EbSqlFixture, &closure,
+ 		e_sqlite_fixture_setup, test_create_cursor_missing_sort, e_sqlite_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-cursor-calculate.c b/tests/libedata-book/test-sqlite-cursor-calculate.c
+index e853862..2f85647 100644
+--- a/tests/libedata-book/test-sqlite-cursor-calculate.c
++++ b/tests/libedata-book/test-sqlite-cursor-calculate.c
+@@ -612,6 +612,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EbSqlCursor/Calculate/Initial", EbSqlCursorFixture, &ascending_closure,
+@@ -701,5 +704,5 @@ main (gint argc,
+ 		test_cursor_calculate_descending_after_modification,
+ 		e_sqlite_cursor_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-cursor-change-locale.c b/tests/libedata-book/test-sqlite-cursor-change-locale.c
+index ae7947e..859857a 100644
+--- a/tests/libedata-book/test-sqlite-cursor-change-locale.c
++++ b/tests/libedata-book/test-sqlite-cursor-change-locale.c
+@@ -43,6 +43,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	for (i = 0; i < G_N_ELEMENTS (params); i++) {
+ 
+@@ -102,5 +105,5 @@ main (gint argc,
+ 	}
+ 
+ 	/* On this case, we want to delete the work directory and start afresh */
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-cursor-move-by-de-DE.c b/tests/libedata-book/test-sqlite-cursor-move-by-de-DE.c
+index 37d9c2b..2f1335b 100644
+--- a/tests/libedata-book/test-sqlite-cursor-move-by-de-DE.c
++++ b/tests/libedata-book/test-sqlite-cursor-move-by-de-DE.c
+@@ -43,6 +43,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	for (i = 0; i < G_N_ELEMENTS (params); i++) {
+ 
+@@ -82,5 +85,5 @@ main (gint argc,
+ 		step_test_add (data, TRUE);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-cursor-move-by-en-US.c b/tests/libedata-book/test-sqlite-cursor-move-by-en-US.c
+index 7123a93..fd3fbc3 100644
+--- a/tests/libedata-book/test-sqlite-cursor-move-by-en-US.c
++++ b/tests/libedata-book/test-sqlite-cursor-move-by-en-US.c
+@@ -43,6 +43,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	for (i = 0; i < G_N_ELEMENTS (params); i++) {
+ 
+@@ -100,5 +103,5 @@ main (gint argc,
+ 		step_test_add (data, FALSE);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-cursor-move-by-fr-CA.c b/tests/libedata-book/test-sqlite-cursor-move-by-fr-CA.c
+index 9653b64..e75b107 100644
+--- a/tests/libedata-book/test-sqlite-cursor-move-by-fr-CA.c
++++ b/tests/libedata-book/test-sqlite-cursor-move-by-fr-CA.c
+@@ -43,6 +43,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	for (i = 0; i < G_N_ELEMENTS (params); i++) {
+ 
+@@ -82,5 +85,5 @@ main (gint argc,
+ 		step_test_add (data, TRUE);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-cursor-move-by-posix.c b/tests/libedata-book/test-sqlite-cursor-move-by-posix.c
+index c77c5e5..9aef12c 100644
+--- a/tests/libedata-book/test-sqlite-cursor-move-by-posix.c
++++ b/tests/libedata-book/test-sqlite-cursor-move-by-posix.c
+@@ -43,6 +43,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	for (i = 0; i < G_N_ELEMENTS (params); i++) {
+ 
+@@ -82,5 +85,5 @@ main (gint argc,
+ 		step_test_add (data, TRUE);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-cursor-set-sexp.c b/tests/libedata-book/test-sqlite-cursor-set-sexp.c
+index 21957fd..5b1fb7c 100644
+--- a/tests/libedata-book/test-sqlite-cursor-set-sexp.c
++++ b/tests/libedata-book/test-sqlite-cursor-set-sexp.c
+@@ -139,6 +139,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	g_test_add (
+ 		"/EbSqlCursor/SetSexp/CalculatePosition", EbSqlCursorFixture, &book_closure,
+@@ -151,5 +154,5 @@ main (gint argc,
+ 		test_cursor_sexp_and_step,
+ 		e_sqlite_cursor_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-cursor-set-target.c b/tests/libedata-book/test-sqlite-cursor-set-target.c
+index a3d9e62..d95f211 100644
+--- a/tests/libedata-book/test-sqlite-cursor-set-target.c
++++ b/tests/libedata-book/test-sqlite-cursor-set-target.c
+@@ -201,6 +201,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	for (i = 0; i < G_N_ELEMENTS (closures); i++) {
+ 		gchar *path;
+@@ -230,5 +233,5 @@ main (gint argc,
+ 		g_free (path);
+ 	}
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-book/test-sqlite-get-contact.c b/tests/libedata-book/test-sqlite-get-contact.c
+index ab8e060..bd96557 100644
+--- a/tests/libedata-book/test-sqlite-get-contact.c
++++ b/tests/libedata-book/test-sqlite-get-contact.c
+@@ -94,6 +94,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	data_test_utils_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -104,5 +107,5 @@ main (gint argc,
+ 			paths[i], EbSqlFixture, &closures[i],
+ 			e_sqlite_fixture_setup, i < 4 ? test_get_contact : test_search_boolean, e_sqlite_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-cal/CMakeLists.txt b/tests/libedata-cal/CMakeLists.txt
+index b676fae..d1bf960 100644
+--- a/tests/libedata-cal/CMakeLists.txt
++++ b/tests/libedata-cal/CMakeLists.txt
+@@ -6,12 +6,7 @@ set(extra_deps
+ )
+ 
+ set(extra_defines
+-	-DSRCDIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+ 	-DINSTALLED_TEST_DIR=\"${INSTALLED_TESTS_EXEC_DIR}\"
+-	-DBACKENDDIR=\"${ecal_backenddir}\"
+-	-DDATADIR=\"${SHARE_INSTALL_PREFIX}\"
+-	-DBUILDDIR=\"${CAMKE_BINARY_DIR}\"
+-	-DCAMEL_PROVIDERDIR=\"${camel_providerdir}\"
+ )
+ 
+ set(extra_cflags
+@@ -98,6 +93,7 @@ foreach(_test ${TESTS})
+ 		extra_ldflags
+ 		"session-exclusive"
+ 		"TEST_INSTALLED_SERVICES=1"
++		--data-dir "${CMAKE_CURRENT_SOURCE_DIR}/components"
+ 	)
+ endforeach(_test)
+ 
+diff --git a/tests/libedata-cal/test-cal-cache-getters.c b/tests/libedata-cal/test-cal-cache-getters.c
+index 8c0a795..7d6906a 100644
+--- a/tests/libedata-cal/test-cal-cache-getters.c
++++ b/tests/libedata-cal/test-cal-cache-getters.c
+@@ -234,6 +234,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -244,5 +247,5 @@ main (gint argc,
+ 	g_test_add ("/ECalCache/Getters/All", TCUFixture, &closure_events,
+ 		tcu_fixture_setup, test_getters_all, tcu_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-cal/test-cal-cache-intervals.c b/tests/libedata-cal/test-cal-cache-intervals.c
+index 7daae20..ca60dd9 100644
+--- a/tests/libedata-cal/test-cal-cache-intervals.c
++++ b/tests/libedata-cal/test-cal-cache-intervals.c
+@@ -346,6 +346,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -354,5 +357,5 @@ main (gint argc,
+ 	g_test_add ("/ECalCache/Intervals", TCUFixture, NULL,
+ 		tcu_fixture_setup, test_intervals, tcu_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-cal/test-cal-cache-offline.c b/tests/libedata-cal/test-cal-cache-offline.c
+index 85489b9..ce17ade 100644
+--- a/tests/libedata-cal/test-cal-cache-offline.c
++++ b/tests/libedata-cal/test-cal-cache-offline.c
+@@ -1095,6 +1095,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -1125,5 +1128,5 @@ main (gint argc,
+ 	g_test_add ("/ECalCache/Offline/DeleteResync", TCUFixture, &closure,
+ 		tcu_fixture_setup, test_offline_delete_resync, tcu_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-cal/test-cal-cache-search.c b/tests/libedata-cal/test-cal-cache-search.c
+index ccf34f7..1243f1d 100644
+--- a/tests/libedata-cal/test-cal-cache-search.c
++++ b/tests/libedata-cal/test-cal-cache-search.c
+@@ -439,6 +439,9 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+@@ -485,5 +488,5 @@ main (gint argc,
+ 	g_test_add ("/ECalCache/Search/StartsBefore", TCUFixture, &closure_tasks,
+ 		tcu_fixture_setup, test_search_starts_before, tcu_fixture_teardown);
+ 
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+diff --git a/tests/libedata-cal/test-cal-cache-utils.c b/tests/libedata-cal/test-cal-cache-utils.c
+index e497ee4..8cd3807 100644
+--- a/tests/libedata-cal/test-cal-cache-utils.c
++++ b/tests/libedata-cal/test-cal-cache-utils.c
+@@ -27,6 +27,23 @@
+ 
+ #include "test-cal-cache-utils.h"
+ 
++static const gchar *args_data_dir = NULL;
++
++void
++tcu_read_args (gint argc,
++	       gchar **argv)
++{
++	gint ii;
++
++	for (ii = 0; ii < argc; ii++) {
++		if (g_strcmp0 (argv[ii], "--data-dir") == 0) {
++			if (ii + 1 < argc)
++				args_data_dir = argv[ii + 1];
++			break;
++		}
++	}
++}
++
+ static void
+ delete_work_directory (const gchar *filename)
+ {
+@@ -60,18 +77,8 @@ tcu_fixture_setup (TCUFixture *fixture,
+ {
+ 	const TCUClosure *closure = user_data;
+ 	gchar *filename, *directory;
+-	const gchar *provider_dir;
+ 	GError *error = NULL;
+ 
+-	provider_dir = g_getenv (EDS_CAMEL_PROVIDER_DIR);
+-	if (!provider_dir)
+-		provider_dir = CAMEL_PROVIDERDIR;
+-
+-	if (!g_file_test (provider_dir, G_FILE_TEST_IS_DIR | G_FILE_TEST_EXISTS)) {
+-		if (g_mkdir_with_parents (provider_dir, 0700) == -1)
+-			g_warning ("%s: Failed to create folder '%s': %s\n", G_STRFUNC, provider_dir, g_strerror (errno));
+-	}
+-
+ 	/* Cleanup from last test */
+ 	directory = g_build_filename (g_get_tmp_dir (), "test-cal-cache", NULL);
+ 	delete_work_directory (directory);
+@@ -129,10 +136,16 @@ tcu_get_test_case_filename (const gchar *case_name)
+ 	/* In the case of installed tests, they run in ${pkglibexecdir}/installed-tests
+ 	 * and the components are installed in ${pkglibexecdir}/installed-tests/components
+ 	 */
+-	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL)
++	if (g_getenv ("TEST_INSTALLED_SERVICES") != NULL) {
+ 		filename = g_build_filename (INSTALLED_TEST_DIR, "components", case_filename, NULL);
+-	else
+-		filename = g_build_filename (SRCDIR, "..", "libedata-cal", "components", case_filename, NULL);
++	} else {
++		if (!args_data_dir) {
++			g_warning ("Data directory not set, pass it with `--data-dir PATH`");
++			exit(1);
++		}
++
++		filename = g_build_filename (args_data_dir, case_filename, NULL);
++	}
+ 
+ 	g_free (case_filename);
+ 
+diff --git a/tests/libedata-cal/test-cal-cache-utils.h b/tests/libedata-cal/test-cal-cache-utils.h
+index 0107b9d..7d62148 100644
+--- a/tests/libedata-cal/test-cal-cache-utils.h
++++ b/tests/libedata-cal/test-cal-cache-utils.h
+@@ -22,6 +22,9 @@
+ 
+ G_BEGIN_DECLS
+ 
++void		tcu_read_args				(gint argc,
++							 gchar **argv);
++
+ typedef enum {
+ 	TCU_LOAD_COMPONENT_SET_NONE,
+ 	TCU_LOAD_COMPONENT_SET_EVENTS,
+diff --git a/tests/libedata-cal/test-cal-meta-backend.c b/tests/libedata-cal/test-cal-meta-backend.c
+index 83dc6e1..2b19f88 100644
+--- a/tests/libedata-cal/test-cal-meta-backend.c
++++ b/tests/libedata-cal/test-cal-meta-backend.c
+@@ -3897,12 +3897,15 @@ main (gint argc,
+ 	g_type_init ();
+ #endif
+ 	g_test_init (&argc, &argv, NULL);
++	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
++
++	tcu_read_args (argc, argv);
+ 
+ 	/* Ensure that the client and server get the same locale */
+ 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
+ 	setlocale (LC_ALL, "");
+ 
+-	e_test_server_utils_prepare_run (0);
++	e_test_server_utils_prepare_run (argc, argv, 0);
+ 	e_test_server_utils_setup (&tsfixture, &tsclosure);
+ 
+ 	glob_registry = tsfixture.registry;
+diff --git a/tests/libedataserver/e-source-registry-test.c b/tests/libedataserver/e-source-registry-test.c
+index 0075d1b..27287c2 100644
+--- a/tests/libedataserver/e-source-registry-test.c
++++ b/tests/libedataserver/e-source-registry-test.c
+@@ -154,7 +154,7 @@ main (gint argc,
+ 		test_remove_source,
+ 		e_test_server_utils_teardown);
+ 
+-	retval = e_test_server_utils_run ();
++	retval = e_test_server_utils_run (argc, argv);
+ 
+ 	/* XXX Something is leaking a GDBusConnection reference.
+ 	 *     Leave this disabled until I can track it down. */
+diff --git a/tests/libedataserver/libedataserver-test.c b/tests/libedataserver/libedataserver-test.c
+index c3c225b..084c42c 100644
+--- a/tests/libedataserver/libedataserver-test.c
++++ b/tests/libedataserver/libedataserver-test.c
+@@ -93,5 +93,5 @@ main (gint argc,
+ 		test_webdav_href_compare,
+ 		e_test_server_utils_teardown);
+ 
+-	return e_test_server_utils_run ();
++	return e_test_server_utils_run (argc, argv);
+ }
+diff --git a/tests/test-server-utils/CMakeLists.txt b/tests/test-server-utils/CMakeLists.txt
+index 3338019..9c574ad 100644
+--- a/tests/test-server-utils/CMakeLists.txt
++++ b/tests/test-server-utils/CMakeLists.txt
+@@ -10,18 +10,7 @@ set(extra_deps
+ 	ecal
+ )
+ 
+-set(extra_defines
+-	-DEDS_TEST_DBUS_SERVICE_DIR=\"${CMAKE_BINARY_DIR}/tests/test-server-utils/services\"
+-	-DEDS_TEST_WORK_DIR=\"${CMAKE_BINARY_DIR}/tests/test-server-utils/cache\"
+-	-DEDS_TEST_SCHEMA_DIR=\"${CMAKE_BINARY_DIR}/data\"
+-	-DEDS_TEST_ADDRESS_BOOK_DIR=\"${CMAKE_BINARY_DIR}/src/addressbook/backends/file\"
+-	-DEDS_TEST_CALENDAR_DIR=\"${CMAKE_BINARY_DIR}/src/calendar/backends/file\"
+-	-DEDS_TEST_REGISTRY_DIR=\"${CMAKE_BINARY_DIR}/src/modules/cache-reaper\"
+-	-DEDS_TEST_CAMEL_DIR=\"${CMAKE_BINARY_DIR}/src/camel/providers/local\"
+-	-DEDS_TEST_SUBPROCESS_CAL_PATH=\"${CMAKE_BINARY_DIR}/src/calendar/libedata-cal/evolution-calendar-factory-subprocess\"
+-	-DEDS_TEST_SUBPROCESS_BOOK_PATH=\"${CMAKE_BINARY_DIR}/src/addressbook/libedata-book/evolution-addressbook-factory-subprocess\"
+-	-DEDS_TEST_TOP_BUILD_DIR=\"${CMAKE_BINARY_DIR}/src\"
+-)
++set(extra_defines)
+ 
+ set(extra_cflags
+ 	${ADDRESSBOOK_CFLAGS}
+diff --git a/tests/test-server-utils/e-test-server-utils.c b/tests/test-server-utils/e-test-server-utils.c
+index 37ca5fb..ec60910 100644
+--- a/tests/test-server-utils/e-test-server-utils.c
++++ b/tests/test-server-utils/e-test-server-utils.c
+@@ -240,12 +240,60 @@ generate_source_name (void)
+ 	return source_name;
+ }
+ 
++static const gchar *args_build_dir = NULL;
++
++static void
++eds_test_utils_read_args (gint argc,
++			  gchar *argv[])
++{
++	gint ii;
++
++	for (ii = 0; ii < argc; ii++) {
++		if (g_strcmp0 (argv[ii], "--build-dir") == 0) {
++			if (ii + 1 < argc)
++				args_build_dir = argv[ii + 1];
++			break;
++		}
++	}
++
++	g_assert_nonnull (args_build_dir);
++	g_assert (g_file_test (args_build_dir, G_FILE_TEST_IS_DIR));
++}
++
++#define EDS_TEST_WORK_DIR_SUFFIX "tests/test-server-utils/cache"
++#define EDS_TEST_DBUS_SERVICE_DIR_SUFFIX  "tests/test-server-utils/services"
++
++static gchar *
++eds_test_utils_create_build_path (const gchar *suffix)
++{
++	g_assert_nonnull (args_build_dir);
++	g_assert_nonnull (suffix);
++
++	return g_strconcat (args_build_dir, G_DIR_SEPARATOR_S, suffix, NULL);
++}
++
++static void
++eds_test_utils_setenv (const gchar *envvar,
++		       const gchar *suffix)
++{
++	gchar *path;
++
++	path = eds_test_utils_create_build_path (suffix);
++
++	g_assert (g_setenv (envvar, path, TRUE));
++
++	g_free (path);
++}
++
+ static void
+-setup_environment (void)
++setup_environment (gint argc,
++		   gchar *argv[])
+ {
+ 	GString *libs_dir;
+ 	const gchar *libs_dir_env;
+ 
++	eds_test_utils_read_args (argc, argv);
++
+ 	libs_dir_env = g_getenv ("LD_LIBRARY_PATH");
+ 
+ 	libs_dir = g_string_new ("");
+@@ -253,7 +301,7 @@ setup_environment (void)
+ 	#define add_lib_path(x) G_STMT_START { \
+ 		if (libs_dir->len) \
+ 			g_string_append_c (libs_dir, ':'); \
+-		g_string_append_printf (libs_dir, EDS_TEST_TOP_BUILD_DIR x); \
++		g_string_append_printf (libs_dir, "%s" G_DIR_SEPARATOR_S "%s", args_build_dir, x); \
+ 		} G_STMT_END
+ 
+ 	add_lib_path ("/addressbook/libebook");
+@@ -277,16 +325,16 @@ setup_environment (void)
+ 	}
+ 
+ 	g_assert (g_setenv ("LD_LIBRARY_PATH", libs_dir->str, TRUE));
+-	g_assert (g_setenv ("XDG_DATA_HOME", EDS_TEST_WORK_DIR, TRUE));
+-	g_assert (g_setenv ("XDG_CACHE_HOME", EDS_TEST_WORK_DIR, TRUE));
+-	g_assert (g_setenv ("XDG_CONFIG_HOME", EDS_TEST_WORK_DIR, TRUE));
+-	g_assert (g_setenv ("GSETTINGS_SCHEMA_DIR", EDS_TEST_SCHEMA_DIR, TRUE));
+-	g_assert (g_setenv ("EDS_CALENDAR_MODULES", EDS_TEST_CALENDAR_DIR, TRUE));
+-	g_assert (g_setenv ("EDS_ADDRESS_BOOK_MODULES", EDS_TEST_ADDRESS_BOOK_DIR, TRUE));
+-	g_assert (g_setenv ("EDS_REGISTRY_MODULES", EDS_TEST_REGISTRY_DIR, TRUE));
+-	g_assert (g_setenv ("EDS_CAMEL_PROVIDER_DIR", EDS_TEST_CAMEL_DIR, TRUE));
+-	g_assert (g_setenv ("EDS_SUBPROCESS_CAL_PATH", EDS_TEST_SUBPROCESS_CAL_PATH, TRUE));
+-	g_assert (g_setenv ("EDS_SUBPROCESS_BOOK_PATH", EDS_TEST_SUBPROCESS_BOOK_PATH, TRUE));
++	eds_test_utils_setenv ("XDG_DATA_HOME", EDS_TEST_WORK_DIR_SUFFIX);
++	eds_test_utils_setenv ("XDG_CACHE_HOME", EDS_TEST_WORK_DIR_SUFFIX);
++	eds_test_utils_setenv ("XDG_CONFIG_HOME", EDS_TEST_WORK_DIR_SUFFIX);
++	eds_test_utils_setenv ("GSETTINGS_SCHEMA_DIR", "data");
++	eds_test_utils_setenv ("EDS_CALENDAR_MODULES", "src/calendar/backends/file");
++	eds_test_utils_setenv ("EDS_ADDRESS_BOOK_MODULES", "src/addressbook/backends/file");
++	eds_test_utils_setenv ("EDS_REGISTRY_MODULES", "src/modules/cache-reaper");
++	eds_test_utils_setenv ("EDS_CAMEL_PROVIDER_DIR", "src/camel/providers/local");
++	eds_test_utils_setenv ("EDS_SUBPROCESS_CAL_PATH", "src/calendar/libedata-cal/evolution-calendar-factory-subprocess");
++	eds_test_utils_setenv ("EDS_SUBPROCESS_BOOK_PATH", "src/addressbook/libedata-book/evolution-addressbook-factory-subprocess");
+ 	g_assert (g_setenv ("GIO_USE_VFS", "local", TRUE));
+ 	g_assert (g_setenv ("EDS_TESTING", "1", TRUE));
+ 	g_assert (g_setenv ("GSETTINGS_BACKEND", "memory", TRUE));
+@@ -306,7 +354,8 @@ delete_work_directory (void)
+ 	 * corrupting our contained D-Bus environment with service files
+ 	 * from the OS.
+ 	 */
+-	const gchar *argv[] = { "/bin/rm", "-rf", EDS_TEST_WORK_DIR, NULL };
++	gchar *workdir = eds_test_utils_create_build_path (EDS_TEST_WORK_DIR_SUFFIX);
++	const gchar *argv[] = { "/bin/rm", "-rf", workdir, NULL };
+ 	gboolean spawn_succeeded;
+ 	gint exit_status;
+ 
+@@ -321,6 +370,8 @@ delete_work_directory (void)
+ 	#else
+ 	g_assert_cmpint (exit_status, ==, 0);
+ 	#endif
++
++	g_free (workdir);
+ }
+ 
+ static gboolean
+@@ -634,8 +685,13 @@ e_test_server_utils_setup (ETestServerFixture *fixture,
+ 	FixturePair         pair = { fixture, closure, 0 };
+ 
+ 	/* Create work directory */
+-	if (!test_installed_services ())
+-		g_assert (g_mkdir_with_parents (EDS_TEST_WORK_DIR, 0755) == 0);
++	if (!test_installed_services ()) {
++		gchar *workdir = eds_test_utils_create_build_path (EDS_TEST_WORK_DIR_SUFFIX);
++
++		g_assert (g_mkdir_with_parents (workdir, 0755) == 0);
++
++		g_free (workdir);
++	}
+ 
+ 	/* Init refs */
+ 	g_weak_ref_init (&fixture->registry_ref, NULL);
+@@ -645,14 +701,18 @@ e_test_server_utils_setup (ETestServerFixture *fixture,
+ 
+ 	if (!test_installed_services ()) {
+ #if !GLOBAL_DBUS_DAEMON
++		gchar *servicedir = eds_test_utils_create_build_path (EDS_TEST_DBUS_SERVICE_DIR_SUFFIX);
++
+ 		/* Create the global dbus-daemon for this test suite */
+ 		fixture->dbus = g_test_dbus_new (G_TEST_DBUS_NONE);
+ 
+ 		/* Add the private directory with our in-tree service files */
+-		g_test_dbus_add_service_dir (fixture->dbus, EDS_TEST_DBUS_SERVICE_DIR);
++		g_test_dbus_add_service_dir (fixture->dbus, servicedir);
+ 
+ 		/* Start the private D-Bus daemon */
+ 		g_test_dbus_up (fixture->dbus);
++
++		g_free (servicedir);
+ #else
+ 		fixture->dbus = global_test_dbus;
+ #endif
+@@ -780,33 +840,40 @@ e_test_server_utils_teardown (ETestServerFixture *fixture,
+ }
+ 
+ gint
+-e_test_server_utils_run (void)
++e_test_server_utils_run (gint argc,
++			 gchar *argv[])
+ {
+-	return e_test_server_utils_run_full (0);
++	return e_test_server_utils_run_full (argc, argv, 0);
+ }
+ 
+ void
+-e_test_server_utils_prepare_run (ETestServerFlags flags)
++e_test_server_utils_prepare_run (gint argc,
++				 gchar *argv[],
++				 ETestServerFlags flags)
+ {
+ 	/* Cleanup work directory */
+ 	if (!test_installed_services ()) {
++		/* Do this first, to have 'args_build_dir' set */
++		setup_environment (argc, argv);
+ 
+ 		if ((flags & E_TEST_SERVER_KEEP_WORK_DIRECTORY) == 0)
+ 			delete_work_directory ();
+-
+-		setup_environment ();
+ 	}
+ 
+ #if GLOBAL_DBUS_DAEMON
+ 	if (!test_installed_services ()) {
++		gchar *servicedir = eds_test_utils_create_build_path (EDS_TEST_DBUS_SERVICE_DIR_SUFFIX);
++
+ 		/* Create the global dbus-daemon for this test suite */
+ 		global_test_dbus = g_test_dbus_new (G_TEST_DBUS_NONE);
+ 
+ 		/* Add the private directory with our in-tree service files */
+-		g_test_dbus_add_service_dir (global_test_dbus, EDS_TEST_DBUS_SERVICE_DIR);
++		g_test_dbus_add_service_dir (global_test_dbus, servicedir);
+ 
+ 		/* Start the private D-Bus daemon */
+ 		g_test_dbus_up (global_test_dbus);
++
++		g_free (servicedir);
+ 	}
+ #endif
+ }
+@@ -825,11 +892,13 @@ e_test_server_utils_finish_run (void)
+ }
+ 
+ gint
+-e_test_server_utils_run_full (ETestServerFlags flags)
++e_test_server_utils_run_full (gint argc,
++			      gchar *argv[],
++			      ETestServerFlags flags)
+ {
+ 	gint tests_ret;
+ 
+-	e_test_server_utils_prepare_run (flags);
++	e_test_server_utils_prepare_run (argc, argv, flags);
+ 
+ 	/* Run the GTest suite */
+ 	tests_ret = g_test_run ();
+diff --git a/tests/test-server-utils/e-test-server-utils.h b/tests/test-server-utils/e-test-server-utils.h
+index f6b5f1c..0d09eaa 100644
+--- a/tests/test-server-utils/e-test-server-utils.h
++++ b/tests/test-server-utils/e-test-server-utils.h
+@@ -155,9 +155,14 @@ void e_test_server_utils_setup    (ETestServerFixture *fixture,
+ void e_test_server_utils_teardown (ETestServerFixture *fixture,
+ 				   gconstpointer       user_data);
+ 
+-gint e_test_server_utils_run      (void);
+-gint e_test_server_utils_run_full (ETestServerFlags flags);
+-void e_test_server_utils_prepare_run (ETestServerFlags flags);
++gint e_test_server_utils_run      (gint argc,
++				   gchar *argv[]);
++gint e_test_server_utils_run_full (gint argc,
++				   gchar *argv[],
++				   ETestServerFlags flags);
++void e_test_server_utils_prepare_run (gint argc,
++				      gchar *argv[],
++				      ETestServerFlags flags);
+ void e_test_server_utils_finish_run (void);
+ 
+ #endif /* E_TEST_UTILS_H */
+diff --git a/tests/test-server-utils/test-fixture.c b/tests/test-server-utils/test-fixture.c
+index f1b1712..d8d7f7d 100644
+--- a/tests/test-server-utils/test-fixture.c
++++ b/tests/test-server-utils/test-fixture.c
+@@ -98,7 +98,7 @@ main (gint argc,
+ 			e_test_server_utils_teardown);
+ 	}
+ 
+-	ret = e_test_server_utils_run ();
++	ret = e_test_server_utils_run (argc, argv);
+ 
+ 	for (i = 0; i < N_CYCLES; i++) {
+ 		g_free (registry_keys[i]);
