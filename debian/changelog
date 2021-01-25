@@ -1,10 +1,10 @@
-evolution-data-server (3.38.3-1) UNRELEASED; urgency=medium
+evolution-data-server (3.38.3-1) unstable; urgency=medium
 
   * New upstream release
   * debian/libebackend-1.2-10.symbols:
     - updated for the new version
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 25 Jan 2021 16:49:24 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 25 Jan 2021 17:06:37 +0100
 
 evolution-data-server (3.38.2-2) unstable; urgency=medium
 
