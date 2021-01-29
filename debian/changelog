@@ -1,8 +1,14 @@
 evolution-data-server (3.38.3-1) unstable; urgency=medium
 
+  [ Sebastien Bacher ]
   * New upstream release
   * debian/libebackend-1.2-10.symbols:
     - updated for the new version
+
+  [ Laurent Bigonville ]
+  * Stop hardcoding the build path in EDataServer-1.2.gir and make
+    libedataserver1.2-dev MA co-installable
+  * Try to make evolution-data-server-tests reproductible, patch from upstream
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 25 Jan 2021 17:06:37 +0100
 
