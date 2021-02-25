@@ -456,7 +456,7 @@ e_cal_meta_backend_test_save_component_sync (ECalMetaBackend *meta_backend,
 					     EConflictResolution conflict_resolution,
 					     const GSList *instances,
 					     const gchar *extra,
-					     guint32 opflags,
+					     ECalOperationFlags opflags,
 					     gchar **out_new_uid,
 					     gchar **out_new_extra,
 					     GCancellable *cancellable,
@@ -576,7 +576,7 @@ e_cal_meta_backend_test_remove_component_sync (ECalMetaBackend *meta_backend,
 					       const gchar *uid,
 					       const gchar *extra,
 					       const gchar *object,
-					       guint32 opflags,
+					       ECalOperationFlags opflags,
 					       GCancellable *cancellable,
 					       GError **error)
 {
@@ -3897,12 +3897,15 @@ main (gint argc,
 	g_type_init ();
 #endif
 	g_test_init (&argc, &argv, NULL);
+	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
+
+	tcu_read_args (argc, argv);
 
 	/* Ensure that the client and server get the same locale */
 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
 	setlocale (LC_ALL, "");
 
-	e_test_server_utils_prepare_run (0);
+	e_test_server_utils_prepare_run (argc, argv, 0);
 	e_test_server_utils_setup (&tsfixture, &tsclosure);
 
 	glob_registry = tsfixture.registry;

@@ -609,10 +609,7 @@ collection_backend_forget_new_sources (ECollectionBackend *backend)
 
 	g_mutex_lock (&backend->priv->unclaimed_resources_lock);
 
-	if (backend->priv->new_sources) {
-		g_hash_table_destroy (backend->priv->new_sources);
-		backend->priv->new_sources = NULL;
-	}
+	g_clear_pointer (&backend->priv->new_sources, g_hash_table_destroy);
 
 	g_mutex_unlock (&backend->priv->unclaimed_resources_lock);
 }
@@ -2094,7 +2091,7 @@ e_collection_backend_thaw_populate (ECollectionBackend *backend)
  * Returns: %TRUE, when at least one of the @parts is enabled and
  *    the backend's #ESource is enabled as well.
  *
- * Since: 3.38.3
+ * Since: 3.40
  **/
 gboolean
 e_collection_backend_get_part_enabled (ECollectionBackend *backend,

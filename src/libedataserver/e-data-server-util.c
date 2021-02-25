@@ -33,14 +33,18 @@
 #include <glib-object.h>
 
 #include "e-source.h"
+#include "e-source-address-book.h"
 #include "e-source-authentication.h"
 #include "e-source-backend.h"
+#include "e-source-calendar.h"
 #include "e-source-collection.h"
 #include "e-source-enumtypes.h"
 #include "e-source-mail-identity.h"
 #include "e-source-mail-submission.h"
 #include "e-source-mail-transport.h"
+#include "e-source-memo-list.h"
 #include "e-source-registry.h"
+#include "e-source-task-list.h"
 #include "camel/camel.h"
 
 #include "e-data-server-util.h"
@@ -1727,6 +1731,7 @@ struct _EAsyncClosure {
 	GMainContext *context;
 	GAsyncResult *result;
 	gboolean finished;
+	gboolean pop_thread_default;
 	GMutex lock;
 };
 
@@ -1743,14 +1748,45 @@ EAsyncClosure *
 e_async_closure_new (void)
 {
 	EAsyncClosure *closure;
+	GMainContext *context;
+
+	context = g_main_context_new ();
+	closure = e_async_closure_new_with_context (context);
+	g_main_context_unref (context);
+
+	return closure;
+}
+
+/**
+ * e_async_closure_new_with_context: (skip)
+ * @context: (nullable): a #GMainContext to use, or %NULL to use the default context
+ *
+ * Creates a new #EAsyncClosure for use with asynchronous functions
+ * using the @context as the main context.
+ *
+ * Returns: a new #EAsyncClosure
+ *
+ * Since: 3.40
+ **/
+EAsyncClosure *
+e_async_closure_new_with_context (GMainContext *context)
+{
+	EAsyncClosure *closure;
+
+	if (!context)
+		context = g_main_context_get_thread_default ();
+	if (!context)
+		context = g_main_context_default ();
 
 	closure = g_slice_new0 (EAsyncClosure);
-	closure->context = g_main_context_new ();
+	closure->context = g_main_context_ref (context);
 	closure->loop = g_main_loop_new (closure->context, FALSE);
 	closure->finished = FALSE;
+	closure->pop_thread_default = context != g_main_context_get_thread_default () && context != g_main_context_default ();
 	g_mutex_init (&closure->lock);
 
-	g_main_context_push_thread_default (closure->context);
+	if (closure->pop_thread_default)
+		g_main_context_push_thread_default (closure->context);
 
 	return closure;
 }
@@ -1820,7 +1856,8 @@ e_async_closure_free (EAsyncClosure *closure)
 {
 	g_return_if_fail (closure != NULL);
 
-	g_main_context_pop_thread_default (closure->context);
+	if (closure->pop_thread_default)
+		g_main_context_pop_thread_default (closure->context);
 
 	g_main_loop_unref (closure->loop);
 	g_main_context_unref (closure->context);
@@ -3276,4 +3313,98 @@ e_util_can_use_collection_as_credential_source (ESource *collection_source,
 	}
 
 	return can_use_collection;
+}
+
+static gboolean
+e_util_source_compare_get_order (ESource *source,
+				 guint *out_order)
+{
+	const gchar *extensions[] = {
+		E_SOURCE_EXTENSION_ADDRESS_BOOK, /* keep it as the first - see below */
+		E_SOURCE_EXTENSION_CALENDAR,
+		E_SOURCE_EXTENSION_MEMO_LIST,
+		E_SOURCE_EXTENSION_TASK_LIST
+	};
+	gint ii;
+
+	for (ii = 0; ii < G_N_ELEMENTS (extensions); ii++) {
+		if (e_source_has_extension (source, extensions[ii])) {
+			ESourceExtension *extension = e_source_get_extension (source, extensions[ii]);
+
+			if (ii == 0) /* E_SOURCE_EXTENSION_ADDRESS_BOOK */
+				*out_order = e_source_address_book_get_order (E_SOURCE_ADDRESS_BOOK (extension));
+			else
+				*out_order = e_source_selectable_get_order (E_SOURCE_SELECTABLE (extension));
+
+			if (*out_order == (guint) -1)
+				return FALSE;
+
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+/**
+ * e_util_source_compare_for_sort:
+ * @source_a: the first #ESource
+ * @source_b: the second #ESource
+ *
+ * Compares two #ESource-s in a way suitable for user interface.
+ * It can be used as a #GCompareFunc.
+ *
+ * This is also used by e_source_registry_build_display_tree().
+ *
+ * Returns: an integer less than, equal to, or greater than zero,
+ *    if @source_a is <, == or > than @source_b.
+ *
+ * Since: 3.40
+ **/
+gint
+e_util_source_compare_for_sort (ESource *source_a,
+				ESource *source_b)
+{
+	guint order_a = 0, order_b = 0;
+	const gchar *uid_a, *uid_b;
+
+	if (!source_a || !source_b)
+		return (source_a ? 1 : 0) - (source_b ? 1 : 0);
+
+	uid_a = e_source_get_uid (source_a);
+	uid_b = e_source_get_uid (source_b);
+
+	/* Sanity check, with runtime warnings. */
+	if (uid_a == NULL) {
+		g_warn_if_reached ();
+		uid_a = "";
+	}
+	if (uid_b == NULL) {
+		g_warn_if_reached ();
+		uid_b = "";
+	}
+
+	/* The built-in "local-stub" source comes first at depth 1. */
+
+	if (g_strcmp0 (uid_a, "local-stub") == 0)
+		return -1;
+
+	if (g_strcmp0 (uid_b, "local-stub") == 0)
+		return 1;
+
+	/* The built-in "system-*" sources come first at depth 2. */
+
+	if (g_str_has_prefix (uid_a, "system-"))
+		return -1;
+
+	if (g_str_has_prefix (uid_b, "system-"))
+		return 1;
+
+	if (e_util_source_compare_get_order (source_a, &order_a) &&
+	    e_util_source_compare_get_order (source_b, &order_b)) {
+		if (order_a != order_b)
+			return order_a < order_b ? -1 : 1;
+	}
+
+	return e_source_compare_by_display_name (source_a, source_b);
 }

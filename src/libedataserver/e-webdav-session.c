@@ -66,6 +66,7 @@ G_DEFINE_BOXED_TYPE (EWebDAVAccessControlEntry, e_webdav_access_control_entry, e
  * @last_modified: optional last modified time of the resource, or 0
  * @description: (nullable): optional description of the resource, or %NULL
  * @color: (nullable): optional color of the resource, or %NULL
+ * @order: sort order of the resource, or (guint) -1
  *
  * Some values of the resource are not always valid, depending on the @kind,
  * but also whether server stores such values and whether it had been asked
@@ -89,7 +90,8 @@ e_webdav_resource_new (EWebDAVResourceKind kind,
 		       glong creation_date,
 		       glong last_modified,
 		       const gchar *description,
-		       const gchar *color)
+		       const gchar *color,
+		       guint order)
 {
 	EWebDAVResource *resource;
 
@@ -105,6 +107,7 @@ e_webdav_resource_new (EWebDAVResourceKind kind,
 	resource->last_modified = last_modified;
 	resource->description = g_strdup (description);
 	resource->color = g_strdup (color);
+	resource->order = order;
 
 	return resource;
 }
@@ -135,7 +138,8 @@ e_webdav_resource_copy (const EWebDAVResource *src)
 		src->creation_date,
 		src->last_modified,
 		src->description,
-		src->color);
+		src->color,
+		src->order);
 }
 
 /**
@@ -3569,6 +3573,30 @@ e_webdav_session_extract_content_length (xmlNodePtr parent)
 	return length;
 }
 
+static guint
+e_webdav_session_extract_uint (xmlNodePtr parent,
+			       const gchar *prop_ns_href,
+			       const gchar *prop_name)
+{
+	gchar *value_str, *end_ptr = NULL;
+	guint64 value;
+
+	g_return_val_if_fail (parent != NULL, (guint) -1);
+
+	value_str = e_webdav_session_extract_nonempty (parent, prop_ns_href, prop_name, NULL, NULL);
+	if (!value_str)
+		return (guint) -1;
+
+	value = g_ascii_strtoull (value_str, &end_ptr, 10);
+
+	g_free (value_str);
+
+	if (end_ptr == value_str)
+		return (guint) -1;
+
+	return (guint) value;
+}
+
 static glong
 e_webdav_session_extract_datetime (xmlNodePtr parent,
 				   const gchar *ns_href,
@@ -3622,6 +3650,7 @@ e_webdav_session_list_cb (EWebDAVSession *webdav,
 		gchar *description;
 		gchar *color;
 		gchar *source_href = NULL;
+		guint order;
 
 		kind = e_webdav_session_extract_kind (prop_node);
 		if (kind == E_WEBDAV_RESOURCE_KIND_UNKNOWN)
@@ -3655,6 +3684,7 @@ e_webdav_session_list_cb (EWebDAVSession *webdav,
 		description = e_webdav_session_extract_nonempty (prop_node, E_WEBDAV_NS_CALDAV, "calendar-description",
 			E_WEBDAV_NS_CARDDAV, "addressbook-description");
 		color = e_webdav_session_extract_nonempty (prop_node, E_WEBDAV_NS_ICAL, "calendar-color", NULL, NULL);
+		order = e_webdav_session_extract_uint (prop_node, E_WEBDAV_NS_ICAL, "calendar-order");
 
 		resource = e_webdav_resource_new (kind, supports,
 			source_href ? source_href : href,
@@ -3665,7 +3695,8 @@ e_webdav_session_list_cb (EWebDAVSession *webdav,
 			creation_date,
 			last_modified,
 			NULL, /* description */
-			NULL); /* color */
+			NULL, /* color */
+			order);
 		resource->etag = etag;
 		resource->display_name = display_name;
 		resource->content_type = content_type;
@@ -3745,8 +3776,7 @@ e_webdav_session_list_sync (EWebDAVSession *webdav,
 
 	if (calendar_props && (
 	    (flags & E_WEBDAV_LIST_SUPPORTS) != 0 ||
-	    (flags & E_WEBDAV_LIST_DESCRIPTION) != 0 ||
-	    (flags & E_WEBDAV_LIST_COLOR) != 0)) {
+	    (flags & E_WEBDAV_LIST_DESCRIPTION) != 0)) {
 		e_xml_document_add_namespaces (xml, "C", E_WEBDAV_NS_CALDAV, NULL);
 	}
 
@@ -3792,10 +3822,14 @@ e_webdav_session_list_sync (EWebDAVSession *webdav,
 		}
 	}
 
-	if (calendar_props && (flags & E_WEBDAV_LIST_COLOR) != 0) {
+	if (calendar_props && ((flags & E_WEBDAV_LIST_COLOR) != 0 || (flags & E_WEBDAV_LIST_ORDER) != 0)) {
 		e_xml_document_add_namespaces (xml, "IC", E_WEBDAV_NS_ICAL, NULL);
 
-		e_xml_document_add_empty_element (xml, E_WEBDAV_NS_ICAL, "calendar-color");
+		if ((flags & E_WEBDAV_LIST_COLOR) != 0)
+			e_xml_document_add_empty_element (xml, E_WEBDAV_NS_ICAL, "calendar-color");
+
+		if ((flags & E_WEBDAV_LIST_ORDER) != 0)
+			e_xml_document_add_empty_element (xml, E_WEBDAV_NS_ICAL, "calendar-order");
 	}
 
 	e_xml_document_end_element (xml); /* prop */
@@ -4981,7 +5015,8 @@ e_webdav_session_principal_property_search_cb (EWebDAVSession *webdav,
 		0, /* creation_date */
 		0, /* last_modified */
 		NULL, /* description */
-		NULL); /* color */
+		NULL, /* color */
+		(guint) -1); /* order */
 	resource->display_name = display_name;
 
 	*out_principals = g_slist_prepend (*out_principals, resource);
@@ -5213,7 +5248,7 @@ e_webdav_session_uricmp (const gchar *str1,
  *
  * Returns: whether the two href-s reference the same item
  *
- * Since: 3.38.2
+ * Since: 3.40
  **/
 gboolean
 e_webdav_session_util_item_href_equal (const gchar *href1,

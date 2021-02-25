@@ -575,10 +575,7 @@ e_cache_sqlite_exec_internal (ECache *cache,
 			break;
 		retries++;
 
-		if (errmsg) {
-			sqlite3_free (errmsg);
-			errmsg = NULL;
-		}
+		g_clear_pointer (&errmsg, sqlite3_free);
 		g_thread_yield ();
 		g_usleep (100 * 1000); /* Sleep for 100 ms */
 
@@ -1252,7 +1249,7 @@ e_cache_count_rows_cb (ECache *cache,
  * Checkes whether the @cache contains an object with
  * the given @uid.
  *
- * Returns: Whether the the object had been found.
+ * Returns: Whether the object had been found.
  *
  * Since: 3.26
  **/
@@ -3089,10 +3086,7 @@ e_cache_finalize (GObject *object)
 	g_free (cache->priv->filename);
 	cache->priv->filename = NULL;
 
-	if (cache->priv->db) {
-		sqlite3_close (cache->priv->db);
-		cache->priv->db = NULL;
-	}
+	g_clear_pointer (&cache->priv->db, sqlite3_close);
 
 	g_rec_mutex_clear (&cache->priv->lock);
 

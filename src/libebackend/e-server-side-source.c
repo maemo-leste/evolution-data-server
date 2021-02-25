@@ -1052,10 +1052,7 @@ server_side_source_dispose (GObject *object)
 
 	g_weak_ref_set (&priv->oauth2_support, NULL);
 
-	if (priv->file != NULL) {
-		g_object_unref (priv->file);
-		priv->file = NULL;
-	}
+	g_clear_object (&priv->file);
 
 	/* Chain up to parent's dispose() method. */
 	G_OBJECT_CLASS (e_server_side_source_parent_class)->dispose (object);
@@ -1473,13 +1470,22 @@ server_side_source_get_oauth2_access_token_sync (ESource *source,
 		E_SERVER_SIDE_SOURCE (source));
 
 	if (oauth2_support == NULL) {
-		g_set_error (
-			error, G_IO_ERROR,
-			G_IO_ERROR_NOT_SUPPORTED,
-			_("Data source “%s” does not "
-			"support OAuth 2.0 authentication"),
-			e_source_get_display_name (source));
-		return FALSE;
+		ESourceRegistryServer *server;
+
+		server = e_server_side_source_get_server (E_SERVER_SIDE_SOURCE (source));
+
+		if (server)
+			oauth2_support = e_source_registry_server_ref_oauth2_support (server);
+
+		if (!oauth2_support) {
+			g_set_error (
+				error, G_IO_ERROR,
+				G_IO_ERROR_NOT_SUPPORTED,
+				_("Data source “%s” does not "
+				"support OAuth 2.0 authentication"),
+				e_source_get_display_name (source));
+			return FALSE;
+		}
 	}
 
 	success = e_oauth2_support_get_access_token_sync (

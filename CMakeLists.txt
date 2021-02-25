@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.38.3
+	VERSION 3.39.2
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -12,7 +12,7 @@ set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issu
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.38)
+set(BASE_VERSION 3.40)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -56,11 +56,11 @@ set(LIBEBACKEND_CURRENT 10)
 set(LIBEBACKEND_REVISION 0)
 set(LIBEBACKEND_AGE 0)
 
-set(LIBEDATASERVER_CURRENT 25)
+set(LIBEDATASERVER_CURRENT 26)
 set(LIBEDATASERVER_REVISION 0)
 set(LIBEDATASERVER_AGE 0)
 
-set(LIBEDATASERVERUI_CURRENT 2)
+set(LIBEDATASERVERUI_CURRENT 3)
 set(LIBEDATASERVERUI_REVISION 0)
 set(LIBEDATASERVERUI_AGE 0)
 
@@ -89,8 +89,8 @@ set(glib_minimum_version 2.46)
 set(glib_encoded_version GLIB_VERSION_2_46)
 
 # Keep these two definitions in agreement.
-set(gdk_minimum_version 3.10)
-set(gdk_encoded_version GDK_VERSION_3_10)
+set(gdk_minimum_version 3.16)
+set(gdk_encoded_version GDK_VERSION_3_16)
 
 # Keep these two definitions in agreement.
 set(soup_minimum_version 2.58)
@@ -819,6 +819,8 @@ add_printable_option(ENABLE_GOOGLE "Enable Google support" ON)
 if(ENABLE_GOOGLE)
 	pkg_check_modules_for_option(ENABLE_GOOGLE "Google" LIBGDATA libgdata>=${libgdata_minimum_version})
 	set(HAVE_LIBGDATA ON)
+	set(LIBGDATA_GIR GData-0.0)
+	set(LIBGDATA_VAPI libgdata)
 
 	set(CMAKE_REQUIRED_DEFINITIONS ${LIBGDATA_CFLAGS_OTHER})
 	set(CMAKE_REQUIRED_INCLUDES ${LIBGDATA_INCLUDE_DIRS})

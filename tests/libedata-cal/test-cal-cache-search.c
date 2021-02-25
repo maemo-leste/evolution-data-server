@@ -326,6 +326,47 @@ test_search_has_start (TCUFixture *fixture,
 }
 
 static void
+test_search_has_end (TCUFixture *fixture,
+		     gconstpointer user_data)
+{
+	const TCUClosure *closure = user_data;
+	gboolean searches_events = closure && closure->load_set == TCU_LOAD_COMPONENT_SET_EVENTS;
+
+	/* VTODO cannot have DTEND property */
+	test_search (fixture, "(has-end?)", searches_events ? "event-1" : "!task-9");
+	test_search (fixture, "(has-end?)", searches_events ? "event-1" : "!task-8");
+	test_search (fixture, "(not (has-end?))", searches_events ? "!event-1" : "task-9");
+	test_search (fixture, "(not (has-end?))", searches_events ? "!event-1" : "task-8");
+}
+
+static void
+test_search_has_due (TCUFixture *fixture,
+		     gconstpointer user_data)
+{
+	const TCUClosure *closure = user_data;
+	gboolean searches_events = closure && closure->load_set == TCU_LOAD_COMPONENT_SET_EVENTS;
+
+	/* VEVENT cannot have DUE property */
+	test_search (fixture, "(has-due?)", searches_events ? "!event-1" : "task-4");
+	test_search (fixture, "(has-due?)", searches_events ? "!event-1" : "!task-8");
+	test_search (fixture, "(not (has-due?))", searches_events ? "event-1" : "!task-4");
+	test_search (fixture, "(not (has-due?))", searches_events ? "event-1" : "task-8");
+}
+
+static void
+test_search_has_duration (TCUFixture *fixture,
+			  gconstpointer user_data)
+{
+	const TCUClosure *closure = user_data;
+	gboolean searches_events = closure && closure->load_set == TCU_LOAD_COMPONENT_SET_EVENTS;
+
+	test_search (fixture, "(has-duration?)", searches_events ? "event-3" : "task-6");
+	test_search (fixture, "(has-duration?)", searches_events ? "!event-4" : "!task-4");
+	test_search (fixture, "(not (has-duration?))", searches_events ? "!event-3" : "!task-6");
+	test_search (fixture, "(not (has-duration?))", searches_events ? "event-4" : "task-4");
+}
+
+static void
 test_search_has_alarms (TCUFixture *fixture,
 			gconstpointer user_data)
 {
@@ -439,6 +480,9 @@ main (gint argc,
 	g_type_init ();
 #endif
 	g_test_init (&argc, &argv, NULL);
+	g_test_bug_base ("https://gitlab.gnome.org/GNOME/evolution-data-server/");
+
+	tcu_read_args (argc, argv);
 
 	/* Ensure that the client and server get the same locale */
 	g_assert (g_setenv ("LC_ALL", "en_US.UTF-8", TRUE));
@@ -458,6 +502,18 @@ main (gint argc,
 		tcu_fixture_setup, test_search_has_start, tcu_fixture_teardown);
 	g_test_add ("/ECalCache/Search/HasStart/Tasks", TCUFixture, &closure_tasks,
 		tcu_fixture_setup, test_search_has_start, tcu_fixture_teardown);
+	g_test_add ("/ECalCache/Search/HasEnd/Events", TCUFixture, &closure_events,
+		tcu_fixture_setup, test_search_has_end, tcu_fixture_teardown);
+	g_test_add ("/ECalCache/Search/HasEnd/Tasks", TCUFixture, &closure_tasks,
+		tcu_fixture_setup, test_search_has_end, tcu_fixture_teardown);
+	g_test_add ("/ECalCache/Search/HasDue/Events", TCUFixture, &closure_events,
+		tcu_fixture_setup, test_search_has_due, tcu_fixture_teardown);
+	g_test_add ("/ECalCache/Search/HasDue/Tasks", TCUFixture, &closure_tasks,
+		tcu_fixture_setup, test_search_has_due, tcu_fixture_teardown);
+	g_test_add ("/ECalCache/Search/HasDuration/Events", TCUFixture, &closure_events,
+		tcu_fixture_setup, test_search_has_duration, tcu_fixture_teardown);
+	g_test_add ("/ECalCache/Search/HasDuration/Tasks", TCUFixture, &closure_tasks,
+		tcu_fixture_setup, test_search_has_duration, tcu_fixture_teardown);
 	g_test_add ("/ECalCache/Search/HasAlarms/Events", TCUFixture, &closure_events,
 		tcu_fixture_setup, test_search_has_alarms, tcu_fixture_teardown);
 	g_test_add ("/ECalCache/Search/HasAlarms/Tasks", TCUFixture, &closure_tasks,
@@ -485,5 +541,5 @@ main (gint argc,
 	g_test_add ("/ECalCache/Search/StartsBefore", TCUFixture, &closure_tasks,
 		tcu_fixture_setup, test_search_starts_before, tcu_fixture_teardown);
 
-	return e_test_server_utils_run_full (0);
+	return e_test_server_utils_run_full (argc, argv, 0);
 }

@@ -266,6 +266,7 @@ target_include_directories(edataserver PUBLIC
 	${CMAKE_SOURCE_DIR}/src
 	${CMAKE_SOURCE_DIR}/src/private
 	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}
 	${DATA_SERVER_INCLUDE_DIRS}
 	${GCR_BASE_INCLUDE_DIRS}
 	${GIO_UNIX_INCLUDE_DIRS}
@@ -294,7 +295,7 @@ install(FILES ${HEADERS}
 
 set(gir_sources ${SOURCES} ${HEADERS})
 set(gir_identifies_prefixes E)
-set(gir_includes GObject-2.0 Gio-2.0 Soup-2.4 libxml2-2.0)
+set(gir_includes GObject-2.0 Gio-2.0 Soup-2.4 libxml2-2.0 ${LIBGDATA_GIR})
 set(gir_cflags
 	-DLIBEDATASERVER_COMPILATION
 )

@@ -190,15 +190,10 @@ static guint signals[LAST_SIGNAL];
 
 /* By default, the GAsyncInitable interface calls GInitable.init()
  * from a separate thread, so we only have to override GInitable. */
-G_DEFINE_TYPE_WITH_CODE (
-	ESourceRegistry,
-	e_source_registry,
-	G_TYPE_OBJECT,
+G_DEFINE_TYPE_WITH_CODE (ESourceRegistry, e_source_registry, G_TYPE_OBJECT,
 	G_ADD_PRIVATE (ESourceRegistry)
-	G_IMPLEMENT_INTERFACE (
-		G_TYPE_INITABLE, e_source_registry_initable_init)
-	G_IMPLEMENT_INTERFACE (
-		G_TYPE_ASYNC_INITABLE, NULL))
+	G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, e_source_registry_initable_init)
+	G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, NULL))
 
 static void
 async_context_free (AsyncContext *async_context)
@@ -1291,22 +1286,54 @@ source_registry_get_property (GObject *object,
 	G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 }
 
+static GObject *registry_singleton = NULL;
+G_LOCK_DEFINE_STATIC (registry_singleton);
+
+static void
+registry_singleton_weak_ref_cb (gpointer user_data,
+				GObject *object)
+{
+	G_LOCK (registry_singleton);
+
+	g_warn_if_fail (object == registry_singleton);
+	registry_singleton = NULL;
+
+	G_UNLOCK (registry_singleton);
+}
+
+static GObject *
+source_registry_constructor (GType type,
+			     guint n_construct_params,
+			     GObjectConstructParam *construct_params)
+{
+	GObject *object;
+
+	G_LOCK (registry_singleton);
+
+	if (registry_singleton) {
+		object = g_object_ref (registry_singleton);
+	} else {
+		object = G_OBJECT_CLASS (e_source_registry_parent_class)->constructor (type, n_construct_params, construct_params);
+
+		if (object)
+			g_object_weak_ref (object, registry_singleton_weak_ref_cb, NULL);
+
+		registry_singleton = object;
+	}
+
+	G_UNLOCK (registry_singleton);
+
+	return object;
+}
+
 static void
 source_registry_dispose (GObject *object)
 {
 	ESourceRegistryPrivate *priv;
 
 	priv = E_SOURCE_REGISTRY (object)->priv;
-
-	if (priv->dbus_object_manager != NULL) {
-		g_object_unref (priv->dbus_object_manager);
-		priv->dbus_object_manager = NULL;
-	}
-
-	if (priv->dbus_source_manager != NULL) {
-		g_object_unref (priv->dbus_source_manager);
-		priv->dbus_source_manager = NULL;
-	}
+	g_clear_object (&priv->dbus_object_manager);
+	g_clear_object (&priv->dbus_source_manager);
 
 	/* Terminate the manager thread after GDBus objects,
 	   because they can schedule GSource-s in the main context there. */
@@ -1316,10 +1343,7 @@ source_registry_dispose (GObject *object)
 		priv->manager_thread = NULL;
 	}
 
-	if (priv->thread_closure) {
-		thread_closure_free (priv->thread_closure);
-		priv->thread_closure = NULL;
-	}
+	g_clear_pointer (&priv->thread_closure, thread_closure_free);
 
 	g_hash_table_remove_all (priv->object_path_table);
 
@@ -1480,6 +1504,7 @@ e_source_registry_class_init (ESourceRegistryClass *class)
 	object_class = G_OBJECT_CLASS (class);
 	object_class->set_property = source_registry_set_property;
 	object_class->get_property = source_registry_get_property;
+	object_class->constructor = source_registry_constructor;
 	object_class->dispose = source_registry_dispose;
 	object_class->finalize = source_registry_finalize;
 
@@ -2689,38 +2714,8 @@ source_registry_compare_nodes (GNode *node_a,
 {
 	ESource *source_a = E_SOURCE (node_a->data);
 	ESource *source_b = E_SOURCE (node_b->data);
-	const gchar *uid_a, *uid_b;
 
-	uid_a = e_source_get_uid (source_a);
-	uid_b = e_source_get_uid (source_b);
-
-	/* Sanity check, with runtime warnings. */
-	if (uid_a == NULL) {
-		g_warn_if_reached ();
-		uid_a = "";
-	}
-	if (uid_b == NULL) {
-		g_warn_if_reached ();
-		uid_b = "";
-	}
-
-	/* The built-in "local-stub" source comes first at depth 1. */
-
-	if (g_strcmp0 (uid_a, "local-stub") == 0)
-		return -1;
-
-	if (g_strcmp0 (uid_b, "local-stub") == 0)
-		return 1;
-
-	/* The built-in "system-*" sources come first at depth 2. */
-
-	if (g_str_has_prefix (uid_a, "system-"))
-		return -1;
-
-	if (g_str_has_prefix (uid_b, "system-"))
-		return 1;
-
-	return e_source_compare_by_display_name (source_a, source_b);
+	return e_util_source_compare_for_sort (source_a, source_b);
 }
 
 /* Helper for e_source_registry_build_display_tree() */
@@ -3818,4 +3813,3 @@ e_source_registry_set_default_for_extension_name (ESourceRegistry *registry,
 		e_source_registry_set_default_task_list (
 			registry, default_source);
 }
-

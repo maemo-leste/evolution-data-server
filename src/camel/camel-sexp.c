@@ -51,7 +51,7 @@
  *         Cast to an integer value.
  *
  *   string = (cast-string string|int|bool)
- *         Cast to an string value.
+ *         Cast to a string value.
  *
  *   Comparison operators:
  *
@@ -183,8 +183,7 @@ camel_sexp_fatal_error (CamelSExp *sexp,
 	/* jumps back to the caller of sexp->priv->failenv,
 	 * only to be called from inside a callback */
 
-	if (sexp->priv->error)
-		g_free (sexp->priv->error);
+	g_free (sexp->priv->error);
 
 	va_start (args, why);
 	sexp->priv->error = g_strdup_vprintf (why, args);
