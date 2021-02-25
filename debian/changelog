@@ -1,4 +1,4 @@
-evolution-data-server (3.39.2-1) UNRELEASED; urgency=medium
+evolution-data-server (3.39.2-1) experimental; urgency=medium
 
   * New upstream release
   * Updated for the soname changes and refreshed symbols
