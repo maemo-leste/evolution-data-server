@@ -222,6 +222,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_enriched_to_html@Base 3.19.92
  camel_error_quark@Base 3.19.92
  camel_fetch_headers_type_get_type@Base 3.19.92
+ camel_fetch_type_get_type@Base 3.39.2
  camel_file_util_decode_fixed_int32@Base 3.19.92
  camel_file_util_decode_fixed_string@Base 3.19.92
  camel_file_util_decode_gsize@Base 3.19.92
@@ -292,6 +293,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_folder_dup_description@Base 3.19.92
  camel_folder_dup_display_name@Base 3.19.92
  camel_folder_dup_full_name@Base 3.19.92
+ camel_folder_error_get_type@Base 3.39.2
  camel_folder_error_quark@Base 3.19.92
  camel_folder_expunge@Base 3.19.92
  camel_folder_expunge_finish@Base 3.19.92
@@ -374,6 +376,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_folder_search_take_current_message_info@Base 3.24.1
  camel_folder_search_util_add_months@Base 3.19.92
  camel_folder_search_util_compare_date@Base 3.29.90
+ camel_folder_search_util_hash_message_id@Base 3.39.2
  camel_folder_search_util_make_time@Base 3.29.90
  camel_folder_set_description@Base 3.19.92
  camel_folder_set_display_name@Base 3.19.92
@@ -570,10 +573,12 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_local_settings_dup_path@Base 3.19.92
  camel_local_settings_get_filter_all@Base 3.24.1
  camel_local_settings_get_filter_junk@Base 3.24.1
+ camel_local_settings_get_maildir_alt_flag_sep@Base 3.39.2
  camel_local_settings_get_path@Base 3.19.92
  camel_local_settings_get_type@Base 3.19.92
  camel_local_settings_set_filter_all@Base 3.24.1
  camel_local_settings_set_filter_junk@Base 3.24.1
+ camel_local_settings_set_maildir_alt_flag_sep@Base 3.39.2
  camel_local_settings_set_path@Base 3.19.92
  camel_localtime_with_offset@Base 3.19.92
  camel_lock_dot@Base 3.19.92
@@ -1048,6 +1053,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_service_disconnect_sync@Base 3.19.92
  camel_service_dup_display_name@Base 3.19.92
  camel_service_dup_password@Base 3.19.92
+ camel_service_error_get_type@Base 3.39.2
  camel_service_error_quark@Base 3.19.92
  camel_service_get_connection_status@Base 3.19.92
  camel_service_get_display_name@Base 3.19.92
@@ -1128,9 +1134,11 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_sexp_remove_symbol@Base 3.19.92
  camel_sexp_result_free@Base 3.19.92
  camel_sexp_result_new@Base 3.19.92
+ camel_sexp_result_type_get_type@Base 3.39.2
  camel_sexp_resultv_free@Base 3.19.92
  camel_sexp_set_scope@Base 3.19.92
  camel_sexp_term_eval@Base 3.19.92
+ camel_sexp_term_type_get_type@Base 3.39.2
  camel_sexp_to_sql_sexp@Base 3.19.92
  camel_shutdown@Base 3.19.92
  camel_smime_context_describe_part@Base 3.19.92
@@ -1148,6 +1156,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_store_delete_folder_finish@Base 3.19.92
  camel_store_delete_folder_sync@Base 3.19.92
  camel_store_dup_opened_folders@Base 3.24.1
+ camel_store_error_get_type@Base 3.39.2
  camel_store_error_quark@Base 3.19.92
  camel_store_flags_get_type@Base 3.19.92
  camel_store_folder_created@Base 3.19.92
@@ -1160,6 +1169,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_store_get_flags@Base 3.24.1
  camel_store_get_folder@Base 3.19.92
  camel_store_get_folder_finish@Base 3.19.92
+ camel_store_get_folder_flags_get_type@Base 3.39.2
  camel_store_get_folder_info@Base 3.19.92
  camel_store_get_folder_info_finish@Base 3.19.92
  camel_store_get_folder_info_flags_get_type@Base 3.19.92
@@ -1324,6 +1334,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_url_equal@Base 3.19.92
  camel_url_file_end@Base 3.19.92
  camel_url_file_start@Base 3.19.92
+ camel_url_flags_get_type@Base 3.39.2
  camel_url_free@Base 3.19.92
  camel_url_get_param@Base 3.19.92
  camel_url_get_type@Base 3.19.92
@@ -1359,6 +1370,8 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_util_bdata_get_string@Base 3.24.1
  camel_util_bdata_put_number@Base 3.24.1
  camel_util_bdata_put_string@Base 3.24.1
+ camel_utils_weak_ref_free@Base 3.39.2
+ camel_utils_weak_ref_new@Base 3.39.2
  camel_uudecode_step@Base 3.19.92
  camel_uuencode_close@Base 3.19.92
  camel_uuencode_step@Base 3.19.92

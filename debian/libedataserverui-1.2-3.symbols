@@ -48,6 +48,7 @@ libedataserverui-1.2.so.3 libedataserverui-1.2-3 #MINVER#
  e_webdav_discover_content_get_multiselect@Base 3.18.1
  e_webdav_discover_content_get_selected@Base 3.18.1
  e_webdav_discover_content_get_tree_selection@Base 3.18.1
+ e_webdav_discover_content_get_type@Base 3.39.2
  e_webdav_discover_content_get_user_address@Base 3.18.1
  e_webdav_discover_content_new@Base 3.18.1
  e_webdav_discover_content_refresh@Base 3.18.1
@@ -56,5 +57,6 @@ libedataserverui-1.2.so.3 libedataserverui-1.2-3 #MINVER#
  e_webdav_discover_content_set_multiselect@Base 3.18.1
  e_webdav_discover_content_show_error@Base 3.18.1
  e_webdav_discover_dialog_get_content@Base 3.18.1
+ e_webdav_discover_dialog_get_type@Base 3.39.2
  e_webdav_discover_dialog_new@Base 3.18.1
  e_webdav_discover_dialog_refresh@Base 3.18.1

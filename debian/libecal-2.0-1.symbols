@@ -103,6 +103,7 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_component_alarm_copy@Base 3.33.4
  e_cal_component_alarm_fill_component@Base 3.33.4
  e_cal_component_alarm_free@Base 3.17
+ e_cal_component_alarm_get_acknowledged@Base 3.39.2
  e_cal_component_alarm_get_action@Base 3.17
  e_cal_component_alarm_get_as_component@Base 3.33.4
  e_cal_component_alarm_get_attachments@Base 3.33.4
@@ -141,6 +142,7 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_component_alarm_repeat_set_interval@Base 3.33.4
  e_cal_component_alarm_repeat_set_interval_seconds@Base 3.33.4
  e_cal_component_alarm_repeat_set_repetitions@Base 3.33.4
+ e_cal_component_alarm_set_acknowledged@Base 3.39.2
  e_cal_component_alarm_set_action@Base 3.17
  e_cal_component_alarm_set_attachments@Base 3.33.4
  e_cal_component_alarm_set_attendees@Base 3.33.4
@@ -150,6 +152,7 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_component_alarm_set_summary@Base 3.33.4
  e_cal_component_alarm_set_trigger@Base 3.17
  e_cal_component_alarm_set_uid@Base 3.33.4
+ e_cal_component_alarm_take_acknowledged@Base 3.39.2
  e_cal_component_alarm_take_attachments@Base 3.33.4
  e_cal_component_alarm_take_attendees@Base 3.33.4
  e_cal_component_alarm_take_description@Base 3.33.4
@@ -477,6 +480,7 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_util_remove_instances@Base 3.17
  e_cal_util_remove_instances_ex@Base 3.38.0
  e_cal_util_seconds_to_string@Base 3.29.90
+ e_cal_util_set_alarm_acknowledged@Base 3.39.2
  e_cal_util_split_at_instance@Base 3.17
  e_cal_util_split_at_instance_ex@Base 3.38.0
  e_cal_util_tm_to_icaltime@Base 3.33.4

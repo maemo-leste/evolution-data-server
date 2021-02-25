@@ -1,7 +1,7 @@
 evolution-data-server (3.39.2-1) UNRELEASED; urgency=medium
 
   * New upstream release
-  * Updated for the soname changes
+  * Updated for the soname changes and refreshed symbols
   * Removed patches included in the new version
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 25 Feb 2021 16:32:58 +0100

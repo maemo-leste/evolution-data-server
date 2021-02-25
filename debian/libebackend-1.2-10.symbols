@@ -271,6 +271,7 @@ libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
  e_source_registry_server_ref_backend@Base 3.17
  e_source_registry_server_ref_backend_factory@Base 3.17
  e_source_registry_server_ref_credentials_provider@Base 3.17
+ e_source_registry_server_ref_oauth2_support@Base 3.39.2
  e_source_registry_server_ref_source@Base 3.17
  e_source_registry_server_remove_source@Base 3.17
  e_sqlite3_vfs_init@Base 3.17
