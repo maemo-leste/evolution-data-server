@@ -101,10 +101,7 @@ G_DEFINE_BOXED_TYPE (CamelFolderInfo,
 static void
 async_context_free (AsyncContext *async_context)
 {
-	if (async_context->save_setup) {
-		g_hash_table_destroy (async_context->save_setup);
-		async_context->save_setup = NULL;
-	}
+	g_clear_pointer (&async_context->save_setup, g_hash_table_destroy);
 
 	g_free (async_context->folder_name_1);
 	g_free (async_context->folder_name_2);
@@ -337,10 +334,7 @@ store_dispose (GObject *object)
 {
 	CamelStore *store = CAMEL_STORE (object);
 
-	if (store->priv->folders) {
-		camel_object_bag_destroy (store->priv->folders);
-		store->priv->folders = NULL;
-	}
+	g_clear_pointer (&store->priv->folders, camel_object_bag_destroy);
 
 	/* Chain up to parent's method. */
 	G_OBJECT_CLASS (camel_store_parent_class)->dispose (object);
@@ -3350,7 +3344,7 @@ camel_store_delete_cached_folder (CamelStore *store,
  *
  * Return: Whether there can be done automatic save of folder changes.
  *
- * Since: 3.38.2
+ * Since: 3.40
  **/
 gboolean
 camel_store_get_can_auto_save_changes (CamelStore *store)

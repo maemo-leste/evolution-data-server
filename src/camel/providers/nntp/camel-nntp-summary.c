@@ -276,10 +276,7 @@ add_range_xover (CamelNNTPSummary *cns,
 			}
 		}
 
-		if (cns->priv->uid) {
-			g_free (cns->priv->uid);
-			cns->priv->uid = NULL;
-		}
+		g_clear_pointer (&cns->priv->uid, g_free);
 
 		camel_name_value_array_clear (headers);
 	}
@@ -381,10 +378,7 @@ add_range_head (CamelNNTPSummary *cns,
 					camel_folder_change_info_recent_uid (changes, camel_message_info_get_uid (mi));
 				g_clear_object (&mi);
 			}
-			if (cns->priv->uid) {
-				g_free (cns->priv->uid);
-				cns->priv->uid = NULL;
-			}
+			g_clear_pointer (&cns->priv->uid, g_free);
 		}
 	}
 
@@ -406,10 +400,7 @@ error:
 	}
 
 ioerror:
-	if (cns->priv->uid) {
-		g_free (cns->priv->uid);
-		cns->priv->uid = NULL;
-	}
+	g_clear_pointer (&cns->priv->uid, g_free);
 	g_object_unref (mp);
 
 	g_clear_object (&nntp_stream);
@@ -468,7 +459,7 @@ nntp_get_existing_article_numbers (CamelNNTPSummary *cns,
 
 	count = 0;
 
-	while ((ret = camel_nntp_stream_line (nntp_stream, (guchar **) &line, &len, cancellable, error)) > 0) {
+	while (camel_nntp_stream_line (nntp_stream, (guchar **) &line, &len, cancellable, error) > 0) {
 		guint nn;
 
 		if (len == 1 && g_ascii_strncasecmp (line, ".", len) == 0)
@@ -486,8 +477,6 @@ nntp_get_existing_article_numbers (CamelNNTPSummary *cns,
 			g_hash_table_insert (existing_articles, GUINT_TO_POINTER (nn), NULL);
 		}
 	}
-
-	ret = 0;
 
  ioerror:
 

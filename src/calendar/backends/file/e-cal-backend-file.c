@@ -363,7 +363,7 @@ e_cal_backend_file_finalize (GObject *object)
 	G_OBJECT_CLASS (e_cal_backend_file_parent_class)->finalize (object);
 }
 
-/* Looks up an component by its UID on the backend's component hash table
+/* Looks up a component by its UID on the backend's component hash table
  * and returns TRUE if any event (regardless whether it is the master or a child)
  * with that UID exists */
 static gboolean
@@ -471,10 +471,11 @@ e_cal_backend_file_get_backend_property (ECalBackend *backend,
 
 	} else if (g_str_equal (prop_name, E_CAL_BACKEND_PROPERTY_CAL_EMAIL_ADDRESS) ||
 		   g_str_equal (prop_name, E_CAL_BACKEND_PROPERTY_ALARM_EMAIL_ADDRESS)) {
-		/* A file backend has no particular email address associated
-		 * with it (although that would be a useful feature some day).
-		 */
-		return NULL;
+		ESourceLocal *local_extension;
+
+		local_extension = e_source_get_extension (e_backend_get_source (E_BACKEND (backend)), E_SOURCE_EXTENSION_LOCAL_BACKEND);
+
+		return e_source_local_dup_email_address (local_extension);
 
 	} else if (g_str_equal (prop_name, E_CAL_BACKEND_PROPERTY_DEFAULT_OBJECT)) {
 		ECalComponent *comp;
@@ -1123,9 +1124,7 @@ free_refresh_data (ECalBackendFile *cbfile)
 
 	g_mutex_lock (&priv->refresh_lock);
 
-	if (priv->refresh_monitor)
-		g_object_unref (priv->refresh_monitor);
-	priv->refresh_monitor = NULL;
+	g_clear_object (&priv->refresh_monitor);
 
 	if (priv->refresh_cond) {
 		priv->refresh_thread_stop = TRUE;
@@ -2297,7 +2296,7 @@ e_cal_backend_file_create_objects (ECalBackendSync *backend,
                                    EDataCal *cal,
                                    GCancellable *cancellable,
                                    const GSList *in_calobjs,
-				   guint32 opflags,
+				   ECalOperationFlags opflags,
                                    GSList **uids,
                                    GSList **new_components,
                                    GError **error)
@@ -2477,7 +2476,7 @@ e_cal_backend_file_modify_objects (ECalBackendSync *backend,
                                    GCancellable *cancellable,
                                    const GSList *calobjs,
                                    ECalObjModType mod,
-				   guint32 opflags,
+				   ECalOperationFlags opflags,
                                    GSList **old_components,
                                    GSList **new_components,
                                    GError **error)
@@ -2845,6 +2844,86 @@ e_cal_backend_file_modify_objects (ECalBackendSync *backend,
 		*new_components = g_slist_reverse (*new_components);
 }
 
+static void
+e_cal_backend_file_discard_alarm_sync (ECalBackendSync *backend,
+				       EDataCal *cal,
+				       GCancellable *cancellable,
+				       const gchar *uid,
+				       const gchar *rid,
+				       const gchar *auid,
+				       ECalOperationFlags opflags,
+				       GError **error)
+{
+	ECalBackendFile *cbfile;
+	ECalBackendFilePrivate *priv;
+	ECalBackendFileObject *obj_data;
+	ECalComponent *comp = NULL;
+
+	cbfile = E_CAL_BACKEND_FILE (backend);
+	priv = cbfile->priv;
+
+	if (priv->vcalendar == NULL) {
+		g_propagate_error (error, ECC_ERROR (E_CAL_CLIENT_ERROR_OBJECT_NOT_FOUND));
+		return;
+	}
+
+	g_return_if_fail (uid != NULL);
+	g_return_if_fail (priv->comp_uid_hash != NULL);
+
+	g_rec_mutex_lock (&priv->idle_save_rmutex);
+
+	obj_data = g_hash_table_lookup (priv->comp_uid_hash, uid);
+	if (!obj_data) {
+		g_rec_mutex_unlock (&priv->idle_save_rmutex);
+		g_propagate_error (error, ECC_ERROR (E_CAL_CLIENT_ERROR_OBJECT_NOT_FOUND));
+		return;
+	}
+
+	if (rid && *rid) {
+		comp = g_hash_table_lookup (obj_data->recurrences, rid);
+
+		if (comp) {
+			g_object_ref (comp);
+		} else if (obj_data->full_object) {
+			ICalComponent *icomp;
+			ICalTime *itt;
+
+			itt = i_cal_time_new_from_string (rid);
+			icomp = e_cal_util_construct_instance (
+				e_cal_component_get_icalcomponent (obj_data->full_object),
+				itt);
+			g_object_unref (itt);
+
+			if (icomp)
+				comp = e_cal_component_new_from_icalcomponent (icomp);
+		}
+	} else if (obj_data->full_object) {
+		comp = g_object_ref (obj_data->full_object);
+	}
+
+	if (comp) {
+		if (e_cal_util_set_alarm_acknowledged (comp, auid, 0)) {
+			GSList *calobjs;
+
+			calobjs = g_slist_prepend (NULL, e_cal_component_get_as_string (comp));
+
+			e_cal_backend_file_modify_objects (backend, cal, cancellable, calobjs,
+				(rid && *rid) ? E_CAL_OBJ_MOD_THIS : E_CAL_OBJ_MOD_ALL,
+				opflags, NULL, NULL, error);
+
+			g_slist_free_full (calobjs, g_free);
+		} else {
+			g_propagate_error (error, ECC_ERROR (E_CAL_CLIENT_ERROR_OBJECT_NOT_FOUND));
+		}
+
+		g_object_unref (comp);
+	} else {
+		g_propagate_error (error, ECC_ERROR (E_CAL_CLIENT_ERROR_OBJECT_NOT_FOUND));
+	}
+
+	g_rec_mutex_unlock (&priv->idle_save_rmutex);
+}
+
 /**
  * Remove one and only one instance. The object may be empty
  * afterwards, in which case it will be removed completely.
@@ -3071,7 +3150,7 @@ e_cal_backend_file_remove_objects (ECalBackendSync *backend,
                                    GCancellable *cancellable,
                                    const GSList *ids,
                                    ECalObjModType mod,
-				   guint32 opflags,
+				   ECalOperationFlags opflags,
                                    GSList **old_components,
                                    GSList **new_components,
                                    GError **error)
@@ -3398,7 +3477,7 @@ e_cal_backend_file_receive_objects (ECalBackendSync *backend,
                                     EDataCal *cal,
                                     GCancellable *cancellable,
                                     const gchar *calobj,
-				    guint32 opflags,
+				    ECalOperationFlags opflags,
                                     GError **error)
 {
 	ESourceRegistry *registry;
@@ -3709,7 +3788,7 @@ e_cal_backend_file_send_objects (ECalBackendSync *backend,
                                  EDataCal *cal,
                                  GCancellable *cancellable,
                                  const gchar *calobj,
-				 guint32 opflags,
+				 ECalOperationFlags opflags,
                                  GSList **users,
                                  gchar **modified_calobj,
                                  GError **perror)
@@ -3719,12 +3798,30 @@ e_cal_backend_file_send_objects (ECalBackendSync *backend,
 }
 
 static void
+cal_backend_file_email_address_changed_cb (GObject *object,
+					   GParamSpec *param,
+					   gpointer user_data)
+{
+	ECalBackend *cal_backend = user_data;
+	gchar *email_address;
+
+	g_return_if_fail (E_IS_SOURCE_LOCAL (object));
+	g_return_if_fail (E_IS_CAL_BACKEND (cal_backend));
+
+	email_address = e_source_local_dup_email_address (E_SOURCE_LOCAL (object));
+
+	e_cal_backend_notify_property_changed (cal_backend, E_CAL_BACKEND_PROPERTY_CAL_EMAIL_ADDRESS, email_address);
+	e_cal_backend_notify_property_changed (cal_backend, E_CAL_BACKEND_PROPERTY_ALARM_EMAIL_ADDRESS, email_address);
+}
+
+static void
 cal_backend_file_constructed (GObject *object)
 {
 	ECalBackend *backend;
 	ESourceRegistry *registry;
 	ESource *builtin_source;
 	ESource *source;
+	ESourceLocal *local_extension;
 	ICalComponentKind kind;
 	const gchar *user_data_dir;
 	const gchar *component_type;
@@ -3780,6 +3877,11 @@ cal_backend_file_constructed (GObject *object)
 	g_free (filename);
 
 	g_object_unref (builtin_source);
+
+	local_extension = e_source_get_extension (source, E_SOURCE_EXTENSION_LOCAL_BACKEND);
+
+	g_signal_connect_object (local_extension, "notify::email-address",
+		G_CALLBACK (cal_backend_file_email_address_changed_cb), backend, 0);
 }
 
 static void
@@ -3881,6 +3983,7 @@ e_cal_backend_file_class_init (ECalBackendFileClass *class)
 	sync_class->get_attachment_uris_sync = e_cal_backend_file_get_attachment_uris;
 	sync_class->add_timezone_sync = e_cal_backend_file_add_timezone;
 	sync_class->get_free_busy_sync = e_cal_backend_file_get_free_busy;
+	sync_class->discard_alarm_sync = e_cal_backend_file_discard_alarm_sync;
 
 	/* Register our ESource extension. */
 	E_TYPE_SOURCE_LOCAL;
@@ -3923,9 +4026,7 @@ e_cal_backend_file_set_file_name (ECalBackendFile *cbfile,
 	priv = cbfile->priv;
 	g_rec_mutex_lock (&priv->idle_save_rmutex);
 
-	if (priv->file_name)
-		g_free (priv->file_name);
-
+	g_free (priv->file_name);
 	priv->file_name = g_strdup (file_name);
 
 	g_rec_mutex_unlock (&priv->idle_save_rmutex);

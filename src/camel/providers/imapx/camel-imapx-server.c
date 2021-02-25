@@ -380,32 +380,6 @@ fetch_changes_info_free (gpointer ptr)
 	}
 }
 
-static GWeakRef *
-imapx_weak_ref_new (gpointer object)
-{
-	GWeakRef *weak_ref;
-
-	/* XXX Might want to expose this in Camel's public API if it
-	 *     proves useful elsewhere.  Based on e_weak_ref_new(). */
-
-	weak_ref = g_slice_new0 (GWeakRef);
-	g_weak_ref_init (weak_ref, object);
-
-	return weak_ref;
-}
-
-static void
-imapx_weak_ref_free (GWeakRef *weak_ref)
-{
-	g_return_if_fail (weak_ref != NULL);
-
-	/* XXX Might want to expose this in Camel's public API if it
-	 *     proves useful elsewhere.  Based on e_weak_ref_free(). */
-
-	g_weak_ref_clear (weak_ref);
-	g_slice_free (GWeakRef, weak_ref);
-}
-
 static const CamelIMAPXUntaggedRespHandlerDesc *
 replace_untagged_descriptor (GHashTable *untagged_handlers,
                              const gchar *key,
@@ -700,8 +674,8 @@ imapx_server_reset_inactivity_timer (CamelIMAPXServer *is)
 	g_source_set_callback (
 		is->priv->inactivity_timeout,
 		imapx_server_inactivity_timeout_cb,
-		imapx_weak_ref_new (is),
-		(GDestroyNotify) imapx_weak_ref_free);
+		camel_utils_weak_ref_new (is),
+		(GDestroyNotify) camel_utils_weak_ref_free);
 	g_source_attach (is->priv->inactivity_timeout, NULL);
 
 	g_mutex_unlock (&is->priv->inactivity_timeout_lock);
@@ -741,6 +715,14 @@ imapx_server_set_connection_timeout (GIOStream *connection,
 	return previous_timeout;
 }
 
+static gboolean
+imapx_server_has_current_command (CamelIMAPXServer *is,
+				  CamelIMAPXJobKind job_kind)
+{
+	return is->priv->current_command &&
+		is->priv->current_command->job_kind == job_kind;
+}
+
 /* untagged response handler functions */
 
 static gboolean
@@ -755,10 +737,7 @@ imapx_untagged_capability (CamelIMAPXServer *is,
 
 	g_mutex_lock (&is->priv->stream_lock);
 
-	if (is->priv->cinfo != NULL) {
-		imapx_free_capability (is->priv->cinfo);
-		is->priv->cinfo = NULL;
-	}
+	g_clear_pointer (&is->priv->cinfo, imapx_free_capability);
 
 	g_mutex_unlock (&is->priv->stream_lock);
 
@@ -1519,6 +1498,11 @@ imapx_untagged_lsub (CamelIMAPXServer *is,
 	if (response == NULL)
 		return FALSE;
 
+	if (!imapx_server_has_current_command (is, CAMEL_IMAPX_JOB_LSUB)) {
+		g_clear_object (&response);
+		return TRUE;
+	}
+
 	camel_imapx_list_response_add_attribute (
 		response, CAMEL_IMAPX_LIST_ATTR_SUBSCRIBED);
 
@@ -1566,6 +1550,11 @@ imapx_untagged_list (CamelIMAPXServer *is,
 		CAMEL_IMAPX_INPUT_STREAM (input_stream), cancellable, error);
 	if (response == NULL)
 		return FALSE;
+
+	if (!imapx_server_has_current_command (is, CAMEL_IMAPX_JOB_LIST)) {
+		g_clear_object (&response);
+		return TRUE;
+	}
 
 	mailbox_name = camel_imapx_list_response_get_mailbox_name (response);
 	separator = camel_imapx_list_response_get_separator (response);
@@ -1716,8 +1705,6 @@ imapx_untagged_search (CamelIMAPXServer *is,
 	search_results = g_array_new (FALSE, FALSE, sizeof (guint64));
 
 	while (TRUE) {
-		gboolean success;
-
 		/* Peek at the next token, and break
 		 * out of the loop if we get a newline. */
 		tok = camel_imapx_input_stream_token (
@@ -1731,11 +1718,7 @@ imapx_untagged_search (CamelIMAPXServer *is,
 			CAMEL_IMAPX_INPUT_STREAM (input_stream),
 			tok, token, len);
 
-		success = camel_imapx_input_stream_number (
-			CAMEL_IMAPX_INPUT_STREAM (input_stream),
-			&number, cancellable, error);
-
-		if (!success)
+		if (!camel_imapx_input_stream_number (CAMEL_IMAPX_INPUT_STREAM (input_stream), &number, cancellable, error))
 			goto exit;
 
 		g_array_append_val (search_results, number);
@@ -3074,9 +3057,7 @@ connected:
 
 			/* See if we got new capabilities
 			 * in the STARTTLS response. */
-			if (is->priv->cinfo)
-				imapx_free_capability (is->priv->cinfo);
-			is->priv->cinfo = NULL;
+			g_clear_pointer (&is->priv->cinfo, imapx_free_capability);
 			if (ic->status->condition == IMAPX_CAPABILITY) {
 				is->priv->cinfo = ic->status->u.cinfo;
 				ic->status->u.cinfo = NULL;
@@ -3146,10 +3127,7 @@ exit:
 		g_clear_object (&is->priv->connection);
 		g_clear_object (&is->priv->subprocess);
 
-		if (is->priv->cinfo != NULL) {
-			imapx_free_capability (is->priv->cinfo);
-			is->priv->cinfo = NULL;
-		}
+		g_clear_pointer (&is->priv->cinfo, imapx_free_capability);
 
 		g_mutex_unlock (&is->priv->stream_lock);
 	}
@@ -3362,10 +3340,7 @@ camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 	if (result == CAMEL_AUTHENTICATION_ACCEPTED) {
 		g_mutex_lock (&is->priv->stream_lock);
 
-		if (is->priv->cinfo) {
-			imapx_free_capability (is->priv->cinfo);
-			is->priv->cinfo = NULL;
-		}
+		g_clear_pointer (&is->priv->cinfo, imapx_free_capability);
 
 		if (ic->status->condition == IMAPX_CAPABILITY) {
 			is->priv->cinfo = ic->status->u.cinfo;
@@ -4073,10 +4048,7 @@ camel_imapx_server_process_command_sync (CamelIMAPXServer *is,
 	g_return_val_if_fail (CAMEL_IS_IMAPX_COMMAND (ic), FALSE);
 
 	camel_imapx_command_close (ic);
-	if (ic->status) {
-		imapx_free_status (ic->status);
-		ic->status = NULL;
-	}
+	g_clear_pointer (&ic->status, imapx_free_status);
 	ic->completed = FALSE;
 
 	head = g_queue_peek_head_link (&ic->parts);
@@ -4257,10 +4229,7 @@ imapx_disconnect (CamelIMAPXServer *is)
 	g_clear_object (&is->priv->connection);
 	g_clear_object (&is->priv->subprocess);
 
-	if (is->priv->cinfo) {
-		imapx_free_capability (is->priv->cinfo);
-		is->priv->cinfo = NULL;
-	}
+	g_clear_pointer (&is->priv->cinfo, imapx_free_capability);
 
 	g_mutex_unlock (&is->priv->stream_lock);
 
@@ -6321,10 +6290,7 @@ camel_imapx_server_sync_changes_sync (CamelIMAPXServer *is,
 		camel_folder_summary_remove_uids (camel_folder_get_folder_summary (folder), expunged_removed_list);
 	}
 
-	if (expunged_changes) {
-		camel_folder_change_info_free (expunged_changes);
-		expunged_changes = NULL;
-	}
+	g_clear_pointer (&expunged_changes, camel_folder_change_info_free);
 
 	if (expunged_removed_list) {
 		g_list_free_full (expunged_removed_list, (GDestroyNotify) camel_pstring_free);
@@ -7207,7 +7173,7 @@ camel_imapx_server_schedule_idle_sync (CamelIMAPXServer *is,
 	is->priv->idle_pending = g_timeout_source_new_seconds (IMAPX_IDLE_WAIT_SECONDS);
 	g_source_set_callback (
 		is->priv->idle_pending, imapx_server_run_idle_thread_cb,
-		imapx_weak_ref_new (is), (GDestroyNotify) imapx_weak_ref_free);
+		camel_utils_weak_ref_new (is), (GDestroyNotify) camel_utils_weak_ref_free);
 	g_source_attach (is->priv->idle_pending, NULL);
 
 	g_mutex_unlock (&is->priv->idle_lock);

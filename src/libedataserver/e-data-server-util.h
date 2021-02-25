@@ -146,6 +146,7 @@ const gchar *	e_enum_to_string		(GType enum_type,
 typedef struct _EAsyncClosure EAsyncClosure;
 
 EAsyncClosure *	e_async_closure_new		(void);
+EAsyncClosure *	e_async_closure_new_with_context(GMainContext *context);
 GAsyncResult *	e_async_closure_wait		(EAsyncClosure *closure);
 void		e_async_closure_free		(EAsyncClosure *closure);
 void		e_async_closure_callback	(GObject *object,
@@ -292,6 +293,8 @@ gboolean	e_util_identity_can_send	(struct _ESourceRegistry *registry,
 gboolean	e_util_can_use_collection_as_credential_source
 						(struct _ESource *collection_source,
 						 struct _ESource *child_source);
+gint		e_util_source_compare_for_sort	(struct _ESource *source_a,
+						 struct _ESource *source_b);
 
 G_END_DECLS
 

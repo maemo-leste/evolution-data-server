@@ -243,6 +243,8 @@ camel_offline_settings_set_stay_synchronized (CamelOfflineSettings *settings,
  * Returns: the interval for automatic store of folder changes
  *
  * Since: 3.18
+ *
+ * Deprecated: 3.40: Use camel_store_settings_get_store_changes_interval() instead
  **/
 gint
 camel_offline_settings_get_store_changes_interval (CamelOfflineSettings *settings)
@@ -262,6 +264,8 @@ camel_offline_settings_get_store_changes_interval (CamelOfflineSettings *setting
  * automatic folder change saving.
  *
  * Since: 3.18
+ *
+ * Deprecated: 3.40: Use camel_store_settings_set_store_changes_interval() instead
  **/
 void
 camel_offline_settings_set_store_changes_interval (CamelOfflineSettings *settings,

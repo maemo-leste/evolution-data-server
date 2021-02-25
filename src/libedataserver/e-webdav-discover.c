@@ -41,6 +41,8 @@ typedef struct _WebDAVDiscoverData {
 
 #define CUSTOM_SUPPORTS_FLAGS (E_WEBDAV_DISCOVER_SUPPORTS_CALENDAR_AUTO_SCHEDULE | E_WEBDAV_DISCOVER_SUPPORTS_SUBSCRIBED_ICALENDAR)
 
+G_DEFINE_BOXED_TYPE (EWebDAVDiscoveredSource, e_webdav_discovered_source, e_webdav_discovered_source_copy, e_webdav_discovered_source_free)
+
 static gboolean
 e_webdav_discovery_already_discovered (const gchar *href,
 				       const GSList *discovered_sources)
@@ -89,6 +91,7 @@ e_webdav_discover_split_resources (WebDAVDiscoverData *wdd,
 			discovered->display_name = g_strdup (resource->display_name);
 			discovered->description = g_strdup (resource->description);
 			discovered->color = g_strdup (resource->color);
+			discovered->order = resource->order;
 
 			if (resource->kind == E_WEBDAV_RESOURCE_KIND_ADDRESSBOOK) {
 				wdd->addressbooks = g_slist_prepend (wdd->addressbooks, discovered);
@@ -144,8 +147,7 @@ e_webdav_discover_traverse_propfind_response_cb (EWebDAVSession *webdav,
 
 			if (full_href && *full_href && GPOINTER_TO_INT (g_hash_table_contains (wdd->covered_hrefs, full_href)) != 2 &&
 			    e_webdav_session_list_sync (webdav, full_href, E_WEBDAV_DEPTH_THIS_AND_CHILDREN,
-				E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION |
-				E_WEBDAV_LIST_COLOR | E_WEBDAV_LIST_ONLY_ADDRESSBOOK | E_WEBDAV_LIST_ALL,
+				E_WEBDAV_LIST_ONLY_ADDRESSBOOK | E_WEBDAV_LIST_ALL,
 				&resources, wdd->cancellable, &local_error)) {
 				e_webdav_discover_split_resources (wdd, resources);
 				g_slist_free_full (resources, e_webdav_resource_free);
@@ -181,8 +183,7 @@ e_webdav_discover_traverse_propfind_response_cb (EWebDAVSession *webdav,
 
 			if (full_href && *full_href && GPOINTER_TO_INT (g_hash_table_contains (wdd->covered_hrefs, full_href)) != 2 &&
 			    e_webdav_session_list_sync (webdav, full_href, E_WEBDAV_DEPTH_THIS_AND_CHILDREN,
-				E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION |
-				E_WEBDAV_LIST_COLOR | E_WEBDAV_LIST_ONLY_CALENDAR | E_WEBDAV_LIST_ALL,
+				E_WEBDAV_LIST_ONLY_CALENDAR | E_WEBDAV_LIST_ALL,
 				&resources, wdd->cancellable, &local_error)) {
 				e_webdav_discover_split_resources (wdd, resources);
 				g_slist_free_full (resources, e_webdav_resource_free);
@@ -267,7 +268,6 @@ e_webdav_discover_traverse_propfind_response_cb (EWebDAVSession *webdav,
 		if (GPOINTER_TO_INT (g_hash_table_contains (wdd->covered_hrefs, href)) != 2 &&
 		    !g_cancellable_is_cancelled (wdd->cancellable) &&
 		    e_webdav_session_list_sync (webdav, href, E_WEBDAV_DEPTH_THIS,
-			E_WEBDAV_LIST_SUPPORTS | E_WEBDAV_LIST_DISPLAY_NAME | E_WEBDAV_LIST_DESCRIPTION | E_WEBDAV_LIST_COLOR |
 			(is_calendar ? E_WEBDAV_LIST_ONLY_CALENDAR : 0) | (is_addressbook ? E_WEBDAV_LIST_ONLY_ADDRESSBOOK : 0) | E_WEBDAV_LIST_ALL,
 			&resources, wdd->cancellable, &local_error)) {
 			e_webdav_discover_split_resources (wdd, resources);
@@ -293,7 +293,7 @@ e_webdav_discover_traverse_propfind_response_cb (EWebDAVSession *webdav,
 			e_webdav_resource_new (E_WEBDAV_RESOURCE_KIND_WEBDAV_NOTES,
 				E_WEBDAV_RESOURCE_SUPPORTS_WEBDAV_NOTES, href, NULL,
 				_("Notes"),
-				NULL, 0, 0, 0, NULL, NULL));
+				NULL, 0, 0, 0, NULL, NULL, (guint) -1));
 
 		e_webdav_discover_split_resources (wdd, resources);
 
@@ -416,20 +416,6 @@ e_webdav_discover_context_free (gpointer ptr)
 	g_slice_free (EWebDAVDiscoverContext, context);
 }
 
-static void
-e_webdav_discover_source_free (gpointer ptr)
-{
-	EWebDAVDiscoveredSource *discovered_source = ptr;
-
-	if (discovered_source) {
-		g_free (discovered_source->href);
-		g_free (discovered_source->display_name);
-		g_free (discovered_source->description);
-		g_free (discovered_source->color);
-		g_slice_free (EWebDAVDiscoveredSource, discovered_source);
-	}
-}
-
 /**
  * e_webdav_discover_free_discovered_sources:
  * @discovered_sources: (element-type EWebDAVDiscoveredSource): A #GSList of discovered sources
@@ -442,7 +428,7 @@ e_webdav_discover_source_free (gpointer ptr)
 void
 e_webdav_discover_free_discovered_sources (GSList *discovered_sources)
 {
-	g_slist_free_full (discovered_sources, e_webdav_discover_source_free);
+	g_slist_free_full (discovered_sources, (GDestroyNotify) e_webdav_discovered_source_free);
 }
 
 static void
@@ -772,6 +758,22 @@ e_webdav_discover_sources_sync (ESource *source,
 		out_certificate_pem, out_certificate_errors, out_discovered_sources, out_calendar_user_addresses, cancellable, error);
 }
 
+static gint
+e_webdav_discover_cmp_sources (gconstpointer ptr1,
+			       gconstpointer ptr2)
+{
+	const EWebDAVDiscoveredSource *source1 = ptr1;
+	const EWebDAVDiscoveredSource *source2 = ptr2;
+
+	if (!source1 || !source2)
+		return (source1 ? 1 : 0) - (source2 ? 1 : 0);
+
+	if (source1->order != source2->order && source1->order != (guint) -1 && source2->order != (guint) -1)
+		return source1->order < source2->order ? -1 : 1;
+
+	return g_strcmp0 (source1->display_name, source2->display_name);
+}
+
 /**
  * e_webdav_discover_sources_full_sync:
  * @source: an #ESource from which to take connection details
@@ -1029,7 +1031,7 @@ e_webdav_discover_sources_full_sync (ESource *source,
 			*out_calendar_user_addresses = g_slist_reverse (*out_calendar_user_addresses);
 
 		if (out_discovered_sources && *out_discovered_sources)
-			*out_discovered_sources = g_slist_reverse (*out_discovered_sources);
+			*out_discovered_sources = g_slist_sort (*out_discovered_sources, e_webdav_discover_cmp_sources);
 
 		g_hash_table_destroy (wdd.covered_hrefs);
 	} else {
@@ -1043,4 +1045,54 @@ e_webdav_discover_sources_full_sync (ESource *source,
 	g_object_unref (webdav);
 
 	return success;
+}
+
+/**
+ * e_webdav_discovered_source_copy:
+ * @discovered_source: an #EWebDAVDiscoveredSource to copy
+ *
+ * Copies the given EWebDAVDiscoveredSource.
+ *
+ * Returns: (transfer full): a copy of @discovered_source
+ *
+ * Since: 3.40
+ **/
+EWebDAVDiscoveredSource *
+e_webdav_discovered_source_copy (EWebDAVDiscoveredSource *discovered_source)
+{
+	EWebDAVDiscoveredSource *copy;
+
+	g_return_val_if_fail (discovered_source != NULL, NULL);
+
+	copy = g_slice_new0 (EWebDAVDiscoveredSource);
+	copy->href = g_strdup (discovered_source->href);
+	copy->supports = discovered_source->supports;
+	copy->display_name = g_strdup (discovered_source->display_name);
+	copy->description = g_strdup (discovered_source->description);
+	copy->color = g_strdup (discovered_source->color);
+	copy->order = discovered_source->order;
+
+	return copy;
+}
+
+
+/**
+ * e_webdav_discovered_source_free:
+ * @discovered_source: an #EWebDAVDiscoveredSource to free
+ *
+ * Frees the @discovered_source. Function does nothing, when it's %NULL.
+ *
+ * Since: 3.40
+ **/
+void
+e_webdav_discovered_source_free (EWebDAVDiscoveredSource *discovered_source)
+{
+	if (!discovered_source)
+		return;
+
+	g_clear_pointer (&discovered_source->href, g_free);
+	g_clear_pointer (&discovered_source->display_name, g_free);
+	g_clear_pointer (&discovered_source->description, g_free);
+	g_clear_pointer (&discovered_source->color, g_free);
+	g_slice_free (EWebDAVDiscoveredSource, discovered_source);
 }

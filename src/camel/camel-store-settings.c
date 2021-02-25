@@ -178,7 +178,7 @@ camel_store_settings_set_filter_inbox (CamelStoreSettings *settings,
  *
  * Returns: the interval for automatic store of folder changes
  *
- * Since: 3.38.2
+ * Since: 3.40
  **/
 gint
 camel_store_settings_get_store_changes_interval (CamelStoreSettings *settings)
@@ -197,7 +197,7 @@ camel_store_settings_get_store_changes_interval (CamelStoreSettings *settings)
  * saved automatically. 0 means immediately, while -1 means turning off
  * automatic folder change saving.
  *
- * Since: 3.38.2
+ * Since: 3.40
  **/
 void
 camel_store_settings_set_store_changes_interval (CamelStoreSettings *settings,

@@ -27,6 +27,8 @@
 #include <libedataserver/e-source.h>
 #include <libedataserver/e-webdav-session.h>
 
+#define E_TYPE_WEBDAV_DISCOVERED_SOURCE (e_webdav_discovered_source_get_type ())
+
 G_BEGIN_DECLS
 
 typedef enum {
@@ -46,6 +48,7 @@ typedef struct _EWebDAVDiscoveredSource {
 	gchar *display_name;
 	gchar *description;
 	gchar *color;
+	guint order;
 } EWebDAVDiscoveredSource;
 
 void		e_webdav_discover_free_discovered_sources
@@ -77,6 +80,11 @@ gboolean	e_webdav_discover_sources_sync		(ESource *source,
 							 GSList **out_calendar_user_addresses,
 							 GCancellable *cancellable,
 							 GError **error);
+
+GType		e_webdav_discovered_source_get_type	(void) G_GNUC_CONST;
+EWebDAVDiscoveredSource *
+		e_webdav_discovered_source_copy		(EWebDAVDiscoveredSource *discovered_source);
+void		e_webdav_discovered_source_free		(EWebDAVDiscoveredSource *discovered_source);
 
 /**
  * EWebDAVDiscoverRefSourceFunc:

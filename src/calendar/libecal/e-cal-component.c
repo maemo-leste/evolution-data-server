@@ -3910,7 +3910,7 @@ dup_alarm_uid_from_component (ICalComponent *valarm)
  * @alarm: (transfer none): an alarm, as an #ECalComponentAlarm
  *
  * Adds an alarm subcomponent to a calendar component.  You should have created
- * the @alarm by using e_cal_component_alarm_new(); it is invalid to use a
+ * the @alarm by using e_cal_component_alarm_new(); it is invalid to use an
  * #ECalComponentAlarm structure that came from e_cal_component_get_alarm().  After
  * adding the alarm, the @alarm structure is no longer valid because the
  * internal structures may change and you should get rid of it by using
@@ -4155,7 +4155,7 @@ get_all_alarms_cb (ICalComponent *icalcomp,
  * @comp: A calendar component.
  *
  * Queries all alarm subcomponents of a calendar component.
- * Free the returned #GSList with g_slist_free_full (slist, e_cal_component_alarm_free));,
+ * Free the returned #GSList with g_slist_free_full (slist, e_cal_component_alarm_free);,
  * when no longer needed.
  *
  * Returns: (transfer full) (nullable) (element-type ECalComponentAlarm): the alarm subcomponents

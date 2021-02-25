@@ -323,10 +323,7 @@ book_backend_sql_exec_real (sqlite3 *db,
 			break;
 		retries++;
 
-		if (errmsg) {
-			sqlite3_free (errmsg);
-			errmsg = NULL;
-		}
+		g_clear_pointer (&errmsg, sqlite3_free);
 		g_thread_yield ();
 		g_usleep (100 * 1000); /* Sleep for 100 ms */
 
@@ -345,10 +342,7 @@ book_backend_sql_exec_real (sqlite3 *db,
 		return FALSE;
 	}
 
-	if (errmsg) {
-		sqlite3_free (errmsg);
-		errmsg = NULL;
-	}
+	g_clear_pointer (&errmsg, sqlite3_free);
 
 	return TRUE;
 }
@@ -417,6 +411,8 @@ book_backend_sql_exec (sqlite3 *db,
                        gpointer data,
                        GError **error)
 {
+	g_return_val_if_fail (stmt != NULL, FALSE);
+
 	if (booksql_debug ())
 		book_backend_sql_debug (db, stmt, callback, data, error);
 
@@ -1895,7 +1891,7 @@ e_book_backend_sqlitedb_new_full (const gchar *path,
  * If the path for multiple addressbooks are same, the contacts from all addressbooks
  * would be stored in same db in different tables.
  *
- * Returns: (transfer full): A reference to a #EBookBackendSqliteDB
+ * Returns: (transfer full): A reference to an #EBookBackendSqliteDB
  *
  * Since: 3.2
  *
@@ -2701,7 +2697,7 @@ contact_found_cb (gpointer ref,
  * Checks if a contact bearing the UID indicated by @uid is stored
  * in @folderid of @ebsdb.
  *
- * Returns: %TRUE if the the contact exists and there was no error, otherwise %FALSE.
+ * Returns: %TRUE if the contact exists and there was no error, otherwise %FALSE.
  *
  * <note><para>In order to differentiate an error from a contact which simply
  * is not stored in @ebsdb, you must pass the @error parameter and check whether

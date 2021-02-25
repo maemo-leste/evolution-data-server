@@ -492,7 +492,7 @@ static guint32 Spbox[8][64] = {
 /* Encrypt or decrypt a block of data in ECB mode */
 static void
 des (guint32 ks[16][2],
-     guchar block[8])
+     guchar *block)
 {
 	guint32 left, right, work;
 
@@ -971,8 +971,7 @@ sasl_ntlm_finalize (GObject *object)
 	CamelSaslNTLM *ntlm = CAMEL_SASL_NTLM (object);
 	CamelSaslNTLMPrivate *priv = ntlm->priv;
 
-	if (priv->type1_msg)
-		g_free (priv->type1_msg);
+	g_free (priv->type1_msg);
 	if (priv->helper_stream)
 		g_object_unref (priv->helper_stream);
 #endif

@@ -74,9 +74,11 @@
 #include "e-dbus-source.h"
 
 #include "e-data-server-util.h"
+#include "e-oauth2-services.h"
 #include "e-secret-store.h"
 #include "e-source-enumtypes.h"
 #include "e-source-extension.h"
+#include "e-source-registry.h"
 #include "e-uid.h"
 
 /* built-in extension types */
@@ -861,10 +863,7 @@ source_update_connection_status (ESource *source)
 	g_return_if_fail (E_IS_SOURCE (source));
 
 	g_mutex_lock (&source->priv->connection_status_change_lock);
-	if (source->priv->connection_status_change != NULL) {
-		g_source_unref (source->priv->connection_status_change);
-		source->priv->connection_status_change = NULL;
-	}
+	g_clear_pointer (&source->priv->connection_status_change, g_source_unref);
 	g_mutex_unlock (&source->priv->connection_status_change_lock);
 
 	g_object_freeze_notify (G_OBJECT (source));
@@ -1034,10 +1033,7 @@ source_idle_changed_cb (gpointer user_data)
 		return FALSE;
 
 	g_mutex_lock (&source->priv->changed_lock);
-	if (source->priv->changed != NULL) {
-		g_source_unref (source->priv->changed);
-		source->priv->changed = NULL;
-	}
+	g_clear_pointer (&source->priv->changed, g_source_unref);
 	g_mutex_unlock (&source->priv->changed_lock);
 
 	g_signal_emit (source, signals[CHANGED], 0);
@@ -1246,10 +1242,7 @@ source_dispose (GObject *object)
 
 	g_mutex_unlock (&priv->property_lock);
 
-	if (priv->main_context != NULL) {
-		g_main_context_unref (priv->main_context);
-		priv->main_context = NULL;
-	}
+	g_clear_pointer (&priv->main_context, g_main_context_unref);
 
 	/* XXX Maybe not necessary to acquire the lock? */
 	g_mutex_lock (&priv->changed_lock);
@@ -1791,6 +1784,39 @@ source_get_oauth2_access_token_sync (ESource *source,
 			e_dbus_object_get_source_oauth2_support (
 			E_DBUS_OBJECT (dbus_object));
 		g_object_unref (dbus_object);
+	}
+
+	if (!dbus_interface) {
+		ESourceRegistry *registry;
+
+		registry = e_source_registry_new_sync (NULL, NULL);
+
+		if (registry) {
+			EOAuth2Services *oauth2_services;
+			EOAuth2Service *service = NULL;
+
+			oauth2_services = e_source_registry_get_oauth2_services (registry);
+
+			if (oauth2_services)
+				service = e_oauth2_services_find (oauth2_services, source);
+
+			if (service) {
+				EOAuth2ServiceRefSourceFunc ref_source;
+				gboolean success;
+
+				ref_source = (EOAuth2ServiceRefSourceFunc) e_source_registry_ref_source;
+
+				success = e_oauth2_service_get_access_token_sync (service, source, ref_source, registry,
+					out_access_token, out_expires_in, cancellable, error);
+
+				g_clear_object (&service);
+				g_object_unref (registry);
+
+				return success;
+			}
+
+			g_object_unref (registry);
+		}
 	}
 
 	if (dbus_interface == NULL) {

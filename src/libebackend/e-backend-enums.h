@@ -113,7 +113,7 @@ typedef enum {
  *
  * Flags to check whether at least one of the asked for parts is enabled.
  *
- * Since: 3.38.3
+ * Since: 3.40
  **/
 typedef enum { /*< flags >*/
 	E_COLLECTION_BACKEND_PART_NONE = 0,

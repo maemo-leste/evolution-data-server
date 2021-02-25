@@ -1137,6 +1137,8 @@ ebsql_exec (EBookSqlite *ebsql,
 	gint ret = -1, retries = 0;
 	gint64 t1 = 0, t2;
 
+	g_return_val_if_fail (stmt != NULL, FALSE);
+
 	/* Debug output for statements and query plans */
 	ebsql_exec_maybe_debug (ebsql, stmt);
 
@@ -1163,10 +1165,7 @@ ebsql_exec (EBookSqlite *ebsql,
 			break;
 		retries++;
 
-		if (errmsg) {
-			sqlite3_free (errmsg);
-			errmsg = NULL;
-		}
+		g_clear_pointer (&errmsg, sqlite3_free);
 		g_thread_yield ();
 		g_usleep (100 * 1000); /* Sleep for 100 ms */
 
@@ -1316,6 +1315,8 @@ ebsql_prepare_statement (EBookSqlite *ebsql,
 	sqlite3_stmt *stmt;
 	const gchar *stmt_tail = NULL;
 	gint ret;
+
+	g_return_val_if_fail (stmt_str != NULL, NULL);
 
 	ret = sqlite3_prepare_v2 (ebsql->priv->db, stmt_str, strlen (stmt_str), &stmt, &stmt_tail);
 
@@ -6598,7 +6599,7 @@ ebsql_new_default (const gchar *path,
  * the #EbSqlCursor interface, using the %E_BOOK_INDEX_SORT_KEY
  * index flag.
  *
- * Returns: (transfer full): A reference to a #EBookSqlite
+ * Returns: (transfer full): A reference to an #EBookSqlite
  *
  * Since: 3.12
  **/
