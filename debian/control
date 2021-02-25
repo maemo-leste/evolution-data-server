@@ -112,7 +112,7 @@ Description: Documentation files for the Evolution Data Server libraries
  This package contains the API documentation for all the individual
  Evolution Data Server libraries.
 
-Package: libedataserver-1.2-25
+Package: libedataserver-1.2-26
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -129,7 +129,7 @@ Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedataserver-1.2-25 (= ${binary:Version}),
+Depends: libedataserver-1.2-26 (= ${binary:Version}),
          gir1.2-edataserver-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
@@ -159,7 +159,7 @@ Description: GObject introspection for the EDataServer library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libedataserverui-1.2-2
+Package: libedataserverui-1.2-3
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -176,7 +176,7 @@ Package: libedataserverui1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedataserverui-1.2-2 (= ${binary:Version}),
+Depends: libedataserverui-1.2-3 (= ${binary:Version}),
          gir1.2-edataserverui-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},

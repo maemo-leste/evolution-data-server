@@ -1,4 +1,4 @@
-libedataserverui-1.2.so.2 libedataserverui-1.2-2 #MINVER#
+libedataserverui-1.2.so.3 libedataserverui-1.2-3 #MINVER#
 * Build-Depends-Package: libedataserverui1.2-dev
  _libedataserverui_load_modules@Base 3.29.90
  e_buffer_tagger_connect@Base 3.37.90
