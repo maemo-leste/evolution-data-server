@@ -135,6 +135,7 @@ Depends: libedataserver-1.2-26 (= ${binary:Version}),
          ${misc:Depends},
          libcamel1.2-dev (= ${binary:Version}),
          libxml2-dev,
+         libgdata-dev (>= 0.15.1),
          libglib2.0-dev (>= 2.40),
          libsoup2.4-dev,
          libsecret-1-dev
