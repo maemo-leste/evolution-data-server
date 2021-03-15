@@ -371,6 +371,7 @@ libedataserver-1.2.so.26 libedataserver-1.2-26 #MINVER#
  e_module_get_filename@Base 3.17
  e_module_get_type@Base 3.17
  e_module_load_all_in_directory@Base 3.17
+ e_module_load_all_in_directory_and_prefixes@Base 3.39.3
  e_module_load_file@Base 3.17
  e_module_new@Base 3.17
  e_named_parameters_assign@Base 3.17
@@ -1030,6 +1031,7 @@ libedataserver-1.2.so.26 libedataserver-1.2-26 #MINVER#
  e_util_free_object_slist@Base 3.17
  e_util_free_string_slist@Base 3.17
  e_util_generate_uid@Base 3.25.90
+ e_util_get_directory_variants@Base 3.39.3
  e_util_get_source_full_name@Base 3.17.90
  e_util_gthread_id@Base 3.17
  e_util_identity_can_send@Base 3.25.90

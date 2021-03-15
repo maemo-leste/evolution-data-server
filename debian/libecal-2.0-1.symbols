@@ -121,12 +121,14 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_component_alarm_instance_free@Base 3.33.4
  e_cal_component_alarm_instance_get_occur_end@Base 3.33.4
  e_cal_component_alarm_instance_get_occur_start@Base 3.33.4
+ e_cal_component_alarm_instance_get_rid@Base 3.39.3
  e_cal_component_alarm_instance_get_time@Base 3.33.4
  e_cal_component_alarm_instance_get_type@Base 3.33.4
  e_cal_component_alarm_instance_get_uid@Base 3.33.4
  e_cal_component_alarm_instance_new@Base 3.33.4
  e_cal_component_alarm_instance_set_occur_end@Base 3.33.4
  e_cal_component_alarm_instance_set_occur_start@Base 3.33.4
+ e_cal_component_alarm_instance_set_rid@Base 3.39.3
  e_cal_component_alarm_instance_set_time@Base 3.33.4
  e_cal_component_alarm_instance_set_uid@Base 3.33.4
  e_cal_component_alarm_new@Base 3.17
@@ -439,6 +441,8 @@ libecal-2.0.so.1 libecal-2.0-1 #MINVER#
  e_cal_recur_obtain_enddate@Base 3.17
  e_cal_system_timezone_get_location@Base 3.17
  e_cal_util_add_timezones_from_component@Base 3.17
+ e_cal_util_clamp_vtimezone@Base 3.39.3
+ e_cal_util_clamp_vtimezone_by_component@Base 3.39.3
  e_cal_util_component_dup_x_property@Base 3.33.4
  e_cal_util_component_find_x_property@Base 3.33.4
  e_cal_util_component_get_recurid_as_string@Base 3.33.4

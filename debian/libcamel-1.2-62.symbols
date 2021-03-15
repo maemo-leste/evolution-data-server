@@ -1370,6 +1370,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_util_bdata_get_string@Base 3.24.1
  camel_util_bdata_put_number@Base 3.24.1
  camel_util_bdata_put_string@Base 3.24.1
+ camel_util_get_directory_variants@Base 3.39.3
  camel_utils_weak_ref_free@Base 3.39.2
  camel_utils_weak_ref_new@Base 3.39.2
  camel_uudecode_step@Base 3.19.92
