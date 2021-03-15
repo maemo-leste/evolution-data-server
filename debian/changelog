@@ -1,4 +1,4 @@
-evolution-data-server (3.39.3-1) UNRELEASED; urgency=medium
+evolution-data-server (3.39.3-1) experimental; urgency=medium
 
   [ Olivier Tilloy ]
   * Make libedataserver1.2-dev depend on libgdata-dev (per upstream change
@@ -8,7 +8,7 @@ evolution-data-server (3.39.3-1) UNRELEASED; urgency=medium
   * New upstream release
   * Refresh the symbols for the new version
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 15 Mar 2021 10:22:12 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 15 Mar 2021 10:43:56 +0100
 
 evolution-data-server (3.39.2-1) experimental; urgency=medium
 
