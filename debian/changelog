@@ -1,9 +1,13 @@
-evolution-data-server (3.39.2-2) UNRELEASED; urgency=medium
+evolution-data-server (3.39.3-1) UNRELEASED; urgency=medium
 
+  [ Olivier Tilloy ]
   * Make libedataserver1.2-dev depend on libgdata-dev (per upstream change
     https://gitlab.gnome.org/GNOME/evolution-data-server/-/commit/45009e9)
 
- -- Olivier Tilloy <olivier.tilloy@canonical.com>  Thu, 04 Mar 2021 19:27:30 +0100
+  [ Sebastien Bacher ]
+  * New upstream release
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 15 Mar 2021 10:22:12 +0100
 
 evolution-data-server (3.39.2-1) experimental; urgency=medium
 
