@@ -690,6 +690,12 @@ e_reminder_data_to_string (const EReminderData *rd)
 
 	if (rd->instance && e_cal_component_alarm_instance_get_uid (rd->instance))
 		g_string_append (str, e_cal_component_alarm_instance_get_uid (rd->instance));
+
+	if (rd->instance && e_cal_component_alarm_instance_get_rid (rd->instance)) {
+		g_string_append_c (str, '\t');
+		g_string_append (str, e_cal_component_alarm_instance_get_rid (rd->instance));
+	}
+
 	g_string_append_c (str, '\n');
 
 	g_string_append_printf (str, "%" G_GINT64_FORMAT, (gint64) (rd->instance ? e_cal_component_alarm_instance_get_time (rd->instance) : -1));
@@ -711,7 +717,7 @@ e_reminder_data_to_string (const EReminderData *rd)
 static EReminderData *
 e_reminder_data_from_string (const gchar *str)
 {
-	gchar **strv;
+	gchar **strv, *tab;
 	EReminderData *rd;
 	ECalComponent *component;
 	ECalComponentAlarmInstance *instance;
@@ -733,11 +739,22 @@ e_reminder_data_from_string (const gchar *str)
 		return NULL;
 	}
 
+	tab = strchr (strv[1], '\t');
+
+	if (tab)
+		*tab = '\0';
+
 	instance = e_cal_component_alarm_instance_new (
 		(*(strv[1])) ? strv[1] : NULL,
 		g_ascii_strtoll (strv[2], NULL, 10),
 		g_ascii_strtoll (strv[3], NULL, 10),
 		g_ascii_strtoll (strv[4], NULL, 10));
+
+	if (tab) {
+		e_cal_component_alarm_instance_set_rid (instance, tab + 1);
+
+		*tab = '\t';
+	}
 
 	rd = e_reminder_data_new_take_component (strv[0], component, instance);
 
@@ -3177,6 +3194,10 @@ e_reminder_watcher_dup_snoozed (EReminderWatcher *watcher)
  * reminders into the list of snoozed reminders and invokes the "changed"
  * signal.
  *
+ * The @until can be a special value 0, to set the time as the event start,
+ * if it's in the future. The function does nothing when the event time
+ * is in the past.
+ *
  * Since: 3.30
  **/
 void
@@ -3191,6 +3212,16 @@ e_reminder_watcher_snooze (EReminderWatcher *watcher,
 	g_return_if_fail (rd != NULL);
 
 	g_rec_mutex_lock (&watcher->priv->lock);
+
+	if (!until) {
+		until = e_cal_component_alarm_instance_get_occur_start (rd->instance);
+
+		/* Only if it's in the future. */
+		if (until <= g_get_real_time () / G_USEC_PER_SEC) {
+			g_rec_mutex_unlock (&watcher->priv->lock);
+			return;
+		}
+	}
 
 	rd_copy = e_reminder_data_copy (rd);
 	if (!rd_copy) {
@@ -3320,7 +3351,7 @@ e_reminder_watcher_dismiss_one_sync (ECalClient *client,
 
 		success = e_cal_client_discard_alarm_sync (client,
 			e_cal_component_id_get_uid (id),
-			e_cal_component_id_get_rid (id),
+			e_cal_component_id_get_rid (id) ? e_cal_component_id_get_rid (id) : e_cal_component_alarm_instance_get_rid (rd->instance),
 			e_cal_component_alarm_instance_get_uid (rd->instance),
 			E_CAL_OPERATION_FLAG_NONE,
 			cancellable, &local_error);
@@ -3328,7 +3359,8 @@ e_reminder_watcher_dismiss_one_sync (ECalClient *client,
 		e_reminder_watcher_debug_print ("Discard alarm for '%s' from %s (uid:%s rid:%s auid:%s) %s%s%s%s\n",
 			i_cal_component_get_summary (e_cal_component_get_icalcomponent (rd->component)),
 			rd->source_uid, e_cal_component_id_get_uid (id),
-			e_cal_component_id_get_rid (id) ? e_cal_component_id_get_rid (id) : "null",
+			e_cal_component_id_get_rid (id) ? e_cal_component_id_get_rid (id) : (
+			e_cal_component_alarm_instance_get_rid (rd->instance) ? e_cal_component_alarm_instance_get_rid (rd->instance) : "null"),
 			e_cal_component_alarm_instance_get_uid (rd->instance),
 			success ? "succeeded" : "failed",
 			(!success || local_error) ? " (" : "",
@@ -3502,14 +3534,25 @@ e_reminder_watcher_dismiss_all_sync (EReminderWatcher *watcher,
 {
 	GHashTable *clients; /* gchar *source_uid ~> ECalClient * */
 	GSList *reminders, *link;
-	gboolean success = TRUE, changed = FALSE;
+	gboolean success = TRUE;
 
 	g_return_val_if_fail (E_IS_REMINDER_WATCHER (watcher), FALSE);
 
 	g_rec_mutex_lock (&watcher->priv->lock);
 
-	clients = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 	reminders = e_reminder_watcher_dup_past (watcher);
+
+	/* This will hide the window and keep running the task in the background.
+	   It can also avoid lock-wait in the main thread under e_reminder_watcher_objects_modified_cb(),
+	   when a change notification had been received during the 'reminders' processing. */
+	if (reminders) {
+		e_reminder_watcher_save_past (watcher, NULL);
+		e_reminder_watcher_emit_signal_idle (watcher, signals[CHANGED], NULL);
+	}
+
+	g_rec_mutex_unlock (&watcher->priv->lock);
+
+	clients = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
 
 	for (link = reminders; link; link = g_slist_next (link)) {
 		EReminderData *rd = link->data;
@@ -3526,24 +3569,13 @@ e_reminder_watcher_dismiss_all_sync (EReminderWatcher *watcher,
 		if (client) {
 			success = e_reminder_watcher_dismiss_one_sync (client, rd, cancellable, error);
 
-			/* To keep the failed discard in the saved list. */
 			if (!success)
 				break;
 		}
 	}
 
-	if (link != reminders && reminders) {
-		e_reminder_watcher_save_past (watcher, link);
-		changed = TRUE;
-	}
-
 	g_slist_free_full (reminders, e_reminder_data_free);
 	g_hash_table_destroy (clients);
-
-	g_rec_mutex_unlock (&watcher->priv->lock);
-
-	if (changed)
-		e_reminder_watcher_emit_signal_idle (watcher, signals[CHANGED], NULL);
 
 	return success;
 }
