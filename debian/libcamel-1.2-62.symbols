@@ -1026,6 +1026,7 @@ libcamel-1.2.so.62 libcamel-1.2-62 #MINVER#
  camel_sasl_xoauth2_get_type@Base 3.27.90
  camel_sasl_xoauth2_google_get_type@Base 3.27.90
  camel_sasl_xoauth2_outlook_get_type@Base 3.27.90
+ camel_sasl_xoauth2_yahoo_get_type@Base 3.40.1
  camel_search_build_match_regex@Base 3.19.92
  camel_search_get_all_headers_decoded@Base 3.21.90
  camel_search_get_default_charset_from_headers@Base 3.26.2

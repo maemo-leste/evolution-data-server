@@ -422,6 +422,7 @@ libedataserver-1.2.so.26 libedataserver-1.2-26 #MINVER#
  e_oauth2_service_refresh_and_store_token_sync@Base 3.27.90
  e_oauth2_service_util_set_to_form@Base 3.27.90
  e_oauth2_service_util_take_to_form@Base 3.27.90
+ e_oauth2_service_yahoo_get_type@Base 3.40.1
  e_oauth2_services_add@Base 3.27.90
  e_oauth2_services_find@Base 3.27.90
  e_oauth2_services_get_type@Base 3.27.90
