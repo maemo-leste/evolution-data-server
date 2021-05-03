@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.40.0
+	VERSION 3.40.1
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -424,6 +424,17 @@ if(ENABLE_OAUTH2)
 	#if(WITH_OUTLOOK_CLIENT_SECRET STREQUAL "")
 	#	set(WITH_OUTLOOK_CLIENT_SECRET "")
 	#endif(WITH_OUTLOOK_CLIENT_SECRET STREQUAL "")
+
+	add_printable_variable(WITH_YAHOO_CLIENT_ID "Yahoo! OAuth 2.0 client id" "")
+	add_printable_variable(WITH_YAHOO_CLIENT_SECRET "Yahoo! OAuth 2.0 client secret" "")
+
+	if(WITH_YAHOO_CLIENT_ID STREQUAL "")
+		set(WITH_YAHOO_CLIENT_ID "dj0yJmk9RHNlMGFKTXdkYzRXJmQ9WVdrOVNUUXpUWGhzWjJzbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWNi")
+	endif(WITH_YAHOO_CLIENT_ID STREQUAL "")
+
+	if(WITH_YAHOO_CLIENT_SECRET STREQUAL "")
+		set(WITH_YAHOO_CLIENT_SECRET "35f49f199dd754ec5e86d3c7cd576a1341c9bc0b")
+	endif(WITH_YAHOO_CLIENT_SECRET STREQUAL "")
 endif(ENABLE_OAUTH2)
 
 # ******************************************
