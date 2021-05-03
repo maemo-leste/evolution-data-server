@@ -1,6 +1,6 @@
 # Italian translation of evolution-data-server
 # This file is distributed under the same license as evolution-data-server package
-# Copyright (C) 2000-2019, 2020, 2021 Free Software Foundation, Inc.
+# Copyright (C) 2000-2019, 2020 Free Software Foundation, Inc.
 # Clara Tattoni <clara.tattoni@libero.it>, 2000, 2001, 2002.
 # Ettore Perazzoli <ettore@ximian.com>, 2001.
 # Marco Ciampa <ciampix@libero.it>, 2003, 2004, 2005.
@@ -29,16 +29,16 @@ msgstr ""
 "Project-Id-Version: evolution-data-server\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/evolution-data-server/"
 "issues\n"
-"POT-Creation-Date: 2021-03-03 10:09+0000\n"
-"PO-Revision-Date: 2021-03-15 09:02+0100\n"
-"Last-Translator: Milo Casagrande <milo@milo.name>\n"
+"POT-Creation-Date: 2021-03-28 14:22+0000\n"
+"PO-Revision-Date: 2021-03-29 16:07+0200\n"
+"Last-Translator: Gianvito Cavasoli <gianvito@gmx.it>\n"
 "Language-Team: Italian <gnome-it-list@gnome.org>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.4.2\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 3.38.0\n"
 
 #: ../src/addressbook/backends/carddav/e-book-backend-carddav.c:231
 #, c-format
@@ -3658,7 +3658,7 @@ msgstr "OAuth2"
 #: ../src/camel/camel-sasl-xoauth2.c:27
 msgid "This option will use an OAuth 2.0 access token to connect to the server"
 msgstr ""
-"Questa opzione usa un token di accesso OAuth 2.0 per connettersi al server"
+"Questa opzione userà un token di accesso OAuth 2.0 per connettersi al server"
 
 #: ../src/camel/camel-sasl-xoauth2-google.c:23
 msgid "OAuth2 (Google)"
@@ -3669,7 +3669,7 @@ msgid ""
 "This option will use an OAuth 2.0 access token to connect to the Google "
 "server"
 msgstr ""
-"Questa opzione usa un token di accesso OAuth 2.0 per connettersi al server "
+"Questa opzione userà un token di accesso OAuth 2.0 per connettersi al server "
 "Google"
 
 #: ../src/camel/camel-sasl-xoauth2-outlook.c:23
@@ -3681,7 +3681,7 @@ msgid ""
 "This option will use an OAuth 2.0 access token to connect to the Outlook.com "
 "server"
 msgstr ""
-"Questa opzione usa un token di accesso OAuth 2.0 per connettersi al server "
+"Questa opzione userà un token di accesso OAuth 2.0 per connettersi al server "
 "Outlook.com"
 
 #: ../src/camel/camel-search-private.c:114
@@ -4254,7 +4254,8 @@ msgstr "Controllare i contenuti in_desiderati nei nuovi messaggi"
 
 #: ../src/camel/providers/imapx/camel-imapx-provider.c:72
 msgid "Only check for Junk messages in the In_box folder"
-msgstr "Controlla solo per i messaggi indesiderati nella cartella «In arrivo»"
+msgstr ""
+"Controllare solo per i messaggi indesiderati nella cartella «In arrivo»"
 
 #: ../src/camel/providers/imapx/camel-imapx-provider.c:74
 msgid "Synchroni_ze remote mail locally in all folders"
@@ -7375,7 +7376,7 @@ msgstr "_Aggiungere questa password al proprio portachiavi"
 #. Translators: meaning as "Snooze, until event start time"
 #: ../src/libedataserverui/e-reminders-widget.c:182
 msgid "until start time"
-msgstr "fino all'orario di inizio"
+msgstr "fino all'ora d'inizio"
 
 #: ../src/libedataserverui/e-reminders-widget.c:233
 msgid "Add custom time…"
