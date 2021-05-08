@@ -41,7 +41,7 @@ Build-Depends: cmake,
                gperf,
                pkg-config (>= 0.16),
                valac (>= 0.22),
-               libphonenumber-dev [!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386],
+               libphonenumber-dev [!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386],
                db-util <!nocheck>,
                dbus <!nocheck>,
 Rules-Requires-Root: binary-targets

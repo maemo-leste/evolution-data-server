@@ -15,7 +15,7 @@ endif
 %:
 	dh $@
 
-ifeq (,$(filter $(DEB_HOST_ARCH), hppa hurd-i386 kfreebsd-i386 kfreebsd-amd64))
+ifeq (,$(filter $(DEB_HOST_ARCH), hppa hurd-i386 ia64 kfreebsd-i386 kfreebsd-amd64))
 CONFFLAGS = -DWITH_PHONENUMBER=ON
 endif
 ifeq (,$(filter $(DEB_HOST_ARCH), ia64 kfreebsd-i386 kfreebsd-amd64 m68k sh4))
