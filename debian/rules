@@ -20,6 +20,8 @@ CONFFLAGS = -DWITH_PHONENUMBER=ON
 endif
 ifeq (,$(filter $(DEB_HOST_ARCH), ia64 kfreebsd-i386 kfreebsd-amd64 m68k sh4))
 CONFFLAGS += -DENABLE_OAUTH2=ON
+else
+CONFFLAGS += -DENABLE_OAUTH2=OFF
 endif
 
 override_dh_auto_configure:

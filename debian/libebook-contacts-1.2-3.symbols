@@ -1,14 +1,14 @@
 libebook-contacts-1.2.so.3 libebook-contacts-1.2-3 #MINVER#
 * Build-Depends-Package: libebook-contacts1.2-dev
- (c++|optional=lto|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"i18n::phonenumbers::NullLogger::WriteMessage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 3.24.1
- (c++|optional=lto|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"i18n::phonenumbers::NullLogger::~NullLogger()@Base" 3.24.1
- (c++|optional=lto|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"i18n::phonenumbers::Logger::WriteLevel()@Base" 3.24.1
- (c++|optional=lto|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"typeinfo for i18n::phonenumbers::NullLogger@Base" 3.24.1
- (c++|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"typeinfo for i18n::phonenumbers::Logger@Base" 3.24.1
- (c++|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"typeinfo name for i18n::phonenumbers::NullLogger@Base" 3.24.1
- (c++|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"typeinfo name for i18n::phonenumbers::Logger@Base" 3.24.1
- (c++|optional=lto|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"vtable for i18n::phonenumbers::NullLogger@Base" 3.24.1
- (c++|optional|arch=!hppa !hurd-any !kfreebsd-amd64 !kfreebsd-i386)"void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)@Base" 3.28.5
+ (c++|optional=lto|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"i18n::phonenumbers::NullLogger::WriteMessage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 3.24.1
+ (c++|optional=lto|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"i18n::phonenumbers::NullLogger::~NullLogger()@Base" 3.24.1
+ (c++|optional=lto|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"i18n::phonenumbers::Logger::WriteLevel()@Base" 3.24.1
+ (c++|optional=lto|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"typeinfo for i18n::phonenumbers::NullLogger@Base" 3.24.1
+ (c++|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"typeinfo for i18n::phonenumbers::Logger@Base" 3.24.1
+ (c++|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"typeinfo name for i18n::phonenumbers::NullLogger@Base" 3.24.1
+ (c++|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"typeinfo name for i18n::phonenumbers::Logger@Base" 3.24.1
+ (c++|optional=lto|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"vtable for i18n::phonenumbers::NullLogger@Base" 3.24.1
+ (c++|optional|arch=!hppa !hurd-any !ia64 !kfreebsd-amd64 !kfreebsd-i386)"void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)@Base" 3.28.5
  e_address_western_copy@Base 3.24.1
  e_address_western_free@Base 3.16.2
  e_address_western_get_type@Base 3.24.1
