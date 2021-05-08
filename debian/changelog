@@ -1,3 +1,10 @@
+evolution-data-server (3.40.1-2) experimental; urgency=medium
+
+  * Disable OAuth support on architecture where webkit is not available
+  * Disable libphonenumber support on ia64 too
+
+ -- Laurent Bigonville <bigon@debian.org>  Sat, 08 May 2021 19:34:54 +0200
+
 evolution-data-server (3.40.1-1) experimental; urgency=medium
 
   * New upstream release
