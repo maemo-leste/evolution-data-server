@@ -1,4 +1,4 @@
-evolution-data-server (3.40.1-3) UNRELEASED; urgency=medium
+evolution-data-server (3.40.1-3) experimental; urgency=medium
 
   * debian/control: Bump libgweather dependendency to rebuild against 40.0
     libgweather had some internal API/ABI changes (not reflected by a soname
@@ -8,7 +8,7 @@ evolution-data-server (3.40.1-3) UNRELEASED; urgency=medium
     versions and this is technically not required, we depend on a newer
     release to ensure that we'll only rebuild this package when available.
 
- -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Tue, 25 May 2021 13:25:59 +0200
+ -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Tue, 25 May 2021 13:28:19 +0200
 
 evolution-data-server (3.40.1-2) experimental; urgency=medium
 
