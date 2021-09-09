@@ -29,6 +29,7 @@
 struct _CamelMimeFilterToHTMLPrivate {
 
 	CamelUrlScanner *scanner;
+	GString *backup;
 
 	CamelMimeFilterToHTMLFlags flags;
 	guint32 color;
@@ -284,14 +285,14 @@ html_convert (CamelMimeFilter *mime_filter,
 {
 	CamelMimeFilterToHTMLPrivate *priv;
 	const gchar *inptr;
-	gchar *outptr, *outend;
+	gchar *outptr, *outend, *backup_str = NULL;
 	const gchar *start;
 	const gchar *inend;
 	gint depth;
 
 	priv = CAMEL_MIME_FILTER_TOHTML (mime_filter)->priv;
 
-	if (inlen == 0) {
+	if (inlen == 0 && !priv->backup) {
 		if (!priv->pre_open && !priv->div_open && !priv->blockquote_depth) {
 			/* No closing tags needed. */
 			*out = (gchar *) in;
@@ -331,8 +332,22 @@ html_convert (CamelMimeFilter *mime_filter,
 
 	camel_mime_filter_set_size (mime_filter, inlen * 2 + 6, FALSE);
 
-	inptr = in;
-	inend = in + inlen;
+	if (inlen == 0 && priv->backup) {
+		gsize backup_len;
+
+		backup_len = priv->backup->len;
+		backup_str = g_string_free (priv->backup, FALSE);
+		priv->backup = NULL;
+
+		inptr = backup_str + backup_len;
+		inend = inptr;
+		start = backup_str;
+	} else {
+		inptr = in;
+		inend = in + inlen;
+		start = inptr;
+	}
+
 	outptr = mime_filter->outbuf;
 	outend = mime_filter->outbuf + mime_filter->outsize;
 
@@ -342,13 +357,26 @@ html_convert (CamelMimeFilter *mime_filter,
 		priv->pre_open = TRUE;
 	}
 
-	start = inptr;
 	do {
 		while (inptr < inend && *inptr != '\n')
 			inptr++;
 
 		if (inptr >= inend && !flush)
 			break;
+
+		if (priv->backup) {
+			gsize backup_len, backup_len_old;
+
+			backup_len_old = priv->backup->len;
+			g_string_append_len (priv->backup, start, (gsize) (inend - start));
+			backup_len = priv->backup->len;
+			backup_str = g_string_free (priv->backup, FALSE);
+			priv->backup = NULL;
+
+			inptr = backup_str + backup_len_old + (inptr - start);
+			start = backup_str;
+			inend = start + backup_len;
+		}
 
 		priv->column = 0;
 		depth = 0;
@@ -548,10 +576,14 @@ html_convert (CamelMimeFilter *mime_filter,
 			priv->pre_open = FALSE;
 		}
 	} else if (start < inend) {
-		/* backup */
-		camel_mime_filter_backup (
-			mime_filter, start, (gsize) (inend - start));
+		/* backup, but do not use camel_mime_filter_backup() to avoid round trip for long lines */
+		if (priv->backup)
+			g_string_append_len (priv->backup, start, (gsize) (inend - start));
+		else
+			priv->backup = g_string_new_len (start, (gsize) (inend - start));
 	}
+
+	g_free (backup_str);
 
 	*out = mime_filter->outbuf;
 	*outlen = outptr - mime_filter->outbuf;
@@ -566,6 +598,9 @@ mime_filter_tohtml_finalize (GObject *object)
 	priv = CAMEL_MIME_FILTER_TOHTML (object)->priv;
 
 	camel_url_scanner_free (priv->scanner);
+
+	if (priv->backup)
+		g_string_free (priv->backup, TRUE);
 
 	/* Chain up to parent's finalize() method. */
 	G_OBJECT_CLASS (camel_mime_filter_tohtml_parent_class)->finalize (object);
@@ -608,6 +643,11 @@ mime_filter_tohtml_reset (CamelMimeFilter *mime_filter)
 
 	priv->column = 0;
 	priv->pre_open = FALSE;
+
+	if (priv->backup) {
+		g_string_free (priv->backup, TRUE);
+		priv->backup = NULL;
+	}
 }
 
 static void
@@ -630,6 +670,7 @@ camel_mime_filter_tohtml_init (CamelMimeFilterToHTML *filter)
 {
 	filter->priv = camel_mime_filter_tohtml_get_instance_private (filter);
 	filter->priv->scanner = camel_url_scanner_new ();
+	filter->priv->backup = NULL;
 }
 
 /**

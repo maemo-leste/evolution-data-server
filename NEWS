@@ -1,3 +1,32 @@
+Evolution-Data-Server 3.40.4 2021-08-13
+---------------------------------------
+
+Bug Fixes:
+	I#346 - Camel: "Pipe to program" filter does not work (Milan Crha)
+	M!74 - LDAP: Don't force LDAPS port to 636 (Christoph Ruegge)
+
+Miscellaneous:
+	CamelMimeFilterToHTML: Speed up read of long lines (Milan Crha)
+	CamelMimeFilterToHTML: Correct filtering of text without new line at the end (Milan Crha)
+	alarm-notify: Focus window on status icon click when shown (Milan Crha)
+	ESoupSession: Let it understand GSSAPI authentication method (Milan Crha)
+
+Translations:
+	Marek Černocký (cs)
+	Quentin PAGÈS (oc)
+
+Evolution-Data-Server 3.40.3 2021-07-09
+---------------------------------------
+
+Bug Fixes:
+	I#336 - Handle "Object is out of sync" during backend refresh better (Milan Crha)
+
+Miscellaneous:
+	tests: Workaround libphonenumber behavior change (Milan Crha)
+	test-book-client-write-write: Fix occasional test failure (Milan Crha)
+	IMAPx: Change how Junk and NotJunk flags are handled (Milan Crha)
+	ECalBackendFile: Free interval tree only when being allocated (Milan Crha)
+
 Evolution-Data-Server 3.40.2 2021-06-04
 ---------------------------------------
 
