@@ -1,6 +1,8 @@
 libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
 * Build-Depends-Package: libcamel1.2-dev
  _camel_message_info_unset_summary@Base 3.24.3
+ _camel_utils_initialize@Base 3.41.3
+ _camel_utils_shutdown@Base 3.41.3
  camel_address_cat@Base 3.19.92
  camel_address_copy@Base 3.19.92
  camel_address_decode@Base 3.19.92
@@ -617,12 +619,16 @@ libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
  camel_message_content_info_new_from_message@Base 3.24.1
  camel_message_content_info_new_from_parser@Base 3.24.1
  camel_message_content_info_traverse@Base 3.29.90
+ camel_message_flags_get_type@Base 3.41.3
  camel_message_info_base_get_type@Base 3.24.1
  camel_message_info_clone@Base 3.19.92
  camel_message_info_dump@Base 3.19.92
  camel_message_info_dup_headers@Base 3.24.1
+ camel_message_info_dup_preview@Base 3.41.3
  camel_message_info_dup_references@Base 3.24.1
  camel_message_info_dup_user_flags@Base 3.24.1
+ camel_message_info_dup_user_header@Base 3.41.3
+ camel_message_info_dup_user_headers@Base 3.41.3
  camel_message_info_dup_user_tag@Base 3.24.1
  camel_message_info_dup_user_tags@Base 3.24.1
  camel_message_info_freeze_notifications@Base 3.24.1
@@ -639,6 +645,7 @@ libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
  camel_message_info_get_message_id@Base 3.21.90
  camel_message_info_get_mlist@Base 3.21.90
  camel_message_info_get_notifications_frozen@Base 3.24.1
+ camel_message_info_get_preview@Base 3.41.3
  camel_message_info_get_references@Base 3.21.90
  camel_message_info_get_size@Base 3.21.90
  camel_message_info_get_subject@Base 3.21.90
@@ -647,6 +654,8 @@ libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
  camel_message_info_get_uid@Base 3.21.90
  camel_message_info_get_user_flag@Base 3.21.90
  camel_message_info_get_user_flags@Base 3.21.90
+ camel_message_info_get_user_header@Base 3.41.3
+ camel_message_info_get_user_headers@Base 3.41.3
  camel_message_info_get_user_tag@Base 3.21.90
  camel_message_info_get_user_tags@Base 3.21.90
  camel_message_info_load@Base 3.24.1
@@ -667,15 +676,18 @@ libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
  camel_message_info_set_from@Base 3.24.1
  camel_message_info_set_message_id@Base 3.24.1
  camel_message_info_set_mlist@Base 3.24.1
+ camel_message_info_set_preview@Base 3.41.3
  camel_message_info_set_size@Base 3.24.1
  camel_message_info_set_subject@Base 3.24.1
  camel_message_info_set_to@Base 3.24.1
  camel_message_info_set_uid@Base 3.24.1
  camel_message_info_set_user_flag@Base 3.19.92
+ camel_message_info_set_user_header@Base 3.41.3
  camel_message_info_set_user_tag@Base 3.19.92
  camel_message_info_take_headers@Base 3.24.1
  camel_message_info_take_references@Base 3.24.1
  camel_message_info_take_user_flags@Base 3.24.1
+ camel_message_info_take_user_headers@Base 3.41.3
  camel_message_info_take_user_tags@Base 3.24.1
  camel_message_info_thaw_notifications@Base 3.24.1
  camel_mime_filter_backup@Base 3.19.92
@@ -687,15 +699,19 @@ libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
  camel_mime_filter_bestenc_get_type@Base 3.19.92
  camel_mime_filter_bestenc_new@Base 3.19.92
  camel_mime_filter_bestenc_set_flags@Base 3.19.92
+ camel_mime_filter_canon_flags_get_type@Base 3.41.3
  camel_mime_filter_canon_get_type@Base 3.19.92
  camel_mime_filter_canon_new@Base 3.19.92
  camel_mime_filter_charset_get_type@Base 3.19.92
  camel_mime_filter_charset_new@Base 3.19.92
  camel_mime_filter_complete@Base 3.19.92
  camel_mime_filter_crlf_direction_get_type@Base 3.19.92
+ camel_mime_filter_crlf_get_ensure_crlf_end@Base 3.41.3
  camel_mime_filter_crlf_get_type@Base 3.19.92
  camel_mime_filter_crlf_mode_get_type@Base 3.19.92
  camel_mime_filter_crlf_new@Base 3.19.92
+ camel_mime_filter_crlf_set_ensure_crlf_end@Base 3.41.3
+ camel_mime_filter_enriched_flags_get_type@Base 3.41.3
  camel_mime_filter_enriched_get_type@Base 3.19.92
  camel_mime_filter_enriched_new@Base 3.19.92
  camel_mime_filter_filter@Base 3.19.92
@@ -1371,6 +1387,9 @@ libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
  camel_util_bdata_get_string@Base 3.24.1
  camel_util_bdata_put_number@Base 3.24.1
  camel_util_bdata_put_string@Base 3.24.1
+ camel_util_decode_user_header_setting@Base 3.41.3
+ camel_util_encode_user_header_setting@Base 3.41.3
+ camel_util_fill_message_info_user_headers@Base 3.41.3
  camel_util_get_directory_variants@Base 3.39.3
  camel_utils_weak_ref_free@Base 3.39.2
  camel_utils_weak_ref_new@Base 3.39.2

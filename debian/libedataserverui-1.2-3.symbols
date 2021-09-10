@@ -10,6 +10,7 @@ libedataserverui-1.2.so.3 libedataserverui-1.2-3 #MINVER#
  e_credentials_prompter_get_auto_prompt@Base 3.16.2
  e_credentials_prompter_get_auto_prompt_disabled_for@Base 3.16.2
  e_credentials_prompter_get_dialog_parent@Base 3.16.2
+ e_credentials_prompter_get_dialog_parent_full@Base 3.41.3
  e_credentials_prompter_get_provider@Base 3.16.2
  e_credentials_prompter_get_registry@Base 3.16.2
  e_credentials_prompter_get_type@Base 3.16.2
