@@ -660,7 +660,7 @@ e_destination_set_contact_uid (EDestination *dest,
 		dest->priv->contact_uid = g_strdup (uid);
 		dest->priv->email_num = email_num;
 
-		/* If we already have a contact, remove it unless it's uid matches the one
+		/* If we already have a contact, remove it unless its uid matches the one
 		 * we just set. */
 		if (dest->priv->contact && strcmp (uid,
 						   e_contact_get_const (dest->priv->contact, E_CONTACT_UID))) {
@@ -1195,7 +1195,8 @@ e_destination_list_show_addresses (const EDestination *dest)
  * to @dest.
  * The list and its elements belong to @dest, and should not be freed.
  *
- * Returns: (element-type EDestination) (transfer none): A list of elements of type #EDestination, or %NULL.
+ * Returns: (element-type EDestination) (transfer none) (nullable): A list of elements of type
+ * #EDestination, or %NULL.
  *
  * Since: 3.2
  **/
@@ -1218,7 +1219,8 @@ e_destination_list_get_root_dests (const EDestination *dest)
  * Everything returned from this function belongs to @dest and
  * thus should not be freed.
  *
- * Returns: (element-type EDestination) (transfer none): A list of elements of type #EDestination, or %NULL.
+ * Returns: (element-type EDestination) (transfer none) (nullable): A list of elements of type
+ * #EDestination, or %NULL.
  *
  * Since: 3.2
  **/

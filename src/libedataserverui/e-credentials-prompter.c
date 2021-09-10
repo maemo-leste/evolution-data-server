@@ -71,6 +71,7 @@ enum {
 
 enum {
 	GET_DIALOG_PARENT,
+	GET_DIALOG_PARENT_FULL,
 	LAST_SIGNAL
 };
 
@@ -1157,6 +1158,28 @@ e_credentials_prompter_class_init (ECredentialsPrompterClass *class)
 		credentials_prompter_get_dialog_parent_accumulator, NULL, NULL,
 		GTK_TYPE_WINDOW, 0, G_TYPE_NONE);
 
+	/**
+	 * ECredentialsPrompter::get-dialog-parent-full:
+	 * @prompter: the #ECredentialsPrompter which emitted the signal
+	 * @auth_source: (nullable): an #ESource, for which to show the credentials prompt
+	 *
+	 * Emitted when a new dialog will be shown, to get the right parent
+	 * window for it. If the result of the call is %NULL, then it tries
+	 * to get the window from the default GtkApplication.
+	 *
+	 * Returns: (transfer none): a #GtkWindow, to be used as a dialog parent,
+	 * or %NULL.
+	 *
+	 * Since: 3.42
+	 **/
+	signals[GET_DIALOG_PARENT_FULL] = g_signal_new (
+		"get-dialog-parent-full",
+		G_OBJECT_CLASS_TYPE (object_class),
+		G_SIGNAL_RUN_LAST,
+		/*G_STRUCT_OFFSET (ECredentialsPrompterClass, get_dialog_parent_full)*/ 0,
+		credentials_prompter_get_dialog_parent_accumulator, NULL, NULL,
+		GTK_TYPE_WINDOW, 1, E_TYPE_SOURCE);
+
 	/* Ensure built-in credential providers implementation types */
 	g_type_ensure (E_TYPE_CREDENTIALS_PROMPTER_IMPL_PASSWORD);
 	g_type_ensure (E_TYPE_CREDENTIALS_PROMPTER_IMPL_OAUTH2);
@@ -1398,9 +1421,47 @@ e_credentials_prompter_get_dialog_parent (ECredentialsPrompter *prompter)
 }
 
 /**
+ * e_credentials_prompter_get_dialog_parent_full:
+ * @prompter: an #ECredentialsPrompter
+ * @auth_source: (nullable): an #ESource
+ *
+ * Returns a #GtkWindow, which should be used as a dialog parent for the @auth_source.
+ *
+ * This is determined by an ECredentialsPrompter::get-dialog-parent-full signal emission
+ * and an ECredentialsPrompter::get-dialog-parent when the first doesn't return anything.
+ * If there is no callback registered or the current callbacks don't have any suitable
+ * window, then there's chosen the last active window from the default GApplication,
+ * if any available.
+ *
+ * Returns: (transfer none): a #GtkWindow, to be used as a dialog parent, or %NULL.
+ *
+ * Since: 3.42
+ **/
+GtkWindow *
+e_credentials_prompter_get_dialog_parent_full (ECredentialsPrompter *prompter,
+					       ESource *auth_source)
+{
+	GtkWindow *parent = NULL;
+
+	g_return_val_if_fail (E_IS_CREDENTIALS_PROMPTER (prompter), NULL);
+	if (auth_source)
+		g_return_val_if_fail (E_IS_SOURCE (auth_source), NULL);
+
+	g_signal_emit (prompter, signals[GET_DIALOG_PARENT_FULL], 0, auth_source, &parent);
+
+	if (!parent)
+		g_signal_emit (prompter, signals[GET_DIALOG_PARENT], 0, &parent);
+
+	if (!parent)
+		parent = credentials_prompter_guess_dialog_parent (prompter);
+
+	return parent;
+}
+
+/**
  * e_credentials_prompter_register_impl:
  * @prompter: an #ECredentialsPrompter
- * @authentication_method: (allow-none): an authentication method to registr @prompter_impl for; or %NULL
+ * @authentication_method: (nullable): an authentication method to registr @prompter_impl for; or %NULL
  * @prompter_impl: an #ECredentialsPrompterImpl
  *
  * Registers a prompter implementation for a given authentication method. If there is
@@ -1454,7 +1515,7 @@ e_credentials_prompter_register_impl (ECredentialsPrompter *prompter,
 /**
  * e_credentials_prompter_unregister_impl:
  * @prompter: an #ECredentialsPrompter
- * @authentication_method: (allow-none): an authentication method to registr @prompter_impl for; or %NULL
+ * @authentication_method: (nullable): an authentication method to registr @prompter_impl for; or %NULL
  * @prompter_impl: an #ECredentialsPrompterImpl
  *
  * Unregisters previously registered @prompter_impl for the given @autnetication_method with
@@ -1602,9 +1663,9 @@ e_credentials_prompter_process_source (ECredentialsPrompter *prompter,
  * e_credentials_prompter_prompt:
  * @prompter: an #ECredentialsPrompter
  * @source: an #ESource, which prompt the credentials for
- * @error_text: (allow-none): Additional error text to show to a user, or %NULL
+ * @error_text: (nullable): Additional error text to show to a user, or %NULL
  * @flags: a bit-or of #ECredentialsPrompterPromptFlags
- * @callback: (allow-none): a callback to call when the credentials are ready, or %NULL
+ * @callback: a callback to call when the credentials are ready, or %NULL
  * @user_data: user data passed into @callback
  *
  * Asks the @prompter to prompt for credentials, which are returned
@@ -1645,8 +1706,8 @@ e_credentials_prompter_prompt (ECredentialsPrompter *prompter,
  * e_credentials_prompter_prompt_finish:
  * @prompter: an #ECredentialsPrompter
  * @result: a #GAsyncResult
- * @out_source: (transfer full) (allow-none): optionally set to an #ESource, on which the prompt was started; can be %NULL
- * @out_credentials: (transfer full): set to an #ENamedParameters with provied credentials
+ * @out_source: (transfer full) (out) (optional) (nullable): optionally set to an #ESource, on which the prompt was started; can be %NULL
+ * @out_credentials: (transfer full) (out) (nullable): set to an #ENamedParameters with provied credentials
  * @error: return location for a #GError, or %NULL
  *
  * Finishes a credentials prompt previously started with e_credentials_prompter_prompt().
@@ -1702,8 +1763,8 @@ e_credentials_prompter_prompt_finish (ECredentialsPrompter *prompter,
  * @prompter: an #ECredentialsPrompter
  * @async_result: a #GSimpleAsyncResult
  * @source: an #ESource, on which the prompt was started
- * @credentials: (allow-none): credentials, as provided by a user, on %NULL, when the prompt was cancelled
- * @error: (allow-none): a resulting #GError, or %NULL
+ * @credentials: (nullable): credentials, as provided by a user, on %NULL, when the prompt was cancelled
+ * @error: a resulting #GError, or %NULL
  *
  * Completes an ongoing credentials prompt on idle, by finishing the @async_result.
  * This function is meant to be used by an #ECredentialsPrompterImpl implementation.
@@ -1826,8 +1887,8 @@ credentials_prompter_prompt_sync (ECredentialsPrompter *prompter,
  * @flags: a bit-or of #ECredentialsPrompterPromptFlags initial flags
  * @func: (scope call): an #ECredentialsPrompterLoopPromptFunc user function to call to check provided credentials
  * @user_data: user data to pass to @func
- * @cancellable: (allow-none): an optional #GCancellable, or %NULL
- * @error: (allow-none): a #GError, to store any errors to, or %NULL
+ * @cancellable: an optional #GCancellable, or %NULL
+ * @error: a #GError, to store any errors to, or %NULL
  *
  * Runs a credentials prompt loop for @source, as long as the @func doesn't
  * indicate that the provided credentials can be used to successfully

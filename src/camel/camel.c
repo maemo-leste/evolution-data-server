@@ -37,6 +37,10 @@
 #include "camel-provider.h"
 #include "camel-win32.h"
 
+/* private functions from camel-utils.c */
+void _camel_utils_initialize (void);
+void _camel_utils_shutdown (void);
+
 /* To protect NSS initialization and shutdown. This prevents
  * concurrent calls to shutdown () and init () by different threads */
 PRLock *nss_initlock = NULL;
@@ -232,6 +236,8 @@ skip_nss_init:
 
 	g_object_unref (certdb);
 
+	_camel_utils_initialize ();
+
 	initialised = TRUE;
 
 	return 0;
@@ -264,6 +270,8 @@ camel_shutdown (void)
 			NSS_Shutdown ();
 		PR_Unlock (nss_initlock);
 	}
+
+	_camel_utils_shutdown ();
 
 	initialised = FALSE;
 }
@@ -310,9 +318,9 @@ camel_binding_bind_property (gpointer source,
  * @target: (type GObject.Object): the target #GObject
  * @target_property: the property on @target to bind
  * @flags: flags to pass to #GBinding
- * @transform_to: (scope notified) (allow-none): the transformation function
+ * @transform_to: (scope notified) (nullable): the transformation function
  *   from the @source to the @target, or %NULL to use the default
- * @transform_from: (scope notified) (allow-none): the transformation function
+ * @transform_from: (scope notified) (nullable): the transformation function
  *   from the @target to the @source, or %NULL to use the default
  * @user_data: custom data to be passed to the transformation functions,
  *   or %NULL
