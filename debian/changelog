@@ -1,8 +1,10 @@
-evolution-data-server (3.41.3-1) UNRELEASED; urgency=medium
+evolution-data-server (3.41.3-1) experimental; urgency=medium
 
   * New upstream release
+  * Rename libcamel-1.2-62 to libcamel-1.2-63 to match soname bump
+  * Add new symbols for the new release
 
- -- Jeremy Bicha <jbicha@debian.org>  Fri, 10 Sep 2021 19:23:26 -0400
+ -- Jeremy Bicha <jbicha@debian.org>  Fri, 10 Sep 2021 19:58:56 -0400
 
 evolution-data-server (3.40.4-1) experimental; urgency=medium
 
