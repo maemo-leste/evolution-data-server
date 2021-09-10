@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.40.4
+	VERSION 3.41.3
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -12,7 +12,7 @@ set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issu
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.40)
+set(BASE_VERSION 3.42)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -48,7 +48,7 @@ set(USER_PROMPTER_DBUS_SERVICE_NAME	"org.gnome.evolution.dataserver.UserPrompter
 # ******************************
 # Library versioning
 # ******************************
-set(LIBCAMEL_CURRENT 62)
+set(LIBCAMEL_CURRENT 63)
 set(LIBCAMEL_REVISION 0)
 set(LIBCAMEL_AGE 0)
 
@@ -908,6 +908,19 @@ if(ENABLE_LARGEFILE)
 else(ENABLE_LARGEFILE)
 	set(HAVE_O_LARGEFILE OFF)
 endif(ENABLE_LARGEFILE)
+
+# ******************************
+# Miscellaneous checks
+# ******************************
+
+set(CMAKE_REQUIRED_FLAGS ${GNOME_PLATFORM_CFLAGS})
+set(CMAKE_REQUIRED_INCLUDES ${GNOME_PLATFORM_INCLUDE_DIRS})
+set(CMAKE_REQUIRED_LIBRARIES ${GNOME_PLATFORM_LDFLAGS})
+CHECK_C_SOURCE_COMPILES("#include <gio/gio.h>
+			int main(void) { GPowerProfileMonitor *monitor = g_power_profile_monitor_dup_default (); g_clear_object (&monitor); return 0; }" HAVE_GPOWERPROFILEMONITOR)
+unset(CMAKE_REQUIRED_FLAGS)
+unset(CMAKE_REQUIRED_INCLUDES)
+unset(CMAKE_REQUIRED_LIBRARIES)
 
 # ******************************
 # subparts flags

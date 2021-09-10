@@ -75,7 +75,8 @@ static AttrTypeValue glob_attr_type_values[] = {
 	{ EVC_X_JABBER, "WORK;HOME" },
 	{ EVC_X_MSN, "WORK;HOME" },
 	{ EVC_X_SKYPE, "WORK;HOME" },
-	{ EVC_X_YAHOO, "WORK;HOME" }
+	{ EVC_X_YAHOO, "WORK;HOME" },
+	{ EVC_X_MATRIX, "WORK;HOME" }
 };
 
 #define E_CONTACT_FIELD_TYPE_STRING       0x00000001   /* used for simple single valued attributes */
@@ -345,7 +346,15 @@ static const EContactFieldInfo field_info[] = {
 	ATTR_TYPE_STR_FIELD (E_CONTACT_IM_GOOGLE_TALK_WORK_3,  EVC_X_GOOGLE_TALK,  "im_google_talk_work_3",  N_("Google Talk Work Name 3"),         FALSE, "WORK", 2),
 	MULTI_LIST_FIELD (E_CONTACT_IM_GOOGLE_TALK,	  EVC_X_GOOGLE_TALK,     "im_google_talk",     N_("Google Talk Name List"),         FALSE),
 
-	MULTI_LIST_FIELD (E_CONTACT_IM_TWITTER,	  EVC_X_TWITTER,     "im_twitter",     N_("Twitter Name List"),         FALSE)
+	MULTI_LIST_FIELD (E_CONTACT_IM_TWITTER,	  EVC_X_TWITTER,     "im_twitter",     N_("Twitter Name List"),         FALSE),
+
+	ATTR_TYPE_STR_FIELD (E_CONTACT_IM_MATRIX_HOME_1, EVC_X_MATRIX, "im_matrix_home_1", N_("Matrix Home ID 1"),          FALSE, "HOME", 0),
+	ATTR_TYPE_STR_FIELD (E_CONTACT_IM_MATRIX_HOME_2, EVC_X_MATRIX, "im_matrix_home_2", N_("Matrix Home ID 2"),          FALSE, "HOME", 1),
+	ATTR_TYPE_STR_FIELD (E_CONTACT_IM_MATRIX_HOME_3, EVC_X_MATRIX, "im_matrix_home_3", N_("Matrix Home ID 3"),          FALSE, "HOME", 2),
+	ATTR_TYPE_STR_FIELD (E_CONTACT_IM_MATRIX_WORK_1, EVC_X_MATRIX, "im_matrix_work_1", N_("Matrix Work ID 1"),          FALSE, "WORK", 0),
+	ATTR_TYPE_STR_FIELD (E_CONTACT_IM_MATRIX_WORK_2, EVC_X_MATRIX, "im_matrix_work_2", N_("Matrix Work ID 2"),          FALSE, "WORK", 1),
+	ATTR_TYPE_STR_FIELD (E_CONTACT_IM_MATRIX_WORK_3, EVC_X_MATRIX, "im_matrix_work_3", N_("Matrix Work ID 3"),          FALSE, "WORK", 2),
+	MULTI_LIST_FIELD (E_CONTACT_IM_MATRIX,	  EVC_X_MATRIX,    "im_matrix",    N_("Matrix ID List"),          FALSE)
 };
 
 #undef LIST_ELEM_STR_FIELD
@@ -923,7 +932,7 @@ n_setter (EContact *contact,
 	e_vcard_attribute_add_value (attr, name->prefixes ? name->prefixes : "");
 	e_vcard_attribute_add_value (attr, name->suffixes ? name->suffixes : "");
 
-	/* now find the attribute for FileAs.  if it's not present, fill it in */
+	/* now find the attribute for FileAs.  If it's not present, fill it in */
 	attr = e_vcard_get_attribute (E_VCARD (contact), EVC_X_FILE_AS);
 	if (!attr) {
 		gchar *strings[3], **stringptr;
@@ -1792,7 +1801,7 @@ e_contact_field_id_from_vcard (const gchar *vcard_field)
  *
  * Gets the value of @contact's field specified by @field_id.
  *
- * Returns: (transfer full) (allow-none): Depends on the field's type, owned by the caller. This may be %NULL if the field isn't set.
+ * Returns: (transfer full) (nullable): Depends on the field's type, owned by the caller. This may be %NULL if the field isn't set.
  **/
 gpointer
 e_contact_get (EContact *contact,
@@ -2068,7 +2077,7 @@ e_contact_get_attributes (EContact *contact,
 /**
  * e_contact_get_attributes_set:
  * @contact: an #EContact
- * @field_ids: an array of #EContactField
+ * @field_ids: (array length=size): an array of #EContactField
  * @size: number of elements in field_ids
  *
  * Gets a list of the vcard attributes for @contact's @field_ids.
@@ -2293,7 +2302,7 @@ E_CONTACT_DEFINE_BOXED_TYPE (e_contact_name, "EContactName")
  *
  * Creates a new #EContactDate based on @str.
  *
- * Returns: A new #EContactDate struct.
+ * Returns: (transfer full): A new #EContactDate struct.
  **/
 EContactDate *
 e_contact_date_from_string (const gchar *str)
@@ -2502,11 +2511,11 @@ e_contact_photo_copy (EContactPhoto *photo)
 /**
  * e_contact_photo_get_inlined:
  * @photo: an #EContactPhoto
- * @len: (out caller-allocates) (transfer none): the length of the inlined data
+ * @len: (out): the length of the inlined data
  *
  * Gets the @photo's data.
  *
- * Returns: (transfer none) (array length=len) (allow-none): the inlined image in the
+ * Returns: (transfer none) (array length=len) (nullable): the inlined image in the
  * #EContactPhoto, or %NULL if it has not been set.
  *
  * Since: 3.2
@@ -2551,7 +2560,7 @@ e_contact_photo_set_inlined (EContactPhoto *photo,
  *
  * Gets the @photo's mime type.
  *
- * Returns: (transfer none) (allow-none): the MIME type of the image, or %NULL if it has not been set.
+ * Returns: (transfer none) (nullable): the MIME type of the image, or %NULL if it has not been set.
  *
  * Since: 3.2
  **/
@@ -2590,7 +2599,7 @@ e_contact_photo_set_mime_type (EContactPhoto *photo,
  *
  * Gets the @photo's URI.
  *
- * Returns: (transfer none) (allow-none): the URI of the image, or %NULL if it has not been set
+ * Returns: (transfer none) (nullable): the URI of the image, or %NULL if it has not been set
  *
  * Since: 3.2
  **/

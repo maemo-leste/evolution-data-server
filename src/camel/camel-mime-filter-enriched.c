@@ -416,14 +416,14 @@ enriched_to_html (CamelMimeFilter *mime_filter,
 
 						len = inptr - start;
 						param = param_parse (enriched_tag, start, len);
-						len = strlen (param);
+						len = param ? strlen (param) : 0;
 
 						inptr += 7;
 
 						len += strlen (html_tag);
 
 						if ((outptr + len) < outend) {
-							outptr += snprintf (outptr, len, html_tag, param);
+							outptr += snprintf (outptr, len, html_tag, param ? param : "");
 							g_free (param);
 						} else {
 							g_free (param);
@@ -553,7 +553,7 @@ camel_mime_filter_enriched_init (CamelMimeFilterEnriched *filter)
 
 /**
  * camel_mime_filter_enriched_new:
- * @flags: bitwise set of flags to specify filter behaviour
+ * @flags: (type CamelMimeFilterEnrichedFlags): bitwise set of flags to specify filter behaviour
  *
  * Create a new #CamelMimeFilterEnriched object to convert input text
  * streams from text/plain into text/enriched or text/richtext.
@@ -577,7 +577,7 @@ camel_mime_filter_enriched_new (guint32 flags)
 /**
  * camel_enriched_to_html:
  * @in: input textual string
- * @flags: flags specifying filter behaviour
+ * @flags: (type CamelMimeFilterEnrichedFlags): flags specifying filter behaviour
  *
  * Convert @in from text/plain into text/enriched or text/richtext
  * based on @flags.

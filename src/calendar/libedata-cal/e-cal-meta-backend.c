@@ -680,6 +680,9 @@ ecmb_refresh_internal_sync (ECalMetaBackend *meta_backend,
 			    GCancellable *cancellable,
 			    GError **error)
 {
+#ifdef HAVE_GPOWERPROFILEMONITOR
+	GPowerProfileMonitor *power_monitor;
+#endif
 	ECalCache *cal_cache;
 	gboolean success = FALSE, repeat = TRUE, is_repeat = FALSE;
 
@@ -687,6 +690,18 @@ ecmb_refresh_internal_sync (ECalMetaBackend *meta_backend,
 
 	if (g_cancellable_set_error_if_cancelled (cancellable, error))
 		goto done;
+
+#ifdef HAVE_GPOWERPROFILEMONITOR
+	/* Silently ignore the refresh request when in the power-saver mode */
+	power_monitor = g_power_profile_monitor_dup_default ();
+	if (power_monitor && g_power_profile_monitor_get_power_saver_enabled (power_monitor)) {
+		g_clear_object (&power_monitor);
+		success = TRUE;
+		goto done;
+	}
+
+	g_clear_object (&power_monitor);
+#endif
 
 	e_cal_backend_foreach_view_notify_progress (E_CAL_BACKEND (meta_backend), TRUE, 0, _("Refreshing…"));
 
@@ -2513,7 +2528,20 @@ ecmb_receive_object_sync (ECalMetaBackend *meta_backend,
 		}
 	}
 
-	mod = e_cal_component_is_instance (comp) ? E_CAL_OBJ_MOD_THIS : E_CAL_OBJ_MOD_ALL;
+	if (e_cal_component_is_instance (comp)) {
+		ECalComponentRange *range;
+
+		range = e_cal_component_get_recurid (comp);
+
+		if (range && e_cal_component_range_get_kind (range) == E_CAL_COMPONENT_RANGE_THISFUTURE)
+			mod = E_CAL_OBJ_MOD_THIS_AND_FUTURE;
+		else
+			mod = E_CAL_OBJ_MOD_THIS;
+
+		e_cal_component_range_free (range);
+	} else {
+		mod = E_CAL_OBJ_MOD_ALL;
+	}
 
 	switch (method) {
 	case I_CAL_METHOD_PUBLISH:
@@ -2535,7 +2563,7 @@ ecmb_receive_object_sync (ECalMetaBackend *meta_backend,
 		break;
 	case I_CAL_METHOD_CANCEL:
 		if (is_in_cache) {
-			success = ecmb_remove_object_sync (meta_backend, cal_cache, offline_flag, conflict_resolution, E_CAL_OBJ_MOD_THIS, opflags,
+			success = ecmb_remove_object_sync (meta_backend, cal_cache, offline_flag, conflict_resolution, mod, opflags,
 				e_cal_component_id_get_uid (id), e_cal_component_id_get_rid (id), NULL, NULL, cancellable, error);
 		} else {
 			g_propagate_error (error, e_cal_client_error_create (E_CAL_CLIENT_ERROR_OBJECT_NOT_FOUND, NULL));

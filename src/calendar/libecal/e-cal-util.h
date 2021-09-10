@@ -216,7 +216,7 @@ G_BEGIN_DECLS
  * Similar to the %E_CAL_STATIC_CAPABILITY_SIMPLE_MEMO, except the backend stores
  * the description and the summary separately.
  *
- * Since: 3.40.1
+ * Since: 3.42
  **/
 
 #define E_CAL_STATIC_CAPABILITY_SIMPLE_MEMO_WITH_SUMMARY "simple-memo-with-summary"
