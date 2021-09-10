@@ -55,7 +55,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (>= ${source:Version}),
-         libcamel-1.2-62 (= ${binary:Version}),
+         libcamel-1.2-63 (= ${binary:Version}),
          gnome-keyring,
 Breaks: evolution (<< 3.29.90),
         libevolution (<< 3.29.90)
@@ -211,7 +211,7 @@ Description: GObject introspection for the EDataServerUI library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libcamel-1.2-62
+Package: libcamel-1.2-63
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -229,7 +229,7 @@ Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libcamel-1.2-62 (= ${binary:Version}),
+Depends: libcamel-1.2-63 (= ${binary:Version}),
          gir1.2-camel-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
