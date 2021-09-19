@@ -57,6 +57,16 @@ override_dh_fixperms-arch:
 	chmod g+s $(CURDIR)/debian/evolution-data-server/usr/libexec/camel-lock-helper*
 	dh_fixperms -a -X/usr/libexec/camel-lock-helper*
 
+# debhelper >= 13.4 makes all of /usr/libexec executable, which is not
+# quite right for installed-tests
+override_dh_fixperms:
+	dh_fixperms -Xusr/libexec/evolution-data-server/installed-tests
+ifneq ($(filter %-tests,$(built_binaries)),)
+	chmod --changes u=rw,og=r debian/*-tests/usr/libexec/*/installed-tests/components/*
+	chmod --changes u=rw,og=r debian/*-tests/usr/libexec/*/installed-tests/vcards/*
+	chmod --changes a+rX,u+w,og-w debian/*-tests/usr/libexec/*/installed-tests/*
+endif
+
 override_dh_makeshlibs:
 	dh_makeshlibs -X/usr/lib/evolution-data-server/ -- -c4
 
