@@ -1,8 +1,9 @@
-evolution-data-server (3.42.0-1) UNRELEASED; urgency=medium
+evolution-data-server (3.42.0-1) experimental; urgency=medium
 
   * New upstream release
+  * Don't let debhelper 13.4+ make all the installed-tests executable
 
- -- Jeremy Bicha <jbicha@debian.org>  Sun, 19 Sep 2021 14:49:28 -0400
+ -- Jeremy Bicha <jbicha@debian.org>  Sun, 19 Sep 2021 16:12:07 -0400
 
 evolution-data-server (3.41.3-1) experimental; urgency=medium
 
