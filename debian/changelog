@@ -5,6 +5,7 @@ evolution-data-server (3.42.1-1) UNRELEASED; urgency=medium
 
   [ Sebastien Bacher ]
   * New upstream release
+  * Updated the symbols
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 10 Nov 2021 10:32:02 +0100
 
