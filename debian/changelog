@@ -1,8 +1,12 @@
-evolution-data-server (3.42.0-3) UNRELEASED; urgency=medium
+evolution-data-server (3.42.1-1) UNRELEASED; urgency=medium
 
+  [ Laurent Bigonville ]
   * Reenable OAuth support on sh4, webkit now builds on that architecture
 
- -- Laurent Bigonville <bigon@debian.org>  Mon, 01 Nov 2021 01:30:09 +0100
+  [ Sebastien Bacher ]
+  * New upstream release
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 10 Nov 2021 10:32:02 +0100
 
 evolution-data-server (3.42.0-2) unstable; urgency=medium
 
