@@ -599,7 +599,7 @@ camel_cipher_context_verify_finish (CamelCipherContext *context,
 /**
  * camel_cipher_context_encrypt_sync:
  * @context: a #CamelCipherContext
- * @userid: key ID (or email address) to use when signing, or %NULL to not sign
+ * @userid: (nullable): key ID (or email address) to use when signing, or %NULL to not sign
  * @recipients: (element-type utf8): an array of recipient key IDs and/or email addresses
  * @ipart: clear-text #CamelMimePart
  * @opart: cipher-text #CamelMimePart
@@ -686,7 +686,7 @@ cipher_context_encrypt_thread (GTask *task,
 /**
  * camel_cipher_context_encrypt:
  * @context: a #CamelCipherContext
- * @userid: key id (or email address) to use when signing, or %NULL to not sign
+ * @userid: (nullable): key id (or email address) to use when signing, or %NULL to not sign
  * @recipients: (element-type utf8): an array of recipient key IDs and/or email addresses
  * @ipart: clear-text #CamelMimePart
  * @opart: cipher-text #CamelMimePart

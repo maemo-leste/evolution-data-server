@@ -6,6 +6,7 @@ datarootdir=@SHARE_INSTALL_PREFIX@
 datadir=@SHARE_INSTALL_PREFIX@
 privdatadir=@privdatadir@
 privlibexecdir=@privlibexecdir@
+icondir=@icondir@
 
 addressbookdbusservicename=@ADDRESS_BOOK_DBUS_SERVICE_NAME@
 calendardbusservicename=@CALENDAR_DBUS_SERVICE_NAME@
@@ -17,4 +18,4 @@ execversion=@BASE_VERSION@
 Name: evolution-data-server
 Description: The evolution data server for the calendar and addressbook
 Version: @PROJECT_VERSION@
-Requires: gio-2.0 @mozilla_nss@ @mozilla_nspr@
+Requires: gio-2.0

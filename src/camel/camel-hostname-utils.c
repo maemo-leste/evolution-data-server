@@ -645,7 +645,7 @@ all_characters_allowed_by_tld_rules (const UChar *buffer,
  * Returns: %TRUE, when the @hostname should be converted to an ASCII equivalent,
  *    %FALSE, when it can be shown as is.
  *
- * Since: 3.42.1
+ * Since: 3.44
  **/
 gboolean
 camel_hostname_utils_requires_ascii (const gchar *hostname)

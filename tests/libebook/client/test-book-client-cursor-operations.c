@@ -248,7 +248,7 @@ timeout_start (GMainContext *context,
                GSource **source,
                const gchar *error_message)
 {
-	g_assert (source && *source == NULL);
+	g_assert_true (source && *source == NULL);
 
 	if (!context)
 		context = g_main_context_default ();
@@ -264,7 +264,7 @@ timeout_start (GMainContext *context,
 static void
 timeout_cancel (GSource **source)
 {
-	g_assert (source && *source != NULL);
+	g_assert_true (source && *source != NULL);
 
 	g_source_destroy (*source);
 	g_source_unref (*source);
@@ -963,8 +963,8 @@ cursor_closure_step (CursorClosure *closure,
 	va_list args;
 	gint i;
 
-	g_assert (expected <= N_SORTED_CONTACTS);
-	g_assert (ABS (count) <= N_SORTED_CONTACTS);
+	g_assert_true (expected <= N_SORTED_CONTACTS);
+	g_assert_true (ABS (count) <= N_SORTED_CONTACTS);
 
 	test->type = CURSOR_TEST_STEP;
 	test->flags = flags;
@@ -1006,7 +1006,7 @@ cursor_closure_set_sexp (CursorClosure *closure,
 {
 	CursorTestSetSexp *test = g_slice_new0 (CursorTestSetSexp);
 
-	g_assert (query != NULL);
+	g_assert_true (query != NULL);
 
 	test->type = CURSOR_TEST_SET_SEXP;
 	test->sexp = e_book_query_to_string (query);
@@ -2667,7 +2667,7 @@ main (gint argc,
 		cursor_closure_alphabet (closure, FALSE, "あ", "か", "さ", "た", "な");
 		cursor_closure_add (closure, "/EBookClientCursor/ChangeLocale/Alphabet/ja_JP%s", base_params[i].base_path);
 
-		/* The alphabet doesnt change for chinese */
+		/* The alphabet doesn't change for chinese */
 		closure = cursor_closure_new (&base_params[i], "POSIX");
 		cursor_closure_alphabet (closure, TRUE, "A", "B", "C", "D", "E");
 		cursor_closure_change_locale (closure, "zh_CN.utf8");

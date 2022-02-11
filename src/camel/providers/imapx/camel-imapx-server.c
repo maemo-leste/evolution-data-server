@@ -2263,7 +2263,7 @@ imapx_continuation (CamelIMAPXServer *is,
 	gboolean success;
 
 	/* The 'literal' pointer is like a write-lock, nothing else
-	 * can write while we have it ... so we dont need any
+	 * can write while we have it ... so we don't need any
 	 * ohter lock here.  All other writes go through
 	 * queue-lock */
 	if (camel_imapx_server_is_in_idle (is)) {
@@ -3203,6 +3203,7 @@ camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 	gchar *host;
 	gchar *user;
 	gboolean can_retry_login = FALSE;
+	gboolean send_client_id;
 	gboolean success;
 
 	g_return_val_if_fail (
@@ -3217,6 +3218,8 @@ camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 	network_settings = CAMEL_NETWORK_SETTINGS (settings);
 	host = camel_network_settings_dup_host (network_settings);
 	user = camel_network_settings_dup_user (network_settings);
+
+	send_client_id = camel_imapx_settings_get_send_client_id (CAMEL_IMAPX_SETTINGS (settings));
 
 	g_object_unref (settings);
 
@@ -3370,6 +3373,14 @@ camel_imapx_server_authenticate_sync (CamelIMAPXServer *is,
 		}
 
 		g_mutex_unlock (&is->priv->stream_lock);
+
+		if (send_client_id) {
+			camel_imapx_command_unref (ic);
+
+			ic = camel_imapx_command_new (is, CAMEL_IMAPX_JOB_ID, "ID (\"name\" \"" PACKAGE "\" \"version\" \"" VERSION "\")");
+			if (!camel_imapx_server_process_command_sync (is, ic, _("Failed to issue ID"), cancellable, error))
+				result = CAMEL_AUTHENTICATION_ERROR;
+		}
 	}
 
 	camel_imapx_command_unref (ic);
@@ -3844,7 +3855,7 @@ camel_imapx_server_ref_settings (CamelIMAPXServer *server)
  * The returned #GInputStream is referenced for thread-safety and must
  * be unreferenced with g_object_unref() when finished with it.
  *
- * Returns: a #GInputStream, or %NULL
+ * Returns: (nullable): a #GInputStream, or %NULL
  *
  * Since: 3.12
  **/
@@ -3876,7 +3887,7 @@ camel_imapx_server_ref_input_stream (CamelIMAPXServer *is)
  * The returned #GOutputStream is referenced for thread-safety and must
  * be unreferenced with g_object_unref() when finished with it.
  *
- * Returns: a #GOutputStream, or %NULL
+ * Returns: (nullable): a #GOutputStream, or %NULL
  *
  * Since: 3.12
  **/
@@ -3909,7 +3920,7 @@ camel_imapx_server_ref_output_stream (CamelIMAPXServer *is)
  * The returned #CamelIMAPXMailbox is reference for thread-safety and
  * should be unreferenced with g_object_unref() when finished with it.
  *
- * Returns: a #CamelIMAPXMailbox, or %NULL
+ * Returns: (nullable): a #CamelIMAPXMailbox, or %NULL
  *
  * Since: 3.12
  **/
@@ -7364,7 +7375,7 @@ camel_imapx_server_stop_idle_sync (CamelIMAPXServer *is,
  *                     untagged response code. Must be
  *                     all-uppercase with underscores allowed
  *                     (see RFC 3501)
- * @desc: a #CamelIMAPXUntaggedRespHandlerDesc handler description
+ * @desc: (nullable): a #CamelIMAPXUntaggedRespHandlerDesc handler description
  *        structure. The descriptor structure is expected to
  *        remain stable over the lifetime of the #CamelIMAPXServer
  *        instance it was registered with. It is the responsibility
@@ -7378,7 +7389,7 @@ camel_imapx_server_stop_idle_sync (CamelIMAPXServer *is,
  * code is implemented with just some new code to be run before
  * or after the original handler code
  *
- * Returns: the #CamelIMAPXUntaggedRespHandlerDesc previously
+ * Returns: (nullable): the #CamelIMAPXUntaggedRespHandlerDesc previously
  *          registered for this untagged response, if any,
  *          NULL otherwise.
  *

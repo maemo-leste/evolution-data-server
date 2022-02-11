@@ -477,7 +477,7 @@ camel_internet_address_ensure_ascii_domains (CamelInternetAddress *addr)
  *
  * Returns: %TRUE, when converted at least one address
  *
- * Since: 3.42.1
+ * Since: 3.44
  **/
 gboolean
 camel_internet_address_sanitize_ascii_domain (CamelInternetAddress *addr)
@@ -588,7 +588,7 @@ append:
 
 /**
  * camel_internet_address_encode_address:
- * @len: the length of the line the address is being appended to
+ * @len: (nullable): the length of the line the address is being appended to
  * @name: the unencoded real name associated with the address
  * @addr: the routing address
  *
