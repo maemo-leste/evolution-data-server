@@ -40,6 +40,7 @@ libebook-contacts-1.2.so.3 libebook-contacts-1.2-3 #MINVER#
  e_book_query_vcard_field_exists@Base 3.16.2
  e_book_query_vcard_field_test@Base 3.16.2
  e_book_util_conflict_resolution_to_operation_flags@Base 3.33.4
+ e_book_util_foreach_address@Base 3.43.2
  e_book_util_operation_flags_to_conflict_resolution@Base 3.33.4
  e_contact_address_free@Base 3.16.2
  e_contact_address_get_type@Base 3.16.2

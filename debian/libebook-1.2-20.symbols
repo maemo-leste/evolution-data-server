@@ -33,6 +33,9 @@ libebook-1.2.so.20 libebook-1.2-20 #MINVER#
  e_book_client_connect_direct_sync@Base 3.17
  e_book_client_connect_finish@Base 3.17
  e_book_client_connect_sync@Base 3.17
+ e_book_client_contains_email@Base 3.43.2
+ e_book_client_contains_email_finish@Base 3.43.2
+ e_book_client_contains_email_sync@Base 3.43.2
  e_book_client_cursor_get_alphabet@Base 3.17
  e_book_client_cursor_get_contact_alphabetic_index@Base 3.17
  e_book_client_cursor_get_position@Base 3.17
@@ -139,6 +142,9 @@ libebook-1.2.so.20 libebook-1.2-20 #MINVER#
  e_dbus_address_book_call_close@Base 3.17
  e_dbus_address_book_call_close_finish@Base 3.17
  e_dbus_address_book_call_close_sync@Base 3.17
+ e_dbus_address_book_call_contains_email@Base 3.43.2
+ e_dbus_address_book_call_contains_email_finish@Base 3.43.2
+ e_dbus_address_book_call_contains_email_sync@Base 3.43.2
  e_dbus_address_book_call_create_contacts@Base 3.17
  e_dbus_address_book_call_create_contacts_finish@Base 3.17
  e_dbus_address_book_call_create_contacts_sync@Base 3.17
@@ -173,6 +179,7 @@ libebook-1.2.so.20 libebook-1.2-20 #MINVER#
  e_dbus_address_book_call_retrieve_properties_finish@Base 3.17
  e_dbus_address_book_call_retrieve_properties_sync@Base 3.17
  e_dbus_address_book_complete_close@Base 3.17
+ e_dbus_address_book_complete_contains_email@Base 3.43.2
  e_dbus_address_book_complete_create_contacts@Base 3.17
  e_dbus_address_book_complete_get_contact@Base 3.17
  e_dbus_address_book_complete_get_contact_list@Base 3.17

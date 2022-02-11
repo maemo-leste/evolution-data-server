@@ -982,6 +982,10 @@ libedataserver-1.2.so.26 libedataserver-1.2-26 #MINVER#
  e_source_webdav_get_ssl_trust@Base 3.17
  e_source_webdav_get_ssl_trust_response@Base 3.32.0
  e_source_webdav_get_type@Base 3.17
+ e_source_webdav_notes_dup_default_ext@Base 3.43.2
+ e_source_webdav_notes_get_default_ext@Base 3.43.2
+ e_source_webdav_notes_get_type@Base 3.43.2
+ e_source_webdav_notes_set_default_ext@Base 3.43.2
  e_source_webdav_set_avoid_ifmatch@Base 3.17
  e_source_webdav_set_calendar_auto_schedule@Base 3.17
  e_source_webdav_set_color@Base 3.29.90

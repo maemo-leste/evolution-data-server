@@ -186,6 +186,7 @@ libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
  camel_db_delete_uid@Base 3.19.92
  camel_db_delete_uids@Base 3.19.92
  camel_db_end_transaction@Base 3.19.92
+ camel_db_error_quark@Base 3.43.2
  camel_db_flush_in_memory_transactions@Base 3.19.92
  camel_db_free_sqlized_string@Base 3.19.92
  camel_db_get_column_ident@Base 3.19.92
@@ -1097,6 +1098,7 @@ libcamel-1.2.so.63 libcamel-1.2-63 #MINVER#
  camel_service_set_proxy_resolver@Base 3.19.92
  camel_service_set_settings@Base 3.19.92
  camel_session_add_service@Base 3.19.92
+ camel_session_addressbook_contains_sync@Base 3.43.2
  camel_session_alert_type_get_type@Base 3.19.92
  camel_session_authenticate@Base 3.19.92
  camel_session_authenticate_finish@Base 3.19.92
