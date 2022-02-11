@@ -1678,7 +1678,7 @@ e_contact_field_type (EContactField field_id)
  *
  * Gets the string representation of @field_id.
  *
- * Returns: The string representation of @field_id, or %NULL if it doesn't exist.
+ * Returns: The string representation of @field_id
  **/
 const gchar *
 e_contact_field_name (EContactField field_id)
@@ -1695,7 +1695,7 @@ e_contact_field_name (EContactField field_id)
  * Gets a human-readable, translated string representation
  * of @field_id.
  *
- * Returns: The human-readable representation of @field_id, or %NULL if it doesn't exist.
+ * Returns: The human-readable representation of @field_id
  **/
 const gchar *
 e_contact_pretty_name (EContactField field_id)
@@ -1716,7 +1716,7 @@ e_contact_pretty_name (EContactField field_id)
  *
  * Gets the vcard attribute corresponding to @field_id, as a string.
  *
- * Returns: The vcard attribute corresponding to @field_id, or %NULL if it doesn't exist.
+ * Returns: The vcard attribute corresponding to @field_id
  **/
 const gchar *
 e_contact_vcard_attribute (EContactField field_id)

@@ -10,7 +10,7 @@ configure_file(org.gnome.Evolution-alarm-notify.desktop.in.in
 	@ONLY
 )
 
-intltool_merge(${CMAKE_CURRENT_BINARY_DIR}/org.gnome.Evolution-alarm-notify.desktop.in org.gnome.Evolution-alarm-notify.desktop --desktop-style --utf8)
+i18n_merge_file(${CMAKE_CURRENT_BINARY_DIR}/org.gnome.Evolution-alarm-notify.desktop.in org.gnome.Evolution-alarm-notify.desktop ${CMAKE_SOURCE_DIR}/po)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.gnome.Evolution-alarm-notify.desktop
 	DESTINATION ${autostartdir}
@@ -36,7 +36,7 @@ set(SCHEMAS
 
 set(BUILT_SCHEMAS)
 foreach(_schema IN LISTS SCHEMAS)
-	intltool_merge(${_schema}.in ${_schema} --no-translations --xml-style --utf8)
+	configure_file(${_schema}.in ${_schema} COPYONLY)
 	list(APPEND BUILT_SCHEMAS ${CMAKE_CURRENT_BINARY_DIR}/${_schema})
 endforeach(_schema)
 
@@ -87,3 +87,36 @@ set(IMAGES
 install(FILES ${IMAGES}
 	DESTINATION ${imagesdir}
 )
+
+# ********************************
+# Fallback icons
+# ********************************
+
+set(private_icons
+	hicolor_status_16x16_appointment-missed.png
+	hicolor_status_22x22_appointment-missed.png
+	hicolor_status_24x24_appointment-missed.png
+	hicolor_status_32x32_appointment-missed.png
+	hicolor_status_48x48_appointment-missed.png
+	hicolor_status_256x256_appointment-missed.png
+	hicolor_status_16x16_appointment-soon.png
+	hicolor_status_22x22_appointment-soon.png
+	hicolor_status_24x24_appointment-soon.png
+	hicolor_status_32x32_appointment-soon.png
+	hicolor_status_48x48_appointment-soon.png
+	hicolor_status_256x256_appointment-soon.png
+	hicolor_status_16x16_dialog-password.png
+	hicolor_status_22x22_dialog-password.png
+	hicolor_status_24x24_dialog-password.png
+	hicolor_status_32x32_dialog-password.png
+	hicolor_status_48x48_dialog-password.png
+	hicolor_status_256x256_dialog-password.png
+	hicolor_status_16x16_dialog-warning.png
+	hicolor_status_22x22_dialog-warning.png
+	hicolor_status_24x24_dialog-warning.png
+	hicolor_status_32x32_dialog-warning.png
+	hicolor_status_48x48_dialog-warning.png
+	hicolor_status_256x256_dialog-warning.png
+)
+
+add_icon_cache_files("${privdatadir}" private_icons)

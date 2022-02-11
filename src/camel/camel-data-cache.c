@@ -184,8 +184,8 @@ camel_data_cache_init (CamelDataCache *data_cache)
  *
  * Create a new data cache.
  *
- * Returns: A new cache object, or NULL if the base path cannot
- * be written to.
+ * Returns: A new cache object, or %NULL if the base path cannot
+ *    be written to.
  **/
 CamelDataCache *
 camel_data_cache_new (const gchar *path,
@@ -445,7 +445,7 @@ data_cache_path (CamelDataCache *cdc,
  * The returned #GIOStream is referenced for thread-safety and must be
  * unreferenced with g_object_unref() when finished with it.
  *
- * Returns: (transfer full): a #GIOStream for the new cache item, or %NULL
+ * Returns: (transfer full): a #GIOStream for the new cache item, or %NULL on error
  **/
 GIOStream *
 camel_data_cache_add (CamelDataCache *cdc,
@@ -484,7 +484,7 @@ camel_data_cache_add (CamelDataCache *cdc,
 
 	g_free (real);
 
-	return G_IO_STREAM (stream);
+	return stream ? G_IO_STREAM (stream) : NULL;
 }
 
 /**
@@ -501,7 +501,7 @@ camel_data_cache_add (CamelDataCache *cdc,
  * The returned #GIOStream is referenced for thread-safety and must be
  * unreferenced with g_object_unref() when finished with it.
  *
- * Returns: (transfer full): a #GIOStream for the requested cache item, or %NULL
+ * Returns: (transfer full): a #GIOStream for the requested cache item, or %NULL on error
  **/
 GIOStream *
 camel_data_cache_get (CamelDataCache *cdc,
@@ -542,7 +542,7 @@ camel_data_cache_get (CamelDataCache *cdc,
 exit:
 	g_free (real);
 
-	return G_IO_STREAM (stream);
+	return stream ? G_IO_STREAM (stream) : NULL;
 }
 
 /**

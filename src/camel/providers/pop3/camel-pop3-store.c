@@ -331,8 +331,8 @@ try_sasl (CamelPOP3Store *store,
 			break;
 		}
 
-		/* If we dont get continuation, or the sasl object's run out
-		 * of work, or we dont get a challenge, its a protocol error,
+		/* If we don't get continuation, or the sasl object's run out
+		 * of work, or we don't get a challenge, its a protocol error,
 		 * so fail, and try reset the server. */
 		if (strncmp ((gchar *) line, "+ ", 2) != 0
 		    || camel_sasl_get_authenticated (sasl)
@@ -438,7 +438,7 @@ pop3_store_dispose (GObject *object)
 
 	priv = CAMEL_POP3_STORE (object)->priv;
 
-	/* Force disconnect so we dont have it run
+	/* Force disconnect so we don't have it run
 	 * later, after we've cleaned up some stuff. */
 	camel_service_disconnect_sync (
 		CAMEL_SERVICE (object), TRUE, NULL, NULL);
@@ -1159,7 +1159,7 @@ camel_pop3_store_expunge (CamelPOP3Store *store,
  * The returned #CamelStream is referenced for thread-safety and must be
  * unreferenced when finished with it.
  *
- * Returns: a #CamelStream, or %NULL
+ * Returns: a #CamelStream, or %NULL on error
  **/
 CamelStream *
 camel_pop3_store_cache_add (CamelPOP3Store *store,
@@ -1201,7 +1201,7 @@ camel_pop3_store_cache_add (CamelPOP3Store *store,
  * The returned #CamelStream is referenced for thread-safety and must be
  * unreferenced when finished with it.
  *
- * Returns: a #CamelStream, or %NULL
+ * Returns: (nullable): a #CamelStream, or %NULL
  **/
 CamelStream *
 camel_pop3_store_cache_get (CamelPOP3Store *store,

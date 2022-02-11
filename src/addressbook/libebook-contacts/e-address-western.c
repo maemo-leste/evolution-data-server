@@ -305,12 +305,13 @@ e_address_western_extract_street (gchar *line,
 
 /**
  * e_address_western_parse:
- * @in_address: a string representing a mailing address
+ * @in_address: (nullable): a string representing a mailing address
  *
  * Parses a string representing a mailing address into a
  * structure of type #EAddressWestern.
  *
- * Returns: A new #EAddressWestern structure, or %NULL if the parsing failed.
+ * Returns: (nullable): A new #EAddressWestern structure, or %NULL if
+ *    the parsing failed or when the @in_address was %NULL.
  **/
 EAddressWestern *
 e_address_western_parse (const gchar *in_address)

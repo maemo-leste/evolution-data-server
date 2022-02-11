@@ -1026,7 +1026,7 @@ camel_folder_summary_get_visible_count (CamelFolderSummary *summary)
 /**
  * camel_folder_summary_set_index:
  * @summary: a #CamelFolderSummary object
- * @index: a #CamelIndex
+ * @index: (nullable): a #CamelIndex
  *
  * Set the index used to index body content.  If the index is %NULL, or
  * not set (the default), no indexing of body content will take place.
@@ -1050,7 +1050,7 @@ camel_folder_summary_set_index (CamelFolderSummary *summary,
  * camel_folder_summary_get_index:
  * @summary: a #CamelFolderSummary object
  *
- * Returns: (transfer none): a #CamelIndex used to index body content.
+ * Returns: (transfer none) (nullable): a #CamelIndex used to index body content.
  *
  * Since: 3.4
  **/
@@ -2047,7 +2047,7 @@ save_to_db_cb (gpointer key,
 
 	/* Reset the dirty flag which decides if the changes are synced to the DB or not.
 	The FOLDER_FLAGGED should be used to check if the changes are synced to the server.
-	So, dont unset the FOLDER_FLAGGED flag */
+	So, don't unset the FOLDER_FLAGGED flag */
 	camel_message_info_set_dirty (mi, FALSE);
 
 	camel_db_camel_mir_free (mir);
@@ -2535,7 +2535,7 @@ camel_folder_summary_info_new_from_parser (CamelFolderSummary *summary,
 			camel_mime_filter_index_set_name (CAMEL_MIME_FILTER_INDEX (summary->priv->filter_index), name);
 		}
 
-		/* always scan the content info, even if we dont save it */
+		/* always scan the content info, even if we don't save it */
 		summary_traverse_content_with_parser (summary, info, mp);
 
 		if (name && summary->priv->index) {
@@ -3394,7 +3394,7 @@ camel_system_flag_get (CamelMessageFlags flags,
 
 /**
  * camel_message_info_new_from_headers:
- * @summary: a #CamelFolderSummary object or %NULL
+ * @summary: (nullable): a #CamelFolderSummary object or %NULL
  * @headers: a #CamelNameValueArray
  *
  * Create a new #CamelMessageInfo pre-populated with info from

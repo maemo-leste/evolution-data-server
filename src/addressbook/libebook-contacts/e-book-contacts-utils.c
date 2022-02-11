@@ -54,7 +54,7 @@ e_book_client_error_to_string (EBookClientError code)
 /**
  * e_book_client_error_create:
  * @code: an #EBookClientError code to create
- * @custom_msg: custom message to use for the error; can be %NULL
+ * @custom_msg: (nullable): custom message to use for the error; can be %NULL
  *
  * Returns: a new #GError containing an E_BOOK_CLIENT_ERROR of the given
  * @code. If the @custom_msg is NULL, then the error message is
@@ -165,4 +165,45 @@ e_book_util_conflict_resolution_to_operation_flags (EConflictResolution conflict
 	}
 
 	return E_BOOK_OPERATION_FLAG_CONFLICT_KEEP_LOCAL;
+}
+
+/**
+ * e_book_util_foreach_address:
+ * @email_address: one or more email addresses as string
+ * @func: (scope call): a function to call for each email
+ * @user_data (closure func): user data passed to @func
+ *
+ * Parses the @email_address and calls @func for each found address.
+ * The first parameter of the @func is the name, the second parameter
+ * of the @func is the email, the third parameters of the @func is
+ * the @user_data. The @func returns %TRUE, to continue processing.
+ *
+ * Since: 3.44
+ **/
+void
+e_book_util_foreach_address (const gchar *email_address,
+			     GHRFunc func,
+			     gpointer user_data)
+{
+	CamelInternetAddress *address;
+	const gchar *name, *email;
+	gint index;
+
+	g_return_if_fail (func != NULL);
+
+	if (!email_address || !*email_address)
+		return;
+
+	address = camel_internet_address_new ();
+	if (!camel_address_decode (CAMEL_ADDRESS (address), email_address)) {
+		g_object_unref (address);
+		return;
+	}
+
+	for (index = 0; camel_internet_address_get (address, index, &name, &email); index++) {
+		if (!func ((gpointer) name, (gpointer) email, user_data))
+			break;
+	}
+
+	g_object_unref (address);
 }

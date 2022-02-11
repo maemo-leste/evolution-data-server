@@ -89,7 +89,7 @@ struct _header_scan_state {
 	/* for scanning input buffers */
 	gchar *realbuf;		/* the real buffer, SCAN_HEAD *2 + SCAN_BUF bytes */
 	gchar *inbuf;		/* points to a subset of the allocated memory, the underflow */
-	gchar *inptr;		/* (upto SCAN_HEAD) is for use by filters so they dont copy all data */
+	gchar *inptr;		/* (upto SCAN_HEAD) is for use by filters so they don't copy all data */
 	gchar *inend;
 
 	gint atleast;
@@ -130,7 +130,7 @@ struct _header_scan_stack {
 
 	CamelContentType *content_type;
 
-	/* I dont use GString's casue you can't efficiently append a buffer to them */
+	/* I don't use GString's casue you can't efficiently append a buffer to them */
 	GByteArray *pretext;	/* for multipart types, save the pre-boundary data here */
 	GByteArray *posttext;	/* for multipart types, save the post-boundary data here */
 	gint prestage;		/* used to determine if it is a pre-boundary or post-boundary data segment */
@@ -322,7 +322,7 @@ camel_mime_parser_filter_remove (CamelMimeParser *m,
  *
  * Lookup a header by name.
  *
- * Returns: The header value, or NULL if the header is not
+ * Returns: (nullable): The header value, or %NULL if the header is not
  * defined.
  **/
 const gchar *
@@ -346,8 +346,9 @@ camel_mime_parser_header (CamelMimeParser *m,
  * current state of the parser.  These headers are valid
  * until the next call to camel_mime_parser_step(), or camel_mime_parser_drop_step().
  *
- * Returns: (transfer full): The headers, or %NULL, if there are no headers
- * defined for the current part or state. Free it with camel_name_value_array_free().
+ * Returns: (transfer full) (nullable): The headers, or %NULL, if there are no
+ * headers defined for the current part or state. Free it with
+ * camel_name_value_array_free().
  *
  * Since: 3.24
  **/
@@ -388,7 +389,7 @@ byte_array_to_string (GByteArray *array)
  * Retrieve the preface text for the current multipart.
  * Can only be used when the state is CAMEL_MIME_PARSER_STATE_MULTIPART_END.
  *
- * Returns: The preface text, or NULL if there wasn't any.
+ * Returns: (nullable): The preface text, or %NULL if there wasn't any.
  *
  * Since: 2.22
  **/
@@ -411,7 +412,7 @@ camel_mime_parser_preface (CamelMimeParser *m)
  * Only returns valid data when the current state if
  * CAMEL_MIME_PARSER_STATE_MULTIPART_END.
  *
- * Returns: The postface text, or NULL if there wasn't any.
+ * Returns: (nullable): The postface text, or %NULL if there wasn't any.
  *
  * Since: 2.22
  **/
@@ -437,7 +438,7 @@ camel_mime_parser_postface (CamelMimeParser *m)
  * The return value will remain valid while in the CAMEL_MIME_PARSER_STATE_FROM
  * state, or any deeper state.
  *
- * Returns: The From line, or NULL if called out of context.
+ * Returns: (nullable): The From line, or %NULL if called out of context.
  *
  * Since: 2.22
  **/
@@ -590,7 +591,7 @@ camel_mime_parser_scan_pre_from (CamelMimeParser *parser,
  *
  * Get the content type defined in the current part.
  *
- * Returns: A content_type structure, or NULL if there
+ * Returns: (nullable): A content_type structure, or %NULL if there
  * is no content-type defined for this part of state of the
  * parser.
  **/
@@ -1170,7 +1171,7 @@ folder_boundary_check (struct _header_scan_state *s,
                        gint *lastone)
 {
 	struct _header_scan_stack *part;
-	gint len = s->inend - boundary; /* make sure we dont access past the buffer */
+	gint len = s->inend - boundary; /* make sure we don't access past the buffer */
 
 	h (printf ("checking boundary marker upto %d bytes\n", len));
 	part = s->parts;

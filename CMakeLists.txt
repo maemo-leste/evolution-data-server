@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.42.4
+	VERSION 3.43.2
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -12,7 +12,7 @@ set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issu
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.42)
+set(BASE_VERSION 3.44)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -196,6 +196,7 @@ set(privdatadir "${SHARE_INSTALL_PREFIX}/${PROJECT_NAME}")
 set(privincludedir "${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}")
 set(privlibdir "${LIB_INSTALL_DIR}/${PROJECT_NAME}")
 set(privlibexecdir "${LIBEXEC_INSTALL_DIR}/${PROJECT_NAME}")
+set(icondir "${privdatadir}/icons")
 
 SET(CMAKE_INSTALL_RPATH "${privlibdir}")
 
@@ -274,8 +275,10 @@ include(InstalledTests)
 include(PkgConfigEx)
 include(SetupBuildFlags)
 include(UninstallTarget)
+include(IconCache)
 
-include(FindIntltool)
+include(FindGettext)
+include(I18n)
 include(FindKRB5)
 include(FindLDAP)
 include(FindPhonenumber)
@@ -941,7 +944,7 @@ set(ADDRESSBOOK_LDFLAGS ${ADDRESSBOOK_LDFLAGS} ${PHONENUMBER_LDFLAGS})
 set(CALENDAR_CFLAGS ${CALENDAR_CFLAGS} -DLIBICAL_GLIB_UNSTABLE_API=1)
 
 pkg_check_modules(CAMEL REQUIRED gio-2.0 gmodule-2.0 ${mozilla_nss} ${mozilla_nspr} sqlite3>=${sqlite_minimum_version})
-set(CAMEL_CFLAGS ${CAMEL_CFLAGS} ${KRB5_CFLAGS} ${MANUAL_NSS_CFLAGS} ${MANUAL_NSPR_CFLAGS} ${ICU_CFLAGS})
+set(CAMEL_CFLAGS ${CAMEL_CFLAGS} ${KRB5_CFLAGS} ${MANUAL_NSS_INCLUDES} ${MANUAL_NSPR_INCLUDES} ${ICU_CFLAGS})
 set(CAMEL_LDFLAGS ${CAMEL_LDFLAGS} -lz ${KRB5_LDFLAGS} ${MANUAL_NSS_LIBS} ${MANUAL_NSPR_LIBS} ${ICU_LDFLAGS})
 
 if(NOT (MANUAL_NSPR_INCLUDES STREQUAL ""))

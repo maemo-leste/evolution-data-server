@@ -468,6 +468,7 @@ e_cal_backend_file_get_backend_property (ECalBackend *backend,
 			E_CAL_STATIC_CAPABILITY_ALARM_DESCRIPTION,
 			E_CAL_STATIC_CAPABILITY_TASK_CAN_RECUR,
 			E_CAL_STATIC_CAPABILITY_COMPONENT_COLOR,
+			E_CAL_STATIC_CAPABILITY_TASK_ESTIMATED_DURATION,
 			NULL);
 
 	} else if (g_str_equal (prop_name, E_CAL_BACKEND_PROPERTY_CAL_EMAIL_ADDRESS) ||
@@ -2935,10 +2936,10 @@ e_cal_backend_file_discard_alarm_sync (ECalBackendSync *backend,
  *         TODO: E_CAL_OBJ_MOD_ONLY_THIS
  * @uid    pointer to UID which must remain valid even if the object gets
  *         removed
- * @rid    NULL, "", or non-empty string when manipulating a specific recurrence;
- *         also must remain valid
- * @error  may be NULL if caller is not interested in errors
- * @return modified object or NULL if it got removed
+ * @rid:   (nullable): %NULL, "", or non-empty string when manipulating a
+ *         specific recurrence; also must remain valid
+ * @error  may be %NULL if caller is not interested in errors
+ * @return: (nullable): modified object or %NULL if it got removed
  */
 static ECalBackendFileObject *
 remove_instance (ECalBackendFile *cbfile,

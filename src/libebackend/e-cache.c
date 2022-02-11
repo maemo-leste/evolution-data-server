@@ -301,8 +301,8 @@ e_cache_column_values_remove_all (ECacheColumnValues *other_columns)
  * The returned pointer is owned by @other_columns and is valid until
  * the value is overwritten of the @other_columns freed.
  *
- * Returns: Stored value for the column named @name, or %NULL, if
- *    no such column values is stored.
+ * Returns: (nullable): Stored value for the column named @name,
+ *    or %NULL, if no such column values is stored.
  *
  * Since: 3.26
  **/
@@ -397,9 +397,9 @@ e_cache_offline_change_new (const gchar *uid,
  * e_cache_offline_change_copy:
  * @change: (nullable): a source #ECacheOfflineChange to copy, or %NULL
  *
- * Returns: (transfer full): Copy of the given @change. Free it with
- *    e_cache_offline_change_free() when no longer needed.
- *    If the @change is %NULL, then returns %NULL as well.
+ * Returns: (transfer full) (nullable): Copy of the given @change.
+ *    Free it with e_cache_offline_change_free() when no longer
+ *    needed. If the @change is %NULL, then returns %NULL as well.
  *
  * Since: 3.26
  **/
@@ -467,8 +467,8 @@ e_cache_column_info_new (const gchar *name,
  * e_cache_column_info_copy:
  * @info: (nullable): a source #ECacheColumnInfo to copy, or %NULL
  *
- * Returns: (transfer full): Copy of the given @info. Free it with
- *    e_cache_column_info_free() when no longer needed.
+ * Returns: (transfer full) (nullable): Copy of the given @info.
+ *    Free it with e_cache_column_info_free() when no longer needed.
  *    If the @info is %NULL, then returns %NULL as well.
  *
  * Since: 3.26
@@ -503,20 +503,6 @@ e_cache_column_info_free (gpointer info)
 		g_slice_free (ECacheColumnInfo, nfo);
 	}
 }
-
-#define E_CACHE_SET_ERROR_FROM_SQLITE(error, code, message, stmt) \
-	G_STMT_START { \
-		if (code == SQLITE_CONSTRAINT) { \
-			g_set_error_literal (error, E_CACHE_ERROR, E_CACHE_ERROR_CONSTRAINT, message); \
-		} else if (code == SQLITE_ABORT || code == SQLITE_INTERRUPT) { \
-			g_set_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED, "Operation cancelled: %s", message); \
-		} else { \
-			gchar *valid_utf8 = e_util_utf8_make_valid (stmt); \
-			g_set_error (error, E_CACHE_ERROR, E_CACHE_ERROR_ENGINE, \
-				"SQLite error code '%d': %s (statement:%s)", code, message, valid_utf8 ? valid_utf8 : stmt); \
-			g_free (valid_utf8); \
-		} \
-	} G_STMT_END
 
 struct CacheSQLiteExecData {
 	ECache *cache;
@@ -587,8 +573,21 @@ e_cache_sqlite_exec_internal (ECache *cache,
 	g_rec_mutex_unlock (&cache->priv->lock);
 
 	if (ret != SQLITE_OK) {
-		E_CACHE_SET_ERROR_FROM_SQLITE (error, ret, errmsg, stmt);
+		if (ret == SQLITE_CONSTRAINT) {
+			g_set_error_literal (error, E_CACHE_ERROR, E_CACHE_ERROR_CONSTRAINT, errmsg);
+		} else if (ret == SQLITE_ABORT || ret == SQLITE_INTERRUPT) {
+			g_set_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED, "Operation cancelled: %s", errmsg);
+		} else if (ret == SQLITE_CORRUPT && cache->priv->filename && *cache->priv->filename) {
+			g_set_error (error, E_CACHE_ERROR, E_CACHE_ERROR_CORRUPT,
+				"%s (%s)", errmsg, cache->priv->filename);
+		} else {
+			gchar *valid_utf8 = e_util_utf8_make_valid (stmt);
+			g_set_error (error, E_CACHE_ERROR, E_CACHE_ERROR_ENGINE,
+				"SQLite error code '%d': %s (statement:%s)", ret, errmsg, valid_utf8 ? valid_utf8 : stmt);
+			g_free (valid_utf8);
+		}
 		sqlite3_free (errmsg);
+
 		return FALSE;
 	}
 

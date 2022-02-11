@@ -569,7 +569,7 @@ cs_getaddrinfo (gpointer data)
 		msg->hostbufmem = g_realloc (msg->hostbufmem, msg->hostbuflen);
 	}
 
-	/* If we got cancelled, dont reply, just free it */
+	/* If we got cancelled, don't reply, just free it */
 	if (msg->cancelled)
 		goto cancel;
 
@@ -884,7 +884,7 @@ camel_host_idna_to_ascii (const gchar *host)
  * See: camel_hostname_utils_requires_ascii(), camel_internet_address_sanitize_ascii_domain(),
  *    camel_utils_sanitize_ascii_domain_in_url_str()
  *
- * Since: 3.42.1
+ * Since: 3.44
  **/
 gchar *
 camel_utils_sanitize_ascii_domain_in_address (const gchar *email_address,
@@ -926,7 +926,7 @@ camel_utils_sanitize_ascii_domain_in_address (const gchar *email_address,
  *
  * See: camel_hostname_utils_requires_ascii(), camel_utils_sanitize_ascii_domain_in_url()
  *
- * Since: 3.42.1
+ * Since: 3.44
  **/
 gchar *
 camel_utils_sanitize_ascii_domain_in_url_str (const gchar *url_str)
@@ -960,7 +960,7 @@ camel_utils_sanitize_ascii_domain_in_url_str (const gchar *url_str)
  *
  * See: camel_hostname_utils_requires_ascii(), camel_utils_sanitize_ascii_domain_in_url_str()
  *
- * Since: 3.42.1
+ * Since: 3.44
  **/
 gboolean
 camel_utils_sanitize_ascii_domain_in_url (CamelURL *url)
