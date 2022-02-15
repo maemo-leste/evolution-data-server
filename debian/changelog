@@ -1,8 +1,9 @@
-evolution-data-server (3.43.2-1) UNRELEASED; urgency=medium
+evolution-data-server (3.43.2-1) unstable; urgency=medium
 
   * New upstream release
+  * Add new symbols to symbols files
 
- -- Jeremy Bicha <jeremy.bicha@canonical.com>  Fri, 11 Feb 2022 08:06:39 -0500
+ -- Jeremy Bicha <jeremy.bicha@canonical.com>  Tue, 15 Feb 2022 11:44:30 -0500
 
 evolution-data-server (3.42.4-1) unstable; urgency=medium
 
