@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.43.2
+	VERSION 3.43.3
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -119,6 +119,7 @@ set(sqlite_minimum_version 3.7.17)
 # Optional Packages
 set(goa_minimum_version 3.8)
 set(gweather_minimum_version 3.10)
+set(gweather4_minimum_version 3.91.0)
 set(libaccounts_glib_minimum_version 1.4)
 set(libsignon_glib_minimum_version 1.8)
 set(json_glib_minimum_version 1.0.4)
@@ -755,7 +756,13 @@ endif(NOT have_addrinfo)
 add_printable_option(ENABLE_WEATHER "Build the weather calendar backend" ON)
 
 if(ENABLE_WEATHER)
-	pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar backend" LIBGWEATHER gweather-3.0>=${gweather_minimum_version})
+	add_printable_variable(WITH_GWEATHER4 "Use GWeather 4 instead of 3" OFF)
+
+	if(WITH_GWEATHER4)
+		pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar backend" LIBGWEATHER gweather4>=${gweather4_minimum_version})
+	else(WITH_GWEATHER4)
+		pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar backend" LIBGWEATHER gweather-3.0>=${gweather_minimum_version})
+	endif(WITH_GWEATHER4)
 
 	set(CMAKE_REQUIRED_INCLUDES ${LIBGWEATHER_INCLUDE_DIRS})
 	set(CMAKE_REQUIRED_LIBRARIES ${LIBGWEATHER_LDFLAGS})
