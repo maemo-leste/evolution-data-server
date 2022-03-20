@@ -27,6 +27,7 @@ endif
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		-DSYSCONF_INSTALL_DIR=/etc \
+		-DWITH_GWEATHER4=ON \
 		-DWITH_LIBDB=/usr \
 		-DWITH_OPENLDAP=ON \
 		-DWITH_KRB5=ON \
