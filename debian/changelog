@@ -1,3 +1,9 @@
+evolution-data-server (3.44.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 22 Apr 2022 08:31:34 -0400
+
 evolution-data-server (3.44.0-3) unstable; urgency=medium
 
   * Build with libgweather4
