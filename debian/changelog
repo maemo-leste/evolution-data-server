@@ -1,8 +1,8 @@
-evolution-data-server (3.44.1-1) UNRELEASED; urgency=medium
+evolution-data-server (3.44.1-1) unstable; urgency=medium
 
-  * New upstream release
+  * New upstream release (LP: #1969934)
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 22 Apr 2022 08:31:34 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 22 Apr 2022 08:41:41 -0400
 
 evolution-data-server (3.44.0-3) unstable; urgency=medium
 
