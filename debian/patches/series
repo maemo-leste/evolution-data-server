@@ -3,3 +3,6 @@ ubuntu_gettext_domain.patch
 I-281-GLibTools.cmake-Use-basename-in-glib-mkenums-templa.patch
 M-62-GObjectIntrospection.cmake-Specify-the-sources-top-d.patch
 I-282-tests-Avoid-build-source-directories-in-executables.patch
+0001-CardDAV-Recognize-OPTIONS-Bad-Request-response-as-su.patch
+0002-Fix-e_webdav_session_util_item_href_equal.patch
+0003-Addressbook-Switch-from-GData-Contacts-API-to-CardDA.patch

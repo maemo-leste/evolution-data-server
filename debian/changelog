@@ -1,3 +1,11 @@
+evolution-data-server (3.38.3-1+deb11u1) UNRELEASED; urgency=medium
+
+  * Add patches from upstream to move Google Contacts addressbooks to
+    CalDAV, as the Google Contacts API will be turned off at the end of 2021
+    (see https://gitlab.gnome.org/GNOME/libgdata/-/issues/42)
+
+ -- Philip Withnall <pwithnall@endlessos.org>  Thu, 21 Oct 2021 16:20:00 +0100
+
 evolution-data-server (3.38.3-1) unstable; urgency=medium
 
   * New upstream release
