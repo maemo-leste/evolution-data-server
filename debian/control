@@ -6,7 +6,7 @@ Source: evolution-data-server
 Section: gnome
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Iain Lane <laney@debian.org>, Jeremy Bicha <jbicha@debian.org>, Laurent Bigonville <bigon@debian.org>
+Uploaders: Iain Lane <laney@debian.org>, Jeremy Bicha <jbicha@ubuntu.com>, Laurent Bigonville <bigon@debian.org>
 Build-Depends: cmake,
                debhelper-compat (= 13),
                dh-sequence-gir,
@@ -47,8 +47,8 @@ Build-Depends: cmake,
 Rules-Requires-Root: binary-targets
 Standards-Version: 4.5.0
 Homepage: https://wiki.gnome.org/Apps/Evolution
-Vcs-Git: https://salsa.debian.org/gnome-team/evolution-data-server.git
-Vcs-Browser: https://salsa.debian.org/gnome-team/evolution-data-server
+Vcs-Git: https://salsa.debian.org/gnome-team/evolution-data-server.git -b debian/bullseye
+Vcs-Browser: https://salsa.debian.org/gnome-team/evolution-data-server/tree/debian/bullseye
 
 Package: evolution-data-server
 Architecture: any
