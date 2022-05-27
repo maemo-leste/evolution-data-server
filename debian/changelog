@@ -1,3 +1,9 @@
+evolution-data-server (3.44.2-1) unstable; urgency=medium
+
+  * New upstream release (LP: #1976371)
+
+ -- Nathan Pratta Teodosio <nathan.teodosio@canonical.com>  Fri, 31 May 2022 09:30:00 -0300
+
 evolution-data-server (3.44.1-1) unstable; urgency=medium
 
   * New upstream release (LP: #1969934)
