@@ -1,3 +1,10 @@
+evolution-data-server (3.44.2-2) unstable; urgency=medium
+
+  * Cherry-pick patch to fix recurring calendar events starting at midnight
+    (LP: #1978476)
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Tue, 14 Jun 2022 13:16:57 -0400
+
 evolution-data-server (3.44.2-1) unstable; urgency=medium
 
   * New upstream release (LP: #1976371)
