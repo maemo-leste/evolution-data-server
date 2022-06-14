@@ -1,2 +1,3 @@
 01-noinst-libedbus-private.patch
 ubuntu_gettext_domain.patch
+I-393-Calendar-Correct-UNTIL-recurrence-with-midnight-sta.patch
