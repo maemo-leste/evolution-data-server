@@ -1,3 +1,9 @@
+evolution-data-server (3.44.3-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Nathan Pratta Teodosio <nathan.teodosio@canonical.com>  Fri, 01 Jul 2022 14:53:16 -0300
+
 evolution-data-server (3.44.2-2) unstable; urgency=medium
 
   * Cherry-pick patch to fix recurring calendar events starting at midnight
