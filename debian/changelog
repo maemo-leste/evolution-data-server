@@ -1,6 +1,6 @@
-evolution-data-server (3.44.3-1) UNRELEASED; urgency=medium
+evolution-data-server (3.44.3-1) unstable; urgency=medium
 
-  * New upstream release
+  * New upstream release (LP: #1980545)
   * Drop patch applied upstream
 
  -- Nathan Pratta Teodosio <nathan.teodosio@canonical.com>  Fri, 01 Jul 2022 14:57:16 -0300
