@@ -1,6 +1,6 @@
 From: Emilio Pozuelo Monfort <pochu@debian.org>
 Date: Fri, 29 May 2015 18:12:45 +0200
-Subject: [PATCH] Revert installation of libedbus-private.so
+Subject: Revert installation of libedbus-private.so
 
 That was done in a2790163 to fix a problem in Windows.
 

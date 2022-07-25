@@ -1,17 +1,16 @@
 From: Sebastien Bacher <seb128@ubuntu.com>
 Date: Thu, 25 Jul 2019 15:54:50 +0100
-Subject: Ubuntu's dh-translations can't handle variables
+Subject: Ubuntu's dh-translations can't handle variables for GETTEXT_PACKAGE
 
 Bug: https://bugzilla.gnome.org/784877
-
-for GETTEXT_PACKAGE
-===================================================================
+Forwarded: https://bugzilla.gnome.org/784877
+Applied-upstream: no, rejected upstream
 ---
  CMakeLists.txt | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 1e681cc..036e339 100644
+index 1872801..cb13b88 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -22,7 +22,7 @@ set(API_VERSION 1.2)
