@@ -12,6 +12,7 @@ This had been reported downstream:
 https://bugzilla.redhat.com/show_bug.cgi?id=2107751
 
 Origin: upstream, 3.44.4, commit:ede95546305a8bb7e7213c247132f07ca9074e25
+Bug-Debian: https://bugs.debian.org/1015181
 ---
  src/calendar/libecal/e-cal-client.c | 12 ++++++------
  src/libedataserver/e-source.c       |  2 +-

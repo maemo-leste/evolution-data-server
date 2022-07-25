@@ -1,3 +1,13 @@
+evolution-data-server (3.44.3-2) unstable; urgency=medium
+
+  * Team upload
+  * d/patches: Improve patch metadata
+  * d/p/Check-for-non-zero-value-passed-to-g_flags_get_first_valu.patch:
+    Add patch from upstream to prevent infinite loop of memory allocation
+    with GLib 2.73.x (Closes: #1015181)
+
+ -- Simon McVittie <smcv@debian.org>  Mon, 25 Jul 2022 22:03:36 +0100
+
 evolution-data-server (3.44.3-1) unstable; urgency=medium
 
   * New upstream release (LP: #1980545)
