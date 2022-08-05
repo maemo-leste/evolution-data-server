@@ -238,6 +238,10 @@ libecal-2.0.so.2 libecal-2.0-2 #MINVER#
  e_cal_component_datetime_set_value@Base 3.33.4
  e_cal_component_datetime_take_tzid@Base 3.33.4
  e_cal_component_datetime_take_value@Base 3.33.4
+ e_cal_component_dup_comment_for_locale@Base 3.45.2
+ e_cal_component_dup_description_for_locale@Base 3.45.2
+ e_cal_component_dup_summaries@Base 3.45.2
+ e_cal_component_dup_summary_for_locale@Base 3.45.2
  e_cal_component_get_alarm@Base 3.17
  e_cal_component_get_alarm_uids@Base 3.17
  e_cal_component_get_all_alarms@Base 3.33.4
@@ -414,18 +418,24 @@ libecal-2.0.so.2 libecal-2.0-2 #MINVER#
  e_cal_component_set_rrules@Base 3.33.4
  e_cal_component_set_sequence@Base 3.17
  e_cal_component_set_status@Base 3.17
+ e_cal_component_set_summaries@Base 3.45.2
  e_cal_component_set_summary@Base 3.17
  e_cal_component_set_transparency@Base 3.17
  e_cal_component_set_uid@Base 3.17
  e_cal_component_set_url@Base 3.17
  e_cal_component_strip_errors@Base 3.17
  e_cal_component_text_copy@Base 3.33.4
+ e_cal_component_text_fill_property@Base 3.45.2
  e_cal_component_text_free@Base 3.33.4
  e_cal_component_text_get_altrep@Base 3.33.4
+ e_cal_component_text_get_language@Base 3.45.2
  e_cal_component_text_get_type@Base 3.33.4
  e_cal_component_text_get_value@Base 3.33.4
  e_cal_component_text_new@Base 3.33.4
+ e_cal_component_text_new_from_property@Base 3.45.2
  e_cal_component_text_set_altrep@Base 3.33.4
+ e_cal_component_text_set_from_property@Base 3.45.2
+ e_cal_component_text_set_language@Base 3.45.2
  e_cal_component_text_set_value@Base 3.33.4
  e_cal_component_transparency_get_type@Base 3.33.4
  e_cal_component_vtype_get_type@Base 3.33.4
@@ -444,6 +454,7 @@ libecal-2.0.so.2 libecal-2.0-2 #MINVER#
  e_cal_util_clamp_vtimezone@Base 3.39.3
  e_cal_util_clamp_vtimezone_by_component@Base 3.39.3
  e_cal_util_component_dup_x_property@Base 3.33.4
+ e_cal_util_component_find_property_for_locale@Base 3.45.2
  e_cal_util_component_find_x_property@Base 3.33.4
  e_cal_util_component_get_recurid_as_string@Base 3.33.4
  e_cal_util_component_has_alarms@Base 3.17

@@ -307,6 +307,7 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_extensible_get_type@Base 3.17
  e_extensible_list_extensions@Base 3.17
  e_extensible_load_extensions@Base 3.17
+ e_extensible_reload_extensions@Base 3.45.2
  e_extension_get_extensible@Base 3.17
  e_extension_get_type@Base 3.17
  e_file_recursive_delete@Base 3.17
@@ -323,17 +324,75 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_flag_wait@Base 3.17
  e_flag_wait_until@Base 3.17
  e_free_form_exp_to_sexp@Base 3.17
- e_gdata_oauth2_authorizer_clone_credentials@Base 3.27.90
- e_gdata_oauth2_authorizer_get_service_type@Base 3.27.90
- e_gdata_oauth2_authorizer_get_type@Base 3.27.90
- e_gdata_oauth2_authorizer_is_expired@Base 3.27.90
- e_gdata_oauth2_authorizer_new@Base 3.27.90
- e_gdata_oauth2_authorizer_ref_source@Base 3.27.90
- e_gdata_oauth2_authorizer_set_credentials@Base 3.27.90
- e_gdata_oauth2_authorizer_supported@Base 3.27.90
+ e_gdata_query_get_completed_max@Base 3.45.2
+ e_gdata_query_get_completed_min@Base 3.45.2
+ e_gdata_query_get_due_max@Base 3.45.2
+ e_gdata_query_get_due_min@Base 3.45.2
+ e_gdata_query_get_max_results@Base 3.45.2
+ e_gdata_query_get_show_completed@Base 3.45.2
+ e_gdata_query_get_show_deleted@Base 3.45.2
+ e_gdata_query_get_show_hidden@Base 3.45.2
+ e_gdata_query_get_type@Base 3.45.2
+ e_gdata_query_get_updated_min@Base 3.45.2
+ e_gdata_query_new@Base 3.45.2
+ e_gdata_query_ref@Base 3.45.2
+ e_gdata_query_set_completed_max@Base 3.45.2
+ e_gdata_query_set_completed_min@Base 3.45.2
+ e_gdata_query_set_due_max@Base 3.45.2
+ e_gdata_query_set_due_min@Base 3.45.2
+ e_gdata_query_set_max_results@Base 3.45.2
+ e_gdata_query_set_show_completed@Base 3.45.2
+ e_gdata_query_set_show_deleted@Base 3.45.2
+ e_gdata_query_set_show_hidden@Base 3.45.2
+ e_gdata_query_set_updated_min@Base 3.45.2
+ e_gdata_query_to_string@Base 3.45.2
+ e_gdata_query_unref@Base 3.45.2
+ e_gdata_session_get_type@Base 3.45.2
+ e_gdata_session_new@Base 3.45.2
+ e_gdata_session_tasklists_delete_sync@Base 3.45.2
+ e_gdata_session_tasklists_get_sync@Base 3.45.2
+ e_gdata_session_tasklists_insert_sync@Base 3.45.2
+ e_gdata_session_tasklists_list_sync@Base 3.45.2
+ e_gdata_session_tasklists_patch_sync@Base 3.45.2
+ e_gdata_session_tasklists_update_sync@Base 3.45.2
+ e_gdata_session_tasks_clear_sync@Base 3.45.2
+ e_gdata_session_tasks_delete_sync@Base 3.45.2
+ e_gdata_session_tasks_get_sync@Base 3.45.2
+ e_gdata_session_tasks_insert_sync@Base 3.45.2
+ e_gdata_session_tasks_list_sync@Base 3.45.2
+ e_gdata_session_tasks_move_sync@Base 3.45.2
+ e_gdata_session_tasks_patch_sync@Base 3.45.2
+ e_gdata_session_tasks_update_sync@Base 3.45.2
+ e_gdata_task_add_completed@Base 3.45.2
+ e_gdata_task_add_due@Base 3.45.2
+ e_gdata_task_add_id@Base 3.45.2
+ e_gdata_task_add_notes@Base 3.45.2
+ e_gdata_task_add_status@Base 3.45.2
+ e_gdata_task_add_title@Base 3.45.2
+ e_gdata_task_get_completed@Base 3.45.2
+ e_gdata_task_get_deleted@Base 3.45.2
+ e_gdata_task_get_due@Base 3.45.2
+ e_gdata_task_get_etag@Base 3.45.2
+ e_gdata_task_get_hidden@Base 3.45.2
+ e_gdata_task_get_id@Base 3.45.2
+ e_gdata_task_get_notes@Base 3.45.2
+ e_gdata_task_get_parent@Base 3.45.2
+ e_gdata_task_get_position@Base 3.45.2
+ e_gdata_task_get_self_link@Base 3.45.2
+ e_gdata_task_get_status@Base 3.45.2
+ e_gdata_task_get_title@Base 3.45.2
+ e_gdata_task_get_updated@Base 3.45.2
+ e_gdata_tasklist_add_id@Base 3.45.2
+ e_gdata_tasklist_add_title@Base 3.45.2
+ e_gdata_tasklist_get_etag@Base 3.45.2
+ e_gdata_tasklist_get_id@Base 3.45.2
+ e_gdata_tasklist_get_self_link@Base 3.45.2
+ e_gdata_tasklist_get_title@Base 3.45.2
+ e_gdata_tasklist_get_updated@Base 3.45.2
  e_get_user_cache_dir@Base 3.17
  e_get_user_config_dir@Base 3.17
  e_get_user_data_dir@Base 3.17
+ e_input_stream_wrapper_get_type@Base 3.45.2
  e_iterator_delete@Base 3.17
  e_iterator_get@Base 3.17
  e_iterator_get_type@Base 3.17
@@ -345,6 +404,32 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_iterator_prev@Base 3.17
  e_iterator_reset@Base 3.17
  e_iterator_set@Base 3.17
+ e_json_add_boolean_member@Base 3.45.2
+ e_json_add_date_member@Base 3.45.2
+ e_json_add_double_member@Base 3.45.2
+ e_json_add_int_member@Base 3.45.2
+ e_json_add_iso8601_member@Base 3.45.2
+ e_json_add_nonempty_or_null_string_member@Base 3.45.2
+ e_json_add_nonempty_string_member@Base 3.45.2
+ e_json_add_null_member@Base 3.45.2
+ e_json_add_string_member@Base 3.45.2
+ e_json_begin_array_member@Base 3.45.2
+ e_json_begin_object_member@Base 3.45.2
+ e_json_end_array_member@Base 3.45.2
+ e_json_end_object_member@Base 3.45.2
+ e_json_get_array_member@Base 3.45.2
+ e_json_get_boolean_member@Base 3.45.2
+ e_json_get_date_member@Base 3.45.2
+ e_json_get_double_member@Base 3.45.2
+ e_json_get_int_member@Base 3.45.2
+ e_json_get_iso8601_member@Base 3.45.2
+ e_json_get_null_member@Base 3.45.2
+ e_json_get_object_member@Base 3.45.2
+ e_json_get_string_member@Base 3.45.2
+ e_json_util_decode_date@Base 3.45.2
+ e_json_util_decode_iso8601@Base 3.45.2
+ e_json_util_encode_date@Base 3.45.2
+ e_json_util_encode_iso8601@Base 3.45.2
  e_list_append@Base 3.17
  e_list_construct@Base 3.17
  e_list_duplicate@Base 3.17
@@ -377,6 +462,7 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_named_parameters_assign@Base 3.17
  e_named_parameters_clear@Base 3.17
  e_named_parameters_count@Base 3.16.3
+ e_named_parameters_equal@Base 3.45.2
  e_named_parameters_exists@Base 3.16.3
  e_named_parameters_free@Base 3.17
  e_named_parameters_get@Base 3.17
@@ -420,6 +506,7 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_oauth2_service_prepare_refresh_token_message@Base 3.27.90
  e_oauth2_service_receive_and_store_token_sync@Base 3.27.90
  e_oauth2_service_refresh_and_store_token_sync@Base 3.27.90
+ e_oauth2_service_util_compile_value@Base 3.45.2
  e_oauth2_service_util_set_to_form@Base 3.27.90
  e_oauth2_service_util_take_to_form@Base 3.27.90
  e_oauth2_service_yahoo_get_type@Base 3.40.1
@@ -438,12 +525,7 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_operation_pool_push@Base 3.17
  e_operation_pool_release_opid@Base 3.17
  e_operation_pool_reserve_opid@Base 3.17
- e_proxy_get_type@Base 3.17
  e_proxy_method_get_type@Base 3.17
- e_proxy_new@Base 3.17
- e_proxy_peek_uri_for@Base 3.17
- e_proxy_require_proxy_for_uri@Base 3.17
- e_proxy_setup_proxy@Base 3.17
  e_queue_transfer@Base 3.17
  e_secret_store_delete_sync@Base 3.18.0
  e_secret_store_lookup_sync@Base 3.18.0
@@ -472,23 +554,30 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_soup_auth_bearer_get_type@Base 3.17.90
  e_soup_auth_bearer_is_expired@Base 3.21.92
  e_soup_auth_bearer_set_access_token@Base 3.17.90
- e_soup_logger_attach@Base 3.37.90
- e_soup_logger_get_type@Base 3.37.90
  e_soup_session_check_result@Base 3.25.90
  e_soup_session_dup_credentials@Base 3.25.90
+ e_soup_session_error_quark@Base 3.45.2
  e_soup_session_get_authentication_requires_credentials@Base 3.27.90
  e_soup_session_get_log_level@Base 3.25.90
  e_soup_session_get_source@Base 3.25.90
  e_soup_session_get_ssl_error_details@Base 3.25.90
  e_soup_session_get_type@Base 3.25.90
+ e_soup_session_handle_authentication_failure@Base 3.45.2
  e_soup_session_new@Base 3.25.90
- e_soup_session_new_request@Base 3.25.90
- e_soup_session_new_request_uri@Base 3.25.90
- e_soup_session_send_request_simple_sync@Base 3.25.90
- e_soup_session_send_request_sync@Base 3.25.90
+ e_soup_session_new_message@Base 3.45.2
+ e_soup_session_new_message_from_uri@Base 3.45.2
+ e_soup_session_prepare_message_send_sync@Base 3.45.2
+ e_soup_session_send_message@Base 3.45.2
+ e_soup_session_send_message_finish@Base 3.45.2
+ e_soup_session_send_message_simple_sync@Base 3.45.2
+ e_soup_session_send_message_sync@Base 3.45.2
  e_soup_session_set_credentials@Base 3.25.90
  e_soup_session_setup_logging@Base 3.25.90
+ e_soup_session_util_get_message_bytes@Base 3.45.2
  e_soup_session_util_normalize_uri_path@Base 3.38.0
+ e_soup_session_util_ref_message_request_body@Base 3.45.2
+ e_soup_session_util_set_message_request_body@Base 3.45.2
+ e_soup_session_util_set_message_request_body_from_data@Base 3.45.2
  e_soup_session_util_status_to_string@Base 3.25.90
  e_soup_ssl_trust_connect@Base 3.17.90
  e_source_address_book_get_order@Base 3.39.2
@@ -687,12 +776,14 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_source_mail_account_dup_archive_folder@Base 3.17
  e_source_mail_account_dup_identity_uid@Base 3.17
  e_source_mail_account_get_archive_folder@Base 3.17
+ e_source_mail_account_get_builtin@Base 3.45.2
  e_source_mail_account_get_identity_uid@Base 3.17
  e_source_mail_account_get_mark_seen@Base 3.31.90
  e_source_mail_account_get_mark_seen_timeout@Base 3.31.90
  e_source_mail_account_get_needs_initial_setup@Base 3.19.92
  e_source_mail_account_get_type@Base 3.17
  e_source_mail_account_set_archive_folder@Base 3.17
+ e_source_mail_account_set_builtin@Base 3.45.2
  e_source_mail_account_set_identity_uid@Base 3.17
  e_source_mail_account_set_mark_seen@Base 3.31.90
  e_source_mail_account_set_mark_seen_timeout@Base 3.31.90
@@ -783,6 +874,7 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_source_openpgp_get_encrypt_by_default@Base 3.17.90
  e_source_openpgp_get_encrypt_to_self@Base 3.17
  e_source_openpgp_get_key_id@Base 3.17
+ e_source_openpgp_get_locate_keys@Base 3.45.2
  e_source_openpgp_get_prefer_inline@Base 3.19.92
  e_source_openpgp_get_sign_by_default@Base 3.17
  e_source_openpgp_get_signing_algorithm@Base 3.17
@@ -791,6 +883,7 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_source_openpgp_set_encrypt_by_default@Base 3.17.90
  e_source_openpgp_set_encrypt_to_self@Base 3.17
  e_source_openpgp_set_key_id@Base 3.17
+ e_source_openpgp_set_locate_keys@Base 3.45.2
  e_source_openpgp_set_prefer_inline@Base 3.19.92
  e_source_openpgp_set_sign_by_default@Base 3.17
  e_source_openpgp_set_signing_algorithm@Base 3.17
@@ -969,8 +1062,8 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_source_webdav_dup_email_address@Base 3.17
  e_source_webdav_dup_resource_path@Base 3.17
  e_source_webdav_dup_resource_query@Base 3.17
- e_source_webdav_dup_soup_uri@Base 3.17
  e_source_webdav_dup_ssl_trust@Base 3.17
+ e_source_webdav_dup_uri@Base 3.45.2
  e_source_webdav_get_avoid_ifmatch@Base 3.17
  e_source_webdav_get_calendar_auto_schedule@Base 3.17
  e_source_webdav_get_color@Base 3.29.90
@@ -994,9 +1087,9 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_source_webdav_set_order@Base 3.39.2
  e_source_webdav_set_resource_path@Base 3.17
  e_source_webdav_set_resource_query@Base 3.17
- e_source_webdav_set_soup_uri@Base 3.17
  e_source_webdav_set_ssl_trust@Base 3.17
  e_source_webdav_set_ssl_trust_response@Base 3.32.0
+ e_source_webdav_set_uri@Base 3.45.2
  e_source_webdav_unset_temporary_ssl_trust@Base 3.17
  e_source_webdav_update_ssl_trust@Base 3.17
  e_source_webdav_verify_ssl_trust@Base 3.17
@@ -1027,6 +1120,8 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_url_shroud@Base 3.17
  e_utf8_strftime@Base 3.17
  e_util_can_use_collection_as_credential_source@Base 3.27.90
+ e_util_change_uri_component@Base 3.45.2
+ e_util_change_uri_port@Base 3.45.2
  e_util_copy_object_slist@Base 3.17
  e_util_copy_string_slist@Base 3.17
  e_util_debug_print@Base 3.29.90
@@ -1111,10 +1206,9 @@ libedataserver-1.2.so.27 libedataserver-1.2-27 #MINVER#
  e_webdav_session_mkcol_sync@Base 3.25.90
  e_webdav_session_move_sync@Base 3.25.90
  e_webdav_session_new@Base 3.25.90
- e_webdav_session_new_request@Base 3.25.90
+ e_webdav_session_new_message@Base 3.45.2
  e_webdav_session_options_sync@Base 3.25.90
  e_webdav_session_post_sync@Base 3.25.90
- e_webdav_session_post_with_content_type_sync@Base 3.32.0
  e_webdav_session_principal_property_search_sync@Base 3.25.90
  e_webdav_session_propfind_sync@Base 3.25.90
  e_webdav_session_proppatch_sync@Base 3.25.90

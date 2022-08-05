@@ -137,6 +137,7 @@ libcamel-1.2.so.64 libcamel-1.2-64 #MINVER#
  camel_data_cache_set_path@Base 3.19.92
  camel_data_wrapper_calculate_decoded_size_sync@Base 3.24.1
  camel_data_wrapper_calculate_size_sync@Base 3.24.1
+ camel_data_wrapper_construct_from_data_sync@Base 3.45.2
  camel_data_wrapper_construct_from_input_stream@Base 3.19.92
  camel_data_wrapper_construct_from_input_stream_finish@Base 3.19.92
  camel_data_wrapper_construct_from_input_stream_sync@Base 3.19.92
@@ -314,6 +315,7 @@ libcamel-1.2.so.64 libcamel-1.2-64 #MINVER#
  camel_folder_get_flags@Base 3.24.1
  camel_folder_get_folder_summary@Base 3.24.1
  camel_folder_get_frozen_count@Base 3.19.92
+ camel_folder_get_full_display_name@Base 3.45.2
  camel_folder_get_full_name@Base 3.19.92
  camel_folder_get_mark_seen@Base 3.31.90
  camel_folder_get_mark_seen_timeout@Base 3.31.90
@@ -460,10 +462,12 @@ libcamel-1.2.so.64 libcamel-1.2-64 #MINVER#
  camel_freeaddrinfo@Base 3.19.92
  camel_getaddrinfo@Base 3.19.92
  camel_gpg_context_get_always_trust@Base 3.19.92
+ camel_gpg_context_get_locate_keys@Base 3.45.2
  camel_gpg_context_get_prefer_inline@Base 3.19.92
  camel_gpg_context_get_type@Base 3.19.92
  camel_gpg_context_new@Base 3.19.92
  camel_gpg_context_set_always_trust@Base 3.19.92
+ camel_gpg_context_set_locate_keys@Base 3.45.2
  camel_gpg_context_set_prefer_inline@Base 3.19.92
  camel_header_address_add_member@Base 3.19.92
  camel_header_address_decode@Base 3.19.92
@@ -1209,9 +1213,15 @@ libcamel-1.2.so.64 libcamel-1.2-64 #MINVER#
  camel_store_get_trash_folder_sync@Base 3.19.92
  camel_store_get_type@Base 3.19.92
  camel_store_info_flags_get_type@Base 3.19.92
+ camel_store_info_get_name@Base 3.45.2
+ camel_store_info_get_path@Base 3.45.2
+ camel_store_info_get_type@Base 3.45.2
  camel_store_info_name@Base 3.19.92
  camel_store_info_path@Base 3.19.92
+ camel_store_info_ref@Base 3.45.2
  camel_store_info_set_string@Base 3.19.92
+ camel_store_info_set_value@Base 3.45.2
+ camel_store_info_unref@Base 3.45.2
  camel_store_initial_setup@Base 3.19.92
  camel_store_initial_setup_finish@Base 3.19.92
  camel_store_initial_setup_sync@Base 3.19.92
