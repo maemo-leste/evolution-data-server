@@ -101,7 +101,6 @@ target_compile_options(ebackend PUBLIC
 	${LIBDB_CFLAGS}
 	${CAMEL_CFLAGS}
 	${SQLITE3_CFLAGS}
-	${GCR_BASE_CFLAGS}
 	${GIO_UNIX_CFLAGS}
 )
 
@@ -117,7 +116,6 @@ target_include_directories(ebackend PUBLIC
 	${LIBDB_INCLUDE_DIRS}
 	${CAMEL_INCLUDE_DIRS}
 	${SQLITE3_INCLUDE_DIRS}
-	${GCR_BASE_INCLUDE_DIRS}
 	${GIO_UNIX_INCLUDE_DIRS}
 )
 
@@ -128,7 +126,6 @@ target_link_libraries(ebackend
 	${LIBDB_LIBS}
 	${CAMEL_LDFLAGS}
 	${SQLITE3_LDFLAGS}
-	${GCR_BASE_LDFLAGS}
 	${GIO_UNIX_LDFLAGS}
 )
 
@@ -142,7 +139,7 @@ install(FILES ${HEADERS}
 
 set(gir_sources ${SOURCES} ${HEADERS})
 set(gir_identifies_prefixes E)
-set(gir_includes GObject-2.0 Gio-2.0 Soup-2.4 libxml2-2.0)
+set(gir_includes GObject-2.0 Gio-2.0 Soup-3.0 libxml2-2.0)
 set(gir_cflags
 	-DLIBEBACKEND_COMPILATION
 	-DEDS_DISABLE_DEPRECATED=1

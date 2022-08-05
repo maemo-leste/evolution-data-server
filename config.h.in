@@ -72,8 +72,11 @@
 /* Define to 1 if you have the gtk+-3.0 package. */
 #cmakedefine HAVE_GTK 1
 
-/* Define to 1 if OAuth2 autentication support is enabled. */
-#cmakedefine ENABLE_OAUTH2 1
+/* Define to 1 to use WebKitGTK gtk3 for OAuth2 authentication. */
+#cmakedefine ENABLE_OAUTH2_WEBKITGTK 1
+
+/* Define to 1 to use WebKitGTK gtk4 for OAuth2 authentication. */
+#cmakedefine ENABLE_OAUTH2_WEBKITGTK4 1
 
 /* Define to 1 if the examples should be built. */
 #cmakedefine BUILD_EXAMPLES 1
@@ -180,12 +183,6 @@
 /* Have <et/com_err.h> */
 #cmakedefine HAVE_ET_COM_ERR_H 1
 
-/* Define to 1 if you have the libgdata package */
-#cmakedefine HAVE_LIBGDATA 1
-
-/* Define to 1 when the libgdata provides GTasks pagination functions */
-#cmakedefine HAVE_LIBGDATA_TASKS_PAGINATION_FUNCTIONS 1
-
 /* Define to 1 when have O_LARGEFILE open flag */
 #cmakedefine HAVE_O_LARGEFILE 1
 
@@ -193,12 +190,6 @@
 /* Define to 0 if your system does not have the O_LARGEFILE flag */
 #define O_LARGEFILE 0
 #endif /* HAVE_O_LARGEFILE */
-
-/* gweather_info_new() has only one argument */
-#cmakedefine HAVE_ONE_ARG_GWEATHER_INFO_NEW 1
-
-/* Defined when linking against gweather4. Cannot just use GWEATHER_CHECK_VERSION because 40.0 made the versions non-monotonic. */
-#cmakedefine WITH_GWEATHER4 1
 
 /* evolution-alarm-notify - Define if using Canberra-GTK for sound */
 #cmakedefine HAVE_CANBERRA 1
@@ -208,3 +199,6 @@
 
 /* Defined, when time_t is of the 32bit size */
 #cmakedefine HAVE_32BIT_TIME_T 1
+
+/* Defined, when using gcr3, not gcr4 */
+#cmakedefine WITH_GCR3 1

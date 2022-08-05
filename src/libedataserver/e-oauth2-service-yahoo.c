@@ -18,6 +18,7 @@
 
 #include <glib/gi18n-lib.h>
 
+#include "e-data-server-util.h"
 #include "e-oauth2-service.h"
 #include "e-oauth2-service-base.h"
 
@@ -89,6 +90,7 @@ static const gchar *
 eos_yahoo_get_client_id (EOAuth2Service *service,
 			 ESource *source)
 {
+	static gchar glob_buff[128] = {0, };
 	const gchar *client_id;
 
 	client_id = eos_yahoo_read_settings (service, "oauth2-yahoo-client-id");
@@ -96,13 +98,14 @@ eos_yahoo_get_client_id (EOAuth2Service *service,
 	if (client_id && *client_id)
 		return client_id;
 
-	return YAHOO_CLIENT_ID;
+	return e_oauth2_service_util_compile_value (YAHOO_CLIENT_ID, glob_buff, sizeof (glob_buff));
 }
 
 static const gchar *
 eos_yahoo_get_client_secret (EOAuth2Service *service,
 			     ESource *source)
 {
+	static gchar glob_buff[128] = {0, };
 	const gchar *client_secret;
 
 	client_secret = eos_yahoo_read_settings (service, "oauth2-yahoo-client-secret");
@@ -110,7 +113,7 @@ eos_yahoo_get_client_secret (EOAuth2Service *service,
 	if (client_secret && *client_secret)
 		return client_secret;
 
-	return YAHOO_CLIENT_SECRET;
+	return e_oauth2_service_util_compile_value (YAHOO_CLIENT_SECRET, glob_buff, sizeof (glob_buff));
 }
 
 static const gchar *
@@ -173,11 +176,11 @@ eos_yahoo_extract_authorization_code (EOAuth2Service *service,
 	*out_authorization_code = NULL;
 
 	if (page_uri && *page_uri) {
-		SoupURI *suri;
+		GUri *suri;
 
-		suri = soup_uri_new (page_uri);
+		suri = g_uri_parse (page_uri, SOUP_HTTP_URI_FLAGS, NULL);
 		if (suri) {
-			const gchar *query = soup_uri_get_query (suri);
+			const gchar *query = g_uri_get_query (suri);
 			gboolean known = FALSE;
 
 			if (query && *query) {
@@ -197,7 +200,7 @@ eos_yahoo_extract_authorization_code (EOAuth2Service *service,
 				}
 			}
 
-			soup_uri_free (suri);
+			g_uri_unref (suri);
 
 			if (known)
 				return TRUE;

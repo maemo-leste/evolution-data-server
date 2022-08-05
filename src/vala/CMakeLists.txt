@@ -105,10 +105,9 @@ set(gir_dirs
 set(vala_deps
 	*camel-${API_VERSION}
 	gio-2.0
-	libsoup-2.4
+	libsoup-3.0
 	libxml-2.0
 	posix
-	${LIBGDATA_VAPI}
 )
 
 set(extra_vapigen_files)
@@ -137,7 +136,7 @@ set(gir_dirs
 set(vala_deps
 	*libedataserver-${API_VERSION}
 	gio-2.0
-	libsoup-2.4
+	libsoup-3.0
 	libxml-2.0
 	posix
 )
@@ -168,7 +167,7 @@ set(vala_deps
 	*camel-${API_VERSION}
 	*libedataserver-${API_VERSION}
 	gio-2.0
-	libsoup-2.4
+	libsoup-3.0
 	libxml-2.0
 	posix
 )
@@ -203,7 +202,7 @@ set(vala_deps
 	*libedataserver-${API_VERSION}
 	*libebook-contacts-${API_VERSION}
 	gio-2.0
-	libsoup-2.4
+	libsoup-3.0
 	libxml-2.0
 	posix
 )
@@ -238,7 +237,7 @@ set(vala_deps
 	*libebackend-${API_VERSION}
 	*libebook-contacts-${API_VERSION}
 	gio-2.0
-	libsoup-2.4
+	libsoup-3.0
 	libxml-2.0
 	posix
 )
@@ -271,7 +270,7 @@ set(vala_deps
 	*libedataserver-${API_VERSION}
 	gio-2.0
 	libical-glib
-	libsoup-2.4
+	libsoup-3.0
 	libxml-2.0
 	posix
 )
@@ -308,7 +307,7 @@ set(vala_deps
 	*libecal-${CAL_API_VERSION}
 	gio-2.0
 	libical-glib
-	libsoup-2.4
+	libsoup-3.0
 	libxml-2.0
 	posix
 )
@@ -327,7 +326,7 @@ _build_vala_files(libedata-cal-${CAL_API_VERSION}
 # libedataserverui
 # ***********************************
 
-if(HAVE_GTK)
+if(ENABLE_GTK)
 	set(gir_fullname ${CMAKE_BINARY_DIR}/src/libedataserverui/EDataServerUI-${API_VERSION}.gir)
 	gir_girfilename_to_target(gir_deps EDataServerUI-${API_VERSION}.gir)
 
@@ -342,7 +341,7 @@ if(HAVE_GTK)
 		*libecal-${CAL_API_VERSION}
 		gio-2.0
 		gtk+-3.0
-		libsoup-2.4
+		libsoup-3.0
 		libxml-2.0
 		posix
 	)
@@ -356,7 +355,38 @@ if(HAVE_GTK)
 		vala_deps
 		extra_vapigen_files
 	)
-endif(HAVE_GTK)
+endif(ENABLE_GTK)
+
+if(ENABLE_GTK4)
+	set(gir_fullname ${CMAKE_BINARY_DIR}/src/libedataserverui/EDataServerUI4-${LIBEDATASERVERUI4_API_VERSION}.gir)
+	gir_girfilename_to_target(gir_deps EDataServerUI4-${LIBEDATASERVERUI4_API_VERSION}.gir)
+
+	set(gir_dirs
+		${CMAKE_BINARY_DIR}/src/camel
+		${CMAKE_BINARY_DIR}/src/libedataserver
+		${CMAKE_BINARY_DIR}/src/calendar/libecal
+	)
+
+	set(vala_deps
+		*libedataserver-${API_VERSION}
+		*libecal-${CAL_API_VERSION}
+		gio-2.0
+		gtk4
+		libsoup-3.0
+		libxml-2.0
+		posix
+	)
+
+	set(extra_vapigen_files)
+
+	_build_vala_files(libedataserverui4-${LIBEDATASERVERUI4_API_VERSION}
+		gir_fullname
+		gir_deps
+		gir_dirs
+		vala_deps
+		extra_vapigen_files
+	)
+endif(ENABLE_GTK4)
 
 # ***********************************
 # Install all VAPI files

@@ -81,7 +81,7 @@ e_soup_auth_bearer_update (SoupAuth *auth,
                            SoupMessage *message,
                            GHashTable *auth_header)
 {
-	if (message && message->status_code == SOUP_STATUS_UNAUTHORIZED) {
+	if (message && soup_message_get_status (message) == SOUP_STATUS_UNAUTHORIZED) {
 		ESoupAuthBearer *bearer;
 
 		g_return_val_if_fail (E_IS_SOUP_AUTH_BEARER (auth), FALSE);
@@ -103,7 +103,7 @@ e_soup_auth_bearer_update (SoupAuth *auth,
 
 static GSList *
 e_soup_auth_bearer_get_protection_space (SoupAuth *auth,
-                                         SoupURI *source_uri)
+                                         GUri *source_uri)
 {
 	/* XXX Not sure what to do here.  Need to return something. */
 

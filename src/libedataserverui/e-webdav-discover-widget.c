@@ -137,7 +137,14 @@ e_webdav_discover_content_new (ECredentialsPrompter *credentials_prompter,
 	self = g_object_new (E_TYPE_WEBDAV_DISCOVER_CONTENT,
 		"row-spacing", 4,
 		"column-spacing", 4,
+#if GTK_CHECK_VERSION(4, 0, 0)
+		"margin-start", 4,
+		"margin-end", 4,
+		"margin-top", 4,
+		"margin-bottom", 4,
+#else
 		"border-width", 4,
+#endif
 		NULL);
 	self->credentials_prompter = g_object_ref (credentials_prompter);
 	self->source = source ? g_object_ref (source) : NULL;
@@ -165,11 +172,19 @@ e_webdav_discover_content_new (ECredentialsPrompter *credentials_prompter,
 		"valign", GTK_ALIGN_FILL,
 		NULL);
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+	scrolled_window = gtk_scrolled_window_new ();
+#else
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+#endif
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 		GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+	gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), tree_view);
+#else
 	gtk_container_add (GTK_CONTAINER (scrolled_window), tree_view);
+#endif
 	gtk_grid_attach (GTK_GRID (self), scrolled_window, 0, 0, 1, 1);
 
 	self->sources_tree_view = GTK_TREE_VIEW (tree_view);
@@ -204,8 +219,13 @@ e_webdav_discover_content_new (ECredentialsPrompter *credentials_prompter,
 		widget = gtk_label_new_with_mnemonic (_("_User mail:"));
 		gtk_label_set_mnemonic_widget (GTK_LABEL (widget), GTK_WIDGET (self->email_addresses_combo));
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+		gtk_box_append (GTK_BOX (box), widget);
+		gtk_box_append (GTK_BOX (box), GTK_WIDGET (self->email_addresses_combo));
+#else
 		gtk_container_add (GTK_CONTAINER (box), widget);
 		gtk_container_add (GTK_CONTAINER (box), GTK_WIDGET (self->email_addresses_combo));
+#endif
 
 		g_object_set (G_OBJECT (widget),
 			"hexpand", FALSE,
@@ -231,7 +251,10 @@ e_webdav_discover_content_new (ECredentialsPrompter *credentials_prompter,
 		gtk_grid_attach (GTK_GRID (self), box, 0, 1, 1, 1);
 	}
 
+#if !GTK_CHECK_VERSION(4, 0, 0)
 	gtk_widget_show_all (GTK_WIDGET (self));
+#endif
+
 	return GTK_WIDGET (self);
 }
 
@@ -624,7 +647,11 @@ refresh_data_free (gpointer data)
 
 		if (content) {
 			if (content->info_bar && gtk_info_bar_get_message_type (content->info_bar) == GTK_MESSAGE_INFO) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+				gtk_widget_unparent (GTK_WIDGET (content->info_bar));
+#else
 				gtk_widget_destroy (GTK_WIDGET (content->info_bar));
+#endif
 				content->info_bar = NULL;
 			}
 
@@ -744,11 +771,18 @@ e_webdav_discover_content_refresh_done_cb (GObject *source_object,
 		&certificate_pem, &certificate_errors, &discovered_sources,
 		&calendar_user_addresses, &local_error)) {
 		if (!g_cancellable_is_cancelled (cancellable) && certificate_pem &&
-		    g_error_matches (local_error, SOUP_HTTP_ERROR, SOUP_STATUS_SSL_FAILED)) {
+		    g_error_matches (local_error, G_TLS_ERROR, G_TLS_ERROR_BAD_CERTIFICATE)) {
 			GtkWindow *parent;
 			GtkWidget *widget;
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+			widget = GTK_WIDGET (rd->content);
+			while (widget && !GTK_IS_WINDOW (widget)) {
+				widget = gtk_widget_get_parent (widget);
+			}
+#else
 			widget = gtk_widget_get_toplevel (GTK_WIDGET (rd->content));
+#endif
 			parent = widget ? GTK_WINDOW (widget) : NULL;
 
 			e_trust_prompt_run_for_source (parent, source, certificate_pem, certificate_errors,
@@ -756,8 +790,8 @@ e_webdav_discover_content_refresh_done_cb (GObject *source_object,
 		} else if (g_cancellable_is_cancelled (cancellable) ||
 		    (!g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED) &&
 		    !g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND) &&
-		    !g_error_matches (local_error, SOUP_HTTP_ERROR, SOUP_STATUS_UNAUTHORIZED) &&
-		    !g_error_matches (local_error, SOUP_HTTP_ERROR, SOUP_STATUS_FORBIDDEN))) {
+		    !g_error_matches (local_error, E_SOUP_SESSION_ERROR, SOUP_STATUS_UNAUTHORIZED) &&
+		    !g_error_matches (local_error, E_SOUP_SESSION_ERROR, SOUP_STATUS_FORBIDDEN))) {
 			g_task_return_error (task, g_steal_pointer (&local_error));
 		} else {
 			EWebDAVDiscoverContent *content = rd->content;
@@ -837,7 +871,7 @@ e_webdav_discover_content_refresh (GtkWidget *content,
 	GTask *task;
 	RefreshData *rd;
 	ESource *source;
-	SoupURI *soup_uri;
+	GUri *parsed_uri;
 	GtkWidget *label;
 
 	g_return_if_fail (E_IS_WEBDAV_DISCOVER_CONTENT (content));
@@ -849,8 +883,8 @@ e_webdav_discover_content_refresh (GtkWidget *content,
 	use_cancellable = cancellable ? g_object_ref (cancellable) : g_cancellable_new ();
 	task = g_task_new (self, use_cancellable, callback, user_data);
 	g_task_set_source_tag (task, e_webdav_discover_content_refresh);
-	soup_uri = soup_uri_new (self->base_url);
-	if (!soup_uri) {
+	parsed_uri = g_uri_parse (self->base_url, SOUP_HTTP_URI_FLAGS, NULL);
+	if (!parsed_uri) {
 		g_task_return_new_error (task,
 			G_IO_ERROR,
 			G_IO_ERROR_INVALID_ARGUMENT,
@@ -886,10 +920,10 @@ e_webdav_discover_content_refresh (GtkWidget *content,
 
 		if (display_name && *display_name)
 			e_source_set_display_name (source, display_name);
-		e_source_webdav_set_soup_uri (webdav_extension, soup_uri);
-		e_source_authentication_set_host (auth_extension, soup_uri_get_host (soup_uri));
-		e_source_authentication_set_port (auth_extension, soup_uri_get_port (soup_uri));
-		e_source_authentication_set_user (auth_extension, soup_uri_get_user (soup_uri));
+		e_source_webdav_set_uri (webdav_extension, parsed_uri);
+		e_source_authentication_set_host (auth_extension, g_uri_get_host (parsed_uri));
+		e_source_authentication_set_port (auth_extension, g_uri_get_port (parsed_uri));
+		e_source_authentication_set_user (auth_extension, g_uri_get_user (parsed_uri));
 	}
 
 	gtk_list_store_clear (GTK_LIST_STORE (gtk_tree_view_get_model (self->sources_tree_view)));
@@ -897,13 +931,21 @@ e_webdav_discover_content_refresh (GtkWidget *content,
 		gtk_combo_box_text_remove_all (GTK_COMBO_BOX_TEXT (self->email_addresses_combo));
 
 	if (self->info_bar)
+#if GTK_CHECK_VERSION(4, 0, 0)
+		gtk_widget_unparent (GTK_WIDGET (self->info_bar));
+#else
 		gtk_widget_destroy (GTK_WIDGET (self->info_bar));
+#endif
 
 	self->info_bar = GTK_INFO_BAR (gtk_info_bar_new_with_buttons (_("Cancel"), GTK_RESPONSE_CANCEL, NULL));
 	gtk_info_bar_set_message_type (self->info_bar, GTK_MESSAGE_INFO);
 	gtk_info_bar_set_show_close_button (self->info_bar, FALSE);
 	label = gtk_label_new (_("Searching server sources..."));
+#if GTK_CHECK_VERSION(4, 0, 0)
+	gtk_info_bar_add_child (self->info_bar, label);
+#else
 	gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (self->info_bar)), label);
+#endif
 	gtk_widget_show (label);
 	gtk_widget_show (GTK_WIDGET (self->info_bar));
 
@@ -921,7 +963,7 @@ e_webdav_discover_content_refresh (GtkWidget *content,
 
 	g_object_unref (source);
 	g_object_unref (use_cancellable);
-	soup_uri_free (soup_uri);
+	g_uri_unref (parsed_uri);
 }
 
 /**
@@ -962,7 +1004,11 @@ e_webdav_discover_info_bar_error_response_cb (GtkInfoBar *info_bar,
 
 	self = (EWebDAVDiscoverContent *)content;
 	if (self->info_bar == info_bar) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+		gtk_widget_unparent (GTK_WIDGET (self->info_bar));
+#else
 		gtk_widget_destroy (GTK_WIDGET (self->info_bar));
+#endif
 		self->info_bar = NULL;
 	}
 }
@@ -989,7 +1035,11 @@ e_webdav_discover_content_show_error (GtkWidget *content,
 
 	self = (EWebDAVDiscoverContent *)content;
 	if (self->info_bar) {
+#if GTK_CHECK_VERSION(4, 0, 0)
+		gtk_widget_unparent (GTK_WIDGET (self->info_bar));
+#else
 		gtk_widget_destroy (GTK_WIDGET (self->info_bar));
+#endif
 		self->info_bar = NULL;
 	}
 
@@ -1003,11 +1053,16 @@ e_webdav_discover_content_show_error (GtkWidget *content,
 	label = gtk_label_new (error->message);
 	gtk_label_set_width_chars (GTK_LABEL (label), 20);
 	gtk_label_set_max_width_chars (GTK_LABEL (label), 120);
-	gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
 	gtk_label_set_selectable (GTK_LABEL (label), TRUE);
+#if GTK_CHECK_VERSION(4, 0, 0)
+	gtk_label_set_wrap (GTK_LABEL (label), TRUE);
+	gtk_info_bar_add_child (self->info_bar, label);
+#else
+	gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
 	gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (self->info_bar)), label);
 	gtk_widget_show (label);
 	gtk_widget_show (GTK_WIDGET (self->info_bar));
+#endif
 
 	g_signal_connect (self->info_bar, "response", G_CALLBACK (e_webdav_discover_info_bar_error_response_cb), content);
 
@@ -1066,7 +1121,7 @@ e_webdav_discover_dialog_init (EWebDAVDiscoverDialog *self)
  * can be asked for currently selected source(s).
  *
  * Returns: (transfer full): a newly created #GtkDialog, which should be freed
- * with gtk_widget_destroy(), when no longer needed.
+ * with g_object_unref(), when no longer needed.
  *
  * Since: 3.18
  **/
@@ -1107,7 +1162,11 @@ e_webdav_discover_dialog_new (GtkWindow *parent,
 		NULL);
 
 	container = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+#if GTK_CHECK_VERSION(4, 0, 0)
+	gtk_box_append (GTK_BOX (container), widget);
+#else
 	gtk_container_add (GTK_CONTAINER (container), widget);
+#endif
 
 	selection = e_webdav_discover_content_get_tree_selection (widget);
 	g_signal_connect (selection, "changed", G_CALLBACK (e_webdav_discover_content_selection_changed_cb), dialog);

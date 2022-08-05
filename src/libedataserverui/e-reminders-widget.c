@@ -17,7 +17,6 @@
 
 /**
  * SECTION: e-reminders-widget
- * @include: libedataserverui/libedataserverui.h
  * @short_description: An #ERemindersWidget to work with past reminders
  *
  * The #ERemindersWidget is a widget which does common tasks on past reminders
@@ -135,6 +134,24 @@ reminders_widget_new_snooze_combo (void)
 	return combo;
 }
 
+static gint
+reminders_widget_cmp_snooze_minues_cb (gconstpointer aa,
+				       gconstpointer bb)
+{
+	gint mins1, mins2;
+
+	mins1 = GPOINTER_TO_INT (*((gint **) aa));
+	mins2 = GPOINTER_TO_INT (*((gint **) bb));
+
+	/* Place "until start time" as the last, not first */
+	if (!mins1)
+		return 1;
+	if (!mins2)
+		return -1;
+
+	return mins1 - mins2;
+}
+
 static void
 reminders_widget_fill_snooze_combo (ERemindersWidget *reminders,
 				    gint preselect_minutes)
@@ -149,10 +166,11 @@ reminders_widget_fill_snooze_combo (ERemindersWidget *reminders,
 		7 * 24 * 60,
 		0
 	};
-	gint ii, last_sel = -1;
+	gint ii, last_sel = -1, last_minutes;
 	GtkComboBox *combo;
 	GtkListStore *list_store;
 	GtkTreeIter iter, tosel_iter;
+	GPtrArray *snooze_minutes;
 	GVariant *variant;
 	gboolean tosel_set = FALSE;
 	gboolean any_stored_added = FALSE;
@@ -168,31 +186,9 @@ reminders_widget_fill_snooze_combo (ERemindersWidget *reminders,
 		gtk_tree_model_get (GTK_TREE_MODEL (list_store), &iter, 1, &last_sel, -1);
 	}
 
-	gtk_list_store_clear (list_store);
+	snooze_minutes = g_ptr_array_sized_new (G_N_ELEMENTS (predefined_minutes) + 1);
 
-	#define add_minutes(_minutes) G_STMT_START {				\
-		gint32 minutes = (_minutes);					\
-		gchar *text = NULL;						\
-										\
-		if (minutes > 0)						\
-			text = e_cal_util_seconds_to_string (minutes * 60);	\
-		gtk_list_store_append (list_store, &iter);			\
-		gtk_list_store_set (list_store, &iter,				\
-			/* Translators: meaning as "Snooze, until event start time" */ \
-			0, !minutes ? _("until start time") : text,		\
-			1, minutes,						\
-			-1);							\
-		g_free (text);							\
-										\
-		if (preselect_minutes >= 0 && preselect_minutes == minutes) {	\
-			tosel_set = TRUE;					\
-			tosel_iter = iter;					\
-			last_sel = -1;						\
-		} else if (last_sel >= 0 && minutes == last_sel) {		\
-			tosel_set = TRUE;					\
-			tosel_iter = iter;					\
-		}								\
-	} G_STMT_END
+	gtk_list_store_clear (list_store);
 
 	/* Custom user values first */
 	variant = g_settings_get_value (reminders->priv->settings, "notify-custom-snooze-minutes");
@@ -204,7 +200,7 @@ reminders_widget_fill_snooze_combo (ERemindersWidget *reminders,
 		if (stored && nstored > 0) {
 			for (ii = 0; ii < nstored; ii++) {
 				if (stored[ii] > 0) {
-					add_minutes (stored[ii]);
+					g_ptr_array_add (snooze_minutes, GINT_TO_POINTER (stored[ii]));
 					any_stored_added = TRUE;
 				}
 			}
@@ -220,10 +216,43 @@ reminders_widget_fill_snooze_combo (ERemindersWidget *reminders,
 	}
 
 	for (ii = 0; ii < G_N_ELEMENTS (predefined_minutes); ii++) {
-		add_minutes (predefined_minutes[ii]);
+		g_ptr_array_add (snooze_minutes, GINT_TO_POINTER (predefined_minutes[ii]));
 	}
 
-	#undef add_minutes
+	g_ptr_array_sort (snooze_minutes, reminders_widget_cmp_snooze_minues_cb);
+
+	last_minutes = -1;
+
+	for (ii = 0; ii < snooze_minutes->len; ii++) {
+		gint32 minutes = GPOINTER_TO_INT (g_ptr_array_index (snooze_minutes, ii));
+
+		if (!ii || minutes != last_minutes) {
+			gchar *text = NULL;
+
+			if (minutes > 0)
+				text = e_cal_util_seconds_to_string (minutes * 60);
+			gtk_list_store_append (list_store, &iter);
+			gtk_list_store_set (list_store, &iter,
+				/* Translators: meaning as "Snooze, until event start time" */
+				0, !minutes ? _("until start time") : text,
+				1, minutes,
+				-1);
+			g_free (text);
+
+			if (preselect_minutes >= 0 && preselect_minutes == minutes) {
+				tosel_set = TRUE;
+				tosel_iter = iter;
+				last_sel = -1;
+			} else if (last_sel >= 0 && minutes == last_sel) {
+				tosel_set = TRUE;
+				tosel_iter = iter;
+			}
+
+			last_minutes = minutes;
+		}
+	}
+
+	g_ptr_array_unref (snooze_minutes);
 
 	/* Separator */
 	gtk_list_store_append (list_store, &iter);
@@ -1035,13 +1064,15 @@ reminders_widget_update_content (ERemindersWidget *reminders,
 
 					if (comp) {
 						ICalComponent *icomp;
+						ICalProperty *prop;
 
 						icomp = e_cal_component_get_icalcomponent (comp);
+						prop = icomp ? e_cal_util_component_find_property_for_locale (icomp, I_CAL_DESCRIPTION_PROPERTY, NULL) : NULL;
 
-						if (icomp) {
+						if (prop) {
 							const gchar *icomp_description;
 
-							icomp_description = i_cal_component_get_description (icomp);
+							icomp_description = i_cal_property_get_description (prop);
 
 							if (icomp_description && *icomp_description) {
 								gchar *tmp;
@@ -1052,6 +1083,8 @@ reminders_widget_update_content (ERemindersWidget *reminders,
 
 								g_free (tmp);
 							}
+
+							g_clear_object (&prop);
 						}
 					}
 
@@ -1240,6 +1273,30 @@ reminders_widget_add_snooze_update_sensitize_cb (GtkSpinButton *spin,
 		gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (reminders->priv->add_snooze_days_spin)) > 0);
 }
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+static void
+gtk_paned_pack1 (GtkPaned *paned,
+		 GtkWidget *widget,
+		 gboolean resize,
+		 gboolean shrink)
+{
+	gtk_paned_set_start_child (paned, widget);
+	gtk_paned_set_resize_start_child (paned, resize);
+	gtk_paned_set_shrink_start_child (paned, shrink);
+}
+
+static void
+gtk_paned_pack2 (GtkPaned *paned,
+		 GtkWidget *widget,
+		 gboolean resize,
+		 gboolean shrink)
+{
+	gtk_paned_set_end_child (paned, widget);
+	gtk_paned_set_resize_end_child (paned, resize);
+	gtk_paned_set_shrink_end_child (paned, shrink);
+}
+#endif /* GTK_CHECK_VERSION(4, 0, 0) */
+
 static void
 reminders_widget_snooze_add_custom (ERemindersWidget *reminders)
 {
@@ -1276,7 +1333,7 @@ reminders_widget_snooze_add_custom (ERemindersWidget *reminders)
 		vbox = GTK_BOX (gtk_box_new (GTK_ORIENTATION_VERTICAL, 2));
 
 		widget = gtk_label_new (_("Set a custom snooze time for"));
-		gtk_box_pack_start (vbox, widget, FALSE, FALSE, 0);
+		_libedataserverui_box_pack_start (vbox, widget, FALSE, FALSE, 0);
 
 		box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2));
 		g_object_set (G_OBJECT (box),
@@ -1286,13 +1343,13 @@ reminders_widget_snooze_add_custom (ERemindersWidget *reminders)
 			"vexpand", FALSE,
 			NULL);
 
-		gtk_box_pack_start (box, reminders->priv->add_snooze_days_spin, FALSE, FALSE, 4);
+		_libedataserverui_box_pack_start (box, reminders->priv->add_snooze_days_spin, FALSE, FALSE, 4);
 		/* Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget */
 		widget = gtk_label_new_with_mnemonic (C_("reminders-snooze", "da_ys"));
 		gtk_label_set_mnemonic_widget (GTK_LABEL (widget), reminders->priv->add_snooze_days_spin);
-		gtk_box_pack_start (box, widget, FALSE, FALSE, 4);
+		_libedataserverui_box_pack_start (box, widget, FALSE, FALSE, 4);
 
-		gtk_box_pack_start (vbox, GTK_WIDGET (box), FALSE, FALSE, 0);
+		_libedataserverui_box_pack_start (vbox, GTK_WIDGET (box), FALSE, FALSE, 0);
 
 		box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2));
 		g_object_set (G_OBJECT (box),
@@ -1302,13 +1359,13 @@ reminders_widget_snooze_add_custom (ERemindersWidget *reminders)
 			"vexpand", FALSE,
 			NULL);
 
-		gtk_box_pack_start (box, reminders->priv->add_snooze_hours_spin, FALSE, FALSE, 4);
+		_libedataserverui_box_pack_start (box, reminders->priv->add_snooze_hours_spin, FALSE, FALSE, 4);
 		/* Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget */
 		widget = gtk_label_new_with_mnemonic (C_("reminders-snooze", "_hours"));
 		gtk_label_set_mnemonic_widget (GTK_LABEL (widget), reminders->priv->add_snooze_hours_spin);
-		gtk_box_pack_start (box, widget, FALSE, FALSE, 4);
+		_libedataserverui_box_pack_start (box, widget, FALSE, FALSE, 4);
 
-		gtk_box_pack_start (vbox, GTK_WIDGET (box), FALSE, FALSE, 0);
+		_libedataserverui_box_pack_start (vbox, GTK_WIDGET (box), FALSE, FALSE, 0);
 
 		box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2));
 		g_object_set (G_OBJECT (box),
@@ -1318,27 +1375,41 @@ reminders_widget_snooze_add_custom (ERemindersWidget *reminders)
 			"vexpand", FALSE,
 			NULL);
 
-		gtk_box_pack_start (box, reminders->priv->add_snooze_minutes_spin, FALSE, FALSE, 4);
+		_libedataserverui_box_pack_start (box, reminders->priv->add_snooze_minutes_spin, FALSE, FALSE, 4);
 		/* Translators: this is part of: "Set a custom snooze time for [nnn] days [nnn] hours [nnn] minutes", where the text in "[]" means a separate widget */
 		widget = gtk_label_new_with_mnemonic (C_("reminders-snooze", "_minutes"));
 		gtk_label_set_mnemonic_widget (GTK_LABEL (widget), reminders->priv->add_snooze_minutes_spin);
-		gtk_box_pack_start (box, widget, FALSE, FALSE, 4);
+		_libedataserverui_box_pack_start (box, widget, FALSE, FALSE, 4);
 
-		gtk_box_pack_start (vbox, GTK_WIDGET (box), FALSE, FALSE, 0);
+		_libedataserverui_box_pack_start (vbox, GTK_WIDGET (box), FALSE, FALSE, 0);
 
 		reminders->priv->add_snooze_add_button = gtk_button_new_with_mnemonic (_("_Add Snooze time"));
 		g_object_set (G_OBJECT (reminders->priv->add_snooze_add_button),
 			"halign", GTK_ALIGN_CENTER,
 			NULL);
 
-		gtk_box_pack_start (vbox, reminders->priv->add_snooze_add_button, FALSE, FALSE, 0);
-
+#if GTK_CHECK_VERSION(4, 0, 0)
+		gtk_box_append (vbox, reminders->priv->add_snooze_add_button);
+#else
+		_libedataserverui_box_pack_start (vbox, reminders->priv->add_snooze_add_button, FALSE, FALSE, 0);
 		gtk_widget_show_all (GTK_WIDGET (vbox));
+#endif
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+		reminders->priv->add_snooze_popover = gtk_popover_new ();
+		g_object_set (G_OBJECT (vbox),
+			"margin-start", 6,
+			"margin-end", 6,
+			"margin-top", 6,
+			"margin-bottom", 6,
+			NULL);
+		gtk_popover_set_child (GTK_POPOVER (reminders->priv->add_snooze_popover), GTK_WIDGET (vbox));
+#else
 		reminders->priv->add_snooze_popover = gtk_popover_new (GTK_WIDGET (reminders));
-		gtk_popover_set_position (GTK_POPOVER (reminders->priv->add_snooze_popover), GTK_POS_BOTTOM);
 		gtk_container_add (GTK_CONTAINER (reminders->priv->add_snooze_popover), GTK_WIDGET (vbox));
 		gtk_container_set_border_width (GTK_CONTAINER (reminders->priv->add_snooze_popover), 6);
+#endif
+		gtk_popover_set_position (GTK_POPOVER (reminders->priv->add_snooze_popover), GTK_POS_BOTTOM);
 
 		g_signal_connect (reminders->priv->add_snooze_add_button, "clicked",
 			G_CALLBACK (reminders_widget_add_snooze_add_button_clicked_cb), reminders);
@@ -1372,7 +1443,12 @@ reminders_widget_snooze_add_custom (ERemindersWidget *reminders)
 	}
 
 	gtk_widget_hide (reminders->priv->add_snooze_popover);
+#if GTK_CHECK_VERSION(4, 0, 0)
+	if (gtk_widget_get_parent (GTK_WIDGET (reminders->priv->add_snooze_popover)) == NULL)
+		gtk_widget_set_parent (GTK_WIDGET (reminders->priv->add_snooze_popover), reminders->priv->snooze_combo);
+#else
 	gtk_popover_set_relative_to (GTK_POPOVER (reminders->priv->add_snooze_popover), reminders->priv->snooze_combo);
+#endif
 	gtk_widget_show (reminders->priv->add_snooze_popover);
 
 	gtk_widget_grab_focus (reminders->priv->add_snooze_days_spin);
@@ -1558,7 +1634,11 @@ reminders_widget_constructed (GObject *object)
 
 	gtk_grid_attach (GTK_GRID (reminders), GTK_WIDGET (reminders->priv->paned), 0, 0, 1, 1);
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+	scrolled_window = gtk_scrolled_window_new ();
+#else
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+#endif
 	g_object_set (G_OBJECT (scrolled_window),
 		"halign", GTK_ALIGN_FILL,
 		"hexpand", TRUE,
@@ -1566,7 +1646,11 @@ reminders_widget_constructed (GObject *object)
 		"vexpand", TRUE,
 		"hscrollbar-policy", GTK_POLICY_NEVER,
 		"vscrollbar-policy", GTK_POLICY_AUTOMATIC,
+#if GTK_CHECK_VERSION(4, 0, 0)
+		"has-frame", TRUE,
+#else
 		"shadow-type", GTK_SHADOW_IN,
+#endif
 		NULL);
 
 	gtk_paned_pack1 (reminders->priv->paned, scrolled_window, FALSE, FALSE);
@@ -1592,7 +1676,11 @@ reminders_widget_constructed (GObject *object)
 		"hover-selection", FALSE,
 		NULL);
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+	gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), GTK_WIDGET (reminders->priv->tree_view));
+#else
 	gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (reminders->priv->tree_view));
+#endif
 
 	e_binding_bind_property (reminders, "empty",
 		scrolled_window, "sensitive",
@@ -1618,7 +1706,11 @@ reminders_widget_constructed (GObject *object)
 	column = gtk_tree_view_get_column (reminders->priv->tree_view, 1);
 	gtk_tree_view_column_set_expand (column, TRUE);
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+	scrolled_window = gtk_scrolled_window_new ();
+#else
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+#endif
 	g_object_set (G_OBJECT (scrolled_window),
 		"halign", GTK_ALIGN_FILL,
 		"hexpand", TRUE,
@@ -1626,7 +1718,11 @@ reminders_widget_constructed (GObject *object)
 		"vexpand", TRUE,
 		"hscrollbar-policy", GTK_POLICY_NEVER,
 		"vscrollbar-policy", GTK_POLICY_AUTOMATIC,
+#if GTK_CHECK_VERSION(4, 0, 0)
+		"has-frame", TRUE,
+#else
 		"shadow-type", GTK_SHADOW_IN,
+#endif
 		NULL);
 
 	gtk_paned_pack2 (reminders->priv->paned, scrolled_window, TRUE, FALSE);
@@ -1642,7 +1738,11 @@ reminders_widget_constructed (GObject *object)
 		"wrap-mode", GTK_WRAP_WORD_CHAR,
 		NULL);
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+	gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), GTK_WIDGET (reminders->priv->details_text_view));
+#else
 	gtk_container_add (GTK_CONTAINER (scrolled_window), GTK_WIDGET (reminders->priv->details_text_view));
+#endif
 
 	e_buffer_tagger_connect (reminders->priv->details_text_view);
 
@@ -1675,7 +1775,12 @@ reminders_widget_constructed (GObject *object)
 
 	css_provider = gtk_css_provider_new ();
 
-	if (gtk_css_provider_load_from_data (css_provider, "flowboxchild { padding: 0px; }", -1, &error)) {
+	gtk_css_provider_load_from_data (css_provider, "flowboxchild { padding: 0px; }", -1
+		#if !GTK_CHECK_VERSION(4, 0, 0)
+		, &error
+		#endif
+		);
+	if (!error) {
 		GtkFlowBoxChild *child;
 		guint ii = 0;
 
@@ -1693,7 +1798,9 @@ reminders_widget_constructed (GObject *object)
 	g_clear_object (&css_provider);
 	g_clear_error (&error);
 
+#if !GTK_CHECK_VERSION(4, 0, 0)
 	gtk_widget_show_all (GTK_WIDGET (reminders));
+#endif
 
 	selection = gtk_tree_view_get_selection (reminders->priv->tree_view);
 	gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
@@ -1755,6 +1862,11 @@ reminders_widget_dispose (GObject *object)
 
 	if (reminders->priv->settings)
 		g_signal_handlers_disconnect_by_data (reminders->priv->settings, reminders);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+	if (reminders->priv->add_snooze_popover)
+		gtk_widget_unparent (reminders->priv->add_snooze_popover);
+#endif
 
 	/* Chain up to parent's method. */
 	G_OBJECT_CLASS (e_reminders_widget_parent_class)->dispose (object);
@@ -1995,7 +2107,7 @@ reminders_widget_error_response_cb (GtkInfoBar *info_bar,
 	g_return_if_fail (E_IS_REMINDERS_WIDGET (reminders));
 
 	if (reminders->priv->info_bar == info_bar) {
-		gtk_widget_destroy (GTK_WIDGET (reminders->priv->info_bar));
+		g_object_unref (reminders->priv->info_bar);
 		reminders->priv->info_bar = NULL;
 	}
 }
@@ -2038,7 +2150,7 @@ e_reminders_widget_report_error (ERemindersWidget *reminders,
 	}
 
 	if (reminders->priv->info_bar) {
-		gtk_widget_destroy (GTK_WIDGET (reminders->priv->info_bar));
+		g_object_unref (reminders->priv->info_bar);
 		reminders->priv->info_bar = NULL;
 	}
 
@@ -2049,11 +2161,16 @@ e_reminders_widget_report_error (ERemindersWidget *reminders,
 	label = GTK_LABEL (gtk_label_new (message));
 	gtk_label_set_width_chars (label, 20);
 	gtk_label_set_max_width_chars (label, 120);
-	gtk_label_set_line_wrap (label, TRUE);
 	gtk_label_set_selectable (label, TRUE);
+#if GTK_CHECK_VERSION(4, 0, 0)
+	gtk_label_set_wrap (label, TRUE);
+	gtk_info_bar_add_child (GTK_INFO_BAR (reminders->priv->info_bar), GTK_WIDGET (label));
+#else
+	gtk_label_set_line_wrap (label, TRUE);
 	gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (reminders->priv->info_bar)), GTK_WIDGET (label));
 	gtk_widget_show (GTK_WIDGET (label));
 	gtk_widget_show (GTK_WIDGET (reminders->priv->info_bar));
+#endif
 
 	g_signal_connect (reminders->priv->info_bar, "response", G_CALLBACK (reminders_widget_error_response_cb), reminders);
 
