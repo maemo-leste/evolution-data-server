@@ -1,8 +1,15 @@
-evolution-data-server (3.45.2-1) UNRELEASED; urgency=medium
+evolution-data-server (3.45.2-1) experimental; urgency=medium
 
   * New upstream release
+  * Update package names for soname bump
+  * Update symbols files
+  * debian/control.in: Build-Depend on libsoup3 instead of libsoup2.4
+  * debian/control.in: Build-Depend on libwebkit2gtk-4.1-dev instead of 4.0
+  * debian/control.in: Bump minimum libgweather to 4.1
+  * debian/control.in: Drop Build-Depends on libgdata
+  * debian/rules: Don't build the gtk4 library yet
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 05 Aug 2022 07:19:43 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 05 Aug 2022 08:18:04 -0400
 
 evolution-data-server (3.44.4-1) unstable; urgency=medium
 
