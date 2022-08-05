@@ -29,7 +29,7 @@ Build-Depends: cmake,
                librest-dev (>= 0.7),
                libnss3-dev,
                libnspr4-dev,
-               libsoup2.4-dev (>= 2.42),
+               libsoup-3.0-dev (>= 3.1.1),
                libsqlite3-dev (>= 3.7.17),
                libwebkit2gtk-4.0-dev [!ia64 !kfreebsd-any],
                libxml2-dev (>= 2.0.0),
@@ -133,7 +133,7 @@ Depends: libedataserver-1.2-26 (= ${binary:Version}),
          libxml2-dev,
          libgdata-dev (>= 0.15.1),
          libglib2.0-dev (>= 2.40),
-         libsoup2.4-dev,
+         libsoup-3.0-dev (>= 3.1.1),
          libsecret-1-dev
 Description: Utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
@@ -184,7 +184,7 @@ Depends: libedataserverui-1.2-3 (= ${binary:Version}),
          libxml2-dev,
          libglib2.0-dev (>= 2.40),
          libgtk-3-dev,
-         libsoup2.4-dev,
+         libsoup-3.0-dev (>= 3.1.1),
          libsecret-1-dev
 Description: Utility library for evolution data servers (development files)
  The data server, called "Evolution Data Server" is responsible for managing
