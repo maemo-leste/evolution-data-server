@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.44.4
+	VERSION 3.45.2
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -12,7 +12,7 @@ set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issu
 # Base Version: This is for API/version tracking for things like
 # D-Bus server files. This should always be the major/minor of
 # the stable version or stable version to be.
-set(BASE_VERSION 3.44)
+set(BASE_VERSION 3.46)
 
 # This number is meaningless, but we're now stuck with it in our
 # library names for backward compatibility.
@@ -48,57 +48,65 @@ set(USER_PROMPTER_DBUS_SERVICE_NAME	"org.gnome.evolution.dataserver.UserPrompter
 # ******************************
 # Library versioning
 # ******************************
-set(LIBCAMEL_CURRENT 63)
+set(LIBCAMEL_CURRENT 64)
 set(LIBCAMEL_REVISION 0)
 set(LIBCAMEL_AGE 0)
 
-set(LIBEBACKEND_CURRENT 10)
+set(LIBEBACKEND_CURRENT 11)
 set(LIBEBACKEND_REVISION 0)
 set(LIBEBACKEND_AGE 0)
 
-set(LIBEDATASERVER_CURRENT 26)
+set(LIBEDATASERVER_CURRENT 27)
 set(LIBEDATASERVER_REVISION 0)
 set(LIBEDATASERVER_AGE 0)
 
-set(LIBEDATASERVERUI_CURRENT 3)
+set(LIBEDATASERVERUI_CURRENT 4)
 set(LIBEDATASERVERUI_REVISION 0)
 set(LIBEDATASERVERUI_AGE 0)
 
-set(LIBEBOOK_CURRENT 20)
+set(LIBEDATASERVERUI4_API_VERSION 1.0)
+set(LIBEDATASERVERUI4_CURRENT 0)
+set(LIBEDATASERVERUI4_REVISION 0)
+set(LIBEDATASERVERUI4_AGE 0)
+
+set(LIBEBOOK_CURRENT 21)
 set(LIBEBOOK_REVISION 1)
 set(LIBEBOOK_AGE 3)
 
-set(LIBEBOOK_CONTACTS_CURRENT 3)
+set(LIBEBOOK_CONTACTS_CURRENT 4)
 set(LIBEBOOK_CONTACTS_REVISION 0)
 set(LIBEBOOK_CONTACTS_AGE 0)
 
-set(LIBEDATABOOK_CURRENT 26)
+set(LIBEDATABOOK_CURRENT 27)
 set(LIBEDATABOOK_REVISION 0)
 set(LIBEDATABOOK_AGE 0)
 
-set(LIBECAL_CURRENT 1)
+set(LIBECAL_CURRENT 2)
 set(LIBECAL_REVISION 0)
 set(LIBECAL_AGE 0)
 
-set(LIBEDATACAL_CURRENT 1)
+set(LIBEDATACAL_CURRENT 2)
 set(LIBEDATACAL_REVISION 0)
 set(LIBEDATACAL_AGE 0)
 
 # Keep these two definitions in agreement.
-set(glib_minimum_version 2.46)
-set(glib_encoded_version GLIB_VERSION_2_46)
+set(glib_minimum_version 2.68)
+set(glib_encoded_version GLIB_VERSION_2_68)
 
 # Keep these two definitions in agreement.
-set(gdk_minimum_version 3.16)
-set(gdk_encoded_version GDK_VERSION_3_16)
+set(gdk_minimum_version 3.20)
+set(gdk_encoded_version GDK_VERSION_3_20)
 
 # Keep these two definitions in agreement.
-set(soup_minimum_version 2.58)
-set(soup_encoded_version SOUP_VERSION_2_58)
+set(gdk4_minimum_version 4.4)
+set(gdk4_encoded_version GDK_VERSION_4_4)
+
+# Keep these two definitions in agreement.
+set(soup_minimum_version 3.1.1)
+set(soup_encoded_version SOUP_VERSION_3_2)
 
 # Warn about API usage that violates our minimum requirements.
 add_definitions(-DGLIB_VERSION_MAX_ALLOWED=${glib_encoded_version})
-add_definitions(-DGDK_VERSION_MAX_ALLOWED=${gdk_encoded_version})
 add_definitions(-DSOUP_VERSION_MAX_ALLOWED=${soup_encoded_version})
 
 # These will suppress warnings about newly-deprecated symbols. Ideally
@@ -106,11 +114,10 @@ add_definitions(-DSOUP_VERSION_MAX_ALLOWED=${soup_encoded_version})
 # up any new deprecation warnings after bumping our minimum requirements.
 # But if the warnings get to be overwhelming, use fixed versions instead.
 add_definitions(-DGLIB_VERSION_MIN_REQUIRED=${glib_encoded_version})
-add_definitions(-DGDK_VERSION_MIN_REQUIRED=${gdk_encoded_version})
 add_definitions(-DSOUP_VERSION_MIN_REQUIRED=${soup_encoded_version})
 
-set(gcr_minimum_version 3.4)
-set(libgdata_minimum_version 0.15.1)
+set(gcr3_minimum_version 3.4)
+set(gcr4_minimum_version 3.90)
 set(libical_glib_minimum_version 3.0.7)
 set(libsecret_minimum_version 0.5)
 set(libxml_minimum_version 2.0.0)
@@ -118,12 +125,12 @@ set(sqlite_minimum_version 3.7.17)
 
 # Optional Packages
 set(goa_minimum_version 3.8)
-set(gweather_minimum_version 3.10)
-set(gweather4_minimum_version 3.91.0)
+set(gweather_minimum_version 3.91)
 set(libaccounts_glib_minimum_version 1.4)
 set(libsignon_glib_minimum_version 1.8)
 set(json_glib_minimum_version 1.0.4)
-set(webkit2gtk_minimum_version 2.28.0)
+set(webkit2gtk_minimum_version 2.34.0)
+set(webkit2gtk4_minimum_version 2.36.0)
 set(libcanberra_gtk_minimum_version 0.25)
 
 # Load modules from the source tree
@@ -342,7 +349,7 @@ pkg_check_modules(GNOME_PLATFORM REQUIRED
 	gio-2.0>=${glib_minimum_version}
 	gmodule-2.0>=${glib_minimum_version}
 	libxml-2.0>=${libxml_minimum_version}
-	libsoup-2.4>=${soup_minimum_version}
+	libsoup-3.0>=${soup_minimum_version}
 )
 
 if(WIN32)
@@ -383,64 +390,87 @@ endif(NOT ICU_FOUND)
 # Check for GTK+
 # *************************
 
+add_printable_option(WITH_GCR3 "Use gcr3, instead of gcr4" OFF)
 add_printable_option(ENABLE_GTK "Enable gtk+ support" ON)
 
 if(ENABLE_GTK)
 	pkg_check_modules_for_option(ENABLE_GTK "GTK+ support" GTK gtk+-3.0>=${gdk_minimum_version})
-	pkg_check_modules_for_option(ENABLE_GTK "GTK+ support" GCR gcr-3>=${gcr_minimum_version})
+	if(WITH_GCR3)
+		pkg_check_modules_for_option(ENABLE_GTK "GTK+ support" GCR gcr-3>=${gcr3_minimum_version})
+	else(WITH_GCR3)
+		pkg_check_modules_for_option(ENABLE_GTK "GTK+ support" GCR gcr-4-gtk3>=${gcr4_minimum_version})
+	endif(WITH_GCR3)
 
 	set(HAVE_GTK 1)
 endif(ENABLE_GTK)
+
+add_printable_option(ENABLE_GTK4 "Enable gtk4 support" ON)
+if(ENABLE_GTK4)
+	pkg_check_modules_for_option(ENABLE_GTK4 "gtk4 support" GTK4 gtk4>=${gdk4_minimum_version})
+	pkg_check_modules_for_option(ENABLE_GTK4 "gtk4 support" GCR4 gcr-4-gtk4>=${gcr4_minimum_version})
+
+	set(HAVE_GTK4 1)
+endif(ENABLE_GTK4)
 
 # **************************************************************
 # Check for WebKitGTK+ and json-glib for OAuth2 authentications
 # **************************************************************
 
-add_printable_option(ENABLE_OAUTH2 "Enable built-in OAuth2 authentications" ON)
+pkg_check_modules(JSON_GLIB REQUIRED json-glib-1.0>=${json_glib_minimum_version})
 
-if(ENABLE_OAUTH2)
-	pkg_check_modules_for_option(ENABLE_OAUTH2 "OAuth2 authentication support" OAUTH2_JSON_GLIB
-		json-glib-1.0>=${json_glib_minimum_version}
-	)
+if(ENABLE_GTK)
+	add_printable_option(ENABLE_OAUTH2_WEBKITGTK "Enable WebKitGTK gtk3 for built-in OAuth2 authentications" ON)
 
-	pkg_check_modules_for_option(ENABLE_OAUTH2 "OAuth2 authentication support" OAUTH2_WEBKIT2GTK
-		webkit2gtk-4.0>=${webkit2gtk_minimum_version}
-	)
+	if(ENABLE_OAUTH2_WEBKITGTK)
+		pkg_check_modules_for_option(ENABLE_OAUTH2_WEBKITGTK "WebKitGTK gtk3 for built-in OAuth2 authentications" OAUTH2_WEBKITGTK
+			webkit2gtk-4.1>=${webkit2gtk_minimum_version}
+		)
+	endif(ENABLE_OAUTH2_WEBKITGTK)
+endif(ENABLE_GTK)
 
-	add_printable_variable(WITH_GOOGLE_CLIENT_ID "Google OAuth 2.0 client id" "")
-	add_printable_variable(WITH_GOOGLE_CLIENT_SECRET "Google OAuth 2.0 client secret" "")
+if(ENABLE_GTK4)
+	add_printable_option(ENABLE_OAUTH2_WEBKITGTK4 "Enable WebKitGTK gtk4 for built-in OAuth2 authentications" ON)
 
-	if(WITH_GOOGLE_CLIENT_ID STREQUAL "")
-		set(WITH_GOOGLE_CLIENT_ID "590402290962-2i0b7rqma8b9nmtfrcp7fa06g6cf7g74.apps.googleusercontent.com")
-	endif(WITH_GOOGLE_CLIENT_ID STREQUAL "")
+	if(ENABLE_OAUTH2_WEBKITGTK4)
+		pkg_check_modules_for_option(ENABLE_OAUTH2_WEBKITGTK4 "WebKitGTK gtk4 for built-in OAuth2 authentications" OAUTH2_WEBKITGTK4
+			webkit2gtk-5.0>=${webkit2gtk4_minimum_version}
+		)
+	endif(ENABLE_OAUTH2_WEBKITGTK4)
+endif(ENABLE_GTK4)
 
-	if(WITH_GOOGLE_CLIENT_SECRET STREQUAL "")
-		set(WITH_GOOGLE_CLIENT_SECRET "mtfUe5W8Aal9DcgVipOY1T9G")
-	endif(WITH_GOOGLE_CLIENT_SECRET STREQUAL "")
+add_printable_variable(WITH_GOOGLE_CLIENT_ID "Google OAuth 2.0 client id" "")
+add_printable_variable(WITH_GOOGLE_CLIENT_SECRET "Google OAuth 2.0 client secret" "")
 
-	add_printable_variable(WITH_OUTLOOK_CLIENT_ID "Outlook.com OAuth 2.0 client id" "")
-	add_printable_variable(WITH_OUTLOOK_CLIENT_SECRET "Outlook.com OAuth 2.0 client secret" "")
+if(WITH_GOOGLE_CLIENT_ID STREQUAL "")
+	set(WITH_GOOGLE_CLIENT_ID "|7uLr7+vp6eLr4u3p9umy67nsqaq2uuO54rW2r72puKvsvbrr7bztuL3svOzv9bqrq6j1vLS0vLe+rqi+qbi0ta++ta/1uLS22w==|")
+endif(WITH_GOOGLE_CLIENT_ID STREQUAL "")
 
-	if(WITH_OUTLOOK_CLIENT_ID STREQUAL "")
-		set(WITH_OUTLOOK_CLIENT_ID "cc6e0693-0e26-4220-8322-9d363e308fc6")
-	endif(WITH_OUTLOOK_CLIENT_ID STREQUAL "")
+if(WITH_GOOGLE_CLIENT_SECRET STREQUAL "")
+	set(WITH_GOOGLE_CLIENT_SECRET "|UUhaaVkJawR9XVAFeF9balVMc2UNaAV7PA==|")
+endif(WITH_GOOGLE_CLIENT_SECRET STREQUAL "")
 
-	# Outlook.com requires client secret only for Web applications
-	#if(WITH_OUTLOOK_CLIENT_SECRET STREQUAL "")
-	#	set(WITH_OUTLOOK_CLIENT_SECRET "")
-	#endif(WITH_OUTLOOK_CLIENT_SECRET STREQUAL "")
+add_printable_variable(WITH_OUTLOOK_CLIENT_ID "Outlook.com OAuth 2.0 client id" "")
+add_printable_variable(WITH_OUTLOOK_CLIENT_SECRET "Outlook.com OAuth 2.0 client secret" "")
 
-	add_printable_variable(WITH_YAHOO_CLIENT_ID "Yahoo! OAuth 2.0 client id" "")
-	add_printable_variable(WITH_YAHOO_CLIENT_SECRET "Yahoo! OAuth 2.0 client secret" "")
+if(WITH_OUTLOOK_CLIENT_ID STREQUAL "")
+	set(WITH_OUTLOOK_CLIENT_ID "cc6e0693-0e26-4220-8322-9d363e308fc6")
+endif(WITH_OUTLOOK_CLIENT_ID STREQUAL "")
 
-	if(WITH_YAHOO_CLIENT_ID STREQUAL "")
-		set(WITH_YAHOO_CLIENT_ID "dj0yJmk9RHNlMGFKTXdkYzRXJmQ9WVdrOVNUUXpUWGhzWjJzbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWNi")
-	endif(WITH_YAHOO_CLIENT_ID STREQUAL "")
+# Outlook.com requires client secret only for Web applications
+#if(WITH_OUTLOOK_CLIENT_SECRET STREQUAL "")
+#	set(WITH_OUTLOOK_CLIENT_SECRET "")
+#endif(WITH_OUTLOOK_CLIENT_SECRET STREQUAL "")
 
-	if(WITH_YAHOO_CLIENT_SECRET STREQUAL "")
-		set(WITH_YAHOO_CLIENT_SECRET "35f49f199dd754ec5e86d3c7cd576a1341c9bc0b")
-	endif(WITH_YAHOO_CLIENT_SECRET STREQUAL "")
-endif(ENABLE_OAUTH2)
+add_printable_variable(WITH_YAHOO_CLIENT_ID "Yahoo! OAuth 2.0 client id" "")
+add_printable_variable(WITH_YAHOO_CLIENT_SECRET "Yahoo! OAuth 2.0 client secret" "")
+
+if(WITH_YAHOO_CLIENT_ID STREQUAL "")
+	set(WITH_YAHOO_CLIENT_ID "|Q00XXm1KTB51b2lLamBhbHN/Q0x+XXV/bUp2HnBxQ1VocWlycn9XcnBgT11wTW1dRXBpb0VdS2l2cxcebUlqHn4VHlJEFHFTfX9tXX1waV59f3ZKRBR+HmpkfRN3cGlOJw==|")
+endif(WITH_YAHOO_CLIENT_ID STREQUAL "")
+
+if(WITH_YAHOO_CLIENT_SECRET STREQUAL "")
+	set(WITH_YAHOO_CLIENT_SECRET "|c3UmdHkmcXl5JCR3dXQlI3UleHYkcyN3IyR1d3YhcXN0cSN5IiNwIkA=|")
+endif(WITH_YAHOO_CLIENT_SECRET STREQUAL "")
 
 # ******************************************
 # Check whether to build examples/demos
@@ -451,7 +481,7 @@ add_printable_option(ENABLE_EXAMPLES "Enable the build of examples" ON)
 if(ENABLE_EXAMPLES)
 	pkg_check_modules_for_option(ENABLE_EXAMPLES "build the example program(s)" EXAMPLES
 		gtk+-3.0>=3.10
-		glib-2.0>=2.38
+		glib-2.0>=${glib_minimum_version}
 	)
 
 	set(BUILD_EXAMPLES 1)
@@ -476,12 +506,11 @@ endif(ENABLE_GOA)
 add_printable_option(ENABLE_BACKEND_PER_PROCESS "Enable backend per process support" OFF)
 
 # ***********************************
-# Check for libsecret and gcr-base
+# Check for libsecret
 # ***********************************
 
 if(NOT WIN32)
 	pkg_check_modules(LIBSECRET REQUIRED libsecret-unstable>=${libsecret_minimum_version})
-	pkg_check_modules(GCR_BASE REQUIRED gcr-base-3>=${gcr_minimum_version})
 endif(NOT WIN32)
 
 # ******************************
@@ -756,26 +785,13 @@ endif(NOT have_addrinfo)
 add_printable_option(ENABLE_WEATHER "Build the weather calendar backend" ON)
 
 if(ENABLE_WEATHER)
-	add_printable_variable(WITH_GWEATHER4 "Use GWeather 4 instead of 3" OFF)
+	pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar backend" LIBGWEATHER gweather4>=${gweather_minimum_version})
 
-	if(WITH_GWEATHER4)
-		pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar backend" LIBGWEATHER gweather4>=${gweather4_minimum_version})
-	else(WITH_GWEATHER4)
-		pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar backend" LIBGWEATHER gweather-3.0>=${gweather_minimum_version})
-	endif(WITH_GWEATHER4)
-
-	set(CMAKE_REQUIRED_INCLUDES ${LIBGWEATHER_INCLUDE_DIRS})
-	set(CMAKE_REQUIRED_LIBRARIES ${LIBGWEATHER_LDFLAGS})
-	CHECK_C_SOURCE_COMPILES("#define GWEATHER_I_KNOW_THIS_IS_UNSTABLE
-				#include <libgweather/gweather.h>
-				#undef GWEATHER_I_KNOW_THIS_IS_UNSTABLE
-
-				int main(void) {
-					gweather_info_new (NULL);
-					return 0;
-				}" HAVE_ONE_ARG_GWEATHER_INFO_NEW)
-	unset(CMAKE_REQUIRED_INCLUDES)
-	unset(CMAKE_REQUIRED_LIBRARIES)
+	# compatibility check
+	pkg_check_variable(gweather_soupapiversion gweather4 soupapiversion)
+	if(NOT "${gweather_soupapiversion}" STREQUAL "3.0")
+		message(FATAL_ERROR "Requires libgweather compiled with libsoup 3.0 API, but found version '${gweather_soupapiversion}' instead. If you want to disable weather calendar backend, please use -DENABLE_WEATHER=OFF argument to cmake command.")
+	endif(NOT "${gweather_soupapiversion}" STREQUAL "3.0")
 endif(ENABLE_WEATHER)
 
 # ************************************************
@@ -832,33 +848,6 @@ unset(defval)
 # sqlite3 flags
 # ******************************
 pkg_check_modules(SQLITE3 REQUIRED sqlite3>=${sqlite_minimum_version})
-
-# ******************************
-# Google flags
-# ******************************
-
-add_printable_option(ENABLE_GOOGLE "Enable Google support" ON)
-if(ENABLE_GOOGLE)
-	pkg_check_modules_for_option(ENABLE_GOOGLE "Google" LIBGDATA libgdata>=${libgdata_minimum_version})
-	set(HAVE_LIBGDATA ON)
-	set(LIBGDATA_GIR GData-0.0)
-	set(LIBGDATA_VAPI libgdata)
-
-	set(CMAKE_REQUIRED_DEFINITIONS ${LIBGDATA_CFLAGS_OTHER})
-	set(CMAKE_REQUIRED_INCLUDES ${LIBGDATA_INCLUDE_DIRS})
-	set(CMAKE_REQUIRED_LIBRARIES ${LIBGDATA_LDFLAGS})
-
-	CHECK_C_SOURCE_COMPILES("#include <gdata/gdata.h>
-				int main(void) {
-					gdata_feed_get_next_page_token (NULL);
-					gdata_query_next_page (NULL);
-					return 0;
-				}" HAVE_LIBGDATA_TASKS_PAGINATION_FUNCTIONS)
-
-	unset(CMAKE_REQUIRED_DEFINITIONS)
-	unset(CMAKE_REQUIRED_INCLUDES)
-	unset(CMAKE_REQUIRED_LIBRARIES)
-endif(ENABLE_GOOGLE)
 
 # ******************************
 # Checks for large file support
@@ -937,14 +926,14 @@ unset(CMAKE_REQUIRED_LIBRARIES)
 # subparts flags
 # ******************************
 
-pkg_check_modules(SOUP REQUIRED libsoup-2.4)
-pkg_check_modules(DATA_SERVER REQUIRED gio-2.0 gmodule-2.0 libsecret-1 libxml-2.0 libsoup-2.4 ${mozilla_nspr} ${mozilla_nss})
+pkg_check_modules(SOUP REQUIRED libsoup-3.0)
+pkg_check_modules(DATA_SERVER REQUIRED gio-2.0 gmodule-2.0 libsecret-1 libxml-2.0 libsoup-3.0 ${mozilla_nspr} ${mozilla_nss})
 set(E_DATA_SERVER_INCLUDES ${E_DATA_SERVER_INCLUDES} ${MANUAL_NSPR_INCLUDES} ${MANUAL_NSS_INCLUDES})
 set(E_DATA_SERVER_LDFLAGS ${E_DATA_SERVER_LDFLAGS} ${MANUAL_NSPR_LIBS} ${MANUAL_NSS_LIBS})
 
-pkg_check_modules(BACKEND REQUIRED gio-2.0 gmodule-2.0 libsecret-1 libsoup-2.4 libxml-2.0)
-pkg_check_modules(ADDRESSBOOK REQUIRED gio-2.0 libxml-2.0 libsoup-2.4 libsecret-1)
-pkg_check_modules(CALENDAR REQUIRED gio-2.0 libical-glib>=${libical_glib_minimum_version} libsoup-2.4 libxml-2.0 libsecret-1)
+pkg_check_modules(BACKEND REQUIRED gio-2.0 gmodule-2.0 libsecret-1 libsoup-3.0 libxml-2.0)
+pkg_check_modules(ADDRESSBOOK REQUIRED gio-2.0 libxml-2.0 libsoup-3.0 libsecret-1)
+pkg_check_modules(CALENDAR REQUIRED gio-2.0 libical-glib>=${libical_glib_minimum_version} libsoup-3.0 libxml-2.0 libsecret-1)
 set(ADDRESSBOOK_CFLAGS ${ADDRESSBOOK_CFLAGS} ${PHONENUMBER_DEFINITIONS})
 set(ADDRESSBOOK_INCLUDE_DIRS ${ADDRESSBOOK_INCLUDE_DIRS} ${PHONENUMBER_INCLUDE_DIRS})
 set(ADDRESSBOOK_LDFLAGS ${ADDRESSBOOK_LDFLAGS} ${PHONENUMBER_LDFLAGS})

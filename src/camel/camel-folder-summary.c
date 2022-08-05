@@ -1661,7 +1661,7 @@ cfs_try_release_memory (gpointer user_data)
 	   the whole “%s : %s” is meant as an absolute identification of the folder. */
 	description = g_strdup_printf (_("Release unused memory for folder “%s : %s”"),
 		camel_service_get_display_name (CAMEL_SERVICE (parent_store)),
-		camel_folder_get_full_name (summary->priv->folder));
+		camel_folder_get_full_display_name (summary->priv->folder));
 
 	camel_session_submit_job (
 		session, description,
@@ -2909,6 +2909,13 @@ summary_format_address (const CamelNameValueArray *headers,
 	if ((addr = camel_header_address_decode (text, charset))) {
 		str = camel_header_address_list_format (addr);
 		camel_header_address_list_clear (&addr);
+
+		/* Special-case empty email part only here, not in the camel_header_address_list_format(),
+		   to cover only the user-visible string, which looks odd with the empty email address. */
+		if (str && g_str_has_suffix (str, " <>") && strlen (str) > 3) {
+			str[strlen (str) - 3] = '\0';
+		}
+
 		g_free (text);
 	} else {
 		str = text;

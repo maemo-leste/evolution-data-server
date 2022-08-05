@@ -5422,7 +5422,7 @@ imapx_server_fetch_changes (CamelIMAPXServer *is,
 		   the whole “%s : %s” is meant as an absolute identification of the folder. */
 		_("Scanning for changed messages in “%s : %s”"),
 		camel_service_get_display_name (CAMEL_SERVICE (camel_folder_get_parent_store (folder))),
-		camel_folder_get_full_name (folder));
+		camel_folder_get_full_display_name (folder));
 
 	success = camel_imapx_server_process_command_sync (is, ic, _("Error scanning changes"), cancellable, error);
 
@@ -5447,7 +5447,7 @@ imapx_server_fetch_changes (CamelIMAPXServer *is,
 			   the whole “%s : %s” is meant as an absolute identification of the folder. */
 			_("Fetching summary information for new messages in “%s : %s”"),
 			camel_service_get_display_name (CAMEL_SERVICE (camel_folder_get_parent_store (folder))),
-			camel_folder_get_full_name (folder));
+			camel_folder_get_full_display_name (folder));
 
 		fetch_summary_uids = g_slist_sort (fetch_summary_uids, imapx_uids_desc_cmp);
 
@@ -5571,11 +5571,19 @@ camel_imapx_server_skip_old_flags_update (CamelStore *store)
 
 #ifdef HAVE_GPOWERPROFILEMONITOR
 	if (!skip_old_flags_update) {
-		GPowerProfileMonitor *power_monitor;
+		GSettings *eds_settings;
 
-		power_monitor = g_power_profile_monitor_dup_default ();
-		skip_old_flags_update = power_monitor && g_power_profile_monitor_get_power_saver_enabled (power_monitor);
-		g_clear_object (&power_monitor);
+		eds_settings = g_settings_new ("org.gnome.evolution-data-server");
+
+		if (g_settings_get_boolean (eds_settings, "limit-operations-in-power-saver-mode")) {
+			GPowerProfileMonitor *power_monitor;
+
+			power_monitor = g_power_profile_monitor_dup_default ();
+			skip_old_flags_update = power_monitor && g_power_profile_monitor_get_power_saver_enabled (power_monitor);
+			g_clear_object (&power_monitor);
+		}
+
+		g_clear_object (&eds_settings);
 	}
 #endif
 	g_clear_object (&network_monitor);

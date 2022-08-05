@@ -90,7 +90,7 @@ struct _EBookMetaBackendPrivate {
 	gchar *authentication_method;
 	gchar *authentication_proxy_uid;
 	gchar *authentication_credential_name;
-	SoupURI *webdav_soup_uri;
+	GUri *webdav_uri;
 
 	GSList *cursors;
 };
@@ -127,6 +127,31 @@ static gboolean ebmb_save_contact_wrapper_sync (EBookMetaBackend *meta_backend,
 						gchar **out_new_extra,
 						GCancellable *cancellable,
 						GError **error);
+
+static gboolean
+ebmb_is_power_saver_enabled (void)
+{
+#ifdef HAVE_GPOWERPROFILEMONITOR
+	GSettings *settings;
+	gboolean enabled = FALSE;
+
+	settings = g_settings_new ("org.gnome.evolution-data-server");
+
+	if (g_settings_get_boolean (settings, "limit-operations-in-power-saver-mode")) {
+		GPowerProfileMonitor *power_monitor;
+
+		power_monitor = g_power_profile_monitor_dup_default ();
+		enabled = power_monitor && g_power_profile_monitor_get_power_saver_enabled (power_monitor);
+		g_clear_object (&power_monitor);
+	}
+
+	g_clear_object (&settings);
+
+	return enabled;
+#else
+	return FALSE;
+#endif
+}
 
 /**
  * e_book_meta_backend_info_new:
@@ -262,7 +287,7 @@ ebmb_update_connection_values (EBookMetaBackend *meta_backend)
 	g_clear_pointer (&meta_backend->priv->authentication_method, g_free);
 	g_clear_pointer (&meta_backend->priv->authentication_proxy_uid, g_free);
 	g_clear_pointer (&meta_backend->priv->authentication_credential_name, g_free);
-	g_clear_pointer (&meta_backend->priv->webdav_soup_uri, (GDestroyNotify) soup_uri_free);
+	g_clear_pointer (&meta_backend->priv->webdav_uri, g_uri_unref);
 
 	if (source && e_source_has_extension (source, E_SOURCE_EXTENSION_AUTHENTICATION)) {
 		ESourceAuthentication *auth_extension;
@@ -282,7 +307,7 @@ ebmb_update_connection_values (EBookMetaBackend *meta_backend)
 
 		webdav_extension = e_source_get_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND);
 
-		meta_backend->priv->webdav_soup_uri = e_source_webdav_dup_soup_uri (webdav_extension);
+		meta_backend->priv->webdav_uri = e_source_webdav_dup_uri (webdav_extension);
 	}
 
 	g_mutex_unlock (&meta_backend->priv->property_lock);
@@ -460,17 +485,17 @@ ebmb_requires_reconnect (EBookMetaBackend *meta_backend)
 
 	if (!requires && e_source_has_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND)) {
 		ESourceWebdav *webdav_extension;
-		SoupURI *soup_uri;
+		GUri *g_uri;
 
 		webdav_extension = e_source_get_extension (source, E_SOURCE_EXTENSION_WEBDAV_BACKEND);
-		soup_uri = e_source_webdav_dup_soup_uri (webdav_extension);
+		g_uri = e_source_webdav_dup_uri (webdav_extension);
 
-		requires = (!meta_backend->priv->webdav_soup_uri && soup_uri) ||
-			(soup_uri && meta_backend->priv->webdav_soup_uri &&
-			!soup_uri_equal (meta_backend->priv->webdav_soup_uri, soup_uri));
+		requires = (!meta_backend->priv->webdav_uri && g_uri) ||
+			(g_uri && meta_backend->priv->webdav_uri &&
+			!soup_uri_equal (meta_backend->priv->webdav_uri, g_uri));
 
-		if (soup_uri)
-			soup_uri_free (soup_uri);
+		if (g_uri)
+			g_uri_unref (g_uri);
 	}
 
 	g_mutex_unlock (&meta_backend->priv->property_lock);
@@ -779,9 +804,6 @@ ebmb_refresh_internal_sync (EBookMetaBackend *meta_backend,
 			    GCancellable *cancellable,
 			    GError **error)
 {
-#ifdef HAVE_GPOWERPROFILEMONITOR
-	GPowerProfileMonitor *power_monitor;
-#endif
 	EBookCache *book_cache;
 	gboolean success = FALSE, repeat = TRUE, is_repeat = FALSE;
 
@@ -790,17 +812,11 @@ ebmb_refresh_internal_sync (EBookMetaBackend *meta_backend,
 	if (g_cancellable_set_error_if_cancelled (cancellable, error))
 		goto done;
 
-#ifdef HAVE_GPOWERPROFILEMONITOR
 	/* Silently ignore the refresh request when in the power-saver mode */
-	power_monitor = g_power_profile_monitor_dup_default ();
-	if (power_monitor && g_power_profile_monitor_get_power_saver_enabled (power_monitor)) {
-		g_clear_object (&power_monitor);
+	if (ebmb_is_power_saver_enabled ()) {
 		success = TRUE;
 		goto done;
 	}
-
-	g_clear_object (&power_monitor);
-#endif
 
 	e_book_backend_foreach_view_notify_progress (E_BOOK_BACKEND (meta_backend), TRUE, 0, _("Refreshing…"));
 
@@ -1319,6 +1335,12 @@ ebmb_refresh_sync (EBookBackendSync *book_backend,
 
 	if (!e_backend_get_online (backend))
 		return TRUE;
+
+	if (ebmb_is_power_saver_enabled ()) {
+		g_set_error_literal (error, E_CLIENT_ERROR, E_CLIENT_ERROR_OTHER_ERROR,
+			_("Refresh skipped due to enabled Power Saver mode. Disable Power Saver mode and repeat the action."));
+		return FALSE;
+	}
 
 	success = e_book_meta_backend_ensure_connected_sync (meta_backend, cancellable, error);
 
@@ -2499,7 +2521,7 @@ e_book_meta_backend_finalize (GObject *object)
 	g_clear_pointer (&meta_backend->priv->authentication_method, g_free);
 	g_clear_pointer (&meta_backend->priv->authentication_proxy_uid, g_free);
 	g_clear_pointer (&meta_backend->priv->authentication_credential_name, g_free);
-	g_clear_pointer (&meta_backend->priv->webdav_soup_uri, (GDestroyNotify) soup_uri_free);
+	g_clear_pointer (&meta_backend->priv->webdav_uri, g_uri_unref);
 
 	g_mutex_clear (&meta_backend->priv->connect_lock);
 	g_mutex_clear (&meta_backend->priv->property_lock);
