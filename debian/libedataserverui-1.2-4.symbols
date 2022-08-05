@@ -1,4 +1,4 @@
-libedataserverui-1.2.so.3 libedataserverui-1.2-3 #MINVER#
+libedataserverui-1.2.so.4 libedataserverui-1.2-4 #MINVER#
 * Build-Depends-Package: libedataserverui1.2-dev
  _libedataserverui_init_icon_theme@Base 3.43.2
  _libedataserverui_load_modules@Base 3.29.90

@@ -1,4 +1,4 @@
-libecal-2.0.so.1 libecal-2.0-1 #MINVER#
+libecal-2.0.so.2 libecal-2.0-2 #MINVER#
 * Build-Depends-Package: libecal2.0-dev
  e_cal_client_add_timezone@Base 3.17
  e_cal_client_add_timezone_finish@Base 3.17

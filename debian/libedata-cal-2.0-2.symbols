@@ -1,4 +1,4 @@
-libedata-cal-2.0.so.1 libedata-cal-2.0-1 #MINVER#
+libedata-cal-2.0.so.2 libedata-cal-2.0-2 #MINVER#
 * Build-Depends-Package: libedata-cal2.0-dev
  _e_cal_backend_remove_cached_timezones@Base 3.29.90
  _e_cal_cache_remove_loaded_timezones@Base 3.25.90

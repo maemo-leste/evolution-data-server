@@ -1,4 +1,4 @@
-libebackend-1.2.so.10 libebackend-1.2-10 #MINVER#
+libebackend-1.2.so.11 libebackend-1.2-11 #MINVER#
 * Build-Depends-Package: libebackend1.2-dev
  e_authentication_session_result_get_type@Base 3.17
  e_backend_credentials_required@Base 3.17

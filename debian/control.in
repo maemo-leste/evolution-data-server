@@ -50,7 +50,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          evolution-data-server-common (>= ${source:Version}),
-         libcamel-1.2-63 (= ${binary:Version}),
+         libcamel-1.2-64 (= ${binary:Version}),
          gnome-keyring,
 Breaks: evolution (<< 3.29.90),
         libevolution (<< 3.29.90)
@@ -107,7 +107,7 @@ Description: Documentation files for the Evolution Data Server libraries
  This package contains the API documentation for all the individual
  Evolution Data Server libraries.
 
-Package: libedataserver-1.2-26
+Package: libedataserver-1.2-27
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -124,7 +124,7 @@ Package: libedataserver1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedataserver-1.2-26 (= ${binary:Version}),
+Depends: libedataserver-1.2-27 (= ${binary:Version}),
          gir1.2-edataserver-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
@@ -154,7 +154,7 @@ Description: GObject introspection for the EDataServer library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libedataserverui-1.2-3
+Package: libedataserverui-1.2-4
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -171,7 +171,7 @@ Package: libedataserverui1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedataserverui-1.2-3 (= ${binary:Version}),
+Depends: libedataserverui-1.2-4 (= ${binary:Version}),
          gir1.2-edataserverui-1.2 (= ${binary:Version}),
          ${shlibs:Depends},
          ${misc:Depends},
@@ -205,7 +205,7 @@ Description: GObject introspection for the EDataServerUI library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libcamel-1.2-63
+Package: libcamel-1.2-64
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -223,7 +223,7 @@ Package: libcamel1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libcamel-1.2-63 (= ${binary:Version}),
+Depends: libcamel-1.2-64 (= ${binary:Version}),
          gir1.2-camel-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -260,7 +260,7 @@ Description: GObject introspection for the Camel library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libebook-1.2-20
+Package: libebook-1.2-21
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -276,7 +276,7 @@ Package: libebook1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libebook-1.2-20 (= ${binary:Version}),
+Depends: libebook-1.2-21 (= ${binary:Version}),
          gir1.2-ebook-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -307,7 +307,7 @@ Description: GObject introspection for the EBook library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libedata-book-1.2-26
+Package: libedata-book-1.2-27
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -323,7 +323,7 @@ Package: libedata-book1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedata-book-1.2-26 (= ${binary:Version}),
+Depends: libedata-book-1.2-27 (= ${binary:Version}),
          gir1.2-edatabook-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -366,7 +366,7 @@ Description: GObject introspection for the EBook Contacts library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libebook-contacts-1.2-3
+Package: libebook-contacts-1.2-4
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -382,7 +382,7 @@ Package: libebook-contacts1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libebook-contacts-1.2-3 (= ${binary:Version}),
+Depends: libebook-contacts-1.2-4 (= ${binary:Version}),
          gir1.2-ebookcontacts-1.2 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -395,7 +395,7 @@ Description: Client library for evolution contacts books (development files)
  Evolution is the integrated mail, calendar, task and address book
  distributed suite from Novell, Inc.
 
-Package: libecal-2.0-1
+Package: libecal-2.0-2
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -429,7 +429,7 @@ Package: libecal2.0-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libecal-2.0-1 (= ${binary:Version}),
+Depends: libecal-2.0-2 (= ${binary:Version}),
          gir1.2-ecal-2.0 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -459,7 +459,7 @@ Description: GObject introspection for the ECal library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libedata-cal-2.0-1
+Package: libedata-cal-2.0-2
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -478,7 +478,7 @@ Package: libedata-cal2.0-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libedata-cal-2.0-1 (= ${binary:Version}),
+Depends: libedata-cal-2.0-2 (= ${binary:Version}),
          gir1.2-edatacal-2.0 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
@@ -509,7 +509,7 @@ Description: GObject introspection for the EDataCal library
  library. It can be used by packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libebackend-1.2-10
+Package: libebackend-1.2-11
 Section: libs
 Architecture: any
 Multi-Arch: same
@@ -526,7 +526,7 @@ Package: libebackend1.2-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libebackend-1.2-10 (= ${binary:Version}),
+Depends: libebackend-1.2-11 (= ${binary:Version}),
          gir1.2-ebackend-1.2 (= ${binary:Version}),
          ${misc:Depends},
          libedataserver1.2-dev (= ${binary:Version}),
