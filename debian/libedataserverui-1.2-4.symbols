@@ -11,6 +11,10 @@ libedataserverui-1.2.so.4 libedataserverui-1.2-4 #MINVER#
  e_buffer_tagger_update_tags@Base 3.37.90
  e_cell_renderer_color_get_type@Base 3.18.1
  e_cell_renderer_color_new@Base 3.18.1
+ e_certificate_widget_get_type@Base 3.45.3
+ e_certificate_widget_new@Base 3.45.3
+ e_certificate_widget_set_der@Base 3.45.3
+ e_certificate_widget_set_pem@Base 3.45.3
  e_credentials_prompter_complete_prompt_call@Base 3.16.2
  e_credentials_prompter_get_auto_prompt@Base 3.16.2
  e_credentials_prompter_get_auto_prompt_disabled_for@Base 3.16.2
