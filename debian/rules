@@ -19,22 +19,20 @@ ifeq (,$(filter $(DEB_HOST_ARCH), hppa hurd-i386 ia64 kfreebsd-i386 kfreebsd-amd
 CONFFLAGS = -DWITH_PHONENUMBER=ON
 endif
 ifeq (,$(filter $(DEB_HOST_ARCH), ia64 kfreebsd-i386 kfreebsd-amd64))
-CONFFLAGS += -DENABLE_OAUTH2=ON
+CONFFLAGS += -DENABLE_OAUTH2_WEBKITGTK=ON
 else
-CONFFLAGS += -DENABLE_OAUTH2=OFF
+CONFFLAGS += -DENABLE_OAUTH2_WEBKITGTK=OFF
 endif
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
 		-DSYSCONF_INSTALL_DIR=/etc \
-		-DWITH_GWEATHER4=ON \
 		-DWITH_LIBDB=/usr \
 		-DWITH_OPENLDAP=ON \
 		-DWITH_KRB5=ON \
 		-DCMAKE_SKIP_RPATH=ON \
 		-DENABLE_GTK=ON \
 		-DENABLE_GTK4=OFF \
-		-DWITH_GCR3=ON \
 		-DENABLE_GTK_DOC=ON \
 		-DENABLE_GOA=ON \
 		-DENABLE_EXAMPLES=ON \
