@@ -1,0 +1,6 @@
+usr/lib/*/pkgconfig/libedataserverui4-1.0.pc
+usr/lib/*/libedataserverui4-1.0.so
+usr/include/evolution-data-server/libedataserverui4
+usr/share/gir-1.0/EDataServerUI4-1.0.gir
+usr/share/vala/vapi/libedataserverui4-1.0.vapi
+usr/share/vala/vapi/libedataserverui4-1.0.deps
