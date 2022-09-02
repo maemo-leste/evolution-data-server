@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 cmake_policy(VERSION 3.1)
 
 project(evolution-data-server
-	VERSION 3.45.2
+	VERSION 3.45.3
 	LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(PROJECT_BUGREPORT "https://gitlab.gnome.org/GNOME/evolution-data-server/issues/")
@@ -116,8 +116,6 @@ add_definitions(-DSOUP_VERSION_MAX_ALLOWED=${soup_encoded_version})
 add_definitions(-DGLIB_VERSION_MIN_REQUIRED=${glib_encoded_version})
 add_definitions(-DSOUP_VERSION_MIN_REQUIRED=${soup_encoded_version})
 
-set(gcr3_minimum_version 3.4)
-set(gcr4_minimum_version 3.90)
 set(libical_glib_minimum_version 3.0.7)
 set(libsecret_minimum_version 0.5)
 set(libxml_minimum_version 2.0.0)
@@ -390,16 +388,10 @@ endif(NOT ICU_FOUND)
 # Check for GTK+
 # *************************
 
-add_printable_option(WITH_GCR3 "Use gcr3, instead of gcr4" OFF)
 add_printable_option(ENABLE_GTK "Enable gtk+ support" ON)
 
 if(ENABLE_GTK)
 	pkg_check_modules_for_option(ENABLE_GTK "GTK+ support" GTK gtk+-3.0>=${gdk_minimum_version})
-	if(WITH_GCR3)
-		pkg_check_modules_for_option(ENABLE_GTK "GTK+ support" GCR gcr-3>=${gcr3_minimum_version})
-	else(WITH_GCR3)
-		pkg_check_modules_for_option(ENABLE_GTK "GTK+ support" GCR gcr-4-gtk3>=${gcr4_minimum_version})
-	endif(WITH_GCR3)
 
 	set(HAVE_GTK 1)
 endif(ENABLE_GTK)
@@ -407,7 +399,6 @@ endif(ENABLE_GTK)
 add_printable_option(ENABLE_GTK4 "Enable gtk4 support" ON)
 if(ENABLE_GTK4)
 	pkg_check_modules_for_option(ENABLE_GTK4 "gtk4 support" GTK4 gtk4>=${gdk4_minimum_version})
-	pkg_check_modules_for_option(ENABLE_GTK4 "gtk4 support" GCR4 gcr-4-gtk4>=${gcr4_minimum_version})
 
 	set(HAVE_GTK4 1)
 endif(ENABLE_GTK4)
@@ -928,8 +919,8 @@ unset(CMAKE_REQUIRED_LIBRARIES)
 
 pkg_check_modules(SOUP REQUIRED libsoup-3.0)
 pkg_check_modules(DATA_SERVER REQUIRED gio-2.0 gmodule-2.0 libsecret-1 libxml-2.0 libsoup-3.0 ${mozilla_nspr} ${mozilla_nss})
-set(E_DATA_SERVER_INCLUDES ${E_DATA_SERVER_INCLUDES} ${MANUAL_NSPR_INCLUDES} ${MANUAL_NSS_INCLUDES})
-set(E_DATA_SERVER_LDFLAGS ${E_DATA_SERVER_LDFLAGS} ${MANUAL_NSPR_LIBS} ${MANUAL_NSS_LIBS})
+set(DATA_SERVER_INCLUDE_DIRS ${DATA_SERVER_INCLUDE_DIRS} ${MANUAL_NSPR_INCLUDES} ${MANUAL_NSS_INCLUDES})
+set(DATA_SERVER_LDFLAGS ${DATA_SERVER_LDFLAGS} ${MANUAL_NSPR_LIBS} ${MANUAL_NSS_LIBS})
 
 pkg_check_modules(BACKEND REQUIRED gio-2.0 gmodule-2.0 libsecret-1 libsoup-3.0 libxml-2.0)
 pkg_check_modules(ADDRESSBOOK REQUIRED gio-2.0 libxml-2.0 libsoup-3.0 libsecret-1)

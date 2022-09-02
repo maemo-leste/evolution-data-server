@@ -13,6 +13,7 @@ configure_file(
 set(SOURCES
 	e-buffer-tagger.c
 	e-cell-renderer-color.c
+	e-certificate-widget.c
 	e-credentials-prompter.c
 	e-credentials-prompter-impl.c
 	e-credentials-prompter-impl-oauth2.c
@@ -28,6 +29,7 @@ set(HEADERS
 	${CMAKE_CURRENT_BINARY_DIR}/libedataserverui${UI_VERSION}.h
 	e-buffer-tagger.h
 	e-cell-renderer-color.h
+	e-certificate-widget.h
 	e-credentials-prompter.h
 	e-credentials-prompter-impl.h
 	e-credentials-prompter-impl-oauth2.h
@@ -73,7 +75,6 @@ target_compile_options(edataserverui PUBLIC
 	${CAMEL_CFLAGS}
 	${CODE_COVERAGE_CFLAGS}
 	${GNOME_PLATFORM_CFLAGS}
-	${GCR_CFLAGS}
 	${GTK_CFLAGS}
 	${JSON_GLIB_CFLAGS}
 	${OAUTH2_WEBKITGTK_CFLAGS}
@@ -88,7 +89,6 @@ target_include_directories(edataserverui PUBLIC
 	${CAMEL_INCLUDE_DIRS}
 	${CODE_COVERAGE_INCLUDE_DIRS}
 	${GNOME_PLATFORM_INCLUDE_DIRS}
-	${GCR_INCLUDE_DIRS}
 	${GTK_INCLUDE_DIRS}
 	${JSON_GLIB_INCLUDE_DIRS}
 	${OAUTH2_WEBKITGTK_INCLUDE_DIRS}
@@ -100,7 +100,6 @@ target_link_libraries(edataserverui
 	${CAMEL_LDFLAGS}
 	${CODE_COVERAGE_LDFLAGS}
 	${GNOME_PLATFORM_LDFLAGS}
-	${GCR_LDFLAGS}
 	${GTK_LDFLAGS}
 	${JSON_GLIB_LDFLAGS}
 	${OAUTH2_WEBKITGTK_LDFLAGS}
@@ -172,6 +171,7 @@ configure_file(
 set(SOURCES
 	e-buffer-tagger.c
 	e-cell-renderer-color.c
+	e-certificate-widget.c
 	e-credentials-prompter.c
 	e-credentials-prompter-impl.c
 	e-credentials-prompter-impl-oauth2.c
@@ -187,6 +187,7 @@ set(HEADERS
 	${CMAKE_CURRENT_BINARY_DIR}/libedataserverui${UI_VERSION}.h
 	e-buffer-tagger.h
 	e-cell-renderer-color.h
+	e-certificate-widget.h
 	e-credentials-prompter.h
 	e-credentials-prompter-impl.h
 	e-credentials-prompter-impl-oauth2.h
@@ -232,7 +233,6 @@ target_compile_options(edataserverui${UI_VERSION} PUBLIC
 	${CAMEL_CFLAGS}
 	${CODE_COVERAGE_CFLAGS}
 	${GNOME_PLATFORM_CFLAGS}
-	${GCR4_CFLAGS}
 	${GTK4_CFLAGS}
 	${JSON_GLIB_CFLAGS}
 	${OAUTH2_WEBKITGTK4_CFLAGS}
@@ -247,7 +247,6 @@ target_include_directories(edataserverui${UI_VERSION} PUBLIC
 	${CAMEL_INCLUDE_DIRS}
 	${CODE_COVERAGE_INCLUDE_DIRS}
 	${GNOME_PLATFORM_INCLUDE_DIRS}
-	${GCR4_INCLUDE_DIRS}
 	${GTK4_INCLUDE_DIRS}
 	${JSON_GLIB_INCLUDE_DIRS}
 	${OAUTH2_WEBKITGTK4_INCLUDE_DIRS}
@@ -259,7 +258,6 @@ target_link_libraries(edataserverui${UI_VERSION}
 	${CAMEL_LDFLAGS}
 	${CODE_COVERAGE_LDFLAGS}
 	${GNOME_PLATFORM_LDFLAGS}
-	${GCR4_LDFLAGS}
 	${GTK4_LDFLAGS}
 	${JSON_GLIB_LDFLAGS}
 	${OAUTH2_WEBKITGTK4_LDFLAGS}
