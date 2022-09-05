@@ -51,8 +51,12 @@ Depends: ${shlibs:Depends},
          evolution-data-server-common (>= ${source:Version}),
          libcamel-1.2-64 (= ${binary:Version}),
          gnome-keyring,
-Breaks: evolution (<< 3.29.90),
-        libevolution (<< 3.29.90)
+Breaks: chatty (<< 0.6.7-3~),
+        evolution (<< 3.45),
+        gnome-shell (<< 42.4-2~)
+        libevolution (<< 3.29.90),
+        libgoa-1.0-0b (<< 3.45),
+        roger-router (<< 2.4.2-3~),
 Replaces: evolution (<< 3.29.90),
           libevolution (<< 3.29.90)
 Suggests: evolution
