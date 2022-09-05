@@ -1,9 +1,3 @@
-evolution-data-server (3.45.3-2) experimental; urgency=medium
-
-  * Add packages for the GTK4 version of libedataserverui: libedataserverui4
-
- -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 02 Sep 2022 14:16:20 -0400
-
 evolution-data-server (3.45.3-1) experimental; urgency=medium
 
   * New upstream release
