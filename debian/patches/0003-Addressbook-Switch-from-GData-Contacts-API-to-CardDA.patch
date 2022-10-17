@@ -1,4 +1,3 @@
-From bfdd35f2c586eef22d97e0cf6a14ddb0497657ba Mon Sep 17 00:00:00 2001
 From: Milan Crha <mcrha@redhat.com>
 Date: Thu, 3 Jun 2021 17:43:27 +0200
 Subject: [PATCH 3/3] Addressbook: Switch from GData Contacts API to CardDAV
@@ -11,19 +10,19 @@ the CardDAV API, which the Google server supports too.
 
 Related to https://gitlab.gnome.org/GNOME/libgdata/-/issues/42
 ---
- po/POTFILES.in                                |    2 -
- src/addressbook/backends/CMakeLists.txt       |    4 -
- .../backends/carddav/e-book-backend-carddav.c |    3 +-
- .../backends/google/CMakeLists.txt            |  100 -
- .../google/e-book-backend-google-factory.c    |   78 -
- .../backends/google/e-book-backend-google.c   | 1371 -------------
- .../backends/google/e-book-backend-google.h   |   63 -
- .../backends/google/e-book-google-utils.c     | 1747 -----------------
- .../backends/google/e-book-google-utils.h     |   69 -
- .../backends/google/tests/CMakeLists.txt      |   38 -
- .../backends/google/tests/phone-numbers.c     |  125 --
- .../google-backend/module-google-backend.c    |  141 +-
- ...evolution-source-registry-migrate-tweaks.c |   51 +
+ po/POTFILES.in                                     |    2 -
+ src/addressbook/backends/CMakeLists.txt            |    4 -
+ .../backends/carddav/e-book-backend-carddav.c      |    3 +-
+ src/addressbook/backends/google/CMakeLists.txt     |  100 --
+ .../google/e-book-backend-google-factory.c         |   78 -
+ .../backends/google/e-book-backend-google.c        | 1371 ---------------
+ .../backends/google/e-book-backend-google.h        |   63 -
+ .../backends/google/e-book-google-utils.c          | 1747 --------------------
+ .../backends/google/e-book-google-utils.h          |   69 -
+ .../backends/google/tests/CMakeLists.txt           |   38 -
+ .../backends/google/tests/phone-numbers.c          |  125 --
+ src/modules/google-backend/module-google-backend.c |  141 +-
+ .../evolution-source-registry-migrate-tweaks.c     |   51 +
  13 files changed, 65 insertions(+), 3727 deletions(-)
  delete mode 100644 src/addressbook/backends/google/CMakeLists.txt
  delete mode 100644 src/addressbook/backends/google/e-book-backend-google-factory.c
@@ -34,10 +33,10 @@ Related to https://gitlab.gnome.org/GNOME/libgdata/-/issues/42
  delete mode 100644 src/addressbook/backends/google/tests/CMakeLists.txt
  delete mode 100644 src/addressbook/backends/google/tests/phone-numbers.c
 
-Index: evolution-data-server-3.36.5/po/POTFILES.in
-===================================================================
---- evolution-data-server-3.36.5.orig/po/POTFILES.in
-+++ evolution-data-server-3.36.5/po/POTFILES.in
+diff --git a/po/POTFILES.in b/po/POTFILES.in
+index cc6e394..1a76594 100644
+--- a/po/POTFILES.in
++++ b/po/POTFILES.in
 @@ -4,8 +4,6 @@
  src/addressbook/backends/carddav/e-book-backend-carddav.c
  src/addressbook/backends/file/e-book-backend-file.c
@@ -47,10 +46,10 @@ Index: evolution-data-server-3.36.5/po/POTFILES.in
  src/addressbook/backends/ldap/e-book-backend-ldap.c
  src/addressbook/libebook-contacts/e-book-contacts-utils.c
  src/addressbook/libebook-contacts/e-contact.c
-Index: evolution-data-server-3.36.5/src/addressbook/backends/CMakeLists.txt
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/CMakeLists.txt
-+++ evolution-data-server-3.36.5/src/addressbook/backends/CMakeLists.txt
+diff --git a/src/addressbook/backends/CMakeLists.txt b/src/addressbook/backends/CMakeLists.txt
+index dced996..f38ad6a 100644
+--- a/src/addressbook/backends/CMakeLists.txt
++++ b/src/addressbook/backends/CMakeLists.txt
 @@ -1,10 +1,6 @@
  add_subdirectory(carddav)
  add_subdirectory(file)
@@ -62,11 +61,11 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/CMakeLists.txt
  if(HAVE_LDAP)
  	add_subdirectory(ldap)
  endif(HAVE_LDAP)
-Index: evolution-data-server-3.36.5/src/addressbook/backends/carddav/e-book-backend-carddav.c
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/carddav/e-book-backend-carddav.c
-+++ evolution-data-server-3.36.5/src/addressbook/backends/carddav/e-book-backend-carddav.c
-@@ -163,7 +163,8 @@ ebb_carddav_connect_sync (EBookMetaBacke
+diff --git a/src/addressbook/backends/carddav/e-book-backend-carddav.c b/src/addressbook/backends/carddav/e-book-backend-carddav.c
+index 0f587ea..faf90b1 100644
+--- a/src/addressbook/backends/carddav/e-book-backend-carddav.c
++++ b/src/addressbook/backends/carddav/e-book-backend-carddav.c
+@@ -165,7 +165,8 @@ ebb_carddav_connect_sync (EBookMetaBackend *meta_backend,
  				}
  
  				g_free (path);
@@ -76,9 +75,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/carddav/e-book-back
  				g_clear_error (&local_error);
  				success = TRUE;
  
-Index: evolution-data-server-3.36.5/src/addressbook/backends/google/CMakeLists.txt
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/google/CMakeLists.txt
+diff --git a/src/addressbook/backends/google/CMakeLists.txt b/src/addressbook/backends/google/CMakeLists.txt
+deleted file mode 100644
+index 09e2bee..0000000
+--- a/src/addressbook/backends/google/CMakeLists.txt
 +++ /dev/null
 @@ -1,100 +0,0 @@
 -set(DEPENDENCIES
@@ -181,9 +181,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/google/CMakeLists.t
 -)
 -
 -add_subdirectory(tests)
-Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-backend-google-factory.c
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/google/e-book-backend-google-factory.c
+diff --git a/src/addressbook/backends/google/e-book-backend-google-factory.c b/src/addressbook/backends/google/e-book-backend-google-factory.c
+deleted file mode 100644
+index 68b4d51..0000000
+--- a/src/addressbook/backends/google/e-book-backend-google-factory.c
 +++ /dev/null
 @@ -1,78 +0,0 @@
 -/* e-book-backend-google-factory.c - Google contact backend factory.
@@ -264,9 +265,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-backe
 -{
 -	e_module = NULL;
 -}
-Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-backend-google.c
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/google/e-book-backend-google.c
+diff --git a/src/addressbook/backends/google/e-book-backend-google.c b/src/addressbook/backends/google/e-book-backend-google.c
+deleted file mode 100644
+index 4597169..0000000
+--- a/src/addressbook/backends/google/e-book-backend-google.c
 +++ /dev/null
 @@ -1,1371 +0,0 @@
 -/* e-book-backend-google.c - Google contact backendy.
@@ -1640,9 +1642,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-backe
 -	object_class->dispose = ebb_google_dispose;
 -	object_class->finalize = ebb_google_finalize;
 -}
-Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-backend-google.h
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/google/e-book-backend-google.h
+diff --git a/src/addressbook/backends/google/e-book-backend-google.h b/src/addressbook/backends/google/e-book-backend-google.h
+deleted file mode 100644
+index fcbf1de..0000000
+--- a/src/addressbook/backends/google/e-book-backend-google.h
 +++ /dev/null
 @@ -1,63 +0,0 @@
 -/* e-book-backend-google.h - Google contact backendy.
@@ -1708,9 +1711,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-backe
 -G_END_DECLS
 -
 -#endif /* E_BOOK_BACKEND_GOOGLE_H */
-Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-google-utils.c
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/google/e-book-google-utils.c
+diff --git a/src/addressbook/backends/google/e-book-google-utils.c b/src/addressbook/backends/google/e-book-google-utils.c
+deleted file mode 100644
+index 3b14a4e..0000000
+--- a/src/addressbook/backends/google/e-book-google-utils.c
 +++ /dev/null
 @@ -1,1747 +0,0 @@
 -/* e-book-google-utils.c - Google contact conversion utilities.
@@ -3460,9 +3464,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-googl
 -
 -	return g_strdup (time_string);
 -}
-Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-google-utils.h
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/google/e-book-google-utils.h
+diff --git a/src/addressbook/backends/google/e-book-google-utils.h b/src/addressbook/backends/google/e-book-google-utils.h
+deleted file mode 100644
+index 302731b..0000000
+--- a/src/addressbook/backends/google/e-book-google-utils.h
 +++ /dev/null
 @@ -1,69 +0,0 @@
 -/* e-book-google-utils.h - Google contact conversion utilities.
@@ -3534,9 +3539,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/google/e-book-googl
 -G_END_DECLS
 -
 -#endif /* E_BOOK_GOOGLE_UTILS_H */
-Index: evolution-data-server-3.36.5/src/addressbook/backends/google/tests/CMakeLists.txt
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/google/tests/CMakeLists.txt
+diff --git a/src/addressbook/backends/google/tests/CMakeLists.txt b/src/addressbook/backends/google/tests/CMakeLists.txt
+deleted file mode 100644
+index dd82805..0000000
+--- a/src/addressbook/backends/google/tests/CMakeLists.txt
 +++ /dev/null
 @@ -1,38 +0,0 @@
 -set(DEPENDENCIES
@@ -3577,9 +3583,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/google/tests/CMakeL
 -)
 -
 -add_check_test(ebookbackendgoogle-phonenumber)
-Index: evolution-data-server-3.36.5/src/addressbook/backends/google/tests/phone-numbers.c
-===================================================================
---- evolution-data-server-3.36.5.orig/src/addressbook/backends/google/tests/phone-numbers.c
+diff --git a/src/addressbook/backends/google/tests/phone-numbers.c b/src/addressbook/backends/google/tests/phone-numbers.c
+deleted file mode 100644
+index f2ca12f..0000000
+--- a/src/addressbook/backends/google/tests/phone-numbers.c
 +++ /dev/null
 @@ -1,125 +0,0 @@
 -/* phone-numbers.c - Phone number tests
@@ -3707,10 +3714,10 @@ Index: evolution-data-server-3.36.5/src/addressbook/backends/google/tests/phone-
 -
 -	return g_test_run ();
 -}
-Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-backend.c
-===================================================================
---- evolution-data-server-3.36.5.orig/src/modules/google-backend/module-google-backend.c
-+++ evolution-data-server-3.36.5/src/modules/google-backend/module-google-backend.c
+diff --git a/src/modules/google-backend/module-google-backend.c b/src/modules/google-backend/module-google-backend.c
+index 2b1fcf4..01fc05b 100644
+--- a/src/modules/google-backend/module-google-backend.c
++++ b/src/modules/google-backend/module-google-backend.c
 @@ -50,11 +50,6 @@
  #define GOOGLE_SMTP_PORT		465
  #define GOOGLE_SMTP_SECURITY_METHOD	METHOD (SSL_ON_ALTERNATE_PORT)
@@ -3723,7 +3730,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  /* Tasks Configuration Details */
  #define GOOGLE_TASKS_BACKEND_NAME	"gtasks"
  
-@@ -489,6 +484,7 @@ google_backend_authenticate_sync (EBacke
+@@ -489,6 +484,7 @@ google_backend_authenticate_sync (EBackend *backend,
  	GList *sources;
  	ENamedParameters *credentials_copy = NULL;
  	const gchar *calendar_url;
@@ -3731,7 +3738,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  
  	g_return_val_if_fail (collection != NULL, E_SOURCE_AUTHENTICATION_ERROR);
  
-@@ -536,8 +532,14 @@ google_backend_authenticate_sync (EBacke
+@@ -538,8 +534,14 @@ google_backend_authenticate_sync (EBackend *backend,
  		}
  	}
  
@@ -3748,7 +3755,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  			credentials, out_certificate_pem, out_certificate_errors, cancellable, error);
  	} else {
  		result = E_SOURCE_AUTHENTICATION_ACCEPTED;
-@@ -612,78 +614,13 @@ google_backend_authenticate_sync (EBacke
+@@ -616,78 +618,13 @@ google_backend_authenticate_sync (EBackend *backend,
  	return result;
  }
  
@@ -3828,7 +3835,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  		return TRUE;
  
  	/* Chain up to parent's method. */
-@@ -693,12 +630,10 @@ google_backend_is_custom_source (EWebDAV
+@@ -697,12 +634,10 @@ google_backend_is_custom_source (EWebDAVCollectionBackend *webdav_backend,
  static void
  google_backend_populate (ECollectionBackend *backend)
  {
@@ -3841,7 +3848,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  	authentication_extension = e_source_get_extension (source, E_SOURCE_EXTENSION_AUTHENTICATION);
  
  	/* When the WebDAV extension is created, the auth method can be reset, thus ensure
-@@ -712,15 +647,6 @@ google_backend_populate (ECollectionBack
+@@ -716,15 +651,6 @@ google_backend_populate (ECollectionBackend *backend)
  
  	/* Chain up to parent's method. */
  	E_COLLECTION_BACKEND_CLASS (e_google_backend_parent_class)->populate (backend);
@@ -3857,7 +3864,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  }
  
  static gchar *
-@@ -730,12 +655,10 @@ google_backend_dup_resource_id (ECollect
+@@ -733,12 +659,10 @@ google_backend_dup_resource_id (ECollectionBackend *backend,
  {
  	if (e_source_has_extension (child_source, E_SOURCE_EXTENSION_CALENDAR) ||
  	    e_source_has_extension (child_source, E_SOURCE_EXTENSION_MEMO_LIST) ||
@@ -3872,7 +3879,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  	return NULL;
  }
  
-@@ -746,7 +669,6 @@ google_backend_child_added (ECollectionB
+@@ -749,7 +673,6 @@ google_backend_child_added (ECollectionBackend *backend,
  	ESource *collection_source;
  	const gchar *extension_name;
  	gboolean is_mail = FALSE;
@@ -3880,7 +3887,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  
  	/* Chain up to parent's child_added() method. */
  	E_COLLECTION_BACKEND_CLASS (e_google_backend_parent_class)->
-@@ -782,8 +704,6 @@ google_backend_child_added (ECollectionB
+@@ -785,8 +708,6 @@ google_backend_child_added (ECollectionBackend *backend,
  			child_source, extension_name);
  		auth_child_user = e_source_authentication_get_user (
  			auth_child_extension);
@@ -3889,7 +3896,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  
  		/* XXX Do not override an existing user name setting.
  		 *     The IMAP or (especially) SMTP configuration may
-@@ -843,42 +763,6 @@ google_backend_child_added (ECollectionB
+@@ -846,42 +767,6 @@ google_backend_child_added (ECollectionBackend *backend,
  			child_source, "notify::oauth2-support",
  			G_CALLBACK (google_backend_contacts_update_auth_method_cb),
  			backend);
@@ -3932,7 +3939,7 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  	}
  }
  
-@@ -911,10 +795,8 @@ e_google_backend_class_init (EGoogleBack
+@@ -914,10 +799,8 @@ e_google_backend_class_init (EGoogleBackendClass *class)
  	collection_backend_class->populate = google_backend_populate;
  	collection_backend_class->dup_resource_id = google_backend_dup_resource_id;
  	collection_backend_class->child_added = google_backend_child_added;
@@ -3943,11 +3950,11 @@ Index: evolution-data-server-3.36.5/src/modules/google-backend/module-google-bac
  	webdav_collection_backend_class->is_custom_source = google_backend_is_custom_source;
  }
  
-Index: evolution-data-server-3.36.5/src/services/evolution-source-registry/evolution-source-registry-migrate-tweaks.c
-===================================================================
---- evolution-data-server-3.36.5.orig/src/services/evolution-source-registry/evolution-source-registry-migrate-tweaks.c
-+++ evolution-data-server-3.36.5/src/services/evolution-source-registry/evolution-source-registry-migrate-tweaks.c
-@@ -208,6 +208,56 @@ evolution_source_registry_migrate_webdav
+diff --git a/src/services/evolution-source-registry/evolution-source-registry-migrate-tweaks.c b/src/services/evolution-source-registry/evolution-source-registry-migrate-tweaks.c
+index 82d113d..6c7b221 100644
+--- a/src/services/evolution-source-registry/evolution-source-registry-migrate-tweaks.c
++++ b/src/services/evolution-source-registry/evolution-source-registry-migrate-tweaks.c
+@@ -208,6 +208,56 @@ evolution_source_registry_migrate_webdav_book_to_carddav (ESourceRegistryServer
  	return modified;
  }
  
@@ -4004,7 +4011,7 @@ Index: evolution-data-server-3.36.5/src/services/evolution-source-registry/evolu
  gboolean
  evolution_source_registry_migrate_tweak_key_file (ESourceRegistryServer *server,
  						  GKeyFile *key_file,
-@@ -218,6 +268,7 @@ evolution_source_registry_migrate_tweak_
+@@ -218,6 +268,7 @@ evolution_source_registry_migrate_tweak_key_file (ESourceRegistryServer *server,
  	modified = evolution_source_registry_migrate_imap_to_imapx (server, key_file, uid);
  	modified = evolution_source_registry_migrate_owncloud_to_webdav (server, key_file, uid) || modified;
  	modified = evolution_source_registry_migrate_webdav_book_to_carddav (server, key_file, uid) || modified;

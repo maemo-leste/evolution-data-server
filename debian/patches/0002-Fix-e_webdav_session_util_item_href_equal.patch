@@ -1,4 +1,3 @@
-From 42cbb30d25241bedab5aae1efc3ba1e8e8bdb6ae Mon Sep 17 00:00:00 2001
 From: Milan Crha <mcrha@redhat.com>
 Date: Thu, 3 Jun 2021 15:48:35 +0200
 Subject: [PATCH 2/3] Fix e_webdav_session_util_item_href_equal()
@@ -6,12 +5,12 @@ Subject: [PATCH 2/3] Fix e_webdav_session_util_item_href_equal()
 There had been some issues with the compare code, which could match
 two href-s, which were not equal.
 ---
- src/libedataserver/e-webdav-session.c      | 40 +++++++++++++---------
- tests/libedataserver/libedataserver-test.c |  9 ++++-
+ src/libedataserver/e-webdav-session.c      | 40 +++++++++++++++++-------------
+ tests/libedataserver/libedataserver-test.c |  9 ++++++-
  2 files changed, 31 insertions(+), 18 deletions(-)
 
 diff --git a/src/libedataserver/e-webdav-session.c b/src/libedataserver/e-webdav-session.c
-index 8400f8476..704e71b32 100644
+index 8400f84..704e71b 100644
 --- a/src/libedataserver/e-webdav-session.c
 +++ b/src/libedataserver/e-webdav-session.c
 @@ -5141,19 +5141,20 @@ e_webdav_session_util_free_privileges (GNode *privileges)
@@ -117,7 +116,7 @@ index 8400f8476..704e71b32 100644
  		}
  	}
 diff --git a/tests/libedataserver/libedataserver-test.c b/tests/libedataserver/libedataserver-test.c
-index c3c225b62..1539bba00 100644
+index 084c42c..6c321d2 100644
 --- a/tests/libedataserver/libedataserver-test.c
 +++ b/tests/libedataserver/libedataserver-test.c
 @@ -64,7 +64,14 @@ test_webdav_href_compare (ETestServerFixture *fixture,
@@ -136,6 +135,3 @@ index c3c225b62..1539bba00 100644
  	};
  	gint ii;
  
--- 
-2.31.1
-

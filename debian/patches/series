@@ -6,3 +6,4 @@ I-282-tests-Avoid-build-source-directories-in-executables.patch
 0001-CardDAV-Recognize-OPTIONS-Bad-Request-response-as-su.patch
 0002-Fix-e_webdav_session_util_item_href_equal.patch
 0003-Addressbook-Switch-from-GData-Contacts-API-to-CardDA.patch
+EWebDAVCollectionBackend-Preset-also-auth-method-on-the-n.patch
