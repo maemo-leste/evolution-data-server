@@ -1,3 +1,9 @@
+evolution-data-server (3.38.3-2) unstable; urgency=medium
+
+  * Add evcard-virtual-attribute-methods.patch
+
+ -- Merlijn Wajer <merlijn@wizzup.org>  Wed, 30 Nov 2022 22:53:31 +0100
+
 evolution-data-server (3.38.3-1+deb11u1) bullseye; urgency=medium
 
   * Add patches from upstream to move Google Contacts addressbooks to
