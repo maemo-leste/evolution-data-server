@@ -69,7 +69,7 @@ Description: evolution database backend server
 Package: evolution-data-server-common
 Architecture: all
 Depends: ${misc:Depends}
-Multi-arch: foreign
+Multi-Arch: foreign
 Description: architecture independent files for Evolution Data Server
  The data server, called "Evolution Data Server" is responsible for managing
  calendar and addressbook information.
