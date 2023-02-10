@@ -41,7 +41,7 @@ Build-Depends: cmake,
                db-util <!nocheck>,
                dbus <!nocheck>,
 Rules-Requires-Root: binary-targets
-Standards-Version: 4.6.1
+Standards-Version: 4.6.2
 Homepage: https://wiki.gnome.org/Apps/Evolution
 Vcs-Git: https://salsa.debian.org/gnome-team/evolution-data-server.git
 Vcs-Browser: https://salsa.debian.org/gnome-team/evolution-data-server
