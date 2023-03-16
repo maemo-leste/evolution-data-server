@@ -1,0 +1,26 @@
+From: Michael Catanzaro <mcatanzaro@gnome.org>
+Date: Tue, 15 Nov 2022 08:58:38 +0000
+Subject: M!107 - Use webkitgtk-6.0 API version
+
+In WebKitGTK 2.39.1, the GTK 4 API version has been renamed from webkit2gtk-5.0 to webkitgtk-6.0.
+
+Closes https://gitlab.gnome.org/GNOME/evolution-data-server/-/merge_requests/107
+
+(cherry picked from commit cdb16f26f63f5093479a43cab32012845bcf33ed)
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0eaa9b2..b99beb6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -424,7 +424,7 @@ if(ENABLE_GTK4)
+ 
+ 	if(ENABLE_OAUTH2_WEBKITGTK4)
+ 		pkg_check_modules_for_option(ENABLE_OAUTH2_WEBKITGTK4 "WebKitGTK gtk4 for built-in OAuth2 authentications" OAUTH2_WEBKITGTK4
+-			webkit2gtk-5.0>=${webkit2gtk4_minimum_version}
++			webkitgtk-6.0>=${webkit2gtk4_minimum_version}
+ 		)
+ 	endif(ENABLE_OAUTH2_WEBKITGTK4)
+ endif(ENABLE_GTK4)

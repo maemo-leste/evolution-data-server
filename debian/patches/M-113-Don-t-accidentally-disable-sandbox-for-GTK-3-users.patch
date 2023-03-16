@@ -1,0 +1,26 @@
+From: Michael Catanzaro <mcatanzaro@redhat.com>
+Date: Fri, 20 Jan 2023 15:27:45 -0600
+Subject: M!113 - Don't accidentally disable sandbox for GTK 3 users
+
+In !112 I removed the sandbox enable call because it's gone in the GTK 4
+API where the sandbox is now mandatory. But this code is built for GTK 3
+as well, so where the call is still required.
+
+(cherry picked from commit 9317117ce9d7eba6265642803266cdd1f0d0ee98)
+---
+ src/libedataserverui/e-credentials-prompter-impl-oauth2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libedataserverui/e-credentials-prompter-impl-oauth2.c b/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
+index 40e7f8f..41e476a 100644
+--- a/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
++++ b/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
+@@ -1139,7 +1139,7 @@ e_credentials_prompter_impl_oauth2_show_dialog (ECredentialsPrompterImplOAuth2 *
+ 		NULL);
+ 
+ 	web_context = webkit_web_context_new ();
+-#if !WEBKIT_CHECK_VERSION(2, 39, 5)
++#if !GTK_CHECK_VERSION(4, 0, 0) || !WEBKIT_CHECK_VERSION(2, 39, 5)
+ 	webkit_web_context_set_sandbox_enabled (web_context, TRUE);
+ #endif
+ 	credentials_prompter_impl_oauth2_set_proxy (web_context,  e_credentials_prompter_get_registry (prompter), prompter_oauth2->priv->auth_source);

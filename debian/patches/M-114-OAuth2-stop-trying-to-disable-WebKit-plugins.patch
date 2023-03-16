@@ -1,0 +1,24 @@
+From: Michael Catanzaro <mcatanzaro@redhat.com>
+Date: Wed, 1 Feb 2023 13:36:21 -0600
+Subject: M!114 - OAuth2: stop trying to disable WebKit plugins
+
+WebKitGTK removed support for plugins in 2.32, but evolution-data-server
+already requires 2.34 at least. This property is gone in 2.39.5.
+
+(cherry picked from commit 816deda308279c3e5a8a816ae2d94542c9084555)
+---
+ src/libedataserverui/e-credentials-prompter-impl-oauth2.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/libedataserverui/e-credentials-prompter-impl-oauth2.c b/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
+index 56483ac..530c28a 100644
+--- a/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
++++ b/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
+@@ -1134,7 +1134,6 @@ e_credentials_prompter_impl_oauth2_show_dialog (ECredentialsPrompterImplOAuth2 *
+ 		"enable-html5-local-storage", FALSE,
+ 		"enable-offline-web-application-cache", FALSE,
+ 		"enable-page-cache", FALSE,
+-		"enable-plugins", FALSE,
+ 		"media-playback-allows-inline", FALSE,
+ 		"hardware-acceleration-policy", WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER,
+ 		NULL);

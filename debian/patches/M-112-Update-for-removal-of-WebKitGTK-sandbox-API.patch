@@ -1,0 +1,26 @@
+From: Michael Catanzaro <mcatanzaro@redhat.com>
+Date: Thu, 19 Jan 2023 20:12:04 -0600
+Subject: M!112 - Update for removal of WebKitGTK sandbox API
+
+WebKitGTK 2.39.5 contains an ABI break. The sandbox is now mandatory, so
+the function to enable/disable it has been removed.
+
+(cherry picked from commit 6f4d38537ec2192d7066a7ba145ca7ab0f607e56)
+---
+ src/libedataserverui/e-credentials-prompter-impl-oauth2.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/libedataserverui/e-credentials-prompter-impl-oauth2.c b/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
+index 530c28a..40e7f8f 100644
+--- a/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
++++ b/src/libedataserverui/e-credentials-prompter-impl-oauth2.c
+@@ -1139,7 +1139,9 @@ e_credentials_prompter_impl_oauth2_show_dialog (ECredentialsPrompterImplOAuth2 *
+ 		NULL);
+ 
+ 	web_context = webkit_web_context_new ();
++#if !WEBKIT_CHECK_VERSION(2, 39, 5)
+ 	webkit_web_context_set_sandbox_enabled (web_context, TRUE);
++#endif
+ 	credentials_prompter_impl_oauth2_set_proxy (web_context,  e_credentials_prompter_get_registry (prompter), prompter_oauth2->priv->auth_source);
+ 
+ 	widget = g_object_new (WEBKIT_TYPE_WEB_VIEW,

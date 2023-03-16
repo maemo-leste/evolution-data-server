@@ -1,2 +1,8 @@
 01-noinst-libedbus-private.patch
 ubuntu_gettext_domain.patch
+M-107-Use-webkitgtk-6.0-API-version.patch
+M-108-Try-harder-to-support-webkitgtk-6.0.patch
+M-112-Update-for-removal-of-WebKitGTK-sandbox-API.patch
+M-113-Don-t-accidentally-disable-sandbox-for-GTK-3-users.patch
+M-114-OAuth2-stop-trying-to-disable-WebKit-plugins.patch
+M-114-OAuth2-use-WebKitNetworkSession-to-manage-proxy-set.patch
