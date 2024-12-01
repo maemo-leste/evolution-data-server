@@ -9,15 +9,14 @@ Subject: [PATCH] wip: force apply patch
  src/addressbook/libebook-contacts/e-vcard.h   |  4 +-
  3 files changed, 64 insertions(+), 3 deletions(-)
 
-diff --git a/src/addressbook/libebook-contacts/e-contact.c b/src/addressbook/libebook-contacts/e-contact.c
-index 92b8822a5..66b305756 100644
---- a/src/addressbook/libebook-contacts/e-contact.c
-+++ b/src/addressbook/libebook-contacts/e-contact.c
-@@ -505,10 +505,46 @@ e_contact_finalize (GObject *object)
- 	G_OBJECT_CLASS (e_contact_parent_class)->finalize (object);
+Index: evolution-data-server/src/addressbook/libebook-contacts/e-contact.c
+===================================================================
+--- evolution-data-server.orig/src/addressbook/libebook-contacts/e-contact.c
++++ evolution-data-server/src/addressbook/libebook-contacts/e-contact.c
+@@ -515,9 +515,45 @@ e_contact_finalize (GObject *object)
  }
  
-+static void
+ static void
 +reset_chached_attribute (EContact *contact, EVCardAttribute *attr)
 +{
 +	const char *vcard_field;
@@ -52,7 +51,7 @@ index 92b8822a5..66b305756 100644
 +	E_VCARD_CLASS (e_contact_parent_class)->remove_attribute (evc, attr);
 +}
 +
- static void
++static void
  e_contact_class_init (EContactClass *class)
  {
  	GObjectClass *object_class;
@@ -60,7 +59,7 @@ index 92b8822a5..66b305756 100644
  	#ifdef ENABLE_MAINTAINER_MODE
  	GHashTable *used_attr_types; /* gchar *attr_name ~> GHashTable { gchar *type_value ~> NULL } */
  	GHashTableIter iter;
-@@ -517,10 +553,15 @@ e_contact_class_init (EContactClass *class)
+@@ -526,10 +562,15 @@ e_contact_class_init (EContactClass *cla
  	gint ii;
  
  	object_class = G_OBJECT_CLASS (class);
@@ -76,15 +75,14 @@ index 92b8822a5..66b305756 100644
  	#ifdef ENABLE_MAINTAINER_MODE
  	used_attr_types = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_hash_table_destroy);
  	#endif
-diff --git a/src/addressbook/libebook-contacts/e-vcard.c b/src/addressbook/libebook-contacts/e-vcard.c
-index 24dd5a7f3..dc31b37d3 100644
---- a/src/addressbook/libebook-contacts/e-vcard.c
-+++ b/src/addressbook/libebook-contacts/e-vcard.c
-@@ -175,6 +175,16 @@ vcard_finalize (GObject *object)
- 	G_OBJECT_CLASS (e_vcard_parent_class)->finalize (object);
+Index: evolution-data-server/src/addressbook/libebook-contacts/e-vcard.c
+===================================================================
+--- evolution-data-server.orig/src/addressbook/libebook-contacts/e-vcard.c
++++ evolution-data-server/src/addressbook/libebook-contacts/e-vcard.c
+@@ -176,12 +176,25 @@ vcard_finalize (GObject *object)
  }
  
-+static void
+ static void
 +e_vcard_add_attribute_cb (EVCard *evc, EVCardAttribute *attr)
 +{
 +}
@@ -94,10 +92,10 @@ index 24dd5a7f3..dc31b37d3 100644
 +{
 +}
 +
- static void
++static void
  e_vcard_class_init (EVCardClass *class)
  {
-@@ -182,6 +192,9 @@ e_vcard_class_init (EVCardClass *class)
+ 	GObjectClass *object_class;
  
  	object_class = G_OBJECT_CLASS (class);
  	object_class->finalize = vcard_finalize;
@@ -107,7 +105,7 @@ index 24dd5a7f3..dc31b37d3 100644
  }
  
  static void
-@@ -1708,10 +1721,12 @@ e_vcard_remove_attributes (EVCard *evc,
+@@ -1720,10 +1733,12 @@ e_vcard_remove_attributes (EVCard *evc,
                             const gchar *attr_name)
  {
  	GList *attr;
@@ -120,7 +118,7 @@ index 24dd5a7f3..dc31b37d3 100644
  	attr = e_vcard_ensure_attributes (evc);
  	while (attr) {
  		GList *next_attr;
-@@ -1725,7 +1740,7 @@ e_vcard_remove_attributes (EVCard *evc,
+@@ -1737,7 +1752,7 @@ e_vcard_remove_attributes (EVCard *evc,
  
  			/* matches, remove/delete the attribute */
  			evc->priv->attributes = g_list_delete_link (evc->priv->attributes, attr);
@@ -129,7 +127,7 @@ index 24dd5a7f3..dc31b37d3 100644
  			e_vcard_attribute_free (a);
  		}
  
-@@ -1751,6 +1766,7 @@ e_vcard_remove_attribute (EVCard *evc,
+@@ -1763,6 +1778,7 @@ e_vcard_remove_attribute (EVCard *evc,
  	 * already been called if this is a valid call and attr is among
  	 * our attributes. */
  	evc->priv->attributes = g_list_remove (evc->priv->attributes, attr);
@@ -137,7 +135,7 @@ index 24dd5a7f3..dc31b37d3 100644
  	e_vcard_attribute_free (attr);
  }
  
-@@ -1779,6 +1795,8 @@ e_vcard_append_attribute (EVCard *evc,
+@@ -1791,6 +1807,8 @@ e_vcard_append_attribute (EVCard *evc,
  	} else {
  		evc->priv->attributes = g_list_append (e_vcard_ensure_attributes (evc), attr);
  	}
@@ -146,7 +144,7 @@ index 24dd5a7f3..dc31b37d3 100644
  }
  
  /**
-@@ -1866,6 +1884,8 @@ e_vcard_add_attribute (EVCard *evc,
+@@ -1878,6 +1896,8 @@ e_vcard_add_attribute (EVCard *evc,
  	} else {
  		evc->priv->attributes = g_list_prepend (e_vcard_ensure_attributes (evc), attr);
  	}
@@ -155,11 +153,11 @@ index 24dd5a7f3..dc31b37d3 100644
  }
  
  /**
-diff --git a/src/addressbook/libebook-contacts/e-vcard.h b/src/addressbook/libebook-contacts/e-vcard.h
-index 9efcb3d4b..bdc24df77 100644
---- a/src/addressbook/libebook-contacts/e-vcard.h
-+++ b/src/addressbook/libebook-contacts/e-vcard.h
-@@ -228,8 +228,8 @@ struct _EVCardClass {
+Index: evolution-data-server/src/addressbook/libebook-contacts/e-vcard.h
+===================================================================
+--- evolution-data-server.orig/src/addressbook/libebook-contacts/e-vcard.h
++++ evolution-data-server/src/addressbook/libebook-contacts/e-vcard.h
+@@ -230,8 +230,8 @@ struct _EVCardClass {
  	GObjectClass parent_class;
  
  	/* Padding for future expansion */
@@ -170,6 +168,3 @@ index 9efcb3d4b..bdc24df77 100644
  	void (*_ebook_reserved2) (void);
  	void (*_ebook_reserved3) (void);
  	void (*_ebook_reserved4) (void);
--- 
-2.35.1
-
